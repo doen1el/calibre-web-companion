@@ -1,8 +1,10 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
 import 'package:calibre_web_companion/view_models/books_view_model.dart';
 import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
 import 'package:calibre_web_companion/view_models/login_view_model.dart';
 import 'package:calibre_web_companion/view_models/main_view_model.dart';
+import 'package:calibre_web_companion/view_models/me_view_model.dart';
 import 'package:calibre_web_companion/views/homepage_view.dart';
 import 'package:calibre_web_companion/views/login_view.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +21,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
         ChangeNotifierProvider(create: (_) => HomepageViewModel()),
         ChangeNotifierProvider(create: (_) => BooksViewModel()..refreshBooks()),
+        ChangeNotifierProvider(create: (_) => BookDetailsViewModel()),
+        ChangeNotifierProvider(create: (_) => MeViewModel()..getStats()),
       ],
       child: const MyApp(),
     ),

@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/views/book_details.dart';
 import 'package:calibre_web_companion/views/widgets/book_card.dart';
 import 'package:calibre_web_companion/views/widgets/search_dialog.dart';
 import 'package:flutter/material.dart';
@@ -159,7 +160,18 @@ class _BookListViewState extends State<BooksView> {
               ),
             );
           }
-          return BookCard(book: viewModel.books[index], onTap: () {});
+          return BookCard(
+            book: viewModel.books[index],
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder:
+                      (context) =>
+                          BookDetails(bookUuid: viewModel.books[index].uuid),
+                ),
+              );
+            },
+          );
         },
       ),
     );

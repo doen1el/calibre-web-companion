@@ -16,7 +16,7 @@ class BookModel {
   final String identifiers;
   final bool isArchived;
   final String isbn;
-  final String languages;
+  final List<String> languages;
   final String lastModified;
   final String path;
   final String pubdate;
@@ -27,10 +27,11 @@ class BookModel {
   final String series;
   final double seriesIndex;
   final String sort;
-  final String tags;
+  final List<String> tags;
   final String timestamp;
   final String title;
   final String uuid;
+  final List<String> formats;
 
   BookModel({
     this.defaultPubdate = '',
@@ -46,7 +47,7 @@ class BookModel {
     this.identifiers = '',
     this.isArchived = false,
     this.isbn = '',
-    this.languages = '',
+    this.languages = const [],
     this.lastModified = '',
     this.path = '',
     this.pubdate = '',
@@ -57,10 +58,11 @@ class BookModel {
     this.series = '',
     this.seriesIndex = 1.0,
     this.sort = '',
-    this.tags = '',
+    this.tags = const [],
     this.timestamp = '',
     this.title = '',
     this.uuid = '',
+    this.formats = const [],
   });
 
   // Factory constructor to create a BookModel from JSON
@@ -69,6 +71,40 @@ class BookModel {
     List<String> authorsList = [];
     if (json['authors'] != null && json['authors'].toString().isNotEmpty) {
       authorsList = json['authors'].toString().split('|');
+    }
+
+    // Parse tags array properly
+    List<String> tagsList = [];
+    if (json['tags'] != null) {
+      if (json['tags'] is List) {
+        // Handle when tags is a proper JSON array
+        tagsList = List<String>.from(json['tags'].map((tag) => tag.toString()));
+      } else {
+        // Fallback for when tags might be a string
+        tagsList = json['tags'].toString().split(',');
+      }
+    }
+
+    List<String> languagesList = [];
+    if (json['languages'] != null) {
+      if (json['languages'] is List) {
+        languagesList = List<String>.from(
+          json['languages'].map((lang) => lang.toString()),
+        );
+      } else {
+        languagesList = json['languages'].toString().split(',');
+      }
+    }
+
+    List<String> formatsList = [];
+    if (json['formats'] != null) {
+      if (json['formats'] is List) {
+        formatsList = List<String>.from(
+          json['formats'].map((format) => format.toString()),
+        );
+      } else {
+        formatsList = json['formats'].toString().split(',');
+      }
     }
 
     return BookModel(
@@ -85,7 +121,7 @@ class BookModel {
       identifiers: json['identifiers']?.toString() ?? '',
       isArchived: json['is_archived'] == true,
       isbn: json['isbn']?.toString() ?? '',
-      languages: json['languages']?.toString() ?? '',
+      languages: languagesList,
       lastModified: json['last_modified']?.toString() ?? '',
       path: json['path']?.toString() ?? '',
       pubdate: json['pubdate']?.toString() ?? '',
@@ -97,10 +133,11 @@ class BookModel {
       seriesIndex:
           json['series_index'] is num ? json['series_index'].toDouble() : 1.0,
       sort: json['sort']?.toString() ?? '',
-      tags: json['tags']?.toString() ?? '',
+      tags: tagsList,
       timestamp: json['timestamp']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
       uuid: json['uuid']?.toString() ?? '',
+      formats: formatsList,
     );
   }
 
@@ -135,6 +172,7 @@ class BookModel {
       'timestamp': timestamp,
       'title': title,
       'uuid': uuid,
+      'formats': formats,
     };
   }
 
