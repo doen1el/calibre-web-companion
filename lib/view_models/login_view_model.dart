@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:html/parser.dart' as parser;
-import 'dart:convert';
 
 class LoginViewModel extends ChangeNotifier {
   Logger logger = Logger();
@@ -63,55 +62,4 @@ class LoginViewModel extends ChangeNotifier {
       client.close();
     }
   }
-
-  // Future<Map<String, dynamic>> fetchBooks() async {
-  //   logger.i('Fetching books');
-  //   try {
-  //     final prefs = await SharedPreferences.getInstance();
-  //     final cookie = prefs.getString('calibre_web_session');
-
-  //     if (cookie == null) {
-  //       logger.w('No session cookie found. User may not be logged in');
-  //       return {};
-  //     }
-
-  //     final client = http.Client();
-  //     try {
-  //       logger.d('Sending request to fetch books with cookie');
-  //       final response = await client.get(
-  //         Uri.parse('$baseUrl/ajax/listbooks'),
-  //         headers: {'Cookie': cookie},
-  //       );
-
-  //       logger.i('Book list response status: ${response.statusCode}');
-
-  //       if (response.statusCode == 200) {
-  //         // Parse the response as a Map instead of a List
-  //         final Map<String, dynamic> booksJson = json.decode(response.body);
-
-  //         // Log the structure of the response to help debug
-  //         logger.d('Response structure: ${booksJson.keys.join(', ')}');
-
-  //         return booksJson;
-  //       } else if (response.statusCode == 401) {
-  //         logger.w('Session expired or invalid');
-  //         errorMessage = 'Your session has expired. Please log in again.';
-  //         notifyListeners();
-  //         return {};
-  //       } else {
-  //         logger.e('Failed to fetch books: ${response.statusCode}');
-  //         errorMessage = 'Failed to fetch books from server';
-  //         notifyListeners();
-  //         return {};
-  //       }
-  //     } finally {
-  //       client.close();
-  //     }
-  //   } catch (e) {
-  //     logger.e('Exception while fetching books: $e');
-  //     errorMessage = 'Error: $e';
-  //     notifyListeners();
-  //     return {};
-  //   }
-  // }
 }

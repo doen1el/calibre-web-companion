@@ -1,9 +1,10 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:calibre_web_companion/view_models/books_view_model.dart';
 import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
 import 'package:calibre_web_companion/view_models/login_view_model.dart';
 import 'package:calibre_web_companion/view_models/main_view_model.dart';
-import 'package:calibre_web_companion/views/homepage.dart';
-import 'package:calibre_web_companion/views/login.dart';
+import 'package:calibre_web_companion/views/homepage_view.dart';
+import 'package:calibre_web_companion/views/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,6 +18,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => MainViewModel()),
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
         ChangeNotifierProvider(create: (_) => HomepageViewModel()),
+        ChangeNotifierProvider(create: (_) => BooksViewModel()..refreshBooks()),
       ],
       child: const MyApp(),
     ),
@@ -62,7 +64,7 @@ class MyApp extends StatelessWidget {
                 }
 
                 final isLoggedIn = snapshot.data ?? false;
-                return isLoggedIn ? const Homepage() : const Login();
+                return isLoggedIn ? const HomepageView() : const LoginView();
               },
             ),
           ),

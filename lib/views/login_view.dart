@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:calibre_web_companion/view_models/login_view_model.dart';
-import 'package:calibre_web_companion/views/homepage.dart';
+import 'package:calibre_web_companion/views/homepage_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class Login extends StatefulWidget {
-  const Login({super.key});
+class LoginView extends StatefulWidget {
+  const LoginView({super.key});
 
   @override
-  State<Login> createState() => _LoginState();
+  State<LoginView> createState() => _LoginState();
 }
 
-class _LoginState extends State<Login> {
+class _LoginState extends State<LoginView> {
   final _urlController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -98,7 +98,7 @@ class _LoginState extends State<Login> {
                             // ignore: use_build_context_synchronously
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
-                                builder: (context) => const Homepage(),
+                                builder: (context) => const HomepageView(),
                               ),
                             );
                           } else {
