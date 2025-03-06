@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:typed_data';
-import 'package:calibre_web_companion/models/book_model.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:calibre_web_companion/models/opds_item_model.dart';
+import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -12,7 +15,7 @@ class BookDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = Provider.of<BookDetailsViewModel>(context);
 
-    return FutureBuilder<BookModel>(
+    return FutureBuilder<BookItem>(
       future: viewModel.fetchBook(bookUuid: bookUuid),
       builder: (context, snapshot) {
         // Handle loading state
@@ -68,11 +71,11 @@ class BookDetails extends StatelessWidget {
             ),
           ),
           body: _buildBookDetails(context, viewModel, book),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => _showDownloadOptions(context, viewModel, book),
-            icon: const Icon(Icons.download_rounded),
-            label: const Text('Download'),
-          ),
+          // floatingActionButton: FloatingActionButton.extended(
+          //   onPressed: () => _showDownloadOptions(context, viewModel, book),
+          //   icon: const Icon(Icons.download_rounded),
+          //   label: const Text('Download'),
+          // ),
         );
       },
     );
@@ -81,13 +84,13 @@ class BookDetails extends StatelessWidget {
   Widget _buildBookDetails(
     BuildContext context,
     BookDetailsViewModel viewModel,
-    BookModel book,
+    BookItem book,
   ) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildCoverImage(viewModel, book),
+          _buildCoverImage(context, book.id),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -100,75 +103,75 @@ class BookDetails extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'by ${book.authors.join(', ')}',
+                  'by ${book.author}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
 
-                // Rating section
-                if (book.ratings.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _buildRating(double.parse(book.ratings)),
-                ],
+                // // Rating section
+                // if (book.ratings.isNotEmpty) ...[
+                //   const SizedBox(height: 12),
+                //   _buildRating(double.parse(book.ratings)),
+                // ],
 
-                // Publication Info section
-                const SizedBox(height: 24),
-                _buildInfoSection(context, 'Publication Info', [
-                  if (book.pubdate.isNotEmpty)
-                    _buildInfoRow(
-                      context,
-                      'Published',
-                      _formatDate(book.pubdate),
-                    ),
-                  if (book.timestamp.isNotEmpty)
-                    _buildInfoRow(
-                      context,
-                      'Added',
-                      _formatDate(book.timestamp),
-                    ),
-                  if (book.series.isNotEmpty)
-                    _buildInfoRow(context, 'Series', book.series),
-                  if (book.languages.isNotEmpty)
-                    _buildInfoRow(
-                      context,
-                      'Language',
-                      _formatLanguages(book.languages),
-                    ),
-                ]),
+                // // Publication Info section
+                // const SizedBox(height: 24),
+                // _buildInfoSection(context, 'Publication Info', [
+                //   if (book.pubdate.isNotEmpty)
+                //     _buildInfoRow(
+                //       context,
+                //       'Published',
+                //       _formatDate(book.pubdate),
+                //     ),
+                //   if (book.timestamp.isNotEmpty)
+                //     _buildInfoRow(
+                //       context,
+                //       'Added',
+                //       _formatDate(book.timestamp),
+                //     ),
+                //   if (book.series.isNotEmpty)
+                //     _buildInfoRow(context, 'Series', book.series),
+                //   if (book.languages.isNotEmpty)
+                //     _buildInfoRow(
+                //       context,
+                //       'Language',
+                //       _formatLanguages(book.languages),
+                //     ),
+                // ]),
 
-                // File Info section
-                const SizedBox(height: 16),
-                _buildInfoSection(context, 'File Info', [
-                  _buildInfoRow(context, 'Format', book.formats.join(', ')),
-                  if (book.formats.isNotEmpty)
-                    _buildInfoRow(context, 'Size', _formatSize(book)),
-                  _buildInfoRow(context, 'ID', book.uuid),
-                ]),
+                // // File Info section
+                // const SizedBox(height: 16),
+                // _buildInfoSection(context, 'File Info', [
+                //   _buildInfoRow(context, 'Format', book.formats.join(', ')),
+                //   if (book.formats.isNotEmpty)
+                //     _buildInfoRow(context, 'Size', _formatSize(book)),
+                //   _buildInfoRow(context, 'ID', book.uuid),
+                // ]),
 
-                // Tags section
-                if (book.tags.isNotEmpty) ...[
-                  const SizedBox(height: 24),
-                  Text(
-                    'Tags',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildTags(context, book.tags),
-                ],
+                // // Tags section
+                // if (book.tags.isNotEmpty) ...[
+                //   const SizedBox(height: 24),
+                //   Text(
+                //     'Tags',
+                //     style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                //       fontWeight: FontWeight.bold,
+                //     ),
+                //   ),
+                //   const SizedBox(height: 8),
+                //   _buildTags(context, book.tags),
+                // ],
 
-                // Description section
-                if (book.comments.isNotEmpty) ...[
-                  const SizedBox(height: 24),
-                  Text(
-                    'Description',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(_stripHtml(book.comments)),
-                ],
+                // // Description section
+                // if (book.comments.isNotEmpty) ...[
+                //   const SizedBox(height: 24),
+                //   Text(
+                //     'Description',
+                //     style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                //       fontWeight: FontWeight.bold,
+                //     ),
+                //   ),
+                //   const SizedBox(height: 8),
+                //   Text(_stripHtml(book.comments)),
+                // ],
               ],
             ),
           ),
@@ -252,7 +255,7 @@ class BookDetails extends StatelessWidget {
         .join(', ');
   }
 
-  String _formatSize(BookModel book) {
+  String _formatSize(BookItem book) {
     try {
       // Extract size from format_metadata if available in your BookModel
       final size =
@@ -276,52 +279,31 @@ class BookDetails extends StatelessWidget {
         .replaceAll('&gt;', '>');
   }
 
-  Widget _buildCoverImage(BookDetailsViewModel viewModel, BookModel book) {
-    if (book.hasCover) {
-      return SizedBox(
-        height: 300,
-        width: double.infinity,
-        child: FutureBuilder<Uint8List?>(
-          future: viewModel.fetchImageWithAuth(book.id, CoverResolution.large),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Container(
-                color: Colors.grey[200],
-                child: const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              );
-            }
+  Widget _buildCoverImage(BuildContext context, String bookId) {
+    ApiService apiService = ApiService();
+    final baseUrl = apiService.getBaseUrl();
+    final username = apiService.getUsername();
+    final password = apiService.getPassword();
 
-            if (snapshot.hasError ||
-                !snapshot.hasData ||
-                snapshot.data == null) {
-              return Container(
-                color: Colors.grey[200],
-                child: const Icon(Icons.book, size: 80),
-              );
-            }
+    // Basic Auth Header in Base64 generieren
+    final authHeader =
+        'Basic ${base64.encode(utf8.encode('$username:$password'))}';
+    final coverUrl = '$baseUrl/opds/cover/$bookId';
 
-            return Image.memory(
-              snapshot.data!,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.broken_image, size: 80),
-                );
-              },
-            );
-          },
-        ),
-      );
-    }
-
-    return Container(
-      height: 300,
+    return CachedNetworkImage(
+      imageUrl: coverUrl,
+      httpHeaders: {'Authorization': authHeader},
+      fit: BoxFit.cover,
       width: double.infinity,
-      color: Colors.grey[200],
-      child: const Icon(Icons.book, size: 80),
+      placeholder:
+          (context, url) =>
+              const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      errorWidget:
+          (context, url, error) =>
+              const Center(child: Icon(Icons.book, size: 64)),
+      // Cache Einstellungen optimieren
+      memCacheWidth: 300, // Speichereffizienz verbessern
+      memCacheHeight: 400,
     );
   }
 
@@ -373,68 +355,68 @@ class BookDetails extends StatelessWidget {
   }
 
   // Add this method to your BookDetails class
-  void _showDownloadOptions(
-    BuildContext context,
-    BookDetailsViewModel viewModel,
-    BookModel book,
-  ) {
-    viewModel.downloadBook(book.id, format: 'epub');
-    if (book.formats.length == 1) {
-      // If only one format, download directly
-      viewModel.downloadBook(book.id, format: book.formats[0].toLowerCase());
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Download started...')));
-      return;
-    }
+  // void _showDownloadOptions(
+  //   BuildContext context,
+  //   BookDetailsViewModel viewModel,
+  //   BookItem book,
+  // ) {
+  //   viewModel.downloadBook(book.id, format: 'epub');
+  //   if (book.formats.length == 1) {
+  //     // If only one format, download directly
+  //     viewModel.downloadBook(book.id, format: book.formats[0].toLowerCase());
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(const SnackBar(content: Text('Download started...')));
+  //     return;
+  //   }
 
-    // Otherwise show format options
-    showModalBottomSheet(
-      context: context,
-      builder:
-          (context) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  title: const Text('Download Format'),
-                  leading: const Icon(Icons.download),
-                ),
-                const Divider(),
-                ...book.formats.map((format) {
-                  IconData icon;
-                  switch (format.toLowerCase()) {
-                    case 'epub':
-                      icon = Icons.menu_book;
-                      break;
-                    case 'pdf':
-                      icon = Icons.picture_as_pdf;
-                      break;
-                    case 'mobi':
-                      icon = Icons.book_online;
-                      break;
-                    default:
-                      icon = Icons.file_present;
-                  }
+  //   // Otherwise show format options
+  //   showModalBottomSheet(
+  //     context: context,
+  //     builder:
+  //         (context) => SafeArea(
+  //           child: Column(
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               ListTile(
+  //                 title: const Text('Download Format'),
+  //                 leading: const Icon(Icons.download),
+  //               ),
+  //               const Divider(),
+  //               ...book.formats.map((format) {
+  //                 IconData icon;
+  //                 switch (format.toLowerCase()) {
+  //                   case 'epub':
+  //                     icon = Icons.menu_book;
+  //                     break;
+  //                   case 'pdf':
+  //                     icon = Icons.picture_as_pdf;
+  //                     break;
+  //                   case 'mobi':
+  //                     icon = Icons.book_online;
+  //                     break;
+  //                   default:
+  //                     icon = Icons.file_present;
+  //                 }
 
-                  return ListTile(
-                    leading: Icon(icon),
-                    title: Text(format.toUpperCase()),
-                    onTap: () {
-                      Navigator.pop(context);
-                      viewModel.downloadBook(
-                        book.id,
-                        format: format.toLowerCase(),
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Downloading $format...')),
-                      );
-                    },
-                  );
-                }).toList(),
-              ],
-            ),
-          ),
-    );
-  }
+  //                 return ListTile(
+  //                   leading: Icon(icon),
+  //                   title: Text(format.toUpperCase()),
+  //                   onTap: () {
+  //                     Navigator.pop(context);
+  //                     viewModel.downloadBook(
+  //                       book.id,
+  //                       format: format.toLowerCase(),
+  //                     );
+  //                     ScaffoldMessenger.of(context).showSnackBar(
+  //                       SnackBar(content: Text('Downloading $format...')),
+  //                     );
+  //                   },
+  //                 );
+  //               }).toList(),
+  //             ],
+  //           ),
+  //         ),
+  //   );
+  // }
 }

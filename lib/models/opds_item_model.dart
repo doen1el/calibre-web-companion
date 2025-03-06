@@ -8,6 +8,7 @@ abstract class OpdsItem {
 
 /// Represents a book in OPDS
 class BookItem extends OpdsItem {
+  final String uuid;
   final String author;
   final String? publisher;
   final DateTime updated;
@@ -21,20 +22,44 @@ class BookItem extends OpdsItem {
     required super.id,
     required super.title,
     required this.author,
+    required this.uuid,
     this.publisher,
     required this.updated,
     this.published,
     this.language,
     required this.categories,
     this.summary,
-
     this.fileSize,
   });
 
   /// Create a BookItem from an OPDS entry
   factory BookItem.fromOpdsEntry(Map<String, dynamic> entry) {
+    String entryString = entry.toString();
+
     // Extract ID
-    final String id = entry['id'] ?? '';
+    String bookId = '';
+
+    RegExp coverRegex = RegExp(r'/opds/cover/(\d+)');
+    var coverMatches = coverRegex.allMatches(entryString);
+    if (coverMatches.isNotEmpty) {
+      bookId = coverMatches.first.group(1)!;
+    } else {
+      // Suche nach Download-Link-Muster
+      RegExp downloadRegex = RegExp(r'/opds/download/(\d+)/');
+      var downloadMatches = downloadRegex.allMatches(entryString);
+      if (downloadMatches.isNotEmpty) {
+        bookId = downloadMatches.first.group(1)!;
+      }
+    }
+
+    // Extrahiere UUID (aus ID-Feld)
+    final String rawId = entry['id'] ?? '';
+    final String uuid = rawId.replaceAll('urn:uuid:', '');
+
+    // Fallback für ID, wenn keine numerische ID gefunden wurde
+    if (bookId.isEmpty) {
+      bookId = uuid; // Verwende UUID als Fallback
+    }
 
     // Extract author - can be a single author or a list of authors
     String author = '';
@@ -64,8 +89,9 @@ class BookItem extends OpdsItem {
     int? fileSize;
 
     return BookItem(
-      id: id.replaceAll('urn:uuid:', ''),
+      id: bookId,
       title: entry['title'] ?? 'Unknown Title',
+      uuid: uuid,
       author: author,
       publisher: entry['publisher']?['name'],
       updated: DateTime.parse(
@@ -84,7 +110,7 @@ class BookItem extends OpdsItem {
 
   @override
   String toString() {
-    return 'BookItem{title: $title, author: $author}';
+    return 'BookItem{id: $id, uuid: $uuid, title: $title, author: $author}';
   }
 }
 

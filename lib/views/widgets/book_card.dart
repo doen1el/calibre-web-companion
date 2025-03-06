@@ -1,49 +1,57 @@
-import 'dart:typed_data';
-import 'package:calibre_web_companion/models/book_model.dart';
-import 'package:calibre_web_companion/view_models/books_view_model.dart';
+import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:calibre_web_companion/models/opds_item_model.dart';
+import 'package:calibre_web_companion/utils/api_service.dart';
+import 'package:calibre_web_companion/views/book_details.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class BookCard extends StatelessWidget {
-  final BookModel book;
-  final VoidCallback onTap;
+  final BookItem book;
 
-  const BookCard({super.key, required this.book, required this.onTap});
+  const BookCard({super.key, required this.book});
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<BooksViewModel>();
-
     return Card(
+      elevation: 4.0,
       clipBehavior: Clip.antiAlias,
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(flex: 7, child: _buildCoverImage(viewModel)),
-
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-              child: Text(
-                book.getAuthorsText(),
-                style: Theme.of(context).textTheme.bodySmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => BookDetails(bookUuid: book.uuid),
             ),
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Cover-Bild
+            Expanded(child: _buildCoverImage(context, book.id)),
 
+            // Buch-Informationen
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 2, 8, 8),
-              child: Text(
-                book.title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    book.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    book.author,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                  ),
+                ],
               ),
             ),
           ],
@@ -52,48 +60,31 @@ class BookCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCoverImage(BooksViewModel viewModel) {
-    if (book.hasCover) {
-      return FutureBuilder<Uint8List?>(
-        future: viewModel.fetchImageWithAuth(book.id, CoverResolution.medium),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Container(
-              color: Colors.grey[200],
-              child: const Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            );
-          }
+  Widget _buildCoverImage(BuildContext context, String bookId) {
+    ApiService apiService = ApiService();
+    final baseUrl = apiService.getBaseUrl();
+    final username = apiService.getUsername();
+    final password = apiService.getPassword();
 
-          if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-            return Container(
-              color: Colors.grey[200],
-              child: const Icon(Icons.book, size: 40),
-            );
-          }
+    // Basic Auth Header in Base64 generieren
+    final authHeader =
+        'Basic ${base64.encode(utf8.encode('$username:$password'))}';
+    final coverUrl = '$baseUrl/opds/cover/$bookId';
 
-          return Image.memory(
-            snapshot.data!,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: Colors.grey[200],
-                child: const Icon(Icons.broken_image, size: 40),
-              );
-            },
-          );
-        },
-      );
-    }
-
-    return Container(
-      color: Colors.grey[200],
-      child: const Icon(Icons.book, size: 40),
+    return CachedNetworkImage(
+      imageUrl: coverUrl,
+      httpHeaders: {'Authorization': authHeader},
+      fit: BoxFit.cover,
+      width: double.infinity,
+      placeholder:
+          (context, url) =>
+              const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      errorWidget:
+          (context, url, error) =>
+              const Center(child: Icon(Icons.book, size: 64)),
+      // Cache Einstellungen optimieren
+      memCacheWidth: 300, // Speichereffizienz verbessern
+      memCacheHeight: 400,
     );
   }
 }

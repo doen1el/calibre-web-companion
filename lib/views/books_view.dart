@@ -160,18 +160,7 @@ class _BookListViewState extends State<BooksView> {
               ),
             );
           }
-          return BookCard(
-            book: viewModel.books[index],
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) =>
-                          BookDetails(bookUuid: viewModel.books[index].uuid),
-                ),
-              );
-            },
-          );
+          return BookCard(book: viewModel.books[index]);
         },
       ),
     );
