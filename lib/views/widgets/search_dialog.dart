@@ -20,18 +20,29 @@ class SearchDialogState extends State<SearchDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Search Books'),
-      content: TextField(
-        controller: _controller,
-        decoration: const InputDecoration(
-          hintText: 'Enter title, author, or tags...',
-        ),
-        autofocus: true,
+      content: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              decoration: const InputDecoration(
+                hintText: 'Enter title, author, or tags...',
+              ),
+              autofocus: true,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.clear),
+            onPressed: () => Navigator.of(context).pop(_controller.text = ''),
+          ),
+        ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('CANCEL'),
         ),
+
         TextButton(
           onPressed: () => Navigator.of(context).pop(_controller.text),
           child: const Text('SEARCH'),

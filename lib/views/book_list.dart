@@ -1,33 +1,10 @@
-import 'dart:convert';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
-import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
-import 'package:calibre_web_companion/views/book_details.dart';
+import 'package:calibre_web_companion/views/widgets/book_card.dart';
+import 'package:calibre_web_companion/views/widgets/category_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:calibre_web_companion/main.dart';
-
-enum BookListType {
-  bookmarked,
-  unreadbooks,
-  readbooks,
-  hot,
-  newlyAdded,
-  rated,
-  discover,
-}
-
-enum CategoryType {
-  category,
-  language,
-  publisher,
-  author,
-  ratings,
-  formats,
-  series,
-}
 
 class BookList extends StatefulWidget {
   final BookListType? bookListType;
@@ -64,20 +41,19 @@ class BookListState extends State<BookList> with RouteAware {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Registriere diese Route beim Observer
+    // Register this route for routeObserver
     routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
   }
 
   @override
   void dispose() {
-    // Abmelden beim Observer
+    // Unregister this route for routeObserver
     routeObserver.unsubscribe(this);
     super.dispose();
   }
 
   @override
   void didPopNext() {
-    // Wird aufgerufen, wenn der Benutzer zurück zu dieser Seite navigiert
     _loadData();
   }
 
@@ -94,11 +70,11 @@ class BookListState extends State<BookList> with RouteAware {
   void _loadData() {
     final viewModel = context.read<BookListViewModel>();
 
-    // Wenn ein vollständiger Pfad vorhanden ist, verwende diesen
+    // If a full path is provided, load books from that path
     if (widget.fullPath != null) {
       viewModel.loadBooksFromPath(widget.fullPath!);
     }
-    // Sonst Standard-Logik
+    // Otherwise, load books based on the type
     else if (widget.bookListType != null) {
       viewModel.loadBooks(widget.bookListType!, subPath: widget.subPath);
     } else if (widget.categoryType != null) {
@@ -116,33 +92,16 @@ class BookListState extends State<BookList> with RouteAware {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (viewModel.errorMessage != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Fehler beim Laden der Daten',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(viewModel.errorMessage!),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadData,
-                    child: const Text('Erneut versuchen'),
-                  ),
-                ],
-              ),
-            );
+          if (viewModel.hasError) {
+            _buildErrorWidget(viewModel);
           }
 
-          // Zeige Bücher als Grid
+          // Display books as grid
           if (viewModel.bookFeed != null) {
             return _buildBookGrid(viewModel.bookFeed!);
           }
 
-          // Zeige Kategorien als Liste
+          // Display categories as list
           if (viewModel.categoryFeed != null) {
             return _buildCategoryList(viewModel.categoryFeed!);
           }
@@ -153,6 +112,34 @@ class BookListState extends State<BookList> with RouteAware {
     );
   }
 
+  /// Build an error widget
+  ///
+  /// Parameters:
+  ///
+  /// - `viewModel`: The view model to get the error message from
+  Widget _buildErrorWidget(BookListViewModel viewModel) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Error loading data',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          Text(viewModel.errorMessage ?? 'Unknown error'),
+          const SizedBox(height: 16),
+          ElevatedButton(onPressed: _loadData, child: const Text('Try Again')),
+        ],
+      ),
+    );
+  }
+
+  /// Build a grid of books
+  ///
+  /// Parameters:
+  ///
+  /// - `feed`: The feed to build the grid from
   Widget _buildBookGrid(OpdsFeed<BookItem> feed) {
     return GridView.builder(
       padding: const EdgeInsets.all(16.0),
@@ -170,6 +157,11 @@ class BookListState extends State<BookList> with RouteAware {
     );
   }
 
+  /// Build a list of categories
+  ///
+  /// Parameters:
+  ///
+  /// - `feed`: The feed to build the list from
   Widget _buildCategoryList(OpdsFeed<CategoryItem> feed) {
     return ListView.builder(
       itemCount: feed.items.length,
@@ -186,223 +178,159 @@ class BookListState extends State<BookList> with RouteAware {
     );
   }
 
+  /// Navigate to the category or books based on the category item
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: BuildContext
+  /// - `category`: The category item to navigate to
   void _navigateToCategoryOrBooks(BuildContext context, CategoryItem category) {
     final String url = category.navigationUrl;
     if (url.isEmpty) return;
 
-    print('NavigationURL: $url');
+    // Split the URL into parts
+    final pathParts = url.split('/').where((p) => p.isNotEmpty).toList();
 
-    // Besondere Behandlung für Letter-Navigation
+    // Check the URL for specific patterns
     if (url.contains('/letter/')) {
-      // Letter-Navigation ist immer eine Kategorienliste
-      final parts = url.split('/').where((p) => p.isNotEmpty).toList();
-      CategoryType? categoryType;
-
-      if (parts.length >= 2) {
-        // Bestimme Kategorie-Typ
-        switch (parts[1]) {
-          case 'author':
-            categoryType = CategoryType.author;
-            break;
-          case 'series':
-            categoryType = CategoryType.series;
-            break;
-          case 'category':
-            categoryType = CategoryType.category;
-            break;
-          case 'publisher':
-            categoryType = CategoryType.publisher;
-            break;
-          case 'language':
-            categoryType = CategoryType.language;
-            break;
-          case 'formats':
-            categoryType = CategoryType.formats;
-            break;
-          case 'ratings':
-            categoryType = CategoryType.ratings;
-            break;
-        }
-      }
-
-      // Extrahiere den kompletten Subpfad nach dem Kategorietyp
-      String subPath = url.split('/${parts[1]}/')[1];
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder:
-              (context) => BookList(
-                title: category.title,
-                categoryType: categoryType,
-                subPath: subPath,
-              ),
-        ),
-      );
-      return;
-    }
-
-    // Für alle anderen URLs: Standardverhalten
-    bool isBookListPath = false;
-
-    if (url.startsWith('/opds/')) {
-      final parts = url.split('/');
-      if (parts.length >= 3) {
-        // Prüfe, ob der letzte Teil eine Zahl ist
-        final lastPart = parts.last;
-        if (int.tryParse(lastPart) != null) {
-          isBookListPath = true;
-        }
-      }
-    }
-
-    // Rest des Codes bleibt unverändert...
-    if (isBookListPath) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => BookList(title: category.title, fullPath: url),
-        ),
-      );
+      _navigateToLetterCategory(context, category, pathParts);
+    } else if (_isNumericEndpoint(pathParts)) {
+      _navigateToBookList(context, category);
     } else if (url.startsWith('/opds/')) {
-      // Standardverhalten für andere OPDS-Pfade
-      // ...
+      _navigateToGenericCategory(context, category, pathParts);
     }
   }
-}
 
-/// Karte für ein einzelnes Buch
-class BookCard extends StatelessWidget {
-  final BookItem book;
+  /// Check if the URL endpoint is numeric
+  ///
+  /// Parameters:
+  ///
+  /// - `pathParts`: The parts of the URL path
+  bool _isNumericEndpoint(List<String> pathParts) {
+    if (pathParts.isEmpty) return false;
+    return int.tryParse(pathParts.last) != null;
+  }
 
-  const BookCard({super.key, required this.book});
+  /// Navigation for letter categories
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: BuildContext
+  /// - `category`: The category item to navigate to
+  /// - `pathParts`: The parts of the URL path
+  void _navigateToLetterCategory(
+    BuildContext context,
+    CategoryItem category,
+    List<String> pathParts,
+  ) {
+    if (pathParts.length < 2) return;
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 4.0,
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => BookDetails(bookUuid: book.uuid),
-            ),
-          );
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Cover-Bild
-            Expanded(child: _buildCoverImage(context, book.id)),
+    final categoryTypeMap = {
+      'author': CategoryType.author,
+      'series': CategoryType.series,
+      'category': CategoryType.category,
+      'publisher': CategoryType.publisher,
+      'language': CategoryType.language,
+      'formats': CategoryType.formats,
+      'ratings': CategoryType.ratings,
+    };
 
-            // Buch-Informationen
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    book.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    book.author,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+    final categoryType = categoryTypeMap[pathParts[1]];
+    if (categoryType == null) return;
+
+    // Extract the subpath
+    final pathPrefix = '/${pathParts[1]}/';
+    final subPathIndex =
+        category.navigationUrl.indexOf(pathPrefix) + pathPrefix.length;
+    final subPath = category.navigationUrl.substring(subPathIndex);
+
+    _navigateToPage(
+      context,
+      BookList(
+        title: category.title,
+        categoryType: categoryType,
+        subPath: subPath,
       ),
     );
   }
-}
 
-Widget _buildCoverImage(BuildContext context, String bookId) {
-  ApiService apiService = ApiService();
-  final baseUrl = apiService.getBaseUrl();
-  final username = apiService.getUsername();
-  final password = apiService.getPassword();
-
-  // Basic Auth Header in Base64 generieren
-  final authHeader =
-      'Basic ${base64.encode(utf8.encode('$username:$password'))}';
-  final coverUrl = '$baseUrl/opds/cover/$bookId';
-
-  return CachedNetworkImage(
-    imageUrl: coverUrl,
-    httpHeaders: {'Authorization': authHeader},
-    fit: BoxFit.cover,
-    width: double.infinity,
-    placeholder:
-        (context, url) =>
-            const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-    errorWidget:
-        (context, url, error) =>
-            const Center(child: Icon(Icons.book, size: 64)),
-    // Cache Einstellungen optimieren
-    memCacheWidth: 300, // Speichereffizienz verbessern
-    memCacheHeight: 400,
-  );
-}
-
-/// ListItem for a category
-///
-/// Author, Categiory, Series
-class CategoryListItem extends StatelessWidget {
-  final CategoryItem category;
-  final VoidCallback onTap;
-
-  const CategoryListItem({
-    super.key,
-    required this.category,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    BorderRadius borderRadius = BorderRadius.circular(8.0);
-
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: borderRadius),
-      child: Material(
-        color: Theme.of(context).cardColor,
-        borderRadius: borderRadius,
-        child: InkWell(
-          borderRadius: borderRadius,
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    category.title,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+  /// Navigation for numeric endpoints
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: BuildContext
+  /// - `category`: The category item to navigate to
+  void _navigateToBookList(BuildContext context, CategoryItem category) {
+    _navigateToPage(
+      context,
+      BookList(title: category.title, fullPath: category.navigationUrl),
     );
+  }
+
+  /// Navigation for generic categories
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: BuildContext
+  /// - `category`: The category item to navigate to
+  /// - `pathParts`: The parts of the URL path
+  void _navigateToGenericCategory(
+    BuildContext context,
+    CategoryItem category,
+    List<String> pathParts,
+  ) {
+    if (pathParts.length < 2) return;
+
+    // Map category types to their respective enum values
+    final categoryTypeMap = {
+      'author': CategoryType.author,
+      'series': CategoryType.series,
+      'category': CategoryType.category,
+      'publisher': CategoryType.publisher,
+      'language': CategoryType.language,
+      'formats': CategoryType.formats,
+      'ratings': CategoryType.ratings,
+      'hot': BookListType.hot,
+      'new': BookListType.newlyAdded,
+      'rated': BookListType.rated,
+      'discover': BookListType.discover,
+    };
+
+    final type = categoryTypeMap[pathParts[1]];
+
+    if (type is CategoryType) {
+      // If a CategoryType is recognized, use this
+      final subPath =
+          pathParts.length > 2
+              ? category.navigationUrl.split('/${pathParts[1]}/').last
+              : null;
+
+      _navigateToPage(
+        context,
+        BookList(title: category.title, categoryType: type, subPath: subPath),
+      );
+    } else if (type is BookListType) {
+      // If a BookListType is recognized, use this
+      _navigateToPage(
+        context,
+        BookList(title: category.title, bookListType: type),
+      );
+    } else {
+      // If no type is recognized, navigate to the generic category
+      _navigateToPage(
+        context,
+        BookList(title: category.title, fullPath: category.navigationUrl),
+      );
+    }
+  }
+
+  /// Navigate to a page
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: BuildContext
+  /// - `page`: The page to navigate to
+  void _navigateToPage(BuildContext context, Widget page) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => page));
   }
 }

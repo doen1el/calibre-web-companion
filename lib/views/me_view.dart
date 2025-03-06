@@ -1,4 +1,5 @@
 import 'package:calibre_web_companion/models/stats_model.dart';
+import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/view_models/me_view_model.dart';
 import 'package:calibre_web_companion/views/book_list.dart';
 import 'package:calibre_web_companion/views/login_view.dart';
@@ -12,19 +13,15 @@ class MeView extends StatefulWidget {
   const MeView({super.key});
 
   @override
-  State<MeView> createState() => _MeViewState();
+  State<MeView> createState() => MeViewState();
 }
 
-class _MeViewState extends State<MeView> {
-  String? _lastError;
-
+class MeViewState extends State<MeView> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<MeViewModel>();
 
-    if (viewModel.errorMessage != null &&
-        viewModel.errorMessage != _lastError) {
-      _lastError = viewModel.errorMessage;
+    if (viewModel.hasError) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Fluttertoast.showToast(
           msg: "Error: ${viewModel.errorMessage}",
@@ -44,6 +41,8 @@ class _MeViewState extends State<MeView> {
             onPressed: () async {
               SharedPreferences prefs = await SharedPreferences.getInstance();
               prefs.remove("calibre_web_session");
+
+              // TODO: Call odfs logout
               // ignore: use_build_context_synchronously
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) => LoginView()),
@@ -109,6 +108,12 @@ class _MeViewState extends State<MeView> {
     );
   }
 
+  /// Build the stats widget
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: BuildContext
+  /// - `viewModel`: MeViewModel
   Widget _buildStatsWidget(BuildContext context, MeViewModel viewModel) {
     final stats = viewModel.stats ?? StatsModel();
 
@@ -186,6 +191,14 @@ class _MeViewState extends State<MeView> {
     );
   }
 
+  /// Build a stat row
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: BuildContext
+  /// - `icon`: IconData
+  /// - `label`: String
+  /// - `value`: String
   Widget _buildStatRow(
     BuildContext context,
     IconData icon,

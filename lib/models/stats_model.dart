@@ -11,6 +11,11 @@ class StatsModel {
     this.series = 0,
   });
 
+  /// Create a StatsModel from JSON
+  ///
+  /// Parameters:
+  ///
+  /// - `json`: The JSON data
   factory StatsModel.fromJson(Map<String, dynamic> json) {
     return StatsModel(
       books: json['books'] ?? 0,

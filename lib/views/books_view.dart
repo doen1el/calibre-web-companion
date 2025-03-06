@@ -1,7 +1,7 @@
-import 'package:calibre_web_companion/views/book_details.dart';
 import 'package:calibre_web_companion/views/widgets/book_card.dart';
 import 'package:calibre_web_companion/views/widgets/search_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:calibre_web_companion/view_models/books_view_model.dart';
 
@@ -28,6 +28,7 @@ class _BookListViewState extends State<BooksView> {
     super.dispose();
   }
 
+  /// Listener for infinite scrolling
   void _scrollListener() {
     final viewModel = Provider.of<BooksViewModel>(context, listen: false);
     if (!viewModel.isLoading &&
@@ -41,6 +42,16 @@ class _BookListViewState extends State<BooksView> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<BooksViewModel>();
+
+    if (viewModel.hasError) {
+      Fluttertoast.showToast(
+        msg: viewModel.errorMessage,
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -83,6 +94,11 @@ class _BookListViewState extends State<BooksView> {
     );
   }
 
+  /// Builds the sort options popup menu
+  ///
+  /// Parameters:
+  ///
+  /// - `viewModel`: The view model to use
   Widget _buildSortOptions(BooksViewModel viewModel) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.sort),
@@ -119,6 +135,11 @@ class _BookListViewState extends State<BooksView> {
     );
   }
 
+  /// Builds the search button
+  ///
+  /// Parameters:
+  ///
+  /// - `viewModel`: The view model to use
   Widget _buildSearchButton(BooksViewModel viewModel) {
     return IconButton(
       icon: const Icon(Icons.search),
@@ -135,17 +156,22 @@ class _BookListViewState extends State<BooksView> {
     );
   }
 
+  /// Builds the refresh indicator and grid view
+  ///
+  /// Parameters:
+  ///
+  /// - `viewModel`: The view model to use
   Widget _buildRefreshIndicatorAndGridView(BooksViewModel viewModel) {
     return RefreshIndicator(
       onRefresh: () => viewModel.refreshBooks(),
       child: GridView.builder(
-        controller: _scrollController, // Make sure the controller is connected
-        padding: const EdgeInsets.all(16),
+        controller: _scrollController,
+        padding: const EdgeInsets.all(16.0),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          childAspectRatio: 0.5,
-          crossAxisSpacing: 5,
-          mainAxisSpacing: 5,
+          crossAxisCount: 2,
+          childAspectRatio: 0.7,
+          crossAxisSpacing: 16.0,
+          mainAxisSpacing: 16.0,
         ),
         itemCount:
             viewModel.hasMoreBooks

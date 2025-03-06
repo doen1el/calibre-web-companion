@@ -10,10 +10,13 @@ class MeViewModel extends ChangeNotifier {
   bool isLoading = false;
   StatsModel? stats;
   String? errorMessage;
+  bool hasError = false;
 
+  /// Fetch stats from the API
   Future<StatsModel> getStats() async {
     isLoading = true;
     errorMessage = null;
+    hasError = false;
     notifyListeners();
 
     try {
@@ -25,15 +28,15 @@ class MeViewModel extends ChangeNotifier {
       final statsModel = StatsModel.fromJson(jsonData);
       stats = statsModel;
       logger.i("Stats loaded: $statsModel");
-      isLoading = false;
-      notifyListeners();
       return statsModel;
     } catch (e) {
       logger.e('Error loading stats: $e');
       errorMessage = 'Error: $e';
+      hasError = true;
+      return StatsModel();
+    } finally {
       isLoading = false;
       notifyListeners();
-      return StatsModel();
     }
   }
 }

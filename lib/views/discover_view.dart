@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/views/book_list.dart';
 import 'package:calibre_web_companion/views/widgets/long_button.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,11 @@ class DiscoverView extends StatelessWidget {
     );
   }
 
+  /// Build the discover section
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: BuildContext
   Widget _buildDiscoverWidget(BuildContext context) {
     return Column(
       children: [
@@ -85,6 +91,11 @@ class DiscoverView extends StatelessWidget {
     );
   }
 
+  /// Build the category section
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: BuildContext
   Widget _buildCategoryWidget(BuildContext context) {
     return Column(
       children: [
@@ -190,6 +201,11 @@ class DiscoverView extends StatelessWidget {
     );
   }
 
+  /// Build the section header
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: BuildContext
   Widget _buildSectionHeader(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),

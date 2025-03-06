@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
+import 'package:calibre_web_companion/utils/json_service.dart';
 import 'package:calibre_web_companion/utils/opds_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -13,13 +14,13 @@ import 'package:path/path.dart' as path;
 
 class BookDetailsViewModel extends ChangeNotifier {
   final ApiService _apiService = ApiService();
-  OpdsService _opdsService = OpdsService();
+  JsonService _jsonService = JsonService();
 
   Logger logger = Logger();
   String? errorMessage;
 
   Future<BookItem> fetchBook({required String bookUuid}) async {
-    return _opdsService.fetchBook(bookUuid: bookUuid);
+    return _jsonService.fetchBook(bookUuid: bookUuid);
   }
 
   // Future<BookModel> fetchBook({required String bookUuid}) async {

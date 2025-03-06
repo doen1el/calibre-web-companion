@@ -8,7 +8,6 @@ import 'package:xml2json/xml2json.dart';
 /// Authentication methods supported by the API
 enum AuthMethod { cookie, basic }
 
-/// Service class to handle API requests with various authentication methods
 class ApiService {
   final Logger _logger = Logger();
   final http.Client _client = http.Client();
@@ -22,14 +21,17 @@ class ApiService {
 
   ApiService._internal();
 
+  /// Returns the base URL or an empty string
   String getBaseUrl() {
     return _baseUrl ?? '';
   }
 
+  /// Returns the username or an empty string
   String getUsername() {
     return _username ?? '';
   }
 
+  /// Returns the password or an empty string
   String getPassword() {
     return _password ?? '';
   }
@@ -43,13 +45,18 @@ class ApiService {
     _password = prefs.getString('password');
   }
 
-  /// Closes the HTTP client when the service is no longer needed
   void dispose() {
     _client.close();
   }
 
   /// Makes an authenticated GET request
   /// Returns the parsed JSON response or throws an exception
+  ///
+  /// Parameters:
+  ///
+  /// - `endpoint`: The API endpoint to request
+  /// - `authMethod`: The authentication method to use
+  /// - `queryParams`: Optional query parameters
   Future<Map<String, dynamic>> getJson(
     String endpoint,
     AuthMethod authMethod, {
@@ -71,6 +78,12 @@ class ApiService {
 
   /// Makes an authenticated GET request
   /// Returns the raw response object
+  ///
+  /// Parameters:
+  ///
+  /// - `endpoint`: The API endpoint to request
+  /// - `authMethod`: The authentication method to use
+  /// - `queryParams`: Optional query parameters
   Future<http.Response> get(
     String endpoint,
     AuthMethod authMethod, {
@@ -95,6 +108,14 @@ class ApiService {
   }
 
   /// Makes an authenticated POST request
+  ///
+  /// Parameters:
+  ///
+  /// - `endpoint`: The API endpoint to request
+  /// - `queryParams`: Optional query parameters
+  /// - `body`: The request body
+  /// - `authMethod`: The authentication method to use
+  /// - `contentType`: The content type of the request
   Future<http.Response> post(
     String endpoint,
     Map<String, String>? queryParams,
@@ -128,6 +149,11 @@ class ApiService {
   }
 
   /// Downloads a binary file with appropriate authentication
+  ///
+  /// Parameters:
+  ///
+  /// - `url`: The URL to download from
+  /// - `authMethod`: The authentication method to use
   Future<http.StreamedResponse> download(
     String url,
     AuthMethod authMethod,
@@ -153,17 +179,6 @@ class ApiService {
     }
   }
 
-  /// Fetch image data with authentication
-  Future<Uint8List?> fetchImage(String url, AuthMethod authMethod) async {
-    try {
-      final response = await get(url, authMethod);
-      return (response.statusCode == 200) ? response.bodyBytes : null;
-    } catch (e) {
-      _logger.e('Error fetching image: $e');
-      return null;
-    }
-  }
-
   /// Ensures credentials are loaded before making requests
   Future<void> _ensureInitialized() async {
     if (_baseUrl == null) {
@@ -178,6 +193,10 @@ class ApiService {
   }
 
   /// Builds a URI for API requests
+  ///
+  /// Parameters:
+  ///
+  /// - `endpoint`: The API endpoint to request
   Uri _buildUri(String endpoint, Map<String, String>? queryParams) {
     return Uri.parse(
       '$_baseUrl$endpoint',
@@ -185,6 +204,10 @@ class ApiService {
   }
 
   /// Gets authentication headers based on the auth method
+  ///
+  /// Parameters:
+  ///
+  /// - `authMethod`: The authentication method to use
   Map<String, String> _getAuthHeaders(AuthMethod authMethod) {
     Map<String, String> headers = {};
 
@@ -199,6 +222,11 @@ class ApiService {
   }
 
   /// Encodes request body based on content type
+  ///
+  /// Parameters:
+  ///
+  /// - `body`: The request body to encode
+  /// - `contentType`: The content type of the request
   dynamic _encodeBody(dynamic body, String contentType) {
     if (body is Map<String, dynamic> && contentType == 'application/json') {
       return json.encode(body);
@@ -207,6 +235,10 @@ class ApiService {
   }
 
   /// Checks response status code and throws appropriate exceptions
+  ///
+  /// Parameters:
+  ///
+  /// - `statusCode`: The status code to check
   void _checkResponseStatus(int statusCode) {
     if (statusCode == 401) {
       throw Exception('Authentication failed. Please log in again.');
@@ -219,6 +251,12 @@ class ApiService {
 
   /// Makes an authenticated GET request and converts XML response to JSON using Parker format
   /// Returns the parsed JSON response or throws an exception
+  ///
+  /// Parameters:
+  ///
+  /// - `endpoint`: The API endpoint to request
+  /// - `authMethod`: The authentication method to use
+  /// - `queryParams`: Optional query parameters
   Future<Map<String, dynamic>> getXmlAsJson(
     String endpoint,
     AuthMethod authMethod, {
@@ -226,12 +264,10 @@ class ApiService {
   }) async {
     final response = await get(endpoint, authMethod, queryParams: queryParams);
     try {
-      // XML zu JSON konvertieren mit Parker-Format (flacher und ohne $ Zeichen)
+      // XML to JSON conversion
       final transformer = Xml2Json();
       transformer.parse(response.body);
-      _logger.d('Parsed XML response to JSON: ${transformer.toParker()}');
 
-      // Parker-Format verwenden - einfacher zu parsen als Badgerfish
       String jsonString = transformer.toParkerWithAttrs();
 
       return json.decode(jsonString) as Map<String, dynamic>;

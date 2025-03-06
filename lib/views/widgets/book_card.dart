@@ -26,10 +26,8 @@ class BookCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cover-Bild
             Expanded(child: _buildCoverImage(context, book.id)),
 
-            // Buch-Informationen
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
@@ -60,13 +58,18 @@ class BookCard extends StatelessWidget {
     );
   }
 
+  /// Build the cover image
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: BuildContext
+  /// - `bookId`: String
   Widget _buildCoverImage(BuildContext context, String bookId) {
     ApiService apiService = ApiService();
     final baseUrl = apiService.getBaseUrl();
     final username = apiService.getUsername();
     final password = apiService.getPassword();
 
-    // Basic Auth Header in Base64 generieren
     final authHeader =
         'Basic ${base64.encode(utf8.encode('$username:$password'))}';
     final coverUrl = '$baseUrl/opds/cover/$bookId';
@@ -82,8 +85,7 @@ class BookCard extends StatelessWidget {
       errorWidget:
           (context, url, error) =>
               const Center(child: Icon(Icons.book, size: 64)),
-      // Cache Einstellungen optimieren
-      memCacheWidth: 300, // Speichereffizienz verbessern
+      memCacheWidth: 300,
       memCacheHeight: 400,
     );
   }
