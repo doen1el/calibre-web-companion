@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
@@ -7,6 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:calibre_web_companion/models/book_model.dart';
 
 class BooksViewModel extends ChangeNotifier {
+  final ApiService _apiService = ApiService();
+
   Logger logger = Logger();
   List<BookModel> books = [];
   bool isLoading = false;
@@ -22,12 +25,6 @@ class BooksViewModel extends ChangeNotifier {
   String _sortBy = 'title';
   String _sortOrder = 'asc';
   String? _searchQuery;
-
-  // Get server URL
-  Future<String?> getServerUrl() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('base_url');
-  }
 
   // Reset and fetch books from beginning
   Future<void> refreshBooks() async {
@@ -64,14 +61,22 @@ class BooksViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await fetchBooks(
-        offset: _offset,
-        limit: _limit,
-        sortBy: _sortBy,
-        sortOrder: _sortOrder,
-        searchQuery: _searchQuery,
-      );
+      final queryParams = {
+        'offset': _offset.toString(),
+        'limit': _limit.toString(),
+        'sort': _sortBy,
+        'order': _sortOrder,
+      };
 
+      if (_searchQuery != null && _searchQuery!.isNotEmpty) {
+        queryParams['search'] = _searchQuery!;
+      }
+
+      final result = await _apiService.getJson(
+        '/ajax/listbooks',
+        AuthMethod.cookie,
+        queryParams: queryParams,
+      );
       final newBooks = parseBooks(result);
 
       // If we got fewer books than requested, we've reached the end
@@ -91,69 +96,6 @@ class BooksViewModel extends ChangeNotifier {
     } finally {
       isLoading = false;
       notifyListeners();
-    }
-  }
-
-  // Core method to fetch books with parameters
-  Future<Map<String, dynamic>> fetchBooks({
-    required int offset,
-    required int limit,
-    String sortBy = 'title',
-    String sortOrder = 'asc',
-    String? searchQuery,
-  }) async {
-    logger.i(
-      'Fetching books - offset: $offset, limit: $limit, sort: $sortBy, order: $sortOrder',
-    );
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final cookie = prefs.getString('calibre_web_session');
-      final baseUrl = prefs.getString('base_url');
-
-      if (cookie == null || baseUrl == null) {
-        logger.w('No session cookie or server URL found');
-        throw Exception('Not logged in or server URL missing');
-      }
-
-      // Build query parameters
-      final queryParams = {
-        'offset': offset.toString(),
-        'limit': limit.toString(),
-        'sort': sortBy,
-        'order': sortOrder,
-        if (searchQuery != null && searchQuery.isNotEmpty)
-          'search': searchQuery,
-      };
-
-      final uri = Uri.parse(
-        '$baseUrl/ajax/listbooks',
-      ).replace(queryParameters: queryParams);
-
-      logger.d('Request URL: ${uri.toString()}');
-
-      final client = http.Client();
-      try {
-        final response = await client.get(uri, headers: {'Cookie': cookie});
-
-        logger.i('Book list response status: ${response.statusCode}');
-
-        if (response.statusCode == 200) {
-          final Map<String, dynamic> booksJson = json.decode(response.body);
-          return booksJson;
-        } else if (response.statusCode == 401) {
-          logger.w('Session expired or invalid');
-          throw Exception('Session expired. Please log in again.');
-        } else {
-          logger.e('Failed to fetch books: ${response.statusCode}');
-          throw Exception('Server error: ${response.statusCode}');
-        }
-      } finally {
-        client.close();
-      }
-    } catch (e) {
-      logger.e('Exception while fetching books: $e');
-      rethrow;
     }
   }
 
@@ -178,38 +120,12 @@ class BooksViewModel extends ChangeNotifier {
   }
 
   Future<Uint8List?> fetchImageWithAuth(
-    bookId,
+    int bookId,
     CoverResolution resolution,
   ) async {
-    try {
-      // Get session cookie
-      final prefs = await SharedPreferences.getInstance();
-      final cookie = prefs.getString('calibre_web_session');
-
-      final serverUrl = await getServerUrl();
-
-      if (cookie == null || serverUrl == null) {
-        logger.w('No session cookie or server URL found');
-        return null;
-      }
-
-      // Construct the cover URL
-      final url = '$serverUrl/cover/$bookId/$resolution';
-
-      // Make authenticated request
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {'Cookie': cookie},
-      );
-
-      if (response.statusCode == 200) {
-        return response.bodyBytes;
-      }
-
-      return null;
-    } catch (e) {
-      debugPrint('Error loading cover image: $e');
-      return null;
-    }
+    return _apiService.fetchImage(
+      '/cover/$bookId/$resolution',
+      AuthMethod.cookie,
+    );
   }
 }

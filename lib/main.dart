@@ -1,5 +1,6 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
+import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/view_models/books_view_model.dart';
 import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
 import 'package:calibre_web_companion/view_models/login_view_model.dart';
@@ -23,11 +24,14 @@ void main() {
         ChangeNotifierProvider(create: (_) => BooksViewModel()..refreshBooks()),
         ChangeNotifierProvider(create: (_) => BookDetailsViewModel()),
         ChangeNotifierProvider(create: (_) => MeViewModel()..getStats()),
+        ChangeNotifierProvider(create: (_) => BookListViewModel()),
       ],
       child: const MyApp(),
     ),
   );
 }
+
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -58,6 +62,7 @@ class MyApp extends StatelessWidget {
             title: 'Calibre-Web-Companion',
             theme: theme,
             darkTheme: darkTheme,
+            navigatorObservers: [routeObserver],
             home: FutureBuilder<bool>(
               future: _isLoggedIn(),
               builder: (context, snapshot) {

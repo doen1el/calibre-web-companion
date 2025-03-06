@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:calibre_web_companion/models/book_model.dart';
+import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -10,6 +11,8 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
 class BookDetailsViewModel extends ChangeNotifier {
+  final ApiService _apiService = ApiService();
+
   Logger logger = Logger();
   BookModel? book;
   String? errorMessage;
@@ -19,64 +22,31 @@ class BookDetailsViewModel extends ChangeNotifier {
     errorMessage = null;
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final baseUrl = prefs.getString('base_url');
-      final username = prefs.getString('username');
-      final password = prefs.getString('password');
+      final response = await _apiService.get(
+        '/ajax/book/$bookUuid',
+        AuthMethod.basic,
+      );
 
-      if (baseUrl == null) {
-        logger.w('No server URL found');
-        throw Exception('Server URL missing');
-      }
+      if (response.statusCode == 200) {
+        try {
+          // First, try direct parsing in case it's valid JSON
+          final bookJson = json.decode(response.body);
+          final bookModel = BookModel.fromJson(bookJson);
+          book = bookModel;
+          return bookModel;
+        } catch (jsonError) {
+          // If direct parsing fails, use the manual extraction approach
+          logger.w('JSON parsing failed: $jsonError. Using manual extraction.');
 
-      final uri = Uri.parse('$baseUrl/ajax/book/$bookUuid');
-      logger.d('Request URL: ${uri.toString()}');
-
-      final client = http.Client();
-      try {
-        // Create Basic Auth header
-        String basicAuth =
-            'Basic ${base64.encode(utf8.encode('$username:$password'))}';
-
-        var response = await client.get(
-          uri,
-          headers: {'Authorization': basicAuth},
-        );
-
-        logger.i('Book response status: ${response.statusCode}');
-        logger.d('Book response body: ${response.body}');
-
-        if (response.statusCode == 200) {
-          // Instead of trying to fix malformed JSON, use a manual approach
-          try {
-            // First, try direct parsing in case it's valid JSON
-            final bookJson = json.decode(response.body);
-            final bookModel = BookModel.fromJson(bookJson);
-            book = bookModel;
-            return bookModel;
-          } catch (jsonError) {
-            // If direct parsing fails, use the manual extraction approach
-            logger.w(
-              'JSON parsing failed: $jsonError. Using manual extraction.',
-            );
-
-            // Extract data manually using a safer approach
-            final bookData = _extractBookData(response.body, bookUuid);
-            final bookModel = BookModel.fromJson(bookData);
-            book = bookModel;
-            return bookModel;
-          }
-        } else if (response.statusCode == 401) {
-          logger.w('Authentication failed');
-          errorMessage = 'Authentication failed. Please log in again.';
-          throw Exception('Authentication failed. Please log in again.');
-        } else {
-          logger.e('Failed to fetch book: ${response.statusCode}');
-          errorMessage = 'Server error: ${response.statusCode}';
-          throw Exception('Server error: ${response.statusCode}');
+          // Extract data manually using a safer approach
+          final bookData = _extractBookData(response.body, bookUuid);
+          final bookModel = BookModel.fromJson(bookData);
+          book = bookModel;
+          return bookModel;
         }
-      } finally {
-        client.close();
+      } else {
+        errorMessage = 'Server error: ${response.statusCode}';
+        throw Exception('Server error: ${response.statusCode}');
       }
     } catch (e) {
       errorMessage = 'Error: $e';

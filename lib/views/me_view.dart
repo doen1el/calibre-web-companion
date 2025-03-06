@@ -1,16 +1,40 @@
 import 'package:calibre_web_companion/models/stats_model.dart';
 import 'package:calibre_web_companion/view_models/me_view_model.dart';
+import 'package:calibre_web_companion/views/book_list.dart';
 import 'package:calibre_web_companion/views/login_view.dart';
+import 'package:calibre_web_companion/views/widgets/long_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
-class MeView extends StatelessWidget {
+class MeView extends StatefulWidget {
   const MeView({super.key});
+
+  @override
+  State<MeView> createState() => _MeViewState();
+}
+
+class _MeViewState extends State<MeView> {
+  String? _lastError;
 
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<MeViewModel>();
+
+    if (viewModel.errorMessage != null &&
+        viewModel.errorMessage != _lastError) {
+      _lastError = viewModel.errorMessage;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Fluttertoast.showToast(
+          msg: "Error: ${viewModel.errorMessage}",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -36,7 +60,48 @@ class MeView extends StatelessWidget {
           child: Column(
             children: [
               _buildStatsWidget(context, viewModel),
-              // Add more sections here as needed
+              LongButton(
+                text: 'Show read books',
+                icon: Icons.my_library_books_rounded,
+                onPressed:
+                    () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder:
+                            (context) => BookList(
+                              title: 'Read Books',
+                              bookListType: BookListType.readbooks,
+                            ),
+                      ),
+                    ),
+              ),
+              LongButton(
+                text: 'Show unread books',
+                icon: Icons.read_more_rounded,
+                onPressed:
+                    () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder:
+                            (context) => BookList(
+                              title: 'Unread Books',
+                              bookListType: BookListType.unreadbooks,
+                            ),
+                      ),
+                    ),
+              ),
+              LongButton(
+                text: 'Show bookmarked books',
+                icon: Icons.bookmark_rounded,
+                onPressed:
+                    () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder:
+                            (context) => BookList(
+                              title: 'Bookmarked Books',
+                              bookListType: BookListType.bookmarked,
+                            ),
+                      ),
+                    ),
+              ),
             ],
           ),
         ),
@@ -45,30 +110,6 @@ class MeView extends StatelessWidget {
   }
 
   Widget _buildStatsWidget(BuildContext context, MeViewModel viewModel) {
-    if (viewModel.isLoading && viewModel.stats == null) {
-      return const Center(heightFactor: 3, child: CircularProgressIndicator());
-    }
-
-    if (viewModel.errorMessage != null) {
-      return Center(
-        heightFactor: 2,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text('Error loading stats: ${viewModel.errorMessage}'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => viewModel.getStats(),
-              child: const Text('Try Again'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Use stats or default empty model
     final stats = viewModel.stats ?? StatsModel();
 
     return Card(
@@ -80,7 +121,13 @@ class MeView extends StatelessWidget {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: Theme.of(context).colorScheme.primaryContainer,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+              ),
+              color: Theme.of(context).colorScheme.primaryContainer,
+            ),
             child: Text(
               'Library Statistics',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -123,6 +170,17 @@ class MeView extends StatelessWidget {
               ],
             ),
           ),
+          if (viewModel.errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: () => viewModel.getStats(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+              ),
+            ),
         ],
       ),
     );

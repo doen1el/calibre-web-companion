@@ -1,7 +1,7 @@
 import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
 import 'package:calibre_web_companion/views/books_view.dart';
 import 'package:calibre_web_companion/views/me_view.dart';
-import 'package:calibre_web_companion/views/search_view.dart';
+import 'package:calibre_web_companion/views/discover_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -13,7 +13,7 @@ class HomepageView extends StatelessWidget {
     final viewModel = context.watch<HomepageViewModel>();
 
     return Scaffold(
-      body: [BooksView(), SearchView(), MeView()][viewModel.currentNavIndex],
+      body: [BooksView(), DiscoverView(), MeView()][viewModel.currentNavIndex],
       bottomNavigationBar: _buildBottomNavigation(context, viewModel),
     );
   }
@@ -27,7 +27,7 @@ class HomepageView extends StatelessWidget {
         BottomNavigationBarItem(icon: Icon(Icons.book_rounded), label: "Books"),
         BottomNavigationBarItem(
           icon: Icon(Icons.search_rounded),
-          label: "Search",
+          label: "Discover",
         ),
         BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: "Me"),
       ],

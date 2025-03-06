@@ -7,6 +7,7 @@ import 'package:html/parser.dart' as parser;
 class LoginViewModel extends ChangeNotifier {
   Logger logger = Logger();
   bool isLoading = false;
+  String errorMessage = '';
 
   Future<bool> login(String username, String password, String baseUrl) async {
     isLoading = true;
