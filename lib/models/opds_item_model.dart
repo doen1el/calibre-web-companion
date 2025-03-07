@@ -11,12 +11,21 @@ class BookItem extends OpdsItem {
   final String uuid;
   final String author;
   final String? publisher;
-  final DateTime updated;
+  final DateTime? updated;
   final DateTime? published;
   final String? language;
   final List<String> categories;
   final String? summary;
   final int? fileSize;
+  final String? series;
+  final double? seriesIndex;
+  final List<String> formats;
+  final Map<String, String> downloadLinks;
+  final double? rating;
+  final String? coverUrl;
+  final String? thumbnailUrl;
+  final Map<String, int>? formatSizes;
+  final String authorSort;
 
   BookItem({
     required super.id,
@@ -24,12 +33,21 @@ class BookItem extends OpdsItem {
     required this.author,
     required this.uuid,
     this.publisher,
-    required this.updated,
+    this.updated,
     this.published,
     this.language,
     required this.categories,
     this.summary,
     this.fileSize,
+    this.series,
+    this.seriesIndex,
+    this.formats = const [],
+    this.downloadLinks = const {},
+    this.rating,
+    this.coverUrl,
+    this.thumbnailUrl,
+    this.formatSizes,
+    this.authorSort = '',
   });
 
   /// Create a BookItem from an OPDS entry

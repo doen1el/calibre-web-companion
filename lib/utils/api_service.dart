@@ -1,13 +1,14 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xml2json/xml2json.dart';
+import 'package:html/parser.dart' as parser;
 
 /// Authentication methods supported by the API
-enum AuthMethod { cookie, basic }
+enum AuthMethod { none, cookie, basic }
 
+/// Service class to handle API requests with various authentication methods
 class ApiService {
   final Logger _logger = Logger();
   final http.Client _client = http.Client();
@@ -67,11 +68,8 @@ class ApiService {
       return json.decode(response.body) as Map<String, dynamic>;
     } catch (e) {
       _logger.e('Failed to parse JSON response: $e');
-      final previewLength =
-          response.body.length > 100 ? 100 : response.body.length;
-      _logger.d(
-        'Response body: ${response.body.substring(0, previewLength)}...',
-      );
+
+      _logger.d('Response body: ${response.body}...');
       throw FormatException('Invalid JSON response: $e');
     }
   }
@@ -107,7 +105,7 @@ class ApiService {
     }
   }
 
-  /// Makes an authenticated POST request
+  /// Makes an authenticated POST request with optional CSRF token
   ///
   /// Parameters:
   ///
@@ -116,12 +114,18 @@ class ApiService {
   /// - `body`: The request body
   /// - `authMethod`: The authentication method to use
   /// - `contentType`: The content type of the request
+  /// - `useCsrf`: Whether to fetch and include CSRF token
+  /// - `csrfEndpoint`: The endpoint to fetch CSRF token from (defaults to same endpoint)
+  /// - `csrfSelector`: CSS selector for the CSRF token input field
   Future<http.Response> post(
     String endpoint,
     Map<String, String>? queryParams,
     dynamic body,
     AuthMethod authMethod, {
     String contentType = 'application/json',
+    bool useCsrf = false,
+    String? csrfEndpoint,
+    String csrfSelector = 'input[name="csrf_token"]',
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint, queryParams);
@@ -130,8 +134,35 @@ class ApiService {
 
     _logger.d('POST request to: $uri');
 
-    // Convert body to appropriate format
-    dynamic encodedBody = _encodeBody(body, contentType);
+    // Handle CSRF token if needed
+    String? csrfToken;
+    String? cookies;
+
+    if (useCsrf) {
+      final csrfData = await _fetchCsrfToken(
+        csrfEndpoint ?? endpoint,
+        authMethod,
+        csrfSelector,
+      );
+      csrfToken = csrfData['token'];
+      cookies = csrfData['cookies'];
+
+      if (cookies != null && !headers.containsKey('Cookie')) {
+        headers['Cookie'] = cookies;
+      }
+    }
+
+    // Prepare the body
+    dynamic encodedBody;
+    if (body is Map && useCsrf && csrfToken != null) {
+      if (body is Map<String, dynamic>) {
+        body['csrf_token'] = csrfToken;
+      } else if (body is Map<String, String>) {
+        body['csrf_token'] = csrfToken;
+      }
+    }
+
+    encodedBody = _encodeBody(body, contentType);
 
     try {
       final response = await _client.post(
@@ -139,7 +170,7 @@ class ApiService {
         headers: headers,
         body: encodedBody,
       );
-      _logger.i('POST response status: ${response.statusCode}');
+      _logger.i('POST response status: ${response.body}');
       _checkResponseStatus(response.statusCode);
       return response;
     } catch (e) {
@@ -164,19 +195,73 @@ class ApiService {
     final fullUrl = url.startsWith('http') ? url : '$_baseUrl$url';
     _logger.d('Downloading from: $fullUrl');
 
+    // Use getStream instead of making a separate request
+    return getStream(url, authMethod);
+  }
+
+  /// Makes an authenticated GET request and returns a StreamedResponse
+  /// This is useful for downloading files or streaming large responses
+  ///
+  /// Parameters:
+  ///
+  /// - `endpoint`: The API endpoint to request
+  /// - `authMethod`: The authentication method to use
+  Future<http.StreamedResponse> getStream(
+    String endpoint,
+    AuthMethod authMethod,
+  ) async {
+    await _ensureInitialized();
+
+    // Ensure URL is complete
+    final fullUrl =
+        endpoint.startsWith('http') ? endpoint : '$_baseUrl$endpoint';
     final headers = _getAuthHeaders(authMethod);
+
+    _logger.d('GET stream request to: $fullUrl');
+    _logger.d('Using ${authMethod.name} authentication');
+
     final request = http.Request('GET', Uri.parse(fullUrl));
     request.headers.addAll(headers);
 
     try {
       final response = await _client.send(request);
-      _logger.i('Download response status: ${response.statusCode}');
+      _logger.i('Stream response status: ${response.statusCode}');
       _checkResponseStatus(response.statusCode);
       return response;
     } catch (e) {
-      _logger.e('Download request failed: $e');
+      _logger.e('Stream request failed: $e');
       rethrow;
     }
+  }
+
+  /// Fetches a CSRF token from the specified endpoint
+  ///
+  /// Parameters:
+  ///
+  /// - `endpoint`: The endpoint to fetch the token from
+  /// - `authMethod`: The authentication method to use
+  /// - `selector`: CSS selector for the CSRF token input
+  Future<Map<String, String?>> _fetchCsrfToken(
+    String endpoint,
+    AuthMethod authMethod,
+    String selector,
+  ) async {
+    _logger.d('Fetching CSRF token from: $endpoint');
+    final response = await get(endpoint, authMethod);
+
+    final document = parser.parse(response.body);
+    final csrfElement = document.querySelector(selector);
+    final csrfToken = csrfElement?.attributes['value'];
+
+    if (csrfToken == null) {
+      _logger.w(
+        'CSRF token not found in the response using selector: $selector',
+      );
+    } else {
+      _logger.d('CSRF token found');
+    }
+
+    return {'token': csrfToken, 'cookies': response.headers['set-cookie']};
   }
 
   /// Ensures credentials are loaded before making requests

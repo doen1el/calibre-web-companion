@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/views/widgets/long_button.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
@@ -76,50 +77,10 @@ class _LoginState extends State<LoginView> {
                 obscureText: true,
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed:
-                    viewModel.isLoading
-                        ? null
-                        : () async {
-                          SharedPreferences prefs =
-                              await SharedPreferences.getInstance();
-
-                          prefs.setString('base_url', _urlController.text);
-                          prefs.setString('username', _usernameController.text);
-                          prefs.setString('password', _passwordController.text);
-
-                          final success = await viewModel.login(
-                            _usernameController.text,
-                            _passwordController.text,
-                            _urlController.text,
-                          );
-
-                          if (success && mounted) {
-                            // ignore: use_build_context_synchronously
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (context) => const HomepageView(),
-                              ),
-                            );
-                          } else {
-                            Fluttertoast.showToast(
-                              msg: "Failed to login",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.CENTER,
-                            );
-                          }
-                        },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                child:
-                    viewModel.isLoading
-                        ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2.0),
-                        )
-                        : const Text("Login"),
+              LongButton(
+                text: "Login",
+                icon: Icons.login_rounded,
+                onPressed: () => _handleLogin(viewModel, context),
               ),
             ],
           ),
@@ -149,5 +110,35 @@ class _LoginState extends State<LoginView> {
         fillColor: Theme.of(context).colorScheme.surface,
       ),
     );
+  }
+
+  Future<void> _handleLogin(
+    LoginViewModel viewModel,
+    BuildContext context,
+  ) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    prefs.setString('base_url', _urlController.text);
+    prefs.setString('username', _usernameController.text);
+    prefs.setString('password', _passwordController.text);
+
+    final success = await viewModel.login(
+      _usernameController.text,
+      _passwordController.text,
+      _urlController.text,
+    );
+
+    if (success && mounted) {
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomepageView()),
+      );
+    } else {
+      Fluttertoast.showToast(
+        msg: "Failed to login",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+      );
+    }
   }
 }

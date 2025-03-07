@@ -22,6 +22,8 @@ class JsonService {
         AuthMethod.basic,
       );
 
+      logger.d(response.body);
+
       if (response.statusCode == 200) {
         try {
           // Try parsing the JSON response
@@ -243,38 +245,66 @@ class JsonService {
   BookItem? _parseBookFromJson(Map<String, dynamic> bookData) {
     try {
       // Extract ID and UUID
-      final id = bookData['id']?.toString() ?? '';
+      final id =
+          bookData['application_id']?.toString() ??
+          bookData['id']?.toString() ??
+          '';
       final uuid = bookData['uuid']?.toString() ?? '';
 
-      // Extract title
+      // Extract title, safely handling quotes
       final title = bookData['title'] ?? 'Unknown Title';
 
-      // Extract author, publisher, language, summary
-      final author =
-          bookData['author_name'] ??
-          bookData['author'] ??
-          bookData['authors'] ??
-          '';
+      // Extract author information
+      String author = '';
+      if (bookData['authors'] is List) {
+        author = (bookData['authors'] as List).join(', ');
+      } else {
+        author =
+            bookData['author_name'] ??
+            bookData['author'] ??
+            bookData['authors'] ??
+            '';
+      }
 
+      // Extract publisher
       final publisher =
           bookData['publisher_name'] ??
           bookData['publisher'] ??
           bookData['publishers'] ??
           '';
 
-      final language =
-          bookData['language_name'] ??
-          bookData['language'] ??
-          bookData['languages'] ??
-          '';
+      // Extract language from array or string
+      String language = '';
+      if (bookData['languages'] is List &&
+          (bookData['languages'] as List).isNotEmpty) {
+        language = (bookData['languages'] as List).first.toString();
+      } else {
+        language =
+            bookData['language_name'] ??
+            bookData['language'] ??
+            bookData['languages'] ??
+            '';
+      }
 
-      final summary =
+      // Extract summary, removing HTML tags if present
+      String summary =
           bookData['description'] ??
           bookData['comment'] ??
           bookData['comments'] ??
           '';
 
-      // Extract Dates
+      if (summary.contains('<')) {
+        summary =
+            summary
+                .replaceAll(RegExp(r'<p[^>]*>'), '\n\n')
+                .replaceAll(RegExp(r'</p>'), '')
+                .replaceAll(RegExp(r'<br[^>]*>'), '\n')
+                .replaceAll(RegExp(r'<[^>]*>'), ' ')
+                .replaceAll(RegExp(r'\s{2,}'), ' ')
+                .trim();
+      }
+
+      // Extract dates
       DateTime updated;
       try {
         updated = DateTime.parse(
@@ -297,11 +327,29 @@ class JsonService {
         published = null;
       }
 
+      // Extract series information
+      String? series;
+      double? seriesIndex;
+      if (bookData['series'] != null && bookData['series'] != '') {
+        series = bookData['series'].toString();
+
+        if (bookData['series_index'] != null) {
+          try {
+            seriesIndex = double.parse(bookData['series_index'].toString());
+          } catch (e) {
+            // Failed to parse series index
+          }
+        }
+      }
+
       // Extract categories (tags)
       List<String> categories = [];
       if (bookData['tags'] is List) {
         categories =
-            (bookData['tags'] as List).map((tag) => tag.toString()).toList();
+            (bookData['tags'] as List)
+                .map((tag) => tag.toString().trim())
+                .where((tag) => tag.isNotEmpty)
+                .toList();
       } else if (bookData['tags'] is String) {
         final tagsStr = bookData['tags'].toString();
         if (tagsStr.isNotEmpty) {
@@ -311,15 +359,58 @@ class JsonService {
         categories = [bookData['tag']];
       }
 
-      // Extract file size
+      // Extract file formats and size
       int? fileSize;
-      if (bookData['size'] != null) {
-        try {
-          fileSize = int.parse(bookData['size'].toString());
-        } catch (e) {
-          fileSize = null;
+      List<String> formats = [];
+      Map<String, String> downloadLinks = {};
+
+      // Extract formats list
+      if (bookData['formats'] is List) {
+        formats =
+            (bookData['formats'] as List)
+                .map((format) => format.toString())
+                .toList();
+      }
+
+      // Extract file size from format_metadata if available
+      if (bookData['format_metadata'] is Map) {
+        final formatMetadata = bookData['format_metadata'] as Map;
+        if (formats.isNotEmpty && formatMetadata.containsKey(formats.first)) {
+          final firstFormat = formatMetadata[formats.first];
+          if (firstFormat is Map && firstFormat.containsKey('size')) {
+            fileSize = int.tryParse(firstFormat['size'].toString());
+          }
         }
       }
+
+      // Extract main format download link
+      if (bookData['main_format'] is Map) {
+        final mainFormat = bookData['main_format'] as Map;
+        mainFormat.forEach((key, value) {
+          downloadLinks[key.toString().toLowerCase()] = value.toString();
+        });
+      }
+
+      // Extract other formats download links
+      if (bookData['other_formats'] is Map) {
+        final otherFormats = bookData['other_formats'] as Map;
+        otherFormats.forEach((key, value) {
+          downloadLinks[key.toString().toLowerCase()] = value.toString();
+        });
+      }
+
+      // Extract rating
+      double? rating;
+      if (bookData['rating'] != null) {
+        try {
+          rating = double.parse(bookData['rating'].toString());
+        } catch (e) {
+          // Failed to parse rating
+        }
+      }
+
+      String coverUrl = bookData['cover']?.toString() ?? '';
+      String thumbnailUrl = bookData['thumbnail']?.toString() ?? '';
 
       return BookItem(
         id: id,
@@ -333,6 +424,13 @@ class JsonService {
         categories: categories,
         summary: summary,
         fileSize: fileSize,
+        series: series,
+        seriesIndex: seriesIndex,
+        formats: formats,
+        downloadLinks: downloadLinks,
+        rating: rating,
+        coverUrl: coverUrl,
+        thumbnailUrl: thumbnailUrl,
       );
     } catch (e) {
       logger.e('Error in _parseBookFromJson: $e');

@@ -23,264 +23,296 @@ class BookDetailsViewModel extends ChangeNotifier {
     return _jsonService.fetchBook(bookUuid: bookUuid);
   }
 
-  // Future<BookModel> fetchBook({required String bookUuid}) async {
-  //   logger.i('Fetching book - UUID: $bookUuid');
-  //   errorMessage = null;
-
-  //   try {
-  //     final response = await _apiService.get(
-  //       '/ajax/book/$bookUuid',
-  //       AuthMethod.basic,
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       try {
-  //         // First, try direct parsing in case it's valid JSON
-  //         final bookJson = json.decode(response.body);
-  //         final bookModel = BookModel.fromJson(bookJson);
-  //         book = bookModel;
-  //         return bookModel;
-  //       } catch (jsonError) {
-  //         // If direct parsing fails, use the manual extraction approach
-  //         logger.w('JSON parsing failed: $jsonError. Using manual extraction.');
-
-  //         // Extract data manually using a safer approach
-  //         final bookData = _extractBookData(response.body, bookUuid);
-  //         final bookModel = BookModel.fromJson(bookData);
-  //         book = bookModel;
-  //         return bookModel;
-  //       }
-  //     } else {
-  //       errorMessage = 'Server error: ${response.statusCode}';
-  //       throw Exception('Server error: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     errorMessage = 'Error: $e';
-  //     logger.e('Exception while fetching book: $e');
-  //     rethrow;
-  //   }
-  // }
-
-  // // Safer approach to extract book data from malformed JSON
-  // Map<String, dynamic> _extractBookData(String responseBody, String bookUuid) {
-  //   Map<String, dynamic> result = {
-  //     'uuid': bookUuid,
-  //     'title': 'Unknown Title',
-  //     'authors': ['Unknown Author'],
-  //   };
-
-  //   try {
-  //     // Extract application_id
-  //     final idMatch = RegExp(
-  //       r'"application_id":\s*(\d+)',
-  //     ).firstMatch(responseBody);
-  //     if (idMatch != null) {
-  //       result['id'] = int.parse(idMatch.group(1)!);
-  //     }
-
-  //     // Extract title (handling problematic quotes)
-  //     final titleMatch = RegExp(
-  //       r'"title":\s*"(.*?)(?<!\\)"(?=,|\s*}|\s*")',
-  //       dotAll: true,
-  //     ).firstMatch(responseBody);
-  //     if (titleMatch != null) {
-  //       // Clean up the title by replacing any malformed quotes
-  //       String title = titleMatch.group(1)!;
-  //       title = title.replaceAll('"', '');
-  //       result['title'] = title;
-  //     }
-
-  //     // Extract authors array
-  //     final authorsSection = _extractSection(responseBody, 'authors');
-  //     if (authorsSection != null) {
-  //       final authors = _extractStringArray(authorsSection);
-  //       if (authors.isNotEmpty) {
-  //         result['authors'] = authors;
-  //       }
-  //     }
-
-  //     // Extract tags array
-  //     final tagsSection = _extractSection(responseBody, 'tags');
-  //     if (tagsSection != null) {
-  //       final tags = _extractStringArray(tagsSection);
-  //       if (tags.isNotEmpty) {
-  //         result['tags'] = tags;
-  //       }
-  //     }
-
-  //     // Extract rating
-  //     final ratingMatch = RegExp(
-  //       r'"rating":\s*"([^"]+)"',
-  //     ).firstMatch(responseBody);
-  //     if (ratingMatch != null) {
-  //       result['ratings'] = ratingMatch.group(1);
-  //     }
-
-  //     // Extract has_cover (always true since we have book ID)
-  //     result['has_cover'] = true;
-
-  //     // Extract series if available
-  //     final seriesMatch = RegExp(
-  //       r'"series":\s*"([^"]+)"',
-  //     ).firstMatch(responseBody);
-  //     if (seriesMatch != null) {
-  //       result['series'] = seriesMatch.group(1);
-  //     } else {
-  //       result['series'] = '';
-  //     }
-
-  //     // Extract comments safely (this is particularly problematic)
-  //     try {
-  //       final commentsMatch = RegExp(
-  //         r'"comments":\s*"(.*?)(?<!\\)"(?=,|\s*}|\s*")',
-  //         dotAll: true,
-  //       ).firstMatch(responseBody);
-  //       if (commentsMatch != null) {
-  //         String comments = commentsMatch.group(1)!;
-  //         // Strip HTML
-  //         comments = comments.replaceAll(RegExp(r'<[^>]*>'), '');
-  //         result['comments'] = comments;
-  //       } else {
-  //         result['comments'] = '';
-  //       }
-  //     } catch (e) {
-  //       logger.w('Failed to extract comments: $e');
-  //       result['comments'] = '';
-  //     }
-  //   } catch (e) {
-  //     logger.e('Error during manual data extraction: $e');
-  //   }
-
-  //   return result;
-  // }
-
-  // Helper to extract a section of the JSON between field name and next field
-  String? _extractSection(String json, String fieldName) {
-    final regex = RegExp('"$fieldName":\\s*(\\[.*?\\])', dotAll: true);
-    final match = regex.firstMatch(json);
-    return match?.group(1);
-  }
-
-  // Helper to extract string array values
-  List<String> _extractStringArray(String arrayText) {
-    List<String> result = [];
-    // Simple but effective approach for well-formed parts
-    final matches = RegExp(r'"([^"]+)"').allMatches(arrayText);
-    for (var match in matches) {
-      if (match.groupCount >= 1) {
-        result.add(match.group(1)!);
+  Future<bool> downloadBook(
+    String bookId,
+    String title, {
+    String format = 'epub',
+  }) async {
+    try {
+      // Ask user to select download directory
+      String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+      if (selectedDirectory == null) {
+        logger.i('Download cancelled: No directory selected');
+        return false;
       }
+
+      logger.i('Downloading book - BookId: $bookId, Format: $format');
+
+      final prefs = await SharedPreferences.getInstance();
+      final baseUrl = prefs.getString('base_url');
+      final cookie = prefs.getString('calibre_web_session');
+      final username = prefs.getString('username');
+      final password = prefs.getString('password');
+
+      if (baseUrl == null) {
+        logger.w('No server URL found');
+        errorMessage = 'Server URL missing';
+        return false;
+      }
+
+      // Construct download URL
+      final downloadUrl = '$baseUrl/download/$bookId/$format/$bookId.$format';
+      logger.d('Download URL: $downloadUrl');
+
+      // Create file path
+      final fileName =
+          title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_') ?? 'book_$bookId';
+      final filePath = path.join(selectedDirectory, '$fileName.$format');
+
+      // Show download in progress
+      bool isDownloading = true;
+      errorMessage = 'Downloading...';
+
+      // Create HTTP client with proper authentication
+      final client = http.Client();
+      try {
+        // Try cookie authentication first
+        final Map<String, String> headers = {};
+        if (cookie != null) {
+          headers['Cookie'] = cookie;
+        } else if (username != null && password != null) {
+          // Fall back to basic auth if no cookie
+          headers['Authorization'] =
+              'Basic ${base64.encode(utf8.encode('$username:$password'))}';
+        }
+
+        // Use a stream to handle large files and show progress
+        final request = http.Request('GET', Uri.parse(downloadUrl));
+        request.headers.addAll(headers);
+
+        final response = await client.send(request);
+
+        logger.i('Download response status: ${response.statusCode}');
+
+        if (response.statusCode == 200) {
+          // Get the total file size for progress calculation
+          final contentLength = response.contentLength ?? 0;
+          int downloaded = 0;
+
+          // Create file
+          final file = File(filePath);
+          final sink = file.openWrite();
+
+          // Process the download stream
+          await response.stream.forEach((bytes) {
+            sink.add(bytes);
+            downloaded += bytes.length;
+
+            // Update progress every 500ms to avoid too many UI updates
+            final progress =
+                contentLength > 0
+                    ? (downloaded / contentLength * 100).toInt()
+                    : null;
+
+            if (progress != null) {
+              errorMessage = 'Downloading... ${progress.toString()}%';
+            }
+          });
+
+          await sink.close();
+
+          errorMessage = 'Download complete! Saved to:\n$filePath';
+
+          logger.i('Download complete: $filePath');
+          return true;
+        } else if (response.statusCode == 401) {
+          errorMessage = 'Authentication failed. Please log in again.';
+          logger.w('Authentication failed');
+          return false;
+        } else {
+          errorMessage =
+              'Download failed: Server error (${response.statusCode})';
+          logger.e('Failed to download book: ${response.statusCode}');
+          return false;
+        }
+      } finally {
+        client.close();
+        isDownloading = false;
+      }
+    } catch (e) {
+      errorMessage = 'Download error: $e';
+      logger.e('Exception while downloading book: $e');
+      return false;
     }
-    return result;
   }
 
-  // Future<bool> downloadBook(int bookId, {String format = 'epub'}) async {
+  Future<Uint8List?> downloadBookBytes(
+    String bookId, {
+    required String format,
+  }) async {
+    try {
+      final apiService = ApiService();
+      final baseUrl = apiService.getBaseUrl();
+      final username = apiService.getUsername();
+      final password = apiService.getPassword();
+
+      // URL für den Download erstellen
+      final url = '$baseUrl/opds/download/$bookId/$format';
+
+      // Basic Auth Header erstellen
+      final authHeader =
+          'Basic ${base64.encode(utf8.encode('$username:$password'))}';
+
+      // Anfrage senden
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {'Authorization': authHeader},
+      );
+
+      // Statuscode überprüfen
+      if (response.statusCode == 200) {
+        return response.bodyBytes;
+      } else {
+        logger.e('Error downloading book: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      logger.e('Exception downloading book: $e');
+      return null;
+    }
+  }
+
+  // Bookmark-Status für das Buch
+  bool isBookmarked(String bookId) {
+    // Hier die tatsächliche Implementierung basierend auf SharedPreferences oder Datenbank
+    return false; // Dummy-Implementierung
+  }
+
+  // Lesezeichen umschalten
+  void toggleBookmark(String bookId) {
+    // Implementiere die Funktion zum Umschalten des Lesezeichen-Status
+    // und benachrichtige Listener
+    notifyListeners();
+  }
+
+  // Prüfen, ob das Buch als gelesen markiert ist
+  bool isRead(String bookId) {
+    // Hier die tatsächliche Implementierung basierend auf SharedPreferences oder Datenbank
+    return false; // Dummy-Implementierung
+  }
+
+  /// Toggle the read status of the book
+  /// Toggle the read status of the book
+  /// Toggle the read status of the book
+  Future<bool> toggleReadStatus(String bookId) async {
+    try {
+      final apiService = ApiService();
+      logger.i('Toggling read status for book: $bookId');
+
+      // Create a body with the necessary parameters
+      // The server expects a properly formatted body, not null
+      final body = {'book_id': bookId};
+
+      final response = await apiService.post(
+        '/ajax/toggleread/$bookId',
+        null,
+        body, // Send the body with book_id instead of null
+        AuthMethod.cookie,
+        contentType: 'application/x-www-form-urlencoded',
+        useCsrf: true,
+      );
+
+      if (response.statusCode == 200) {
+        logger.i('Successfully toggled read status');
+        // Update local state or cache here if needed
+        notifyListeners(); // Update UI
+        return true;
+      } else {
+        logger.e('Failed to toggle read status: ${response.statusCode}');
+        errorMessage = 'Failed to update read status (${response.statusCode})';
+        return false;
+      }
+    } catch (e) {
+      logger.e('Error toggling read status: $e');
+      errorMessage = 'Error: $e';
+      return false;
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  // Buch herunterladen
+  // Future<bool> downloadBook(
+  //   String bookId, {
+  //   required String format,
+  //   required String title,
+  // }) async {
   //   try {
   //     // Ask user to select download directory
   //     String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
   //     if (selectedDirectory == null) {
   //       logger.i('Download cancelled: No directory selected');
+  //       errorMessage = 'Download cancelled';
+  //       // notifyListeners();
   //       return false;
   //     }
 
   //     logger.i('Downloading book - BookId: $bookId, Format: $format');
+  //     errorMessage = 'Starting download...';
+  //     // notifyListeners();
 
-  //     final prefs = await SharedPreferences.getInstance();
-  //     final baseUrl = prefs.getString('base_url');
-  //     final cookie = prefs.getString('calibre_web_session');
-  //     final username = prefs.getString('username');
-  //     final password = prefs.getString('password');
+  //     // Create sanitized filename from title
+  //     final sanitizedTitle = title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+  //     final fileName = '$sanitizedTitle.$format';
+  //     final filePath = path.join(selectedDirectory, fileName);
 
-  //     if (baseUrl == null) {
-  //       logger.w('No server URL found');
-  //       errorMessage = 'Server URL missing';
+  //     // Use ApiService for download
+  //     final downloadUrl = '/opds/download/$bookId/$format';
+  //     final response = await _apiService.download(
+  //       downloadUrl,
+  //       AuthMethod.basic,
+  //     );
+
+  //     logger.i('Download response status: ${response.statusCode}');
+
+  //     if (response.statusCode == 200) {
+  //       // Get total file size for progress calculation
+  //       final contentLength = response.contentLength ?? 0;
+  //       int downloaded = 0;
+
+  //       // Create file
+  //       final file = File(filePath);
+  //       final sink = file.openWrite();
+
+  //       // Show initial progress
+  //       errorMessage = 'Downloading... 0%';
+  //       // notifyListeners();
+
+  //       // Process the download stream
+  //       await for (final bytes in response.stream) {
+  //         sink.add(bytes);
+  //         downloaded += bytes.length;
+
+  //         // Calculate progress percentage
+  //         if (contentLength > 0) {
+  //           final progress = (downloaded / contentLength * 100).toInt();
+  //           errorMessage = 'Downloading... $progress%';
+  //           // notifyListeners();
+  //         }
+  //       }
+
+  //       await sink.close();
+
+  //       errorMessage = 'Download complete! Saved to:\n$filePath';
+  //       logger.i('Download complete: $filePath');
+  //       notifyListeners();
+  //       return true;
+  //     } else {
+  //       errorMessage = 'Download failed: Server error (${response.statusCode})';
+  //       logger.e('Failed to download book: ${response.statusCode}');
+  //       // notifyListeners();
   //       return false;
-  //     }
-
-  //     // Construct download URL
-  //     final downloadUrl = '$baseUrl/download/$bookId/$format/$bookId.$format';
-  //     logger.d('Download URL: $downloadUrl');
-
-  //     // Create file path
-  //     final fileName =
-  //         book?.title?.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_') ??
-  //         'book_$bookId';
-  //     final filePath = path.join(selectedDirectory, '$fileName.$format');
-
-  //     // Show download in progress
-  //     bool isDownloading = true;
-  //     errorMessage = 'Downloading...';
-
-  //     // Create HTTP client with proper authentication
-  //     final client = http.Client();
-  //     try {
-  //       // Try cookie authentication first
-  //       final Map<String, String> headers = {};
-  //       if (cookie != null) {
-  //         headers['Cookie'] = cookie;
-  //       } else if (username != null && password != null) {
-  //         // Fall back to basic auth if no cookie
-  //         headers['Authorization'] =
-  //             'Basic ${base64.encode(utf8.encode('$username:$password'))}';
-  //       }
-
-  //       // Use a stream to handle large files and show progress
-  //       final request = http.Request('GET', Uri.parse(downloadUrl));
-  //       request.headers.addAll(headers);
-
-  //       final response = await client.send(request);
-
-  //       logger.i('Download response status: ${response.statusCode}');
-
-  //       if (response.statusCode == 200) {
-  //         // Get the total file size for progress calculation
-  //         final contentLength = response.contentLength ?? 0;
-  //         int downloaded = 0;
-
-  //         // Create file
-  //         final file = File(filePath);
-  //         final sink = file.openWrite();
-
-  //         // Process the download stream
-  //         await response.stream.forEach((bytes) {
-  //           sink.add(bytes);
-  //           downloaded += bytes.length;
-
-  //           // Update progress every 500ms to avoid too many UI updates
-  //           final progress =
-  //               contentLength > 0
-  //                   ? (downloaded / contentLength * 100).toInt()
-  //                   : null;
-
-  //           if (progress != null) {
-  //             errorMessage = 'Downloading... ${progress.toString()}%';
-  //           }
-  //         });
-
-  //         await sink.close();
-
-  //         errorMessage = 'Download complete! Saved to:\n$filePath';
-
-  //         logger.i('Download complete: $filePath');
-  //         return true;
-  //       } else if (response.statusCode == 401) {
-  //         errorMessage = 'Authentication failed. Please log in again.';
-  //         logger.w('Authentication failed');
-  //         return false;
-  //       } else {
-  //         errorMessage =
-  //             'Download failed: Server error (${response.statusCode})';
-  //         logger.e('Failed to download book: ${response.statusCode}');
-  //         return false;
-  //       }
-  //     } finally {
-  //       client.close();
-  //       isDownloading = false;
   //     }
   //   } catch (e) {
   //     errorMessage = 'Download error: $e';
   //     logger.e('Exception while downloading book: $e');
+  //     // notifyListeners();
   //     return false;
   //   }
   // }
+
+  // Downloads-Ordner öffnen
+  void openDownloads() {
+    // Implementiere das Öffnen des Downloads-Ordners oder der Downloads-Ansicht in deiner App
+  }
 }

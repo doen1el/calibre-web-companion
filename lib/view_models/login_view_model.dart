@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
@@ -9,58 +10,73 @@ class LoginViewModel extends ChangeNotifier {
   bool isLoading = false;
   String errorMessage = '';
 
+  /// Attempt to login to the Calibre-Web server
+  ///
+  /// Parameters:
+  ///
+  /// - `username`: The username to login with
+  /// - `password`: The password to login with
+  /// - `baseUrl`: The base URL of the Calibre-Web server
   Future<bool> login(String username, String password, String baseUrl) async {
     isLoading = true;
-    final client = http.Client();
+    notifyListeners();
+
     try {
-      final initialResponse = await client.get(Uri.parse('$baseUrl/login'));
+      // Save base URL, username and password to shared preferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('base_url', baseUrl);
+      await prefs.setString('username', username);
+      await prefs.setString('password', password);
 
-      String? cookies = initialResponse.headers['set-cookie'];
+      final apiService = ApiService();
+      await apiService.initialize(); // Reinitialize with new values
 
-      var document = parser.parse(initialResponse.body);
-      var csrfToken =
-          document
-              .querySelector('input[name="csrf_token"]')
-              ?.attributes['value'];
-
-      final response = await client.post(
-        Uri.parse('$baseUrl/login'),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          if (cookies != null) 'Cookie': cookies,
-        },
-        body: {
-          'username': username,
-          'password': password,
-          'remember_me': 'on',
-          'csrf_token': csrfToken,
-        },
+      final response = await apiService.post(
+        '/login',
+        null,
+        {'username': username, 'password': password, 'remember_me': 'on'},
+        AuthMethod.none,
+        contentType: 'application/x-www-form-urlencoded',
+        useCsrf: true,
       );
 
       if (response.statusCode == 200 || response.statusCode == 302) {
+        // Extract and save the session cookie
+
         if (response.headers.containsKey('set-cookie')) {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(
-            'calibre_web_session',
-            response.headers['set-cookie']!,
-          );
+          final cookie = response.headers['set-cookie']!;
+          await prefs.setString('calibre_web_session', cookie);
+          await apiService.initialize();
+          logger.i('Session cookie saved');
+        } else {
+          logger.w('No cookie received in login response');
         }
 
-        logger.i('Login was successful: ${response.statusCode}');
-
-        return !response.body.contains('login-form') ||
+        // Check if login was successful
+        final isSuccess =
+            !response.body.contains('login-form') ||
             response.headers['location']?.contains('index') == true;
+
+        if (isSuccess) {
+          logger.i('Login successful');
+        } else {
+          logger.w('Login failed - invalid credentials');
+          errorMessage = 'Invalid username or password';
+        }
+
+        return isSuccess;
       }
 
       logger.e('Login failed: ${response.statusCode}');
-
+      errorMessage = 'Login failed (Error ${response.statusCode})';
       return false;
     } catch (e) {
-      logger.e("Error during loging: $e");
+      logger.e("Error during login: $e");
+      errorMessage = 'Connection error: $e';
       return false;
     } finally {
       isLoading = false;
-      client.close();
+      notifyListeners();
     }
   }
 }
