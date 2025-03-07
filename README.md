@@ -28,11 +28,8 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses the
     <img src="./images/login.png" alt="InApp" width="32%"/>
     <img src="./images/books_view.png" alt="Share" width="32%" />
     <img src="./images/book_details.png" alt="OpenTracks" width="32%" />
-    <img src="./images/sort.png" alt="OpenTracks" width="32%" />
-    <img src="./images/search.png" alt="OpenTracks" width="32%" />
+    <img src="./images/send.png" alt="OpenTracks" width="32%" />
     <img src="./images/discover_view.png" alt="OpenTracks" width="32%" />
-    <img src="./images/authors_letters_view.png" alt="OpenTracks" width="32%" />
-    <img src="./images/authors_b_view.png" alt="OpenTracks" width="32%" />
     <img src="./images/me_view.png" alt="OpenTracks" width="32%" />
 </p>
 
