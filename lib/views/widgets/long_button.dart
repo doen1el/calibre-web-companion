@@ -4,11 +4,13 @@ class LongButton extends StatelessWidget {
   final String text;
   final IconData icon;
   final VoidCallback onPressed;
+  final bool isLoading;
   const LongButton({
     super.key,
     required this.text,
     required this.icon,
     required this.onPressed,
+    this.isLoading = false,
   });
 
   @override
@@ -24,7 +26,7 @@ class LongButton extends StatelessWidget {
         borderRadius: borderRadius,
         child: InkWell(
           borderRadius: borderRadius,
-          onTap: onPressed,
+          onTap: isLoading ? null : onPressed,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(

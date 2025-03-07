@@ -39,4 +39,8 @@ class MeViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> logOut() async {
+    _apiService.get('/logout', AuthMethod.cookie);
+  }
 }

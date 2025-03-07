@@ -3,9 +3,34 @@ import 'dart:typed_data';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
+
+enum TransferStatus { loading, downloading, uploading, success, failed }
+
+class CancellationToken {
+  bool _isCancelled = false;
+
+  /// Cancel the operation associated with this token
+  void cancel() {
+    _isCancelled = true;
+  }
+
+  /// Check if the token has been cancelled
+  bool get isCancelled => _isCancelled;
+}
+
+/// An exception thrown when an operation is cancelled
+class CancellationException implements Exception {
+  final String message;
+
+  CancellationException(this.message);
+
+  @override
+  String toString() => message;
+}
 
 class SendToEreader extends StatefulWidget {
   final BookItem book;
@@ -23,10 +48,17 @@ class SendToEreaderState extends State<SendToEreader> {
     return FloatingActionButton.extended(
       onPressed: () => _showSendToReaderDialog(context, viewModel, widget.book),
       icon: const Icon(Icons.send),
-      label: const Text('Send to Reader'),
+      label: const Text('Send to E-Reader'),
     );
   }
 
+  /// Show the dialog to send the book to the e-reader
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `viewModel`: The view model to use for downloading the book
+  /// - `book`: The book to send
   void _showSendToReaderDialog(
     BuildContext context,
     BookDetailsViewModel viewModel,
@@ -56,6 +88,12 @@ class SendToEreaderState extends State<SendToEreader> {
                     hintText: 'XXXX',
                     counterText: '',
                   ),
+                  onChanged: (value) {
+                    codeController.value = codeController.value.copyWith(
+                      text: value.toUpperCase(),
+                      selection: TextSelection.collapsed(offset: value.length),
+                    );
+                  },
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -63,9 +101,18 @@ class SendToEreaderState extends State<SendToEreader> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Visit send.djazz.se on your e-reader to get a code',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                RichText(
+                  text: TextSpan(
+                    text: 'Visit ',
+                    style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+                    children: const <TextSpan>[
+                      TextSpan(
+                        text: 'send.djazz.se',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(text: ' on your e-reader to get a code'),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -96,17 +143,41 @@ class SendToEreaderState extends State<SendToEreader> {
     );
   }
 
+  /// Send the book to the e-reader using the provided code
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `viewModel`: The view model to use for downloading the book
+  /// - `book`: The book to send
+  /// - `code`: The 4-digit code to use for the transfer
   Future<void> _sendToEReader(
     BuildContext context,
     BookDetailsViewModel viewModel,
     BookItem book,
     String code,
   ) async {
-    // Dialog mit Fortschritt anzeigen
-    final progressDialog = _showProgressDialog(context);
+    var logger = Logger();
+
+    // Create transfer status notifier
+    final transferStatus = ValueNotifier<TransferStatus>(
+      TransferStatus.loading,
+    );
+    String? errorMessage;
+
+    final cancelToken = CancellationToken();
+
+    // Show progress dialog
+    _showTransferStatusSheet(context, transferStatus, errorMessage, () {
+      cancelToken.cancel();
+    });
 
     try {
-      // Ebook-Datei herunterladen
+      logger.i("Starting download process");
+
+      transferStatus.value = TransferStatus.downloading;
+
+      // Download ebook
       final ebookBytes = await viewModel.downloadBookBytes(
         book.id,
         format: 'epub',
@@ -115,82 +186,258 @@ class SendToEreaderState extends State<SendToEreader> {
         throw Exception('Failed to download ebook');
       }
 
-      // Datei zu send.djazz.se hochladen
+      logger.i('Downloaded ebook: ${book.title}.epub');
+
+      transferStatus.value = TransferStatus.uploading;
+
+      // Upload to send.djazz.se
       final result = await _uploadToSendDjazz(
         code,
-        '${book.title}.epub',
+        "${book.title}.epub",
         ebookBytes,
-        isKindle: false, // TODO: Option für Kindle hinzufügen
+        isKindle: false, // TODO: Add Kindle/Kobo option
       );
 
-      // Fortschrittsdialog schließen
-      Navigator.pop(context);
-
-      // Erfolg oder Fehler anzeigen
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result
-                ? 'Successfully sent to e-reader!'
-                : 'Failed to send to e-reader',
-          ),
-          backgroundColor: result ? Colors.green : Colors.red,
-        ),
-      );
+      transferStatus.value =
+          result ? TransferStatus.success : TransferStatus.failed;
+      logger.i("Set status to ${result ? 'success' : 'failed'}");
     } catch (e) {
-      // Fortschrittsdialog schließen
-      Navigator.pop(context);
+      logger.e("Error in _sendToEReader: $e");
+      errorMessage = e.toString();
 
-      // Fehlermeldung anzeigen
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      transferStatus.value = TransferStatus.failed;
     }
   }
 
-  AlertDialog _showProgressDialog(BuildContext context) {
-    AlertDialog dialog = AlertDialog(
-      content: Row(
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(width: 20),
-          const Text("Sending to e-reader..."),
-        ],
-      ),
-    );
-
-    showDialog(
+  /// Show the transfer status sheet
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `status`: The transfer status notifier
+  /// - `errorMessage`: The error message to display
+  void _showTransferStatusSheet(
+    BuildContext context,
+    ValueNotifier<TransferStatus> status,
+    String? errorMessage,
+    VoidCallback? onCancel,
+  ) {
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) => dialog,
-    );
 
-    return dialog;
+      isDismissible: false,
+      enableDrag: false,
+      barrierColor: Colors.black54,
+      builder: (BuildContext context) {
+        return PopScope(
+          canPop: false,
+          child: ValueListenableBuilder<TransferStatus>(
+            valueListenable: status,
+            builder: (context, currentStatus, _) {
+              return SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Status icon
+                      _buildStatusIcon(currentStatus),
+                      const SizedBox(height: 20),
+
+                      // Status text
+                      Text(
+                        _getStatusMessage(currentStatus),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+
+                      // Error message if available
+                      if (errorMessage != null &&
+                          currentStatus == TransferStatus.failed)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            errorMessage,
+                            style: TextStyle(
+                              color: Colors.red[800],
+                              fontSize: 12,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+
+                      const SizedBox(height: 20),
+
+                      // Progress indicator for loading states
+                      if (currentStatus == TransferStatus.loading ||
+                          currentStatus == TransferStatus.downloading ||
+                          currentStatus == TransferStatus.uploading)
+                        LinearProgressIndicator(
+                          backgroundColor: Colors.grey[200],
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Theme.of(context).primaryColor,
+                          ),
+                        ),
+
+                      const SizedBox(height: 20),
+
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: Material(
+                          color:
+                              Theme.of(context).colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(12.0),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12.0),
+                            onTap: () {
+                              // If operation is in progress, call cancellation
+                              if (currentStatus == TransferStatus.loading ||
+                                  currentStatus == TransferStatus.downloading ||
+                                  currentStatus == TransferStatus.uploading) {
+                                if (onCancel != null) onCancel();
+                              }
+
+                              // Close the sheet
+                              Navigator.of(context).pop();
+                            },
+                            child: Container(
+                              width: double.infinity,
+                              height: 50,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    currentStatus == TransferStatus.success ||
+                                            currentStatus ==
+                                                TransferStatus.failed
+                                        ? Icons.close
+                                        : Icons.cancel_rounded,
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onPrimaryContainer,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    currentStatus == TransferStatus.success ||
+                                            currentStatus ==
+                                                TransferStatus.failed
+                                        ? "Close"
+                                        : "Cancel",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 
+  /// Build the status icon based on the current status
+  /// Parameters:
+  ///
+  /// - `status`: The current transfer status
+  Widget _buildStatusIcon(TransferStatus status) {
+    switch (status) {
+      case TransferStatus.loading:
+        return const CircularProgressIndicator();
+      case TransferStatus.downloading:
+        return const Icon(Icons.download_rounded, size: 48);
+      case TransferStatus.uploading:
+        return const Icon(Icons.upload_rounded, size: 48);
+      case TransferStatus.success:
+        return const Icon(Icons.check_circle, size: 48);
+      case TransferStatus.failed:
+        return const Icon(Icons.error_outline, size: 48);
+    }
+  }
+
+  /// Get the status message based on the current status
+  ///
+  /// Parameters:
+  ///
+  /// - `status`: The current transfer status
+  String _getStatusMessage(TransferStatus status) {
+    switch (status) {
+      case TransferStatus.loading:
+        return "Preparing transfer...";
+      case TransferStatus.downloading:
+        return "Downloading book...";
+      case TransferStatus.uploading:
+        return "Sending to e-reader...";
+      case TransferStatus.success:
+        return "Successfully sent to e-reader!";
+      case TransferStatus.failed:
+        return "Transfer failed";
+    }
+  }
+
+  /// Upload the file to send.djazz.se
+  ///
+  /// Parameters:
+  ///
+  /// - `code`: The 4-digit code to use for the transfer
+  /// - `filename`: The name of the file to upload
+  /// - `fileBytes`: The bytes of the file to upload
+  /// - `isKindle`: Whether to convert the file for Kindle
   Future<bool> _uploadToSendDjazz(
     String code,
     String filename,
     Uint8List fileBytes, {
     bool isKindle = false,
+    CancellationToken? cancelToken,
   }) async {
+    var logger = Logger();
+
     try {
       final uri = Uri.parse('https://send.djazz.se/upload');
 
-      // Formular mit Multipart-Request erstellen
+      // Check cancellation before starting
+      if (cancelToken?.isCancelled == true) {
+        throw CancellationException('Operation cancelled');
+      }
+
+      logger.i('Starting upload to: $uri');
+      logger.i('File size: ${(fileBytes.length / 1024).toStringAsFixed(2)} KB');
+
+      // Create multipart request
       final request = http.MultipartRequest('POST', uri);
 
-      // Füge den Code hinzu
+      // Add code and conversion options
       request.fields['key'] = code;
+      // TODO: Add conversion options
+      // request.fields['kepubify'] = (!isKindle).toString();
+      // request.fields['kindlegen'] = isKindle.toString();
 
-      // Füge Konvertierungsoptionen hinzu
-      request.fields['kepubify'] = (!isKindle).toString();
-      request.fields['kindlegen'] = isKindle.toString();
-
-      // Füge die Datei hinzu
+      // Add the file
       final multipartFile = http.MultipartFile.fromBytes(
         'file',
         fileBytes,
@@ -198,19 +445,44 @@ class SendToEreaderState extends State<SendToEreader> {
       );
       request.files.add(multipartFile);
 
-      // Sende die Anfrage
-      final response = await request.send();
+      // Check cancellation again before sending request
+      if (cancelToken?.isCancelled == true) {
+        throw CancellationException('Operation cancelled');
+      }
 
-      // Überprüfe den Statuscode
-      if (response.statusCode == 200) {
-        final responseBody = await response.stream.bytesToString();
-        return responseBody.contains('Upload successful');
+      logger.i('Sending request with file: ${path.basename(filename)}');
+
+      if (cancelToken?.isCancelled == true) {
+        throw CancellationException('Operation cancelled');
+      }
+
+      // Send the request
+      final streamedResponse = await request.send();
+      logger.i('Response status: ${streamedResponse.statusCode}');
+
+      // Get the full response body
+      final responseBody = await streamedResponse.stream.bytesToString();
+
+      if (cancelToken?.isCancelled == true) {
+        throw CancellationException('Operation cancelled');
+      }
+
+      logger.i('Response body: $responseBody');
+
+      // Check status code first
+      if (streamedResponse.statusCode == 200) {
+        logger.i('Upload confirmed successful');
+        return true;
       } else {
-        final responseBody = await response.stream.bytesToString();
-        throw Exception('Error uploading file: $responseBody');
+        logger.e('Error status code: ${streamedResponse.statusCode}');
+        throw Exception(
+          'Upload failed with status: ${streamedResponse.statusCode}, Body: $responseBody',
+        );
       }
     } catch (e) {
-      print('Error uploading to send.djazz.se: $e');
+      if (e is! CancellationException) {
+        logger.e('Error uploading to send.djazz.se: $e');
+      }
       rethrow;
     }
   }

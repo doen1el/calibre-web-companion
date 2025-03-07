@@ -20,7 +20,6 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses the
 - Display book details
 - Display collection statistics
 - Download books directly to your device
-- Mark books as read, unread, or bookmark
 - Send books to your e-reader (using [send2ereader](https://github.com/daniel-j/send2ereader))
 
 ## 🖼️ Impressions
@@ -44,6 +43,9 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 ## 🚧 Roadmap
 
 - [ ] Add localization
+- [ ] Toggle read/unread status
+- [ ] Add bookmark feature
+- [ ] Toggle book archive status
 - [ ] Add dark mode
 - [ ] Code refactoring
 - [ ] Better error handling

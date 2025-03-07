@@ -1,7 +1,9 @@
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/views/widgets/book_card.dart';
+import 'package:calibre_web_companion/views/widgets/book_card_skeleton.dart';
 import 'package:calibre_web_companion/views/widgets/category_list_item.dart';
+import 'package:calibre_web_companion/views/widgets/category_list_item_skeleton.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:calibre_web_companion/main.dart';
@@ -89,7 +91,13 @@ class BookListState extends State<BookList> with RouteAware {
       body: Consumer<BookListViewModel>(
         builder: (context, viewModel, _) {
           if (viewModel.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            // If we're loading categories, show category skeletons
+            if (widget.categoryType != null && widget.bookListType == null) {
+              return _buildCategoryListSkeletons();
+            }
+
+            // Otherwise show skeleton book cards
+            return _buildBookGridSkeletons();
           }
 
           if (viewModel.hasError) {
@@ -109,6 +117,33 @@ class BookListState extends State<BookList> with RouteAware {
           return const Center(child: Text('Keine Daten gefunden'));
         },
       ),
+    );
+  }
+
+  /// Build a grid of skeleton book cards for loading state
+  Widget _buildBookGridSkeletons() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16.0),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.7,
+        crossAxisSpacing: 16.0,
+        mainAxisSpacing: 16.0,
+      ),
+      itemCount: 10, // Show a reasonable number of skeletons
+      itemBuilder: (context, index) {
+        return const BookCardSkeleton();
+      },
+    );
+  }
+
+  /// Build a list of skeleton category items for loading state
+  Widget _buildCategoryListSkeletons() {
+    return ListView.builder(
+      itemCount: 15, // Show a reasonable number of skeletons
+      itemBuilder: (context, index) {
+        return const CategoryListItemSkeleton();
+      },
     );
   }
 
@@ -170,6 +205,7 @@ class BookListState extends State<BookList> with RouteAware {
 
         return CategoryListItem(
           category: category,
+          type: widget.categoryType!,
           onTap: () {
             _navigateToCategoryOrBooks(context, category);
           },

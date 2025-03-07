@@ -4,43 +4,52 @@ import 'dart:typed_data';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:calibre_web_companion/utils/json_service.dart';
-import 'package:calibre_web_companion/utils/opds_service.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+
+import 'dart:io';
+import 'dart:convert';
+
 import 'package:path/path.dart' as path;
 
 class BookDetailsViewModel extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
-  JsonService _jsonService = JsonService();
+  final JsonService _jsonService = JsonService();
 
   Logger logger = Logger();
   String? errorMessage;
 
+  bool isDownloading = false;
+  int downloaded = 0;
+
+  /// Fetch the book details from the server
+  ///
+  /// Parameters:
+  ///
+  /// - `bookUuid`: The unique identifier of the book
   Future<BookItem> fetchBook({required String bookUuid}) async {
     return _jsonService.fetchBook(bookUuid: bookUuid);
   }
 
+  /// Fetch the book details from the server
+  ///
+  /// Parameters:
+  ///
+  /// - `bookId`: The unique identifier of the book
+  /// - `title`: The title of the book
+  /// - `format`: The format of the book (e.g. epub, pdf)
   Future<bool> downloadBook(
     String bookId,
-    String title, {
+    String title,
+    String selectedDirectory, {
     String format = 'epub',
   }) async {
     try {
-      // Ask user to select download directory
-      String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
-      if (selectedDirectory == null) {
-        logger.i('Download cancelled: No directory selected');
-        return false;
-      }
-
       logger.i('Downloading book - BookId: $bookId, Format: $format');
 
       final prefs = await SharedPreferences.getInstance();
       final baseUrl = prefs.getString('base_url');
-      final cookie = prefs.getString('calibre_web_session');
       final username = prefs.getString('username');
       final password = prefs.getString('password');
 
@@ -55,26 +64,18 @@ class BookDetailsViewModel extends ChangeNotifier {
       logger.d('Download URL: $downloadUrl');
 
       // Create file path
-      final fileName =
-          title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_') ?? 'book_$bookId';
+      final fileName = title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
       final filePath = path.join(selectedDirectory, '$fileName.$format');
-
-      // Show download in progress
-      bool isDownloading = true;
-      errorMessage = 'Downloading...';
 
       // Create HTTP client with proper authentication
       final client = http.Client();
       try {
         // Try cookie authentication first
         final Map<String, String> headers = {};
-        if (cookie != null) {
-          headers['Cookie'] = cookie;
-        } else if (username != null && password != null) {
-          // Fall back to basic auth if no cookie
-          headers['Authorization'] =
-              'Basic ${base64.encode(utf8.encode('$username:$password'))}';
-        }
+
+        // Fall back to basic auth if no cookie
+        headers['Authorization'] =
+            'Basic ${base64.encode(utf8.encode('$username:$password'))}';
 
         // Use a stream to handle large files and show progress
         final request = http.Request('GET', Uri.parse(downloadUrl));
@@ -85,10 +86,6 @@ class BookDetailsViewModel extends ChangeNotifier {
         logger.i('Download response status: ${response.statusCode}');
 
         if (response.statusCode == 200) {
-          // Get the total file size for progress calculation
-          final contentLength = response.contentLength ?? 0;
-          int downloaded = 0;
-
           // Create file
           final file = File(filePath);
           final sink = file.openWrite();
@@ -96,75 +93,94 @@ class BookDetailsViewModel extends ChangeNotifier {
           // Process the download stream
           await response.stream.forEach((bytes) {
             sink.add(bytes);
-            downloaded += bytes.length;
-
-            // Update progress every 500ms to avoid too many UI updates
-            final progress =
-                contentLength > 0
-                    ? (downloaded / contentLength * 100).toInt()
-                    : null;
-
-            if (progress != null) {
-              errorMessage = 'Downloading... ${progress.toString()}%';
-            }
           });
 
           await sink.close();
 
-          errorMessage = 'Download complete! Saved to:\n$filePath';
-
           logger.i('Download complete: $filePath');
+
           return true;
         } else if (response.statusCode == 401) {
-          errorMessage = 'Authentication failed. Please log in again.';
           logger.w('Authentication failed');
           return false;
         } else {
-          errorMessage =
-              'Download failed: Server error (${response.statusCode})';
           logger.e('Failed to download book: ${response.statusCode}');
           return false;
         }
       } finally {
         client.close();
-        isDownloading = false;
       }
     } catch (e) {
-      errorMessage = 'Download error: $e';
       logger.e('Exception while downloading book: $e');
       return false;
     }
   }
 
+  /// Download book bytes from the server
+  ///
+  /// Parameters:
+  ///
+  /// - `bookId`: The unique identifier of the book
+  /// - `format`: The format of the book (e.g. epub, pdf)
   Future<Uint8List?> downloadBookBytes(
     String bookId, {
     required String format,
   }) async {
     try {
+      // Get authentication details as in downloadBook
       final apiService = ApiService();
       final baseUrl = apiService.getBaseUrl();
+      final prefs = await SharedPreferences.getInstance();
+      final cookie = prefs.getString('calibre_web_session');
       final username = apiService.getUsername();
       final password = apiService.getPassword();
 
-      // URL für den Download erstellen
-      final url = '$baseUrl/opds/download/$bookId/$format';
-
-      // Basic Auth Header erstellen
-      final authHeader =
-          'Basic ${base64.encode(utf8.encode('$username:$password'))}';
-
-      // Anfrage senden
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {'Authorization': authHeader},
-      );
-
-      // Statuscode überprüfen
-      if (response.statusCode == 200) {
-        return response.bodyBytes;
-      } else {
-        logger.e('Error downloading book: ${response.statusCode}');
+      if (baseUrl.isEmpty) {
+        logger.w('No server URL found');
         return null;
+      }
+
+      final url = '$baseUrl/download/$bookId/$format/$bookId.epub';
+      logger.d('Download URL: $url');
+
+      // Create HTTP client with proper authentication
+      final client = http.Client();
+      try {
+        // Setup headers with cookie-first authentication strategy
+        final Map<String, String> headers = {};
+        if (cookie != null && cookie.isNotEmpty) {
+          // Try cookie authentication first
+          headers['Cookie'] = cookie;
+        } else if (username.isNotEmpty && password.isNotEmpty) {
+          // Fall back to basic auth if no cookie
+          headers['Authorization'] =
+              'Basic ${base64.encode(utf8.encode('$username:$password'))}';
+        } else {
+          logger.e('No authentication credentials available');
+          return null;
+        }
+
+        // Use the same request method as downloadBook for consistency
+        final request = http.Request('GET', Uri.parse(url));
+        request.headers.addAll(headers);
+
+        final response = await client.send(request);
+
+        // Check status code
+        if (response.statusCode == 200) {
+          logger.i('Successfully downloaded book bytes');
+          // Convert the streamed response to bytes
+          final bytes = await response.stream.toBytes();
+          return bytes;
+        } else if (response.statusCode == 401) {
+          logger.e('Authentication failed: 401 Unauthorized');
+          return null;
+        } else {
+          logger.e('Error downloading book: HTTP ${response.statusCode}');
+          return null;
+        }
+      } finally {
+        client.close();
       }
     } catch (e) {
       logger.e('Exception downloading book: $e');
@@ -172,147 +188,87 @@ class BookDetailsViewModel extends ChangeNotifier {
     }
   }
 
-  // Bookmark-Status für das Buch
-  bool isBookmarked(String bookId) {
-    // Hier die tatsächliche Implementierung basierend auf SharedPreferences oder Datenbank
-    return false; // Dummy-Implementierung
-  }
+  // // Bookmark-Status für das Buch
+  // bool isBookmarked(String bookId) {
+  //   // Hier die tatsächliche Implementierung basierend auf SharedPreferences oder Datenbank
+  //   return false; // Dummy-Implementierung
+  // }
 
-  // Lesezeichen umschalten
-  void toggleBookmark(String bookId) {
-    // Implementiere die Funktion zum Umschalten des Lesezeichen-Status
-    // und benachrichtige Listener
-    notifyListeners();
-  }
+  // // Lesezeichen umschalten
+  // void toggleBookmark(String bookId) {
+  //   // Implementiere die Funktion zum Umschalten des Lesezeichen-Status
+  //   // und benachrichtige Listener
+  //   notifyListeners();
+  // }
 
-  // Prüfen, ob das Buch als gelesen markiert ist
-  bool isRead(String bookId) {
-    // Hier die tatsächliche Implementierung basierend auf SharedPreferences oder Datenbank
-    return false; // Dummy-Implementierung
-  }
+  // // Prüfen, ob das Buch als gelesen markiert ist
+  // bool isRead(String bookId) {
+  //   // Hier die tatsächliche Implementierung basierend auf SharedPreferences oder Datenbank
+  //   return false; // Dummy-Implementierung
+  // }
 
-  /// Toggle the read status of the book
-  /// Toggle the read status of the book
-  /// Toggle the read status of the book
-  Future<bool> toggleReadStatus(String bookId) async {
-    try {
-      final apiService = ApiService();
-      logger.i('Toggling read status for book: $bookId');
-
-      // Create a body with the necessary parameters
-      // The server expects a properly formatted body, not null
-      final body = {'book_id': bookId};
-
-      final response = await apiService.post(
-        '/ajax/toggleread/$bookId',
-        null,
-        body, // Send the body with book_id instead of null
-        AuthMethod.cookie,
-        contentType: 'application/x-www-form-urlencoded',
-        useCsrf: true,
-      );
-
-      if (response.statusCode == 200) {
-        logger.i('Successfully toggled read status');
-        // Update local state or cache here if needed
-        notifyListeners(); // Update UI
-        return true;
-      } else {
-        logger.e('Failed to toggle read status: ${response.statusCode}');
-        errorMessage = 'Failed to update read status (${response.statusCode})';
-        return false;
-      }
-    } catch (e) {
-      logger.e('Error toggling read status: $e');
-      errorMessage = 'Error: $e';
-      return false;
-    } finally {
-      notifyListeners();
-    }
-  }
-
-  // Buch herunterladen
-  // Future<bool> downloadBook(
-  //   String bookId, {
-  //   required String format,
-  //   required String title,
-  // }) async {
+  // Future<bool> toggleReadStatus(String bookId) async {
   //   try {
-  //     // Ask user to select download directory
-  //     String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
-  //     if (selectedDirectory == null) {
-  //       logger.i('Download cancelled: No directory selected');
-  //       errorMessage = 'Download cancelled';
-  //       // notifyListeners();
+  //     final apiService = ApiService();
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     logger.i('Toggling read status for book: $bookId');
+
+  //     // Get CSRF token first using existing method
+  //     final csrfData = await apiService.fetchCsrfToken(
+  //       '/book/$bookId',
+  //       AuthMethod.cookie,
+  //       'input[name="csrf_token"]',
+  //     );
+
+  //     if (csrfData['token'] == null) {
+  //       logger.e('Failed to get CSRF token');
+  //       errorMessage = 'Could not get security token';
   //       return false;
   //     }
 
-  //     logger.i('Downloading book - BookId: $bookId, Format: $format');
-  //     errorMessage = 'Starting download...';
-  //     // notifyListeners();
+  //     final csrfToken = csrfData['token']!;
+  //     final baseUrl = apiService.getBaseUrl();
+  //     final cookie = prefs.getString('calibre_web_session');
 
-  //     // Create sanitized filename from title
-  //     final sanitizedTitle = title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-  //     final fileName = '$sanitizedTitle.$format';
-  //     final filePath = path.join(selectedDirectory, fileName);
+  //     // Use http package directly
+  //     final url = Uri.parse('$baseUrl/ajax/toggleread/$bookId');
 
-  //     // Use ApiService for download
-  //     final downloadUrl = '/opds/download/$bookId/$format';
-  //     final response = await _apiService.download(
-  //       downloadUrl,
-  //       AuthMethod.basic,
+  //     // Set headers exactly like jQuery would
+  //     final headers = {
+  //       'Cookie': cookie!,
+  //       'X-CSRFToken': csrfToken,
+  //       'X-Requested-With': 'XMLHttpRequest',
+  //       'Content-Type':
+  //           'application/x-www-form-urlencoded', // Simplified Content-Type
+  //       'Referer': '$baseUrl/book/$bookId',
+  //       'Accept': '*/*', // jQuery default
+  //     };
+
+  //     // KEY CHANGE: Try with book_id parameter instead of csrf_token
+  //     final body = 'book_id=$bookId';
+
+  //     logger.i('Sending POST request to: $url with body: $body');
+  //     final response = await http.post(url, headers: headers, body: body);
+
+  //     logger.i(
+  //       'Response status: ${response.statusCode}, body: ${response.body}',
   //     );
 
-  //     logger.i('Download response status: ${response.statusCode}');
-
   //     if (response.statusCode == 200) {
-  //       // Get total file size for progress calculation
-  //       final contentLength = response.contentLength ?? 0;
-  //       int downloaded = 0;
-
-  //       // Create file
-  //       final file = File(filePath);
-  //       final sink = file.openWrite();
-
-  //       // Show initial progress
-  //       errorMessage = 'Downloading... 0%';
-  //       // notifyListeners();
-
-  //       // Process the download stream
-  //       await for (final bytes in response.stream) {
-  //         sink.add(bytes);
-  //         downloaded += bytes.length;
-
-  //         // Calculate progress percentage
-  //         if (contentLength > 0) {
-  //           final progress = (downloaded / contentLength * 100).toInt();
-  //           errorMessage = 'Downloading... $progress%';
-  //           // notifyListeners();
-  //         }
-  //       }
-
-  //       await sink.close();
-
-  //       errorMessage = 'Download complete! Saved to:\n$filePath';
-  //       logger.i('Download complete: $filePath');
+  //       logger.i('Successfully toggled read status');
   //       notifyListeners();
   //       return true;
   //     } else {
-  //       errorMessage = 'Download failed: Server error (${response.statusCode})';
-  //       logger.e('Failed to download book: ${response.statusCode}');
-  //       // notifyListeners();
+  //       logger.e('Failed to toggle read status: ${response.statusCode}');
+  //       errorMessage = 'Failed to update read status (${response.statusCode})';
   //       return false;
   //     }
   //   } catch (e) {
-  //     errorMessage = 'Download error: $e';
-  //     logger.e('Exception while downloading book: $e');
-  //     // notifyListeners();
+  //     logger.e('Error toggling read status: $e');
+  //     errorMessage = 'Error: $e';
   //     return false;
+  //   } finally {
+  //     notifyListeners();
   //   }
   // }
-
-  // Downloads-Ordner öffnen
-  void openDownloads() {
-    // Implementiere das Öffnen des Downloads-Ordners oder der Downloads-Ansicht in deiner App
-  }
 }

@@ -1,4 +1,5 @@
 import 'package:calibre_web_companion/views/widgets/book_card.dart';
+import 'package:calibre_web_companion/views/widgets/book_card_skeleton.dart';
 import 'package:calibre_web_companion/views/widgets/search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -61,7 +62,7 @@ class _BookListViewState extends State<BooksView> {
       body: Consumer<BooksViewModel>(
         builder: (context, viewModel, child) {
           if (viewModel.books.isEmpty && viewModel.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return _buildBookGridSkeletons();
           }
 
           if (viewModel.books.isEmpty && viewModel.hasError) {
@@ -91,6 +92,22 @@ class _BookListViewState extends State<BooksView> {
           return _buildRefreshIndicatorAndGridView(viewModel);
         },
       ),
+    );
+  }
+
+  Widget _buildBookGridSkeletons() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16.0),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.7,
+        crossAxisSpacing: 16.0,
+        mainAxisSpacing: 16.0,
+      ),
+      itemCount: 10,
+      itemBuilder: (context, index) {
+        return const BookCardSkeleton();
+      },
     );
   }
 
@@ -179,12 +196,7 @@ class _BookListViewState extends State<BooksView> {
                 : viewModel.books.length,
         itemBuilder: (context, index) {
           if (index == viewModel.books.length) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(),
-              ),
-            );
+            return BookCardSkeleton();
           }
           return BookCard(book: viewModel.books[index]);
         },

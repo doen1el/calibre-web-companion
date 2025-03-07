@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
+import 'package:calibre_web_companion/views/widgets/download_to_device.dart';
 import 'package:calibre_web_companion/views/widgets/send_to_ereader.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,10 +15,11 @@ class BookDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<BookDetailsViewModel>(context);
-
     return FutureBuilder<BookItem>(
-      future: viewModel.fetchBook(bookUuid: bookUuid),
+      future: Provider.of<BookDetailsViewModel>(
+        context,
+        listen: false,
+      ).fetchBook(bookUuid: bookUuid),
       builder: (context, snapshot) {
         // Handle loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -71,42 +73,46 @@ class BookDetails extends StatelessWidget {
             ),
             actions: [
               // Bookmark toggle
-              IconButton(
-                icon: Icon(
-                  viewModel.isBookmarked(book.id)
-                      ? Icons.bookmark
-                      : Icons.bookmark_outline,
-                  color:
-                      viewModel.isBookmarked(book.id)
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                ),
-                onPressed: () => viewModel.toggleBookmark(book.id),
-                tooltip: 'Bookmark',
-              ),
+              // IconButton(
+              //   icon: Icon(
+              //     viewModel.isBookmarked(book.id)
+              //         ? Icons.bookmark
+              //         : Icons.bookmark_outline,
+              //     color:
+              //         viewModel.isBookmarked(book.id)
+              //             ? Theme.of(context).colorScheme.primary
+              //             : null,
+              //   ),
+              //   onPressed: () => viewModel.toggleBookmark(book.id),
+              //   tooltip: 'Bookmark',
+              // ),
               // Read/Unread toggle
-              IconButton(
-                icon: Icon(
-                  viewModel.isRead(book.id)
-                      ? Icons.check_circle
-                      : Icons.check_circle_outline,
-                  color:
-                      viewModel.isRead(book.id)
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                ),
-                onPressed: () => viewModel.toggleReadStatus(book.id),
-                tooltip: 'Mark as Read',
-              ),
+              // IconButton(
+              //   icon: Icon(
+              //     Provider.of<BookDetailsViewModel>(context).isRead(book.id)
+              //         ? Icons.check_circle
+              //         : Icons.check_circle_outline,
+              //     color:
+              //         Provider.of<BookDetailsViewModel>(context).isRead(book.id)
+              //             ? Theme.of(context).colorScheme.primary
+              //             : null,
+              //   ),
+              //   onPressed:
+              //       () => Provider.of<BookDetailsViewModel>(
+              //         context,
+              //         listen: false,
+              //       ).toggleReadStatus(book.id),
+              //   tooltip: 'Mark as Read / Unread',
+              // ),
               // Download button
-              IconButton(
-                icon: const Icon(Icons.download),
-                onPressed: () => _showDownloadOptions(context, viewModel, book),
-                tooltip: 'Download',
-              ),
+              DownloadToDevice(book: book),
             ],
           ),
-          body: _buildBookDetails(context, viewModel, book),
+          body: _buildBookDetails(
+            context,
+            Provider.of<BookDetailsViewModel>(context, listen: false),
+            book,
+          ),
           floatingActionButton: SendToEreader(book: book),
         );
       },
@@ -129,7 +135,7 @@ class BookDetails extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cover image with gradient overlay
+          // Cover image with gradient overlay (keep as is)
           Stack(
             alignment: Alignment.bottomLeft,
             children: [
@@ -190,136 +196,207 @@ class BookDetails extends StatelessWidget {
             ],
           ),
 
-          // Book details content
+          // Rating section
+          if (book.rating != null && book.rating! > 0)
+            _buildCard(
+              context,
+              Icons.star_rate_rounded,
+              'Rating',
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: _buildRating(book.rating!),
+              ),
+            ),
+
+          // Series info if available
+          if (book.series != null)
+            _buildCard(
+              context,
+              Icons.bookmark_rounded,
+              'Series',
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  book.seriesIndex != null
+                      ? '${book.series} (Book ${book.seriesIndex})'
+                      : book.series!,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+            ),
+
+          // Publication Info section
+          _buildInfoCard(
+            context,
+            Icons.info_outline_rounded,
+            'Publication Info',
+            [
+              if (book.published != null)
+                _buildInfoRow(
+                  context,
+                  'Published',
+                  intl.DateFormat('MMMM d, yyyy').format(book.published!),
+                  Icons.calendar_today_rounded,
+                ),
+              if (book.updated != null)
+                _buildInfoRow(
+                  context,
+                  'Updated',
+                  intl.DateFormat('MMMM d, yyyy').format(book.updated!),
+                  Icons.update_rounded,
+                ),
+              if (book.publisher != null && book.publisher!.isNotEmpty)
+                _buildInfoRow(
+                  context,
+                  'Publisher',
+                  book.publisher!,
+                  Icons.business_rounded,
+                ),
+              if (book.language!.isNotEmpty)
+                _buildInfoRow(
+                  context,
+                  'Language',
+                  _formatLanguage(book.language!),
+                  Icons.language_rounded,
+                ),
+            ],
+          ),
+
+          // File Info section
+          _buildInfoCard(context, Icons.description_rounded, 'File Info', [
+            if (book.formats.isNotEmpty)
+              _buildInfoRow(
+                context,
+                'Format(s)',
+                book.formats.join(', '),
+                Icons.folder_rounded,
+              ),
+            if (book.fileSize != null)
+              _buildInfoRow(
+                context,
+                'Size',
+                _formatFileSize(book.fileSize!),
+                Icons.data_usage_rounded,
+              ),
+            _buildInfoRow(context, 'ID', book.uuid, Icons.tag_rounded),
+          ]),
+
+          // Tags section
+          if (book.categories.isNotEmpty)
+            _buildCard(
+              context,
+              Icons.local_offer_rounded,
+              'Categories',
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: _buildTags(context, book.categories),
+              ),
+            ),
+
+          // Description section
+          if (book.summary!.isNotEmpty)
+            _buildCard(
+              context,
+              Icons.article_rounded,
+              'Description',
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  book.summary!,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ),
+
+          // Bottom padding
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  /// Helper method to create a card with an icon and title
+  ///
+  /// Parameters:
+  ///
+  /// - [context]: The current build context
+  /// - [icon]: The icon to display
+  /// - [title]: The title of the card
+  /// - [child]: The child widget to display in the card
+  Widget _buildCard(
+    BuildContext context,
+    IconData icon,
+    String title,
+    Widget child,
+  ) {
+    BorderRadius borderRadius = BorderRadius.circular(12.0);
+
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Card header with icon and title
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
               children: [
-                // Rating section
-                if (book.rating != null) ...[
-                  _buildRating(book.rating!),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                ],
-
-                // Series info if available
-                if (book.series != null) ...[
-                  _buildInfoRow(
-                    context,
-                    'Series',
-                    book.seriesIndex != null
-                        ? '${book.series} (Book ${book.seriesIndex})'
-                        : book.series!,
+                Icon(
+                  icon,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 8),
-                ],
-
-                // Publication Info section
-                _buildInfoSection(context, 'Publication Info', [
-                  if (book.published != null)
-                    _buildInfoRow(
-                      context,
-                      'Published',
-                      intl.DateFormat('MMMM d, yyyy').format(book.published!),
-                    ),
-                  if (book.updated != null)
-                    _buildInfoRow(
-                      context,
-                      'Updated',
-                      intl.DateFormat('MMMM d, yyyy').format(book.updated!),
-                    ),
-                  if (book.publisher != null && book.publisher!.isNotEmpty)
-                    _buildInfoRow(context, 'Publisher', book.publisher!),
-                  if (book.language!.isNotEmpty)
-                    _buildInfoRow(
-                      context,
-                      'Language',
-                      _formatLanguage(book.language!),
-                    ),
-                ]),
-
-                // File Info section
-                const SizedBox(height: 16),
-                _buildInfoSection(context, 'File Info', [
-                  if (book.formats.isNotEmpty)
-                    _buildInfoRow(
-                      context,
-                      'Format(s)',
-                      book.formats.join(', '),
-                    ),
-                  if (book.fileSize != null)
-                    _buildInfoRow(
-                      context,
-                      'Size',
-                      _formatFileSize(book.fileSize!),
-                    ),
-                  _buildInfoRow(context, 'ID', book.uuid),
-                ]),
-
-                // Tags section
-                if (book.categories.isNotEmpty) ...[
-                  const SizedBox(height: 24),
-                  Text(
-                    'Categories',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildTags(context, book.categories),
-                ],
-
-                // Description section
-                if (book.summary!.isNotEmpty) ...[
-                  const SizedBox(height: 24),
-                  Text(
-                    'Description',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    book.summary!,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
+                ),
               ],
             ),
+          ),
+
+          // Divider
+          const Divider(height: 4),
+
+          // Card content
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: child,
           ),
         ],
       ),
     );
   }
 
-  /// Helper method to create info sections
+  /// Helper method to create an info card with multiple rows
   ///
   /// Parameters:
   ///
   /// - [context]: The current build context
-  /// - [title]: The title of the section
+  /// - [icon]: The icon for the card
+  /// - [title]: The title of the card
   /// - [children]: The children widgets to display
-  Widget _buildInfoSection(
+  Widget _buildInfoCard(
     BuildContext context,
+    IconData icon,
     String title,
     List<Widget> children,
   ) {
     final validChildren = children.where((w) => w is! SizedBox).toList();
     if (validChildren.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        ...validChildren,
-      ],
+    return _buildCard(
+      context,
+      icon,
+      title,
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: validChildren,
+      ),
     );
   }
 
@@ -330,14 +407,28 @@ class BookDetails extends StatelessWidget {
   /// - [context]: The current build context
   /// - [label]: The label for the info row
   /// - [value]: The value for the info row
-  Widget _buildInfoRow(BuildContext context, String label, String value) {
+  /// - [icon]: The icon for the info row
+  Widget _buildInfoRow(
+    BuildContext context,
+    String label,
+    String value, [
+    IconData? icon,
+  ]) {
     if (value.isEmpty) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (icon != null) ...[
+            Icon(
+              icon,
+              size: 18,
+              color: Theme.of(context).colorScheme.secondary.withOpacity(0.7),
+            ),
+            const SizedBox(width: 8),
+          ],
           SizedBox(
             width: 80,
             child: Text(
@@ -505,97 +596,6 @@ class BookDetails extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
       ],
-    );
-  }
-
-  /// Shows download options for a book
-  ///
-  /// Parameters:
-  ///
-  /// - [context]: The current build context
-  /// - [viewModel]: The view model for the book details
-  /// - [book]: The book item to download
-  void _showDownloadOptions(
-    BuildContext context,
-    BookDetailsViewModel viewModel,
-    BookItem book,
-  ) {
-    if (book.formats.length == 1) {
-      // If only one format is available, download it directly
-      _downloadBook(context, viewModel, book, book.formats[0]);
-      return;
-    }
-
-    // Show modal bottom sheet with download options
-    showModalBottomSheet(
-      context: context,
-      builder:
-          (context) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  title: const Text('Download Format'),
-                  leading: const Icon(Icons.download),
-                ),
-                const Divider(),
-                ...book.formats.map((format) {
-                  IconData icon;
-                  switch (format.toLowerCase()) {
-                    case 'epub':
-                      icon = Icons.menu_book;
-                      break;
-                    case 'pdf':
-                      icon = Icons.picture_as_pdf;
-                      break;
-                    case 'mobi':
-                      icon = Icons.book_online;
-                      break;
-                    default:
-                      icon = Icons.file_present;
-                  }
-
-                  return ListTile(
-                    leading: Icon(icon),
-                    title: Text(format.toUpperCase()),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _downloadBook(context, viewModel, book, format);
-                    },
-                  );
-                }),
-              ],
-            ),
-          ),
-    );
-  }
-
-  /// Downloads a book in a specific format
-  ///
-  /// Parameters:
-  ///
-  /// - [context]: The current build context
-  /// - [viewModel]: The view model for the book details
-  /// - [book]: The book item to download
-  /// - [format]: The format to download the book in
-  void _downloadBook(
-    BuildContext context,
-    BookDetailsViewModel viewModel,
-    BookItem book,
-    String format,
-  ) {
-    // Start download
-    viewModel.downloadBook(book.id, book.title);
-
-    // Show snackbar notification
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Downloading ${book.title} (${format.toUpperCase()})'),
-        action: SnackBarAction(
-          label: 'View',
-          onPressed: () => viewModel.openDownloads(),
-        ),
-      ),
     );
   }
 }

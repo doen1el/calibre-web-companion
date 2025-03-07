@@ -65,7 +65,11 @@ class ApiService {
   }) async {
     final response = await get(endpoint, authMethod, queryParams: queryParams);
     try {
-      _logger.d(json.decode(response.body));
+      if (response.body.length > 100) {
+        _logger.d('Response body: ${response.body.substring(0, 100)}...');
+      } else {
+        _logger.d('Response body: ${response.body}');
+      }
       return json.decode(response.body) as Map<String, dynamic>;
     } catch (e) {
       _logger.e('Failed to parse JSON response: $e');
@@ -127,11 +131,17 @@ class ApiService {
     bool useCsrf = false,
     String? csrfEndpoint,
     String csrfSelector = 'input[name="csrf_token"]',
+    Map<String, String>? customHeaders,
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint, queryParams);
     final headers = _getAuthHeaders(authMethod);
     headers['Content-Type'] = contentType;
+
+    // Add custom headers if provided
+    if (customHeaders != null) {
+      headers.addAll(customHeaders);
+    }
 
     _logger.d('POST request to: $uri');
 
@@ -140,7 +150,7 @@ class ApiService {
     String? cookies;
 
     if (useCsrf) {
-      final csrfData = await _fetchCsrfToken(
+      final csrfData = await fetchCsrfToken(
         csrfEndpoint ?? endpoint,
         authMethod,
         csrfSelector,
@@ -166,10 +176,28 @@ class ApiService {
     encodedBody = _encodeBody(body, contentType);
 
     try {
+      if (body == null && endpoint.contains('/ajax/toggleread/')) {
+        // Create a manual request for more control over the exact format
+        final request = http.Request('POST', uri);
+        request.headers.addAll(headers);
+
+        // Send an empty body but with the right Content-Length header
+        request.body = '';
+
+        final streamedResponse = await _client.send(request);
+        final response = await http.Response.fromStream(streamedResponse);
+
+        _logger.i('POST response status: ${response.body}');
+        _checkResponseStatus(response.statusCode);
+        return response;
+      }
+      // Important change: Use an empty string instead of null when body is null
       final response = await _client.post(
         uri,
         headers: headers,
-        body: encodedBody,
+        body:
+            encodedBody ??
+            "", // This is the key change - provide empty string instead of null
       );
       _logger.i('POST response status: ${response.body}');
       _checkResponseStatus(response.statusCode);
@@ -178,26 +206,6 @@ class ApiService {
       _logger.e('POST request failed: $e');
       rethrow;
     }
-  }
-
-  /// Downloads a binary file with appropriate authentication
-  ///
-  /// Parameters:
-  ///
-  /// - `url`: The URL to download from
-  /// - `authMethod`: The authentication method to use
-  Future<http.StreamedResponse> download(
-    String url,
-    AuthMethod authMethod,
-  ) async {
-    await _ensureInitialized();
-
-    // Ensure URL is complete
-    final fullUrl = url.startsWith('http') ? url : '$_baseUrl$url';
-    _logger.d('Downloading from: $fullUrl');
-
-    // Use getStream instead of making a separate request
-    return getStream(url, authMethod);
   }
 
   /// Makes an authenticated GET request and returns a StreamedResponse
@@ -242,7 +250,7 @@ class ApiService {
   /// - `endpoint`: The endpoint to fetch the token from
   /// - `authMethod`: The authentication method to use
   /// - `selector`: CSS selector for the CSRF token input
-  Future<Map<String, String?>> _fetchCsrfToken(
+  Future<Map<String, String?>> fetchCsrfToken(
     String endpoint,
     AuthMethod authMethod,
     String selector,
@@ -314,8 +322,18 @@ class ApiService {
   /// - `body`: The request body to encode
   /// - `contentType`: The content type of the request
   dynamic _encodeBody(dynamic body, String contentType) {
-    if (body is Map<String, dynamic> && contentType == 'application/json') {
-      return json.encode(body);
+    if (body is Map) {
+      if (contentType == 'application/json') {
+        return json.encode(body);
+      } else if (contentType == 'application/x-www-form-urlencoded') {
+        // Convert map to URL encoded string format key1=value1&key2=value2
+        return body.entries
+            .map(
+              (e) =>
+                  '${Uri.encodeComponent(e.key.toString())}=${Uri.encodeComponent(e.value.toString())}',
+            )
+            .join('&');
+      }
     }
     return body;
   }
