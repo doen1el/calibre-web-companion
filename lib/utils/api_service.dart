@@ -65,6 +65,7 @@ class ApiService {
   }) async {
     final response = await get(endpoint, authMethod, queryParams: queryParams);
     try {
+      _logger.d(json.decode(response.body));
       return json.decode(response.body) as Map<String, dynamic>;
     } catch (e) {
       _logger.e('Failed to parse JSON response: $e');

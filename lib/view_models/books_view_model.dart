@@ -75,6 +75,7 @@ class BooksViewModel extends ChangeNotifier {
   /// - `sortBy`: The field to sort by
   /// - `order`: The order to sort by
   void setSorting(String sortBy, String order) {
+    logger.i('Sorting by $sortBy $order');
     _sortBy = sortBy;
     _sortOrder = order;
     refreshBooks();

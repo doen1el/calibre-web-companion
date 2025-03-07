@@ -71,43 +71,43 @@ class BookDetails extends StatelessWidget {
             ),
             actions: [
               // Bookmark toggle
-              // IconButton(
-              //   icon: Icon(
-              //     viewModel.isBookmarked(book.id)
-              //         ? Icons.bookmark
-              //         : Icons.bookmark_outline,
-              //     color:
-              //         viewModel.isBookmarked(book.id)
-              //             ? Theme.of(context).colorScheme.primary
-              //             : null,
-              //   ),
-              //   onPressed: () => viewModel.toggleBookmark(book.id),
-              //   tooltip: 'Bookmark',
-              // ),
-              // // Read/Unread toggle
-              // IconButton(
-              //   icon: Icon(
-              //     viewModel.isRead(book.id)
-              //         ? Icons.check_circle
-              //         : Icons.check_circle_outline,
-              //     color:
-              //         viewModel.isRead(book.id)
-              //             ? Theme.of(context).colorScheme.primary
-              //             : null,
-              //   ),
-              //   onPressed: () => viewModel.toggleReadStatus(book.id),
-              //   tooltip: 'Mark as Read',
-              // ),
-              // // Download button
-              // IconButton(
-              //   icon: const Icon(Icons.download),
-              //   onPressed: () => _showDownloadOptions(context, viewModel, book),
-              //   tooltip: 'Download',
-              // ),
+              IconButton(
+                icon: Icon(
+                  viewModel.isBookmarked(book.id)
+                      ? Icons.bookmark
+                      : Icons.bookmark_outline,
+                  color:
+                      viewModel.isBookmarked(book.id)
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                ),
+                onPressed: () => viewModel.toggleBookmark(book.id),
+                tooltip: 'Bookmark',
+              ),
+              // Read/Unread toggle
+              IconButton(
+                icon: Icon(
+                  viewModel.isRead(book.id)
+                      ? Icons.check_circle
+                      : Icons.check_circle_outline,
+                  color:
+                      viewModel.isRead(book.id)
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                ),
+                onPressed: () => viewModel.toggleReadStatus(book.id),
+                tooltip: 'Mark as Read',
+              ),
+              // Download button
+              IconButton(
+                icon: const Icon(Icons.download),
+                onPressed: () => _showDownloadOptions(context, viewModel, book),
+                tooltip: 'Download',
+              ),
             ],
           ),
           body: _buildBookDetails(context, viewModel, book),
-          // floatingActionButton: SendToEreader(book: book),
+          floatingActionButton: SendToEreader(book: book),
         );
       },
     );
