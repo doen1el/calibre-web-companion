@@ -4,7 +4,7 @@
 
 # Calibre Web Companion
 
-This is an unofficial companion application for [Calibre Web](https://github.com/janeczku/calibre-web) (which also works for [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated)) that allows you to browse your book collection and download books directly to your device. You can also interact with your books by marking them as read, unread or bookmarked. You can also send books directly to your e-reader (Kindle/Kobo) thanks to the great work of [send2ereader](https://github.com/daniel-j/send2ereader).
+This is an unofficial companion application for [Calibre Web](https://github.com/janeczku/calibre-web) (which also works for [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated)) that allows you to browse your book collection and download books directly to your device. You can also interact with your books by marking them as read, unread or bookmarked. It is also possible to send books directly to your e-reader (Kindle/Kobo) thanks to the great work of [send2ereader](https://github.com/daniel-j/send2ereader).
 
 The app is built with [Flutter](https://github.com/flutter/flutter) and uses **Material You**. The app is currently available for **Android** only.
 
@@ -46,11 +46,11 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 
 ## 🚧 Roadmap
 
-- [ ] Add localization
+- [x] Add localization
+- [x] Add dark mode
 - [ ] Toggle read/unread status
 - [ ] Add bookmark function
 - [ ] Toggle book archive status
-- [ ] Add dark mode
 - [ ] Code refactoring
 - [ ] Better error handling
 

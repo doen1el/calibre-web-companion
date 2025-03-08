@@ -182,7 +182,7 @@ class SettingsView extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
-                  Text("1.0.2", style: Theme.of(context).textTheme.bodyMedium),
+                  Text("1.1.0", style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ),
             ),
