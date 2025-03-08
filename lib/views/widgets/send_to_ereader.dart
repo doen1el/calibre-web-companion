@@ -74,81 +74,181 @@ class SendToEreaderState extends State<SendToEreader> {
     BookItem book,
   ) {
     final TextEditingController codeController = TextEditingController();
+    // Add state variable for Kindle/Kobo selection
+    bool isKindle = false;
 
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
-            title: Text(localizations.sendToKindleKobo),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(localizations.enter4DigitCode),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: codeController,
-                  autofocus: true,
-                  textCapitalization: TextCapitalization.characters,
-                  maxLength: 4,
-                  textAlign: TextAlign.center,
-                  decoration: const InputDecoration(
-                    hintText: 'XXXX',
-                    counterText: '',
-                  ),
-                  onChanged: (value) {
-                    codeController.value = codeController.value.copyWith(
-                      text: value.toUpperCase(),
-                      selection: TextSelection.collapsed(offset: value.length),
-                    );
-                  },
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 8,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                RichText(
-                  text: TextSpan(
-                    text: localizations.visit,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Theme.of(context).hintColor,
-                    ),
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: 'send.djazz.se',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+          (context) => StatefulBuilder(
+            // Use StatefulBuilder to manage state in dialog
+            builder:
+                (context, setState) => AlertDialog(
+                  title: Text(localizations.sendToKindleKobo),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // E-reader type toggle
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceVariant,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            // Kobo option
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => setState(() => isKindle = false),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        !isKindle
+                                            ? Theme.of(
+                                              context,
+                                            ).colorScheme.primary
+                                            : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Kobo',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color:
+                                          !isKindle
+                                              ? Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimary
+                                              : Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Kindle option
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => setState(() => isKindle = true),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        isKindle
+                                            ? Theme.of(
+                                              context,
+                                            ).colorScheme.primary
+                                            : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Kindle',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color:
+                                          isKindle
+                                              ? Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimary
+                                              : Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      TextSpan(text: localizations.onYourEReader),
+                      const SizedBox(height: 16),
+
+                      Text(localizations.enter4DigitCode),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: codeController,
+                        autofocus: true,
+                        textCapitalization: TextCapitalization.characters,
+                        maxLength: 4,
+                        textAlign: TextAlign.center,
+                        decoration: const InputDecoration(
+                          hintText: 'XXXX',
+                          counterText: '',
+                        ),
+                        onChanged: (value) {
+                          codeController.value = codeController.value.copyWith(
+                            text: value.toUpperCase(),
+                            selection: TextSelection.collapsed(
+                              offset: value.length,
+                            ),
+                          );
+                        },
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 8,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      RichText(
+                        text: TextSpan(
+                          text: localizations.visit,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context).hintColor,
+                          ),
+                          children: <TextSpan>[
+                            const TextSpan(
+                              text: 'send.djazz.se',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            TextSpan(text: localizations.onYourEReader),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(localizations.cancel),
-              ),
-              TextButton(
-                onPressed: () {
-                  final code = codeController.text.trim().toUpperCase();
-                  if (code.length != 4) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(localizations.pleaseEnter4DigitCode),
-                      ),
-                    );
-                    return;
-                  }
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(localizations.cancel),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        final code = codeController.text.trim().toUpperCase();
+                        if (code.length != 4) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                localizations.pleaseEnter4DigitCode,
+                              ),
+                            ),
+                          );
+                          return;
+                        }
 
-                  Navigator.pop(context);
-                  _sendToEReader(context, localizations, viewModel, book, code);
-                },
-                child: Text(localizations.send),
-              ),
-            ],
+                        Navigator.pop(context);
+                        _sendToEReader(
+                          context,
+                          localizations,
+                          viewModel,
+                          book,
+                          code,
+                          isKindle,
+                        );
+                      },
+                      child: Text(localizations.send),
+                    ),
+                  ],
+                ),
           ),
     );
   }
@@ -167,6 +267,7 @@ class SendToEreaderState extends State<SendToEreader> {
     BookDetailsViewModel viewModel,
     BookItem book,
     String code,
+    bool isKindle,
   ) async {
     var logger = Logger();
 
@@ -212,7 +313,7 @@ class SendToEreaderState extends State<SendToEreader> {
         code,
         "${book.title}.epub",
         ebookBytes,
-        isKindle: false, // TODO: Add Kindle/Kobo option
+        isKindle: isKindle,
       );
 
       transferStatus.value =
@@ -454,9 +555,8 @@ class SendToEreaderState extends State<SendToEreader> {
 
       // Add code and conversion options
       request.fields['key'] = code;
-      // TODO: Add conversion options
-      // request.fields['kepubify'] = (!isKindle).toString();
-      // request.fields['kindlegen'] = isKindle.toString();
+      request.fields['kepubify'] = (!isKindle).toString();
+      request.fields['kindlegen'] = isKindle.toString();
 
       // Add the file
       final multipartFile = http.MultipartFile.fromBytes(
