@@ -4,6 +4,7 @@ import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
 import 'package:calibre_web_companion/view_models/me_view_model.dart';
 import 'package:calibre_web_companion/views/book_list.dart';
 import 'package:calibre_web_companion/views/login_view.dart';
+import 'package:calibre_web_companion/views/settings_view.dart';
 import 'package:calibre_web_companion/views/widgets/animated_counter.dart';
 import 'package:calibre_web_companion/views/widgets/long_button.dart';
 import 'package:flutter/material.dart';
@@ -106,6 +107,14 @@ class MeViewState extends State<MeView> {
                               bookListType: BookListType.bookmarked,
                             ),
                       ),
+                    ),
+              ),
+              LongButton(
+                text: "Settings",
+                icon: Icons.settings_rounded,
+                onPressed:
+                    () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => SettingsView()),
                     ),
               ),
             ],

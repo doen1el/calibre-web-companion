@@ -103,5 +103,12 @@
   "noBooksFound": "Keine Bücher gefunden",
   "noDataFound": "Keine Daten gefunden",
   "unknownError": "Unbekannter Fehler",
-  "loading": "Laden..."
+  "loading": "Laden...",
+  "settings": "Einstellungen",
+  "appearance": "Erscheinungsbild",
+  "about": "Über",
+  "themeMode": "Themenmodus",
+  "systemTheme": "Systemthema",
+  "lightTheme": "Helles Thema",
+  "darkTheme": "Dunkles Thema"
 }

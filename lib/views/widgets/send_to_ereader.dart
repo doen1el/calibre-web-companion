@@ -111,7 +111,10 @@ class SendToEreaderState extends State<SendToEreader> {
                 RichText(
                   text: TextSpan(
                     text: localizations.visit,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Theme.of(context).hintColor,
+                    ),
                     children: <TextSpan>[
                       TextSpan(
                         text: 'send.djazz.se',

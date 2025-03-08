@@ -6,6 +6,7 @@ import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
 import 'package:calibre_web_companion/view_models/login_view_model.dart';
 import 'package:calibre_web_companion/view_models/main_view_model.dart';
 import 'package:calibre_web_companion/view_models/me_view_model.dart';
+import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
 import 'package:calibre_web_companion/views/homepage_view.dart';
 import 'package:calibre_web_companion/views/login_view.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => BookDetailsViewModel()),
         ChangeNotifierProvider(create: (_) => MeViewModel()..getStats()),
         ChangeNotifierProvider(create: (_) => BookListViewModel()),
+        ChangeNotifierProvider(create: (_) => SettingsViewModel()),
       ],
       child: const MyApp(),
     ),
@@ -57,7 +59,7 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         colorSchemeSeed: Colors.lightGreen,
       ),
-      initial: AdaptiveThemeMode.light,
+      initial: AdaptiveThemeMode.system,
       builder:
           (theme, darkTheme) => MaterialApp(
             title: 'Calibre-Web-Companion',
