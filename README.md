@@ -6,7 +6,7 @@
 
 This is an unofficial companion application for [Calibre Web](https://github.com/janeczku/calibre-web) (which also works for [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated)) that allows you to browse your book collection and download books directly to your device. You can also interact with your books by marking them as read, unread or bookmarked. You can also send books directly to your e-reader (Kindle/Kobo) thanks to the great work of [send2ereader](https://github.com/daniel-j/send2ereader).
 
-The app is built with [Flutter](https://github.com/flutter/flutter) and uses the **Material You**. The app is currently available for **Android** only.
+The app is built with [Flutter](https://github.com/flutter/flutter) and uses **Material You**. The app is currently available for **Android** only.
 
 ## 📦 Installation
 
