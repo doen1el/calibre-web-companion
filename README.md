@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="./docs/images/icon.png" alt="App Icon" width="100" />
+    <img src="./docs/screenhots/icon.png" alt="App Icon" width="100" />
 </p>
 
 # Calibre Web Companion
