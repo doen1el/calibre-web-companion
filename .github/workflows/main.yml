@@ -33,6 +33,10 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+        #4.5 Generate translation files
+      - name: Generate Translation Files
+        run: flutter gen-l10n
+
         #5 Setup Keystore
       - name: Decode Keystore
         run: |

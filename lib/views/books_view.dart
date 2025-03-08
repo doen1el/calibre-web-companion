@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:calibre_web_companion/view_models/books_view_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class BooksView extends StatefulWidget {
   const BooksView({super.key});
@@ -43,6 +44,7 @@ class _BookListViewState extends State<BooksView> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<BooksViewModel>();
+    AppLocalizations localizations = AppLocalizations.of(context)!;
 
     if (viewModel.hasError) {
       Fluttertoast.showToast(
@@ -56,8 +58,11 @@ class _BookListViewState extends State<BooksView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Books'),
-        actions: [_buildSortOptions(viewModel), _buildSearchButton(viewModel)],
+        title: Text(localizations.books),
+        actions: [
+          _buildSortOptions(viewModel, localizations),
+          _buildSearchButton(viewModel),
+        ],
       ),
       body: Consumer<BooksViewModel>(
         builder: (context, viewModel, child) {
@@ -71,14 +76,14 @@ class _BookListViewState extends State<BooksView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Error loading books',
+                    localizations.errorLoadingBooks,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   Text(viewModel.errorMessage),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => viewModel.refreshBooks(),
-                    child: const Text('Try Again'),
+                    child: Text(localizations.tryAgain),
                   ),
                 ],
               ),
@@ -86,7 +91,7 @@ class _BookListViewState extends State<BooksView> {
           }
 
           if (viewModel.books.isEmpty) {
-            return const Center(child: Text('No books found'));
+            return Center(child: Text(localizations.noBooksFound));
           }
 
           return _buildRefreshIndicatorAndGridView(viewModel);
@@ -116,7 +121,10 @@ class _BookListViewState extends State<BooksView> {
   /// Parameters:
   ///
   /// - `viewModel`: The view model to use
-  Widget _buildSortOptions(BooksViewModel viewModel) {
+  Widget _buildSortOptions(
+    BooksViewModel viewModel,
+    AppLocalizations localizations,
+  ) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.sort),
       onSelected: (String value) {
@@ -127,26 +135,29 @@ class _BookListViewState extends State<BooksView> {
       },
       itemBuilder:
           (BuildContext context) => [
-            const PopupMenuItem(value: 'title:asc', child: Text('Title (A-Z)')),
-            const PopupMenuItem(
+            PopupMenuItem(
+              value: 'title:asc',
+              child: Text(localizations.titleAZ),
+            ),
+            PopupMenuItem(
               value: 'title:desc',
-              child: Text('Title (Z-A)'),
+              child: Text(localizations.titleZA),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'authors:asc',
-              child: Text('Author (A-Z)'),
+              child: Text(localizations.authorAZ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'authors:desc',
-              child: Text('Author (Z-A)'),
+              child: Text(localizations.authorZA),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'pubdate:desc',
-              child: Text('Newest First'),
+              child: Text(localizations.newestFirst),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'pubdate:asc',
-              child: Text('Oldest First'),
+              child: Text(localizations.oldestFirst),
             ),
           ],
     );

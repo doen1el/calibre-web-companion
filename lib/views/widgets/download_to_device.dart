@@ -1,11 +1,10 @@
-import 'dart:ffi';
-
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 enum DownloadStatus {
   loading,
@@ -51,14 +50,21 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<BookDetailsViewModel>();
+    AppLocalizations localizations = AppLocalizations.of(context)!;
 
     return IconButton(
-      onPressed: () => _showDownloadOptions(context, viewModel, widget.book),
+      onPressed:
+          () => _showDownloadOptions(
+            context,
+            localizations,
+            viewModel,
+            widget.book,
+          ),
       icon: CircleAvatar(
         backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
         child: const Icon(Icons.download_rounded),
       ),
-      tooltip: "Download to device",
+      tooltip: localizations.downloadToDevice,
     );
   }
 
@@ -71,23 +77,26 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
   /// - [book]: The book item to download
   void _showDownloadOptions(
     BuildContext context,
+    AppLocalizations localizations,
     BookDetailsViewModel viewModel,
     BookItem book,
   ) {
     try {
       if (book.formats.length == 1) {
         // If only one format is available, download it directly
-        _downloadBook(context, viewModel, book, book.formats[0]);
+        _downloadBook(context, localizations, viewModel, book, book.formats[0]);
         return;
       } else if (book.formats.isEmpty) {
         // If no formats are available, try epub
-        _downloadBook(context, viewModel, book, 'epub');
+        _downloadBook(context, localizations, viewModel, book, 'epub');
         return;
       }
     } catch (e) {
       // Show snackbar error
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error downloading ${book.title}: $e')),
+        SnackBar(
+          content: Text('${localizations.errorDownloading} ${book.title}: $e'),
+        ),
       );
     }
 
@@ -100,7 +109,7 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  title: const Text('Download Format'),
+                  title: Text(localizations.downlaodFomat),
                   leading: const Icon(Icons.download),
                 ),
                 const Divider(),
@@ -125,7 +134,13 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
                     title: Text(format.toUpperCase()),
                     onTap: () {
                       Navigator.pop(context);
-                      _downloadBook(context, viewModel, book, format);
+                      _downloadBook(
+                        context,
+                        localizations,
+                        viewModel,
+                        book,
+                        format,
+                      );
                     },
                   );
                 }),
@@ -145,6 +160,7 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
   /// - [format]: The format of the book to download
   void _downloadBook(
     BuildContext context,
+    AppLocalizations localizations,
     BookDetailsViewModel viewModel,
     BookItem book,
     String format,
@@ -158,9 +174,15 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
 
     final cancelToken = CancellationToken();
 
-    _showDownloadStatusSheet(context, downloadStatus, errorMessage, () {
-      cancelToken.cancel();
-    });
+    _showDownloadStatusSheet(
+      context,
+      localizations,
+      downloadStatus,
+      errorMessage,
+      () {
+        cancelToken.cancel();
+      },
+    );
 
     downloadStatus.value = DownloadStatus.slectinDestination;
 
@@ -213,6 +235,7 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
 /// - `errorMessage`: The error message to display
 void _showDownloadStatusSheet(
   BuildContext context,
+  AppLocalizations localizations,
   ValueNotifier<DownloadStatus> status,
   String? errorMessage,
   VoidCallback? onCancel,
@@ -241,7 +264,7 @@ void _showDownloadStatusSheet(
 
                     // Status text
                     Text(
-                      _getStatusMessage(currentStatus),
+                      _getStatusMessage(currentStatus, localizations),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -325,8 +348,8 @@ void _showDownloadStatusSheet(
                                 Text(
                                   currentStatus == DownloadStatus.success ||
                                           currentStatus == DownloadStatus.failed
-                                      ? "Close"
-                                      : "Cancel",
+                                      ? localizations.close
+                                      : localizations.cancel,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -377,17 +400,20 @@ Widget _buildStatusIcon(DownloadStatus status) {
 /// Parameters:
 ///
 /// - `status`: The current download status
-String _getStatusMessage(DownloadStatus status) {
+String _getStatusMessage(
+  DownloadStatus status,
+  AppLocalizations localizations,
+) {
   switch (status) {
     case DownloadStatus.loading:
-      return "Preparing download...";
+      return localizations.preparingDownload;
     case DownloadStatus.slectinDestination:
-      return "Select download destination...";
+      return localizations.selectDownloadDestination;
     case DownloadStatus.downloading:
-      return "Downloading book...";
+      return localizations.downloadingBook;
     case DownloadStatus.success:
-      return "Successfully downloaded book";
+      return localizations.successfullyDownloadedBook;
     case DownloadStatus.failed:
-      return "Download failed";
+      return localizations.downloadFailed;
   }
 }

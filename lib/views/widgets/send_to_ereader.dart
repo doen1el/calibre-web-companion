@@ -7,6 +7,7 @@ import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 enum TransferStatus { loading, downloading, uploading, success, failed }
 
@@ -44,11 +45,18 @@ class SendToEreaderState extends State<SendToEreader> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<BookDetailsViewModel>();
+    AppLocalizations localizations = AppLocalizations.of(context)!;
 
     return FloatingActionButton.extended(
-      onPressed: () => _showSendToReaderDialog(context, viewModel, widget.book),
+      onPressed:
+          () => _showSendToReaderDialog(
+            context,
+            viewModel,
+            localizations,
+            widget.book,
+          ),
       icon: const Icon(Icons.send),
-      label: const Text('Send to E-Reader'),
+      label: Text(localizations.sendToEReader),
     );
   }
 
@@ -62,6 +70,7 @@ class SendToEreaderState extends State<SendToEreader> {
   void _showSendToReaderDialog(
     BuildContext context,
     BookDetailsViewModel viewModel,
+    AppLocalizations localizations,
     BookItem book,
   ) {
     final TextEditingController codeController = TextEditingController();
@@ -70,13 +79,11 @@ class SendToEreaderState extends State<SendToEreader> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Send to Kindle/Kobo'),
+            title: Text(localizations.sendToKindleKobo),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Enter the 4-digit code displayed on your e-reader\'s browser:',
-                ),
+                Text(localizations.enter4DigitCode),
                 const SizedBox(height: 16),
                 TextField(
                   controller: codeController,
@@ -103,14 +110,14 @@ class SendToEreaderState extends State<SendToEreader> {
                 const SizedBox(height: 8),
                 RichText(
                   text: TextSpan(
-                    text: 'Visit ',
+                    text: localizations.visit,
                     style: TextStyle(fontSize: 13, color: Colors.grey[800]),
-                    children: const <TextSpan>[
+                    children: <TextSpan>[
                       TextSpan(
                         text: 'send.djazz.se',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      TextSpan(text: ' on your e-reader to get a code'),
+                      TextSpan(text: localizations.onYourEReader),
                     ],
                   ),
                 ),
@@ -119,24 +126,24 @@ class SendToEreaderState extends State<SendToEreader> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text(localizations.cancel),
               ),
               TextButton(
                 onPressed: () {
                   final code = codeController.text.trim().toUpperCase();
                   if (code.length != 4) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please enter a valid 4-digit code'),
+                      SnackBar(
+                        content: Text(localizations.pleaseEnter4DigitCode),
                       ),
                     );
                     return;
                   }
 
                   Navigator.pop(context);
-                  _sendToEReader(context, viewModel, book, code);
+                  _sendToEReader(context, localizations, viewModel, book, code);
                 },
-                child: const Text('Send'),
+                child: Text(localizations.send),
               ),
             ],
           ),
@@ -153,6 +160,7 @@ class SendToEreaderState extends State<SendToEreader> {
   /// - `code`: The 4-digit code to use for the transfer
   Future<void> _sendToEReader(
     BuildContext context,
+    AppLocalizations localizations,
     BookDetailsViewModel viewModel,
     BookItem book,
     String code,
@@ -168,9 +176,15 @@ class SendToEreaderState extends State<SendToEreader> {
     final cancelToken = CancellationToken();
 
     // Show progress dialog
-    _showTransferStatusSheet(context, transferStatus, errorMessage, () {
-      cancelToken.cancel();
-    });
+    _showTransferStatusSheet(
+      context,
+      localizations,
+      transferStatus,
+      errorMessage,
+      () {
+        cancelToken.cancel();
+      },
+    );
 
     try {
       logger.i("Starting download process");
@@ -218,6 +232,7 @@ class SendToEreaderState extends State<SendToEreader> {
   /// - `errorMessage`: The error message to display
   void _showTransferStatusSheet(
     BuildContext context,
+    AppLocalizations localizations,
     ValueNotifier<TransferStatus> status,
     String? errorMessage,
     VoidCallback? onCancel,
@@ -246,7 +261,7 @@ class SendToEreaderState extends State<SendToEreader> {
 
                       // Status text
                       Text(
-                        _getStatusMessage(currentStatus),
+                        _getStatusMessage(currentStatus, localizations),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -333,8 +348,8 @@ class SendToEreaderState extends State<SendToEreader> {
                                     currentStatus == TransferStatus.success ||
                                             currentStatus ==
                                                 TransferStatus.failed
-                                        ? "Close"
-                                        : "Cancel",
+                                        ? localizations.close
+                                        : localizations.cancel,
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -385,18 +400,21 @@ class SendToEreaderState extends State<SendToEreader> {
   /// Parameters:
   ///
   /// - `status`: The current transfer status
-  String _getStatusMessage(TransferStatus status) {
+  String _getStatusMessage(
+    TransferStatus status,
+    AppLocalizations localizations,
+  ) {
     switch (status) {
       case TransferStatus.loading:
-        return "Preparing transfer...";
+        return localizations.preparingTransfer;
       case TransferStatus.downloading:
-        return "Downloading book...";
+        return localizations.downloadingBook;
       case TransferStatus.uploading:
-        return "Sending to e-reader...";
+        return localizations.sendToEReader;
       case TransferStatus.success:
-        return "Successfully sent to e-reader!";
+        return localizations.successfullySentToEReader;
       case TransferStatus.failed:
-        return "Transfer failed";
+        return localizations.transferFailed;
     }
   }
 

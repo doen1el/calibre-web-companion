@@ -11,6 +11,7 @@ import 'package:calibre_web_companion/views/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,6 +64,8 @@ class MyApp extends StatelessWidget {
             theme: theme,
             darkTheme: darkTheme,
             navigatorObservers: [routeObserver],
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: FutureBuilder<bool>(
               future: _isLoggedIn(),
               builder: (context, snapshot) {

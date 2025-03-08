@@ -2,21 +2,24 @@ import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/views/book_list.dart';
 import 'package:calibre_web_companion/views/widgets/long_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DiscoverView extends StatelessWidget {
   const DiscoverView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    AppLocalizations localizations = AppLocalizations.of(context)!;
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(height: 30),
-            _buildSectionHeader(context, 'Discover'),
-            _buildDiscoverWidget(context),
-            _buildSectionHeader(context, 'Categories'),
-            _buildCategoryWidget(context),
+            _buildSectionHeader(context, localizations.discover),
+            _buildDiscoverWidget(context, localizations),
+            _buildSectionHeader(context, localizations.categories),
+            _buildCategoryWidget(context, localizations),
           ],
         ),
       ),
@@ -28,60 +31,63 @@ class DiscoverView extends StatelessWidget {
   /// Parameters:
   ///
   /// - `context`: BuildContext
-  Widget _buildDiscoverWidget(BuildContext context) {
+  Widget _buildDiscoverWidget(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
     return Column(
       children: [
         LongButton(
-          text: 'Discover',
+          text: localizations.discover,
           icon: Icons.search,
           onPressed:
               () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder:
                       (context) => BookList(
-                        title: 'Discover Books',
+                        title: localizations.discoverBooks,
                         bookListType: BookListType.discover,
                       ),
                 ),
               ),
         ),
         LongButton(
-          text: 'Show hot books',
+          text: localizations.showHotBooks,
           icon: Icons.local_fire_department_rounded,
           onPressed:
               () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder:
                       (context) => BookList(
-                        title: 'Hot Books',
+                        title: localizations.hotBooks,
                         bookListType: BookListType.hot,
                       ),
                 ),
               ),
         ),
         LongButton(
-          text: 'Show new books',
+          text: localizations.showNewBooks,
           icon: Icons.new_releases_rounded,
           onPressed:
               () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder:
                       (context) => BookList(
-                        title: 'New Books',
+                        title: localizations.newBooks,
                         bookListType: BookListType.newlyAdded,
                       ),
                 ),
               ),
         ),
         LongButton(
-          text: 'Show rated books',
+          text: localizations.showRatedBooks,
           icon: Icons.star_border_rounded,
           onPressed:
               () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder:
                       (context) => BookList(
-                        title: 'Rated Books',
+                        title: localizations.ratedBooks,
                         bookListType: BookListType.rated,
                       ),
                 ),
@@ -96,102 +102,105 @@ class DiscoverView extends StatelessWidget {
   /// Parameters:
   ///
   /// - `context`: BuildContext
-  Widget _buildCategoryWidget(BuildContext context) {
+  Widget _buildCategoryWidget(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
     return Column(
       children: [
         LongButton(
-          text: 'Show authors',
+          text: localizations.showAuthors,
           icon: Icons.people_rounded,
           onPressed:
               () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder:
                       (context) => BookList(
-                        title: 'Authors',
+                        title: localizations.authors,
                         categoryType: CategoryType.author,
                       ),
                 ),
               ),
         ),
         LongButton(
-          text: 'Show categories',
+          text: localizations.showCategories,
           icon: Icons.category_rounded,
           onPressed:
               () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder:
                       (context) => BookList(
-                        title: 'Categories',
+                        title: localizations.categories,
                         categoryType: CategoryType.category,
                       ),
                 ),
               ),
         ),
         LongButton(
-          text: 'Show  series',
+          text: localizations.showSeries,
           icon: Icons.library_books_rounded,
           onPressed:
               () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder:
                       (context) => BookList(
-                        title: 'Series',
+                        title: localizations.series,
                         categoryType: CategoryType.series,
                       ),
                 ),
               ),
         ),
         LongButton(
-          text: 'Show formats',
+          text: localizations.showFormats,
           icon: Icons.file_open_rounded,
           onPressed:
               () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder:
                       (context) => BookList(
-                        title: 'Formats',
+                        title: localizations.formats,
                         categoryType: CategoryType.formats,
                       ),
                 ),
               ),
         ),
         LongButton(
-          text: 'Show languages',
+          text: localizations.showLanguages,
           icon: Icons.language_rounded,
           onPressed:
               () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder:
                       (context) => BookList(
-                        title: 'Languages',
+                        title: localizations.languages,
                         categoryType: CategoryType.language,
                       ),
                 ),
               ),
         ),
         LongButton(
-          text: 'Show publishers',
+          text: localizations.showPublishers,
           icon: Icons.business_rounded,
           onPressed:
               () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder:
                       (context) => BookList(
-                        title: 'Publisher',
+                        title: localizations.publishers,
                         categoryType: CategoryType.publisher,
                       ),
                 ),
               ),
         ),
         LongButton(
-          text: 'Show ratings',
+          text: localizations.showRatings,
           icon: Icons.star_rounded,
           onPressed:
               () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder:
                       (context) => BookList(
-                        title: 'Ratings',
+                        title: localizations.ratings,
                         categoryType: CategoryType.ratings,
                       ),
                 ),
