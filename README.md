@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="./docs/images/icon.png" alt="App Icon" width="100" />
+    <img src="docs/icon/icon.png" alt="App Icon" width="100" />
 </p>
 
 # Calibre Web Companion
@@ -37,7 +37,7 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses the
     <img src="docs/screenshots/book_details.png" alt="OpenTracks" width="32%" />
     <img src="docs/screenshots/send.png" alt="OpenTracks" width="32%" />
     <img src="docs/screenshots/discover_view.png" alt="OpenTracks" width="32%" />
-    <img src="docs/iscreenshotsmages/me_view.png" alt="OpenTracks" width="32%" />
+    <img src="docs/screenshots/me_view.png" alt="OpenTracks" width="32%" />
 </p>
 
 ## 🚀 Contributing
