@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SearchDialog extends StatefulWidget {
   const SearchDialog({super.key});
@@ -18,15 +19,16 @@ class SearchDialogState extends State<SearchDialog> {
 
   @override
   Widget build(BuildContext context) {
+    AppLocalizations appLocalizations = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Search Books'),
+      title: Text(appLocalizations.searchBook),
       content: Row(
         children: [
           Expanded(
             child: TextField(
               controller: _controller,
-              decoration: const InputDecoration(
-                hintText: 'Enter title, author, or tags...',
+              decoration: InputDecoration(
+                hintText: appLocalizations.enterTitleAuthorOrTags,
               ),
               autofocus: true,
             ),
@@ -40,12 +42,12 @@ class SearchDialogState extends State<SearchDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('CANCEL'),
+          child: Text(appLocalizations.cancel),
         ),
 
         TextButton(
           onPressed: () => Navigator.of(context).pop(_controller.text),
-          child: const Text('SEARCH'),
+          child: Text(appLocalizations.search),
         ),
       ],
     );

@@ -8,6 +8,7 @@ import 'package:calibre_web_companion/views/widgets/send_to_ereader.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class BookDetails extends StatelessWidget {
   final String bookUuid;
@@ -15,6 +16,8 @@ class BookDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLocalizations localizations = AppLocalizations.of(context)!;
+
     return FutureBuilder<BookItem>(
       future: Provider.of<BookDetailsViewModel>(
         context,
@@ -23,20 +26,17 @@ class BookDetails extends StatelessWidget {
       builder: (context, snapshot) {
         // Handle loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Loading...')),
-            body: const Center(child: CircularProgressIndicator()),
-          );
+          return _buildSkeletonLoader(context, localizations);
         }
 
         if (snapshot.hasError) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Error')),
+            appBar: AppBar(title: Text(localizations.error)),
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Error loading book details: ${snapshot.error}'),
+                  Text('${localizations.errorLoadingData}: ${snapshot.error}'),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
@@ -50,7 +50,7 @@ class BookDetails extends StatelessWidget {
                         ),
                       );
                     },
-                    child: const Text('Try Again'),
+                    child: Text(localizations.tryAgain),
                   ),
                 ],
               ),
@@ -110,12 +110,199 @@ class BookDetails extends StatelessWidget {
           ),
           body: _buildBookDetails(
             context,
+            localizations,
             Provider.of<BookDetailsViewModel>(context, listen: false),
             book,
           ),
           floatingActionButton: SendToEreader(book: book),
         );
       },
+    );
+  }
+
+  /// Builds a skeleton loader for the book details view
+  ///
+  /// Parameters:
+  ///
+  /// - [context]: The current build context
+  /// - [localizations]: The localized strings
+  Widget _buildSkeletonLoader(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    final shimmerGradient = LinearGradient(
+      colors: [
+        Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+        Theme.of(context).colorScheme.surfaceVariant,
+        Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+      ],
+      stops: const [0.1, 0.5, 0.9],
+      begin: const Alignment(-1.0, -0.5),
+      end: const Alignment(1.0, 0.5),
+      tileMode: TileMode.clamp,
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Container(
+          width: 140,
+          height: 20,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceVariant,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        leading: const BackButton(),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Cover image skeleton
+            Container(
+              height: 300,
+              width: double.infinity,
+              decoration: BoxDecoration(gradient: shimmerGradient),
+            ),
+
+            // Rating card skeleton
+            _buildSkeletonCard(context, shimmerGradient),
+
+            // Info card skeletons
+            _buildSkeletonCard(context, shimmerGradient),
+            _buildSkeletonCard(context, shimmerGradient),
+
+            // Tags skeleton
+            _buildSkeletonCard(context, shimmerGradient),
+
+            // Description skeleton (taller)
+            _buildSkeletonCard(context, shimmerGradient, isDescription: true),
+          ],
+        ),
+      ),
+      floatingActionButton: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceVariant,
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
+  }
+
+  /// Builds a skeleton card for the book details view
+  ///
+  /// Parameters:
+  ///
+  /// - [context]: The current build context
+  /// - [gradient]: The gradient to use for the skeleton
+  /// - [isDescription]: Whether this card is for the description
+  Widget _buildSkeletonCard(
+    BuildContext context,
+    LinearGradient gradient, {
+    bool isDescription = false,
+  }) {
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Card header with fake icon and title
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  width: 100,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Divider
+          const Divider(height: 4),
+
+          // Card content
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child:
+                isDescription
+                    ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            gradient: gradient,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            gradient: gradient,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity * 0.7,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            gradient: gradient,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    )
+                    : Row(
+                      children: [
+                        Container(
+                          width: 120,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            gradient: gradient,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -128,6 +315,7 @@ class BookDetails extends StatelessWidget {
   /// - [book]: The book item to display
   Widget _buildBookDetails(
     BuildContext context,
+    AppLocalizations localizations,
     BookDetailsViewModel viewModel,
     BookItem book,
   ) {
@@ -140,7 +328,7 @@ class BookDetails extends StatelessWidget {
             alignment: Alignment.bottomLeft,
             children: [
               // Cover image
-              _buildCoverImage(context, book.id),
+              _buildCoverImage(context, book.id, localizations),
 
               // Gradient overlay for better text visibility
               Container(
@@ -178,7 +366,7 @@ class BookDetails extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'by ${book.author}',
+                      localizations.by(book.author),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Colors.white.withOpacity(0.9),
                         shadows: [
@@ -201,7 +389,7 @@ class BookDetails extends StatelessWidget {
             _buildCard(
               context,
               Icons.star_rate_rounded,
-              'Rating',
+              localizations.rating,
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: _buildRating(book.rating!),
@@ -213,12 +401,12 @@ class BookDetails extends StatelessWidget {
             _buildCard(
               context,
               Icons.bookmark_rounded,
-              'Series',
+              localizations.series,
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
                   book.seriesIndex != null
-                      ? '${book.series} (Book ${book.seriesIndex})'
+                      ? '${book.series} (${localizations.book} ${book.seriesIndex})'
                       : book.series!,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
@@ -229,64 +417,73 @@ class BookDetails extends StatelessWidget {
           _buildInfoCard(
             context,
             Icons.info_outline_rounded,
-            'Publication Info',
+            localizations.publicationInfo,
             [
               if (book.published != null)
                 _buildInfoRow(
                   context,
-                  'Published',
-                  intl.DateFormat('MMMM d, yyyy').format(book.published!),
+                  localizations.published,
+                  intl.DateFormat.yMMMMd(
+                    localizations.localeName,
+                  ).format(book.published!),
                   Icons.calendar_today_rounded,
                 ),
-              if (book.updated != null)
+              if (book.updated != null && book.published != null)
                 _buildInfoRow(
                   context,
-                  'Updated',
-                  intl.DateFormat('MMMM d, yyyy').format(book.updated!),
+                  localizations.updated,
+                  intl.DateFormat.yMMMMd(
+                    localizations.localeName,
+                  ).format(book.published!),
                   Icons.update_rounded,
                 ),
               if (book.publisher != null && book.publisher!.isNotEmpty)
                 _buildInfoRow(
                   context,
-                  'Publisher',
+                  localizations.publisher,
                   book.publisher!,
                   Icons.business_rounded,
                 ),
               if (book.language!.isNotEmpty)
                 _buildInfoRow(
                   context,
-                  'Language',
-                  _formatLanguage(book.language!),
+                  localizations.language,
+                  _formatLanguage(book.language!, localizations),
                   Icons.language_rounded,
                 ),
             ],
           ),
 
           // File Info section
-          _buildInfoCard(context, Icons.description_rounded, 'File Info', [
-            if (book.formats.isNotEmpty)
-              _buildInfoRow(
-                context,
-                'Format(s)',
-                book.formats.join(', '),
-                Icons.folder_rounded,
-              ),
-            if (book.fileSize != null)
-              _buildInfoRow(
-                context,
-                'Size',
-                _formatFileSize(book.fileSize!),
-                Icons.data_usage_rounded,
-              ),
-            _buildInfoRow(context, 'ID', book.uuid, Icons.tag_rounded),
-          ]),
+          _buildInfoCard(
+            context,
+            Icons.description_rounded,
+            localizations.fileInfo,
+            [
+              if (book.formats.isNotEmpty)
+                _buildInfoRow(
+                  context,
+                  localizations.formats,
+                  book.formats.join(', '),
+                  Icons.folder_rounded,
+                ),
+              if (book.fileSize != null)
+                _buildInfoRow(
+                  context,
+                  localizations.size,
+                  _formatFileSize(book.fileSize!),
+                  Icons.data_usage_rounded,
+                ),
+              _buildInfoRow(context, 'ID', book.uuid, Icons.tag_rounded),
+            ],
+          ),
 
           // Tags section
           if (book.categories.isNotEmpty)
             _buildCard(
               context,
               Icons.local_offer_rounded,
-              'Categories',
+              localizations.categories,
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: _buildTags(context, book.categories),
@@ -298,7 +495,7 @@ class BookDetails extends StatelessWidget {
             _buildCard(
               context,
               Icons.article_rounded,
-              'Description',
+              localizations.description,
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
@@ -452,19 +649,19 @@ class BookDetails extends StatelessWidget {
   /// Parameters:
   ///
   /// - [languageCode]: The language code to format
-  String _formatLanguage(String languageCode) {
+  String _formatLanguage(String languageCode, AppLocalizations localizations) {
     // Maps language codes to human-readable names
-    const languageMap = {
-      'eng': 'English',
-      'deu': 'German (Deutsch)',
-      'fra': 'French (Français)',
-      'spa': 'Spanish (Español)',
-      'ita': 'Italian (Italiano)',
-      'jpn': 'Japanese (日本語)',
-      'rus': 'Russian (Русский)',
-      'por': 'Portuguese (Português)',
-      'chi': 'Chinese (中文)',
-      'nld': 'Dutch (Nederlands)',
+    var languageMap = {
+      'eng': localizations.english,
+      'deu': localizations.german,
+      'fra': localizations.french,
+      'spa': localizations.spanish,
+      'ita': localizations.italian,
+      'jpn': localizations.japanese,
+      'rus': localizations.russian,
+      'por': localizations.portuguese,
+      'chi': localizations.chineese,
+      'nld': localizations.dutch,
     };
 
     return languageMap[languageCode.toLowerCase()] ?? languageCode;
@@ -489,7 +686,11 @@ class BookDetails extends StatelessWidget {
   ///
   /// - [context]: The current build context
   /// - [bookId]: The ID of the book to fetch the cover for
-  Widget _buildCoverImage(BuildContext context, String bookId) {
+  Widget _buildCoverImage(
+    BuildContext context,
+    String bookId,
+    AppLocalizations localizations,
+  ) {
     ApiService apiService = ApiService();
     final baseUrl = apiService.getBaseUrl();
     final username = apiService.getUsername();
@@ -523,7 +724,7 @@ class BookDetails extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'No Cover Available',
+                      localizations.noCoverAvailable,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),

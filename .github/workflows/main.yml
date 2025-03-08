@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - main
 
 jobs:
   build:
@@ -35,6 +32,10 @@ jobs:
         #4 Install Dependencies
       - name: Install Dependencies
         run: flutter pub get
+
+        #4.5 Generate translation files
+      - name: Generate Translation Files
+        run: flutter gen-l10n
 
         #5 Setup Keystore
       - name: Decode Keystore
@@ -76,7 +77,7 @@ jobs:
       - name: Extract version from pubspec.yaml
         id: extract_version
         run: |
-          version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
+          version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r' | sed 's/+.*//')
           echo "VERSION=$version" >> $GITHUB_ENV
           echo "Extracted version: $version"
 

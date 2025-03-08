@@ -4,12 +4,14 @@ import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
 import 'package:calibre_web_companion/view_models/me_view_model.dart';
 import 'package:calibre_web_companion/views/book_list.dart';
 import 'package:calibre_web_companion/views/login_view.dart';
+import 'package:calibre_web_companion/views/settings_view.dart';
 import 'package:calibre_web_companion/views/widgets/animated_counter.dart';
 import 'package:calibre_web_companion/views/widgets/long_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MeView extends StatefulWidget {
   const MeView({super.key});
@@ -23,11 +25,12 @@ class MeViewState extends State<MeView> {
   Widget build(BuildContext context) {
     final viewModel = context.watch<MeViewModel>();
     final homePageViewModel = context.watch<HomepageViewModel>();
+    AppLocalizations localizations = AppLocalizations.of(context)!;
 
     if (viewModel.hasError) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Fluttertoast.showToast(
-          msg: "Error: ${viewModel.errorMessage}",
+          msg: "${localizations.error}: ${viewModel.errorMessage}",
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.red,
@@ -38,7 +41,7 @@ class MeViewState extends State<MeView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Me'),
+        title: Text(localizations.me),
         actions: [
           IconButton(
             onPressed: () async {
@@ -63,47 +66,55 @@ class MeViewState extends State<MeView> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
-              _buildStatsWidget(context, viewModel),
+              _buildStatsWidget(context, localizations, viewModel),
               LongButton(
-                text: 'Show read books',
+                text: localizations.showReadBooks,
                 icon: Icons.my_library_books_rounded,
                 onPressed:
                     () => Navigator.of(context).push(
                       MaterialPageRoute(
                         builder:
                             (context) => BookList(
-                              title: 'Read Books',
+                              title: localizations.readBooks,
                               bookListType: BookListType.readbooks,
                             ),
                       ),
                     ),
               ),
               LongButton(
-                text: 'Show unread books',
+                text: localizations.showUnReadBooks,
                 icon: Icons.read_more_rounded,
                 onPressed:
                     () => Navigator.of(context).push(
                       MaterialPageRoute(
                         builder:
                             (context) => BookList(
-                              title: 'Unread Books',
+                              title: localizations.unreadBooks,
                               bookListType: BookListType.unreadbooks,
                             ),
                       ),
                     ),
               ),
               LongButton(
-                text: 'Show bookmarked books',
+                text: localizations.showBookmarkedBooks,
                 icon: Icons.bookmark_rounded,
                 onPressed:
                     () => Navigator.of(context).push(
                       MaterialPageRoute(
                         builder:
                             (context) => BookList(
-                              title: 'Bookmarked Books',
+                              title: localizations.bookmarkedBooks,
                               bookListType: BookListType.bookmarked,
                             ),
                       ),
+                    ),
+              ),
+              LongButton(
+                text: "Settings",
+                icon: Icons.settings_rounded,
+                onPressed:
+                    () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => SettingsView()),
                     ),
               ),
             ],
@@ -118,7 +129,10 @@ class MeViewState extends State<MeView> {
   /// Parameters:
   ///
   /// - `context`: BuildContext
-  Widget _buildStatsSkeletonCard(BuildContext context) {
+  Widget _buildStatsSkeletonCard(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
     // Create an animation controller in a stateless context
     final ValueNotifier<double> animationValue = ValueNotifier(0.0);
 
@@ -150,7 +164,7 @@ class MeViewState extends State<MeView> {
                   color: Theme.of(context).colorScheme.primaryContainer,
                 ),
                 child: Text(
-                  'Library Statistics',
+                  localizations.libraryStatistics,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                     fontWeight: FontWeight.bold,
@@ -242,7 +256,11 @@ class MeViewState extends State<MeView> {
   ///
   /// - `context`: BuildContext
   /// - `viewModel`: MeViewModel
-  Widget _buildStatsWidget(BuildContext context, MeViewModel viewModel) {
+  Widget _buildStatsWidget(
+    BuildContext context,
+    AppLocalizations localizations,
+    MeViewModel viewModel,
+  ) {
     final stats = viewModel.stats ?? StatsModel();
 
     return Card(
@@ -250,7 +268,7 @@ class MeViewState extends State<MeView> {
       elevation: 3,
       child:
           viewModel.isLoading
-              ? _buildStatsSkeletonCard(context)
+              ? _buildStatsSkeletonCard(context, localizations)
               : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -265,7 +283,7 @@ class MeViewState extends State<MeView> {
                       color: Theme.of(context).colorScheme.primaryContainer,
                     ),
                     child: Text(
-                      'Library Statistics',
+                      localizations.libraryStatistics,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: Theme.of(context).colorScheme.onPrimaryContainer,
                         fontWeight: FontWeight.bold,
@@ -279,28 +297,28 @@ class MeViewState extends State<MeView> {
                         _buildStatRow(
                           context,
                           Icons.book,
-                          'Books',
+                          localizations.books,
                           stats.books.toString(),
                         ),
                         const Divider(),
                         _buildStatRow(
                           context,
                           Icons.person,
-                          'Authors',
+                          localizations.authors,
                           stats.authors.toString(),
                         ),
                         const Divider(),
                         _buildStatRow(
                           context,
                           Icons.category,
-                          'Categories',
+                          localizations.categories,
                           stats.categories.toString(),
                         ),
                         const Divider(),
                         _buildStatRow(
                           context,
                           Icons.collections_bookmark,
-                          'Series',
+                          localizations.series,
                           stats.series.toString(),
                         ),
                       ],
@@ -313,7 +331,7 @@ class MeViewState extends State<MeView> {
                         child: ElevatedButton.icon(
                           onPressed: () => viewModel.getStats(),
                           icon: const Icon(Icons.refresh),
-                          label: const Text('Retry'),
+                          label: Text(localizations.retry),
                         ),
                       ),
                     ),

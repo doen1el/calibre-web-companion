@@ -7,6 +7,7 @@ import 'package:calibre_web_companion/views/widgets/category_list_item_skeleton.
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:calibre_web_companion/main.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class BookList extends StatefulWidget {
   final BookListType? bookListType;
@@ -86,6 +87,8 @@ class BookListState extends State<BookList> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    AppLocalizations localizations = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
       body: Consumer<BookListViewModel>(
@@ -101,7 +104,7 @@ class BookListState extends State<BookList> with RouteAware {
           }
 
           if (viewModel.hasError) {
-            _buildErrorWidget(viewModel);
+            _buildErrorWidget(viewModel, localizations);
           }
 
           // Display books as grid
@@ -114,7 +117,7 @@ class BookListState extends State<BookList> with RouteAware {
             return _buildCategoryList(viewModel.categoryFeed!);
           }
 
-          return const Center(child: Text('Keine Daten gefunden'));
+          return Center(child: Text(localizations.noDataFound));
         },
       ),
     );
@@ -152,19 +155,25 @@ class BookListState extends State<BookList> with RouteAware {
   /// Parameters:
   ///
   /// - `viewModel`: The view model to get the error message from
-  Widget _buildErrorWidget(BookListViewModel viewModel) {
+  Widget _buildErrorWidget(
+    BookListViewModel viewModel,
+    AppLocalizations localizations,
+  ) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'Error loading data',
+            localizations.errorLoadingData,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
-          Text(viewModel.errorMessage ?? 'Unknown error'),
+          Text(viewModel.errorMessage ?? localizations.unknownError),
           const SizedBox(height: 16),
-          ElevatedButton(onPressed: _loadData, child: const Text('Try Again')),
+          ElevatedButton(
+            onPressed: _loadData,
+            child: Text(localizations.tryAgain),
+          ),
         ],
       ),
     );

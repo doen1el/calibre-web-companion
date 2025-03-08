@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:calibre_web_companion/view_models/login_view_model.dart';
 import 'package:calibre_web_companion/views/homepage_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -27,19 +28,24 @@ class _LoginState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
+    AppLocalizations localizations = AppLocalizations.of(context)!;
     final viewModel = Provider.of<LoginViewModel>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Login to Calibre Web")),
+      appBar: AppBar(title: Text(localizations.loginToCalibreWb)),
       body: Center(
         child: SingleChildScrollView(
-          child: _buildLoginForm(context, viewModel),
+          child: _buildLoginForm(context, localizations, viewModel),
         ),
       ),
     );
   }
 
-  Widget _buildLoginForm(BuildContext context, LoginViewModel viewModel) {
+  Widget _buildLoginForm(
+    BuildContext context,
+    AppLocalizations localizations,
+    LoginViewModel viewModel,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: ConstrainedBox(
@@ -69,8 +75,8 @@ class _LoginState extends State<LoginView> {
                 _buildTextField(
                   context: context,
                   controller: _urlController,
-                  labelText: "Calibre Web URL",
-                  hintText: "Enter server URL",
+                  labelText: localizations.calibreWebUrl,
+                  hintText: localizations.enterCalibreWebUrl,
                   prefixIcon: Icons.link_rounded,
                 ),
                 const SizedBox(height: 16),
@@ -79,8 +85,8 @@ class _LoginState extends State<LoginView> {
                 _buildTextField(
                   context: context,
                   controller: _usernameController,
-                  labelText: "Username",
-                  hintText: "Enter your username",
+                  labelText: localizations.username,
+                  hintText: localizations.enterYourUsername,
                   prefixIcon: Icons.person_rounded,
                 ),
                 const SizedBox(height: 16),
@@ -89,8 +95,8 @@ class _LoginState extends State<LoginView> {
                 _buildTextField(
                   context: context,
                   controller: _passwordController,
-                  labelText: "Password",
-                  hintText: "Enter your password",
+                  labelText: localizations.password,
+                  hintText: localizations.enterYourPassword,
                   obscureText: true,
                   prefixIcon: Icons.lock_rounded,
                 ),
@@ -110,7 +116,6 @@ class _LoginState extends State<LoginView> {
 
                 const SizedBox(height: 24),
 
-                // Login button with loading state
                 // Login button with loading state
                 viewModel.isLoading
                     ? Center(
@@ -134,7 +139,12 @@ class _LoginState extends State<LoginView> {
                         borderRadius: BorderRadius.circular(12.0),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12.0),
-                          onTap: () => _handleLogin(viewModel, context),
+                          onTap:
+                              () => _handleLogin(
+                                viewModel,
+                                localizations,
+                                context,
+                              ),
                           child: Container(
                             width: double.infinity,
                             height: 50,
@@ -153,7 +163,7 @@ class _LoginState extends State<LoginView> {
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  "Login",
+                                  localizations.login,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -205,6 +215,7 @@ class _LoginState extends State<LoginView> {
 
   Future<void> _handleLogin(
     LoginViewModel viewModel,
+    AppLocalizations localizations,
     BuildContext context,
   ) async {
     // Don't try to log in if already loading
@@ -215,7 +226,7 @@ class _LoginState extends State<LoginView> {
         _usernameController.text.isEmpty ||
         _passwordController.text.isEmpty) {
       Fluttertoast.showToast(
-        msg: "Please fill all fields",
+        msg: localizations.pleaseFillInAllFields,
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
       );
@@ -251,7 +262,7 @@ class _LoginState extends State<LoginView> {
       // Only show toast if error message is empty
       if (viewModel.errorMessage.isEmpty) {
         Fluttertoast.showToast(
-          msg: "Failed to login",
+          msg: localizations.failedToLognIn,
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
         );
