@@ -4,6 +4,7 @@ import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
 import 'package:calibre_web_companion/view_models/me_view_model.dart';
 import 'package:calibre_web_companion/views/book_list.dart';
 import 'package:calibre_web_companion/views/login_view.dart';
+import 'package:calibre_web_companion/views/widgets/animated_counter.dart';
 import 'package:calibre_web_companion/views/widgets/long_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -344,8 +345,8 @@ class MeViewState extends State<MeView> {
           Expanded(
             child: Text(label, style: Theme.of(context).textTheme.titleMedium),
           ),
-          Text(
-            value,
+          AnimatedCounter(
+            value: value,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: Theme.of(context).colorScheme.primary,

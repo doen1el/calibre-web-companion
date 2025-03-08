@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="./images/icon.png" alt="App Icon" width="100" />
+    <img src="./docs/images/icon.png" alt="App Icon" width="100" />
 </p>
 
 # Calibre Web Companion
@@ -10,7 +10,14 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses the
 
 ## 📦 Installation
 
-[<img src="./images/badge_github.png" alt="Get it on GitHub" height="80">](https://github.com/doen1el/calibre-web-companion/releases)
+<p align="left">
+    <a href="https://github.com/doen1el/calibre-web-companion/releases">
+        <img src="docs/badges/badge_github.png" alt="Get it on GitHub" height="80">
+    </a>
+    <a href="https://github.com/doen1el/calibre-web-companion/wiki/Installing-Calibre%E2%80%90Web%E2%80%90Companion-from-GitHub-using-Obtainium">
+        <img src="docs/badges/badge_obtainium.png" alt="Obtainium" height="80">
+    </a>
+</p>
 
 ## 💪 Features
 
@@ -25,12 +32,12 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses the
 ## 🖼️ Impressions
 
 <p align="center">
-    <img src="./images/login.png" alt="InApp" width="32%"/>
-    <img src="./images/books_view.png" alt="Share" width="32%" />
-    <img src="./images/book_details.png" alt="OpenTracks" width="32%" />
-    <img src="./images/send.png" alt="OpenTracks" width="32%" />
-    <img src="./images/discover_view.png" alt="OpenTracks" width="32%" />
-    <img src="./images/me_view.png" alt="OpenTracks" width="32%" />
+    <img src="docs/screenshots/login.png" alt="InApp" width="32%"/>
+    <img src="docs/screenshots/books_view.png" alt="Share" width="32%" />
+    <img src="docs/screenshots/book_details.png" alt="OpenTracks" width="32%" />
+    <img src="docs/screenshots/send.png" alt="OpenTracks" width="32%" />
+    <img src="docs/screenshots/discover_view.png" alt="OpenTracks" width="32%" />
+    <img src="docs/iscreenshotsmages/me_view.png" alt="OpenTracks" width="32%" />
 </p>
 
 ## 🚀 Contributing
