@@ -26,10 +26,7 @@ class BookDetails extends StatelessWidget {
       builder: (context, snapshot) {
         // Handle loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            appBar: AppBar(title: Text(localizations.loading)),
-            body: const Center(child: CircularProgressIndicator()),
-          );
+          return _buildSkeletonLoader(context, localizations);
         }
 
         if (snapshot.hasError) {
@@ -120,6 +117,192 @@ class BookDetails extends StatelessWidget {
           floatingActionButton: SendToEreader(book: book),
         );
       },
+    );
+  }
+
+  /// Builds a skeleton loader for the book details view
+  ///
+  /// Parameters:
+  ///
+  /// - [context]: The current build context
+  /// - [localizations]: The localized strings
+  Widget _buildSkeletonLoader(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    final shimmerGradient = LinearGradient(
+      colors: [
+        Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+        Theme.of(context).colorScheme.surfaceVariant,
+        Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+      ],
+      stops: const [0.1, 0.5, 0.9],
+      begin: const Alignment(-1.0, -0.5),
+      end: const Alignment(1.0, 0.5),
+      tileMode: TileMode.clamp,
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Container(
+          width: 140,
+          height: 20,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceVariant,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        leading: const BackButton(),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Cover image skeleton
+            Container(
+              height: 300,
+              width: double.infinity,
+              decoration: BoxDecoration(gradient: shimmerGradient),
+            ),
+
+            // Rating card skeleton
+            _buildSkeletonCard(context, shimmerGradient),
+
+            // Info card skeletons
+            _buildSkeletonCard(context, shimmerGradient),
+            _buildSkeletonCard(context, shimmerGradient),
+
+            // Tags skeleton
+            _buildSkeletonCard(context, shimmerGradient),
+
+            // Description skeleton (taller)
+            _buildSkeletonCard(context, shimmerGradient, isDescription: true),
+          ],
+        ),
+      ),
+      floatingActionButton: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceVariant,
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
+  }
+
+  /// Builds a skeleton card for the book details view
+  ///
+  /// Parameters:
+  ///
+  /// - [context]: The current build context
+  /// - [gradient]: The gradient to use for the skeleton
+  /// - [isDescription]: Whether this card is for the description
+  Widget _buildSkeletonCard(
+    BuildContext context,
+    LinearGradient gradient, {
+    bool isDescription = false,
+  }) {
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Card header with fake icon and title
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  width: 100,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Divider
+          const Divider(height: 4),
+
+          // Card content
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child:
+                isDescription
+                    ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            gradient: gradient,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            gradient: gradient,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity * 0.7,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            gradient: gradient,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    )
+                    : Row(
+                      children: [
+                        Container(
+                          width: 120,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            gradient: gradient,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+          ),
+        ],
+      ),
     );
   }
 
