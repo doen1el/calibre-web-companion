@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
+import 'package:calibre_web_companion/views/widgets/add_to_shelf.dart';
 import 'package:calibre_web_companion/views/widgets/download_to_device.dart';
 import 'package:calibre_web_companion/views/widgets/send_to_ereader.dart';
 import 'package:flutter/material.dart';
@@ -72,38 +73,61 @@ class BookDetails extends StatelessWidget {
               icon: const Icon(Icons.arrow_back),
             ),
             actions: [
-              // Bookmark toggle
-              // IconButton(
-              //   icon: Icon(
-              //     viewModel.isBookmarked(book.id)
-              //         ? Icons.bookmark
-              //         : Icons.bookmark_outline,
-              //     color:
-              //         viewModel.isBookmarked(book.id)
-              //             ? Theme.of(context).colorScheme.primary
-              //             : null,
-              //   ),
-              //   onPressed: () => viewModel.toggleBookmark(book.id),
-              //   tooltip: 'Bookmark',
-              // ),
+              // Archived toggle
+              IconButton(
+                icon: CircleAvatar(
+                  backgroundColor:
+                      Theme.of(context).colorScheme.secondaryContainer,
+                  child:
+                      Provider.of<BookDetailsViewModel>(
+                            context,
+                          ).isArchivedLoading
+                          ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 3),
+                          )
+                          : Provider.of<BookDetailsViewModel>(
+                            context,
+                          ).isArchived
+                          ? Icon(Icons.delete)
+                          : Icon(Icons.delete_outline),
+                ),
+                onPressed:
+                    () => Provider.of<BookDetailsViewModel>(
+                      context,
+                      listen: false,
+                    ).toggleArchivedStatus(book.id),
+                tooltip: localizations.archiveUnarchive,
+              ),
               // Read/Unread toggle
-              // IconButton(
-              //   icon: Icon(
-              //     Provider.of<BookDetailsViewModel>(context).isRead(book.id)
-              //         ? Icons.check_circle
-              //         : Icons.check_circle_outline,
-              //     color:
-              //         Provider.of<BookDetailsViewModel>(context).isRead(book.id)
-              //             ? Theme.of(context).colorScheme.primary
-              //             : null,
-              //   ),
-              //   onPressed:
-              //       () => Provider.of<BookDetailsViewModel>(
-              //         context,
-              //         listen: false,
-              //       ).toggleReadStatus(book.id),
-              //   tooltip: 'Mark as Read / Unread',
-              // ),
+              IconButton(
+                icon: CircleAvatar(
+                  backgroundColor:
+                      Theme.of(context).colorScheme.secondaryContainer,
+                  child:
+                      Provider.of<BookDetailsViewModel>(
+                            context,
+                          ).isReadToggleLoading
+                          ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 3),
+                          )
+                          : Provider.of<BookDetailsViewModel>(
+                            context,
+                          ).isBookRead
+                          ? Icon(Icons.visibility)
+                          : Icon(Icons.visibility_off),
+                ),
+                onPressed:
+                    () => Provider.of<BookDetailsViewModel>(
+                      context,
+                      listen: false,
+                    ).toggleReadStatus(book.id),
+                tooltip: localizations.markAsReadUnread,
+              ),
+              AddToShelf(book: book),
               // Download button
               DownloadToDevice(book: book),
             ],
@@ -154,6 +178,39 @@ class BookDetails extends StatelessWidget {
         ),
         leading: const BackButton(),
         actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: Container(

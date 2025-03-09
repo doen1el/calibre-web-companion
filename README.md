@@ -25,9 +25,12 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 - Browse through your book collection
 - Discover books by different categories (author, series, hot, etc.)
 - Display book details
+- Mark books as read/unread, add them to shelfs, add them to archiv
 - Display collection statistics
 - Download books directly to your device
 - Send books to your e-reader (using [send2ereader](https://github.com/daniel-j/send2ereader))
+- You can also send books to your e-reader via the mail function of Calibre Web
+- Download books to your collection (using [calibre-web-automated-book-downloader](https://github.com/calibrain/calibre-web-automated-book-downloader))
 
 ## 🖼️ Impressions
 
@@ -48,9 +51,10 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 
 - [x] Add localization
 - [x] Add dark mode
-- [ ] Toggle read/unread status
-- [ ] Add bookmark function
-- [ ] Toggle book archive status
+- [x] Toggle read/unread status
+- [x] Add bookmark function
+- [x] Calibre Web Automated Download integration
+- [x] Add and remove from shelfs
 - [ ] Code refactoring
 - [ ] Better error handling
 
@@ -58,6 +62,7 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 
 - [Calibre Web](https://github.com/janeczku/calibre-web)
 - [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated)
+- [calibre-web-automated-book-downloader](https://github.com/calibrain/calibre-web-automated-book-downloader)
 - [send2ereader](https://github.com/daniel-j/send2ereader)
 - [Flutter](https://github.com/flutter/flutter)
 - [IconKitchen](https://icon.kitchen)
