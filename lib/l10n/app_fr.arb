@@ -129,5 +129,14 @@
   "bookWillBeSendToYourEmailAdress": "Le livre sera envoyé en EPUB à votre adresse e-mail enregistrée.",
   "makeSureEmailSettingsAreConfigured": "Assurez-vous que les paramètres de messagerie SMTP sont configurés sur le serveur.",
   "markAsReadUnread": "Marquer comme lu/non lu",
-  "archiveUnarchive": "Archiver/Désarchiver"
+  "archiveUnarchive": "Archiver/Désarchiver",
+  "addToShelf": "Ajouter",
+  "selectShelf": "Sélectionner une étagère",
+  "noShelvesFound": "Aucune étagère trouvée",
+  "bookAddedToShelf": "Livre ajouté à l'étagère {book}",
+  "failedToAddToShelf": "Échec de l'ajout à l'étagère",
+  "bookRemovedFromShelf": "Livre retiré de l'étagère {book}",
+  "failedToRemoveFromShelf": "Échec du retrait de l'étagère",
+  "removeFromShelf": "Retirer",
+  "shelfs": "Étagères"
 }

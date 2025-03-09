@@ -200,8 +200,6 @@ class BookDetailsViewModel extends ChangeNotifier {
     }
   }
 
-  // Create helper methods for CSRF token handling
-
   /// Extracts CSRF token from HTML content
   ///
   /// Parameters:

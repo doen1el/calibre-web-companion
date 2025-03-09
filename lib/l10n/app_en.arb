@@ -129,5 +129,14 @@
   "bookWillBeSendToYourEmailAdress": "The book will be sent as EPUB to your registered email address.",
   "makeSureEmailSettingsAreConfigured": "Make sure SMTP mail settings are configured on the server.",
   "markAsReadUnread": "Mark as read/unread",
-  "archiveUnarchive": "Archive/Unarchive"
+  "archiveUnarchive": "Archive/Unarchive",
+  "addToShelf": "Add",
+  "selectShelf": "Select shelf",
+  "noShelvesFound": "No shelfs found",
+  "bookAddedToShelf": "Book added to shelf {book}",
+  "failedToAddToShelf": "Failed to add to shelf",
+  "bookRemovedFromShelf": "Book removed from shelf {book}",
+  "failedToRemoveFromShelf": "Failed to remove from shelf",
+  "removeFromShelf": "Remove",
+  "shelfs": "Shelfs"
 }

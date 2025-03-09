@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
+import 'package:calibre_web_companion/views/widgets/add_to_shelf.dart';
 import 'package:calibre_web_companion/views/widgets/download_to_device.dart';
 import 'package:calibre_web_companion/views/widgets/send_to_ereader.dart';
 import 'package:flutter/material.dart';
@@ -126,6 +127,7 @@ class BookDetails extends StatelessWidget {
                     ).toggleReadStatus(book.id),
                 tooltip: localizations.markAsReadUnread,
               ),
+              AddToShelf(book: book),
               // Download button
               DownloadToDevice(book: book),
             ],
@@ -176,6 +178,17 @@ class BookDetails extends StatelessWidget {
         ),
         leading: const BackButton(),
         actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: Container(

@@ -8,6 +8,7 @@ import 'package:calibre_web_companion/view_models/login_view_model.dart';
 import 'package:calibre_web_companion/view_models/main_view_model.dart';
 import 'package:calibre_web_companion/view_models/me_view_model.dart';
 import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
+import 'package:calibre_web_companion/view_models/shelf_view_model.dart';
 import 'package:calibre_web_companion/views/homepage_view.dart';
 import 'package:calibre_web_companion/views/login_view.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,7 @@ void main() {
           create: (_) => SettingsViewModel()..loadSettings(),
         ),
         ChangeNotifierProvider(create: (_) => DownloadServiceViewModel()),
+        ChangeNotifierProvider(create: (_) => ShelfViewModel()..loadShelfs()),
       ],
       child: const MyApp(),
     ),
