@@ -87,23 +87,32 @@ class BookDetails extends StatelessWidget {
               //   tooltip: 'Bookmark',
               // ),
               // Read/Unread toggle
-              // IconButton(
-              //   icon: Icon(
-              //     Provider.of<BookDetailsViewModel>(context).isRead(book.id)
-              //         ? Icons.check_circle
-              //         : Icons.check_circle_outline,
-              //     color:
-              //         Provider.of<BookDetailsViewModel>(context).isRead(book.id)
-              //             ? Theme.of(context).colorScheme.primary
-              //             : null,
-              //   ),
-              //   onPressed:
-              //       () => Provider.of<BookDetailsViewModel>(
-              //         context,
-              //         listen: false,
-              //       ).toggleReadStatus(book.id),
-              //   tooltip: 'Mark as Read / Unread',
-              // ),
+              IconButton(
+                icon: CircleAvatar(
+                  backgroundColor:
+                      Theme.of(context).colorScheme.secondaryContainer,
+                  child:
+                      Provider.of<BookDetailsViewModel>(
+                            context,
+                          ).isReadToggleLoading
+                          ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 3),
+                          )
+                          : Provider.of<BookDetailsViewModel>(
+                            context,
+                          ).isBookRead
+                          ? Icon(Icons.visibility)
+                          : Icon(Icons.visibility_off),
+                ),
+                onPressed:
+                    () => Provider.of<BookDetailsViewModel>(
+                      context,
+                      listen: false,
+                    ).toggleReadStatus(book.id),
+                tooltip: localizations.markAsReadUnread,
+              ),
               // Download button
               DownloadToDevice(book: book),
             ],
@@ -154,6 +163,17 @@ class BookDetails extends StatelessWidget {
         ),
         leading: const BackButton(),
         actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: Container(

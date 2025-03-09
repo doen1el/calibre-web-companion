@@ -50,7 +50,7 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 
 - [x] Add localization
 - [x] Add dark mode
-- [ ] Toggle read/unread status
+- [x] Toggle read/unread status
 - [ ] Add bookmark function
 - [ ] Toggle book archive status
 - [ ] Code refactoring

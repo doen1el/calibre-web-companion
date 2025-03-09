@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'dart:typed_data';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:calibre_web_companion/utils/json_service.dart';
+import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,13 +20,22 @@ class BookDetailsViewModel extends ChangeNotifier {
   bool isDownloading = false;
   int downloaded = 0;
 
+  bool _isBookRead = false;
+  bool get isBookRead => _isBookRead;
+
+  bool _isReadToggleLoading = false;
+  bool get isReadToggleLoading => _isReadToggleLoading;
+
   /// Fetch the book details from the server
   ///
   /// Parameters:
   ///
   /// - `bookUuid`: The unique identifier of the book
   Future<BookItem> fetchBook({required String bookUuid}) async {
-    return _jsonService.fetchBook(bookUuid: bookUuid);
+    BookItem book = await _jsonService.fetchBook(bookUuid: bookUuid);
+
+    await checkIfBookIsRead(book.id);
+    return book;
   }
 
   /// Fetch the book details from the server
@@ -404,87 +413,85 @@ class BookDetailsViewModel extends ChangeNotifier {
     }
   }
 
-  // // Bookmark-Status für das Buch
-  // bool isBookmarked(String bookId) {
-  //   // Hier die tatsächliche Implementierung basierend auf SharedPreferences oder Datenbank
-  //   return false; // Dummy-Implementierung
-  // }
+  // Bookmark-Status für das Buch
+  bool isBookmarked(String bookId) {
+    // Hier die tatsächliche Implementierung basierend auf SharedPreferences oder Datenbank
+    return false; // Dummy-Implementierung
+  }
 
-  // // Lesezeichen umschalten
-  // void toggleBookmark(String bookId) {
-  //   // Implementiere die Funktion zum Umschalten des Lesezeichen-Status
-  //   // und benachrichtige Listener
-  //   notifyListeners();
-  // }
+  // Lesezeichen umschalten
+  void toggleBookmark(String bookId) {
+    // Implementiere die Funktion zum Umschalten des Lesezeichen-Status
+    // und benachrichtige Listener
+    notifyListeners();
+  }
 
-  // // Prüfen, ob das Buch als gelesen markiert ist
-  // bool isRead(String bookId) {
-  //   // Hier die tatsächliche Implementierung basierend auf SharedPreferences oder Datenbank
-  //   return false; // Dummy-Implementierung
-  // }
+  Future<bool> toggleReadStatus(String bookId) async {
+    try {
+      _isReadToggleLoading = true;
+      notifyListeners();
+      logger.i('Starting toggling read status for bookId: $bookId');
 
-  // Future<bool> toggleReadStatus(String bookId) async {
-  //   try {
-  //     final apiService = ApiService();
-  //     SharedPreferences prefs = await SharedPreferences.getInstance();
-  //     logger.i('Toggling read status for book: $bookId');
+      // Get stored authentication details
+      final prefs = await SharedPreferences.getInstance();
+      final baseUrl = prefs.getString('base_url') ?? '';
+      final storedCookie = prefs.getString('calibre_web_session') ?? '';
 
-  //     // Get CSRF token first using existing method
-  //     final csrfData = await apiService.fetchCsrfToken(
-  //       '/book/$bookId',
-  //       AuthMethod.cookie,
-  //       'input[name="csrf_token"]',
-  //     );
+      if (baseUrl.isEmpty) {
+        logger.e('No base URL configured');
+        errorMessage = 'Server URL missing';
+        return false;
+      }
 
-  //     if (csrfData['token'] == null) {
-  //       logger.e('Failed to get CSRF token');
-  //       errorMessage = 'Could not get security token';
-  //       return false;
-  //     }
+      final path = '/ajax/toggleread/$bookId';
 
-  //     final csrfToken = csrfData['token']!;
-  //     final baseUrl = apiService.getBaseUrl();
-  //     final cookie = prefs.getString('calibre_web_session');
+      // Make the CSRF-protected request
+      final response = await makeCsrfProtectedRequest(
+        path: path,
+        baseUrl: baseUrl,
+        initialCookie: storedCookie,
+        customLogger: logger,
+      );
 
-  //     // Use http package directly
-  //     final url = Uri.parse('$baseUrl/ajax/toggleread/$bookId');
+      if (response != null && response.statusCode == 200) {
+        logger.i('Successfully toggled read status');
+        await checkIfBookIsRead(bookId);
+        return true;
+      } else {
+        final statusCode = response?.statusCode ?? 0;
+        logger.e('Failed to toggle read status: $statusCode');
+        errorMessage = 'Failed to toggle read status ($statusCode)';
+        return false;
+      }
+    } catch (e, stackTrace) {
+      logger.e('Error sending toggling read statu: $e');
+      logger.d('Stack trace: $stackTrace');
+      errorMessage = 'Error: $e';
+      return false;
+    } finally {
+      _isReadToggleLoading = false;
+      notifyListeners();
+    }
+  }
 
-  //     // Set headers exactly like jQuery would
-  //     final headers = {
-  //       'Cookie': cookie!,
-  //       'X-CSRFToken': csrfToken,
-  //       'X-Requested-With': 'XMLHttpRequest',
-  //       'Content-Type':
-  //           'application/x-www-form-urlencoded', // Simplified Content-Type
-  //       'Referer': '$baseUrl/book/$bookId',
-  //       'Accept': '*/*', // jQuery default
-  //     };
+  /// Check if the book is read
+  ///
+  /// Parameters:
+  ///
+  /// - `bookId`: The unique identifier of the book
+  Future<void> checkIfBookIsRead(String bookId) async {
+    BookListViewModel bookListViewModel = BookListViewModel();
 
-  //     // KEY CHANGE: Try with book_id parameter instead of csrf_token
-  //     final body = 'book_id=$bookId';
+    await bookListViewModel.loadBooks(BookListType.readbooks);
 
-  //     logger.i('Sending POST request to: $url with body: $body');
-  //     final response = await http.post(url, headers: headers, body: body);
-
-  //     logger.i(
-  //       'Response status: ${response.statusCode}, body: ${response.body}',
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       logger.i('Successfully toggled read status');
-  //       notifyListeners();
-  //       return true;
-  //     } else {
-  //       logger.e('Failed to toggle read status: ${response.statusCode}');
-  //       errorMessage = 'Failed to update read status (${response.statusCode})';
-  //       return false;
-  //     }
-  //   } catch (e) {
-  //     logger.e('Error toggling read status: $e');
-  //     errorMessage = 'Error: $e';
-  //     return false;
-  //   } finally {
-  //     notifyListeners();
-  //   }
-  // }
+    bookListViewModel.bookFeed?.items.forEach((element) async {
+      if (element.id == bookId) {
+        _isBookRead = true;
+        notifyListeners();
+      } else {
+        _isBookRead = false;
+        notifyListeners();
+      }
+    });
+  }
 }

@@ -127,5 +127,6 @@
   "downloadServiceUrl": "Download-Service-URL",
   "enterUrlOfYourDownloadService": "Gib die URL deines Download-Services ein",
   "bookWillBeSendToYourEmailAdress": "Das Buch wird als EPUB an deine registrierte E-Mail-Adresse gesendet.",
-  "makeSureEmailSettingsAreConfigured": "Stelle sicher, dass die SMTP-Mail-Einstellungen auf dem Server konfiguriert sind."
+  "makeSureEmailSettingsAreConfigured": "Stelle sicher, dass die SMTP-Mail-Einstellungen auf dem Server konfiguriert sind.",
+  "markAsReadUnread": "Als gelesen/ungelesen markieren"
 }
