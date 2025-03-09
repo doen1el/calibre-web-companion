@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "de.doen1el.calibre_web_companion"
+    namespace = "com.example.calibre_web_companion"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
