@@ -72,20 +72,6 @@ class BookDetails extends StatelessWidget {
               icon: const Icon(Icons.arrow_back),
             ),
             actions: [
-              // Bookmark toggle
-              // IconButton(
-              //   icon: Icon(
-              //     viewModel.isBookmarked(book.id)
-              //         ? Icons.bookmark
-              //         : Icons.bookmark_outline,
-              //     color:
-              //         viewModel.isBookmarked(book.id)
-              //             ? Theme.of(context).colorScheme.primary
-              //             : null,
-              //   ),
-              //   onPressed: () => viewModel.toggleBookmark(book.id),
-              //   tooltip: 'Bookmark',
-              // ),
               // Read/Unread toggle
               IconButton(
                 icon: CircleAvatar(
@@ -163,6 +149,17 @@ class BookDetails extends StatelessWidget {
         ),
         leading: const BackButton(),
         actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: Container(

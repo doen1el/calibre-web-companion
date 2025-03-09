@@ -103,20 +103,6 @@ class MeViewState extends State<MeView> {
                       ),
                     ),
               ),
-              LongButton(
-                text: localizations.showBookmarkedBooks,
-                icon: Icons.bookmark_rounded,
-                onPressed:
-                    () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder:
-                            (context) => BookList(
-                              title: localizations.bookmarkedBooks,
-                              bookListType: BookListType.bookmarked,
-                            ),
-                      ),
-                    ),
-              ),
             ],
           ),
         ),
