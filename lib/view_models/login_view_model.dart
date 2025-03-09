@@ -1,9 +1,7 @@
 import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:html/parser.dart' as parser;
 
 class LoginViewModel extends ChangeNotifier {
   Logger logger = Logger();

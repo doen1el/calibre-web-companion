@@ -125,5 +125,7 @@
   "queued": "En file d'attente",
   "notDownloaded": "Non téléchargé",
   "downloadServiceUrl": "URL du service de téléchargement",
-  "enterUrlOfYourDownloadService": "Entrez l'URL de votre service de téléchargement"
+  "enterUrlOfYourDownloadService": "Entrez l'URL de votre service de téléchargement",
+  "bookWillBeSendToYourEmailAdress": "Le livre sera envoyé en EPUB à votre adresse e-mail enregistrée.",
+  "makeSureEmailSettingsAreConfigured": "Assurez-vous que les paramètres de messagerie SMTP sont configurés sur le serveur."
 }

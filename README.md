@@ -28,6 +28,7 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 - Display collection statistics
 - Download books directly to your device
 - Send books to your e-reader (using [send2ereader](https://github.com/daniel-j/send2ereader))
+- You can also send books to your e-reader via the mail function of Calibre Web
 - Download books to your collection (using [calibre-web-automated-book-downloader](https://github.com/calibrain/calibre-web-automated-book-downloader))
 
 ## 🖼️ Impressions

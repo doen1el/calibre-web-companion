@@ -129,19 +129,14 @@ class ApiService {
     AuthMethod authMethod, {
     String contentType = 'application/json',
     bool useCsrf = false,
-    String? csrfEndpoint,
     String csrfSelector = 'input[name="csrf_token"]',
-    Map<String, String>? customHeaders,
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint, queryParams);
     final headers = _getAuthHeaders(authMethod);
     headers['Content-Type'] = contentType;
 
-    // Add custom headers if provided
-    if (customHeaders != null) {
-      headers.addAll(customHeaders);
-    }
+    _logger.d('Headers: $headers');
 
     _logger.d('POST request to: $uri');
 
@@ -150,11 +145,7 @@ class ApiService {
     String? cookies;
 
     if (useCsrf) {
-      final csrfData = await fetchCsrfToken(
-        csrfEndpoint ?? endpoint,
-        authMethod,
-        csrfSelector,
-      );
+      final csrfData = await fetchCsrfToken(endpoint, authMethod, csrfSelector);
       csrfToken = csrfData['token'];
       cookies = csrfData['cookies'];
 
@@ -176,28 +167,10 @@ class ApiService {
     encodedBody = _encodeBody(body, contentType);
 
     try {
-      if (body == null && endpoint.contains('/ajax/toggleread/')) {
-        // Create a manual request for more control over the exact format
-        final request = http.Request('POST', uri);
-        request.headers.addAll(headers);
-
-        // Send an empty body but with the right Content-Length header
-        request.body = '';
-
-        final streamedResponse = await _client.send(request);
-        final response = await http.Response.fromStream(streamedResponse);
-
-        _logger.i('POST response status: ${response.body}');
-        _checkResponseStatus(response.statusCode);
-        return response;
-      }
-      // Important change: Use an empty string instead of null when body is null
       final response = await _client.post(
         uri,
         headers: headers,
-        body:
-            encodedBody ??
-            "", // This is the key change - provide empty string instead of null
+        body: encodedBody ?? "",
       );
       _logger.i('POST response status: ${response.body}');
       _checkResponseStatus(response.statusCode);
@@ -267,7 +240,7 @@ class ApiService {
         'CSRF token not found in the response using selector: $selector',
       );
     } else {
-      _logger.d('CSRF token found');
+      _logger.d('CSRF token found: $csrfToken');
     }
 
     return {'token': csrfToken, 'cookies': response.headers['set-cookie']};

@@ -125,5 +125,7 @@
   "queued": "Queued",
   "notDownloaded": "Not downloaded",
   "downloadServiceUrl": "Download service URL",
-  "enterUrlOfYourDownloadService": "Enter URL of your download service"
+  "enterUrlOfYourDownloadService": "Enter URL of your download service",
+  "bookWillBeSendToYourEmailAdress": "The book will be sent as EPUB to your registered email address.",
+  "makeSureEmailSettingsAreConfigured": "Make sure SMTP mail settings are configured on the server."
 }

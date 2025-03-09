@@ -125,5 +125,7 @@
   "queued": "In Warteschlange",
   "notDownloaded": "Nicht heruntergeladen",
   "downloadServiceUrl": "Download-Service-URL",
-  "enterUrlOfYourDownloadService": "Gib die URL deines Download-Services ein"
+  "enterUrlOfYourDownloadService": "Gib die URL deines Download-Services ein",
+  "bookWillBeSendToYourEmailAdress": "Das Buch wird als EPUB an deine registrierte E-Mail-Adresse gesendet.",
+  "makeSureEmailSettingsAreConfigured": "Stelle sicher, dass die SMTP-Mail-Einstellungen auf dem Server konfiguriert sind."
 }
