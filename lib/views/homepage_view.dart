@@ -1,5 +1,7 @@
 import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
+import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
 import 'package:calibre_web_companion/views/books_view.dart';
+import 'package:calibre_web_companion/views/download_service_view.dart';
 import 'package:calibre_web_companion/views/me_view.dart';
 import 'package:calibre_web_companion/views/discover_view.dart';
 import 'package:flutter/material.dart';
@@ -12,14 +14,22 @@ class HomepageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<HomepageViewModel>();
+    final settingsViewModel = context.watch<SettingsViewModel>();
     AppLocalizations localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
-      body: [BooksView(), DiscoverView(), MeView()][viewModel.currentNavIndex],
+      body:
+          [
+            BooksView(),
+            DiscoverView(),
+            MeView(),
+            DownloadServiceView(),
+          ][viewModel.currentNavIndex],
       bottomNavigationBar: _buildBottomNavigation(
         context,
         localizations,
         viewModel,
+        settingsViewModel,
       ),
     );
   }
@@ -28,8 +38,10 @@ class HomepageView extends StatelessWidget {
     BuildContext context,
     AppLocalizations localizations,
     HomepageViewModel viewModel,
+    SettingsViewModel settingsViewModel,
   ) {
     return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
       items: [
         BottomNavigationBarItem(
           icon: Icon(Icons.book_rounded),
@@ -43,7 +55,14 @@ class HomepageView extends StatelessWidget {
           icon: Icon(Icons.person_rounded),
           label: localizations.me,
         ),
+
+        if (settingsViewModel.isDownloaderEnabled)
+          BottomNavigationBarItem(
+            icon: Icon(Icons.download_rounded),
+            label: localizations.download,
+          ),
       ],
+
       currentIndex: viewModel.currentNavIndex,
       onTap: (index) => viewModel.setCurrentNavIndex(index),
     );

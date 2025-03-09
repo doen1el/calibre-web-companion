@@ -21,6 +21,10 @@ class SettingsView extends StatelessWidget {
             _buildThemeSelector(context, settingsViewModel, localizations),
 
             const SizedBox(height: 24),
+            _buildSectionTitle(context, "Calibre Web Automated Downloader"),
+            _buildDownloaderToggle(context, settingsViewModel, localizations),
+
+            const SizedBox(height: 24),
             _buildSectionTitle(context, localizations.about),
             _buildVersionCard(context, settingsViewModel),
           ],
@@ -37,6 +41,96 @@ class SettingsView extends StatelessWidget {
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.secondary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDownloaderToggle(
+    BuildContext context,
+    SettingsViewModel viewModel,
+    AppLocalizations localizations,
+  ) {
+    BorderRadius borderRadius = BorderRadius.circular(8.0);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.download_rounded,
+                  size: 28,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    localizations.downloadService,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Switch(
+                  value: viewModel.isDownloaderEnabled,
+                  onChanged: (value) => viewModel.toggleDownloader(value),
+                  activeColor: Theme.of(context).colorScheme.primary,
+                ),
+              ],
+            ),
+
+            // Conditional text field
+            if (viewModel.isDownloaderEnabled) ...[
+              const SizedBox(height: 16),
+              _buildTextField(
+                context: context,
+                controller: viewModel.downloaderUrlController,
+                labelText: localizations.downloadServiceUrl,
+                prefixIcon: Icons.link,
+                hintText: "https://downloader.example.com",
+                onChanged: (value) => viewModel.setDownloaderUrl(value),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                localizations.enterUrlOfYourDownloadService,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required BuildContext context,
+    required TextEditingController controller,
+    required String labelText,
+    IconData? prefixIcon,
+    String? hintText,
+    bool obscureText = false,
+    Function(String)? onChanged,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+        labelText: labelText,
+        hintText: hintText,
+        prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surface,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16.0,
+          vertical: 14.0,
         ),
       ),
     );

@@ -110,5 +110,20 @@
   "themeMode": "Themenmodus",
   "systemTheme": "Systemthema",
   "lightTheme": "Helles Thema",
-  "darkTheme": "Dunkles Thema"
+  "darkTheme": "Dunkles Thema",
+  "downloadService": "Download-Service",
+  "downloads": "Downloads",
+  "searchForABook": "Suche nach einem Buch",
+  "noDownloadsFound": "Keine Downloads gefunden",
+  "foundBooks": "{count} Bücher gefunden",
+  "addedBookToTheDownloadQueue": "Buch zur Download-Warteschlange hinzugefügt",
+  "download": "Herunterladen",
+  "available": "Verfügbar",
+  "downloading": "Herunterladen",
+  "completed": "Abgeschlossen",
+  "failed": "Fehlgeschlagen",
+  "queued": "In Warteschlange",
+  "notDownloaded": "Nicht heruntergeladen",
+  "downloadServiceUrl": "Download-Service-URL",
+  "enterUrlOfYourDownloadService": "Gib die URL deines Download-Services ein"
 }

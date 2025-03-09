@@ -28,6 +28,7 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 - Display collection statistics
 - Download books directly to your device
 - Send books to your e-reader (using [send2ereader](https://github.com/daniel-j/send2ereader))
+- Download books to your collection (using [calibre-web-automated-book-downloader](https://github.com/calibrain/calibre-web-automated-book-downloader))
 
 ## 🖼️ Impressions
 
@@ -58,6 +59,7 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 
 - [Calibre Web](https://github.com/janeczku/calibre-web)
 - [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated)
+- [calibre-web-automated-book-downloader](https://github.com/calibrain/calibre-web-automated-book-downloader)
 - [send2ereader](https://github.com/daniel-j/send2ereader)
 - [Flutter](https://github.com/flutter/flutter)
 - [IconKitchen](https://icon.kitchen)

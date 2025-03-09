@@ -68,6 +68,14 @@ class MeViewState extends State<MeView> {
             children: [
               _buildStatsWidget(context, localizations, viewModel),
               LongButton(
+                text: localizations.settings,
+                icon: Icons.settings_rounded,
+                onPressed:
+                    () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => SettingsView()),
+                    ),
+              ),
+              LongButton(
                 text: localizations.showReadBooks,
                 icon: Icons.my_library_books_rounded,
                 onPressed:
@@ -107,14 +115,6 @@ class MeViewState extends State<MeView> {
                               bookListType: BookListType.bookmarked,
                             ),
                       ),
-                    ),
-              ),
-              LongButton(
-                text: "Settings",
-                icon: Icons.settings_rounded,
-                onPressed:
-                    () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => SettingsView()),
                     ),
               ),
             ],

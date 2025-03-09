@@ -8,10 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-
-import 'dart:io';
-import 'dart:convert';
-
 import 'package:path/path.dart' as path;
 
 class BookDetailsViewModel extends ChangeNotifier {

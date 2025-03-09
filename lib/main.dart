@@ -2,6 +2,7 @@ import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/view_models/books_view_model.dart';
+import 'package:calibre_web_companion/view_models/download_service_view_model.dart';
 import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
 import 'package:calibre_web_companion/view_models/login_view_model.dart';
 import 'package:calibre_web_companion/view_models/main_view_model.dart';
@@ -27,7 +28,10 @@ void main() {
         ChangeNotifierProvider(create: (_) => BookDetailsViewModel()),
         ChangeNotifierProvider(create: (_) => MeViewModel()..getStats()),
         ChangeNotifierProvider(create: (_) => BookListViewModel()),
-        ChangeNotifierProvider(create: (_) => SettingsViewModel()),
+        ChangeNotifierProvider(
+          create: (_) => SettingsViewModel()..loadSettings(),
+        ),
+        ChangeNotifierProvider(create: (_) => DownloadServiceViewModel()),
       ],
       child: const MyApp(),
     ),
