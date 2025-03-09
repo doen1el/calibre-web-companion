@@ -128,5 +128,6 @@
   "enterUrlOfYourDownloadService": "Introduce la URL de tu servicio de descarga",
   "bookWillBeSendToYourEmailAdress": "El libro se enviará como EPUB a tu dirección de correo electrónico registrada.",
   "makeSureEmailSettingsAreConfigured": "Asegúrate de que la configuración de correo SMTP esté configurada en el servidor.",
-  "markAsReadUnread": "Marcar como leído/no leído"
+  "markAsReadUnread": "Marcar como leído/no leído",
+  "archiveUnarchive": "Archivar/Desarchivar"
 }

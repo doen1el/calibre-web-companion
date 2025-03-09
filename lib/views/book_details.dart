@@ -72,6 +72,33 @@ class BookDetails extends StatelessWidget {
               icon: const Icon(Icons.arrow_back),
             ),
             actions: [
+              // Archived toggle
+              IconButton(
+                icon: CircleAvatar(
+                  backgroundColor:
+                      Theme.of(context).colorScheme.secondaryContainer,
+                  child:
+                      Provider.of<BookDetailsViewModel>(
+                            context,
+                          ).isArchivedLoading
+                          ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 3),
+                          )
+                          : Provider.of<BookDetailsViewModel>(
+                            context,
+                          ).isArchived
+                          ? Icon(Icons.delete)
+                          : Icon(Icons.delete_outline),
+                ),
+                onPressed:
+                    () => Provider.of<BookDetailsViewModel>(
+                      context,
+                      listen: false,
+                    ).toggleArchivedStatus(book.id),
+                tooltip: localizations.archiveUnarchive,
+              ),
               // Read/Unread toggle
               IconButton(
                 icon: CircleAvatar(

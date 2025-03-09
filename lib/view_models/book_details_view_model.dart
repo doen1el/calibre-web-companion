@@ -26,6 +26,12 @@ class BookDetailsViewModel extends ChangeNotifier {
   bool _isReadToggleLoading = false;
   bool get isReadToggleLoading => _isReadToggleLoading;
 
+  bool _isArchived = false;
+  bool get isArchived => _isArchived;
+
+  bool _isArchivedLoading = false;
+  bool get isArchivedLoading => _isArchivedLoading;
+
   /// Fetch the book details from the server
   ///
   /// Parameters:
@@ -413,19 +419,11 @@ class BookDetailsViewModel extends ChangeNotifier {
     }
   }
 
-  // Bookmark-Status für das Buch
-  bool isBookmarked(String bookId) {
-    // Hier die tatsächliche Implementierung basierend auf SharedPreferences oder Datenbank
-    return false; // Dummy-Implementierung
-  }
-
-  // Lesezeichen umschalten
-  void toggleBookmark(String bookId) {
-    // Implementiere die Funktion zum Umschalten des Lesezeichen-Status
-    // und benachrichtige Listener
-    notifyListeners();
-  }
-
+  /// Toggle the read status of a book
+  ///
+  /// Parameters:
+  ///
+  /// - `bookId`: The unique identifier of the book
   Future<bool> toggleReadStatus(String bookId) async {
     try {
       _isReadToggleLoading = true;
@@ -493,5 +491,59 @@ class BookDetailsViewModel extends ChangeNotifier {
         notifyListeners();
       }
     });
+  }
+
+  /// Toggle the archived status of a book
+  ///
+  /// Parameters:
+  ///
+  /// - `bookId`: The unique identifier of the book
+  Future<bool> toggleArchivedStatus(String bookId) async {
+    try {
+      _isArchivedLoading = true;
+      notifyListeners();
+      logger.i('Starting toggling archived status for bookId: $bookId');
+
+      // Get stored authentication details
+      final prefs = await SharedPreferences.getInstance();
+      final baseUrl = prefs.getString('base_url') ?? '';
+      final storedCookie = prefs.getString('calibre_web_session') ?? '';
+
+      if (baseUrl.isEmpty) {
+        logger.e('No base URL configured');
+        errorMessage = 'Server URL missing';
+        return false;
+      }
+
+      final path = '/ajax/togglearchived/$bookId';
+
+      // Make the CSRF-protected request
+      final response = await makeCsrfProtectedRequest(
+        path: path,
+        baseUrl: baseUrl,
+        initialCookie: storedCookie,
+        customLogger: logger,
+      );
+
+      if (response != null && response.statusCode == 200) {
+        logger.i('Successfully toggled archived status');
+        _isArchived = !_isArchived;
+        return true;
+      } else {
+        final statusCode = response?.statusCode ?? 0;
+        logger.e('Failed to toggle archived status: $statusCode');
+        errorMessage = 'Failed to toggle archived status ($statusCode)';
+        return false;
+      }
+    } catch (e, stackTrace) {
+      logger.e('Error sending toggling archived statu: $e');
+      logger.d('Stack trace: $stackTrace');
+      errorMessage = 'Error: $e';
+      return false;
+    } finally {
+      _isArchivedLoading = false;
+
+      notifyListeners();
+    }
   }
 }
