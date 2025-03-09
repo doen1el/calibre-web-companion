@@ -57,12 +57,12 @@ jobs:
       # - name: Build appBundle
       #   run: flutter build appbundle
       #8 Build IPA ( IOS Build )
-      - name: Build IPA
-        run: flutter build ipa --no-codesign
-      - name: Compress Archives and IPAs
-        run: |
-          cd build
-          tar -czf ios_build.tar.gz ios
+      # - name: Build IPA
+      #   run: flutter build ipa --no-codesign
+      # - name: Compress Archives and IPAs
+      #   run: |
+      #     cd build
+      #     tar -czf ios_build.tar.gz ios
       #9 Upload Artifacts
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
