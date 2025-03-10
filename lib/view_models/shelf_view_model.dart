@@ -43,6 +43,8 @@ class ShelfViewModel extends ChangeNotifier {
 
   Future<bool> addToShelf(String shelfId, String bookId) async {
     try {
+      _isLoading = true;
+      notifyListeners();
       logger.i('Starting adding to shelf');
 
       final baseUrl = await getBaseUrl();
@@ -75,11 +77,16 @@ class ShelfViewModel extends ChangeNotifier {
       logger.e('Error adding to shelf: $e');
       logger.d('Stack trace: $stackTrace');
       return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
   Future<bool> removeFromShelf(String shelfId, String bookId) async {
     try {
+      _isLoading = true;
+      notifyListeners();
       logger.i('Starting removing from shelf');
 
       final baseUrl = await getBaseUrl();
@@ -112,6 +119,9 @@ class ShelfViewModel extends ChangeNotifier {
       logger.e('Error removing from shelf: $e');
       logger.d('Stack trace: $stackTrace');
       return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
