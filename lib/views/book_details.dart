@@ -7,6 +7,7 @@ import 'package:calibre_web_companion/views/widgets/add_to_shelf.dart';
 import 'package:calibre_web_companion/views/widgets/download_to_device.dart';
 import 'package:calibre_web_companion/views/widgets/send_to_ereader.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -93,11 +94,20 @@ class BookDetails extends StatelessWidget {
                           ? Icon(Icons.delete)
                           : Icon(Icons.delete_outline),
                 ),
-                onPressed:
-                    () => Provider.of<BookDetailsViewModel>(
-                      context,
-                      listen: false,
-                    ).toggleArchivedStatus(book.id),
+                onPressed: () async {
+                  bool success = await Provider.of<BookDetailsViewModel>(
+                    context,
+                    listen: false,
+                  ).toggleArchivedStatus(book.id);
+                  Fluttertoast.showToast(
+                    msg:
+                        success
+                            ? localizations.archivedBookSuccessfully
+                            : localizations.archivedBookFailed,
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                  );
+                },
                 tooltip: localizations.archiveUnarchive,
               ),
               // Read/Unread toggle

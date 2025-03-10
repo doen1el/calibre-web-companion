@@ -138,5 +138,7 @@
   "bookRemovedFromShelf": "Buch aus Regal entfernt {book}",
   "failedToRemoveFromShelf": "Fehler beim Entfernen aus dem Regal",
   "removeFromShelf": "Entfernen",
-  "shelfs": "Regale"
+  "shelfs": "Regale",
+  "archivedBookSuccessfully": "Buch erfolgreich archiviert",
+  "archivedBookFailed": "Fehler beim Archivieren des Buches"
 }

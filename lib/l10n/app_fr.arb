@@ -138,5 +138,7 @@
   "bookRemovedFromShelf": "Livre retiré de l'étagère {book}",
   "failedToRemoveFromShelf": "Échec du retrait de l'étagère",
   "removeFromShelf": "Retirer",
-  "shelfs": "Étagères"
+  "shelfs": "Étagères",
+  "archivedBookSuccessfully": "Livre archivé avec succès",
+  "archivedBookFailed": "Échec de l'archivage du livre"
 }

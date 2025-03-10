@@ -138,5 +138,7 @@
   "bookRemovedFromShelf": "Libro eliminado del estante {book}",
   "failedToRemoveFromShelf": "Error al eliminar del estante",
   "removeFromShelf": "Eliminar",
-  "shelfs": "Estantes"
+  "shelfs": "Estantes",
+  "archivedBookSuccessfully": "Libro archivado con éxito",
+  "archivedBookFailed": "Error al archivar el libro"
 }

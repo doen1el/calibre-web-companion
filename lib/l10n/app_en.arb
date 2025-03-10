@@ -138,5 +138,7 @@
   "bookRemovedFromShelf": "Book removed from shelf {book}",
   "failedToRemoveFromShelf": "Failed to remove from shelf",
   "removeFromShelf": "Remove",
-  "shelfs": "Shelfs"
+  "shelfs": "Shelfs",
+  "archivedBookSuccessfully": "Archived book successfully",
+  "archivedBookFailed": "Failed to archive book"
 }
