@@ -1,11 +1,11 @@
-import 'dart:convert';
-
 import 'package:calibre_web_companion/models/shelf_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
+import 'package:calibre_web_companion/utils/json_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/web.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:html/parser.dart' as html_parser;
 
 class ShelfViewModel extends ChangeNotifier {
   ApiService apiService = ApiService();
@@ -17,23 +17,27 @@ class ShelfViewModel extends ChangeNotifier {
   List<ShelfModel> get shelves => _shelves;
   bool get isLoading => _isLoading;
 
+  ShelfDetailModel? _currentShelf;
+  ShelfDetailModel? get currentShelf => _currentShelf;
+
+  final Map<String, ShelfDetailModel> _shelfCache = {};
+
+  /// Load shelfs from the server
   Future<void> loadShelfs() async {
     try {
       _isLoading = true;
-      notifyListeners(); // Notify loading state changed
+      notifyListeners();
 
       final res = await apiService.getXmlAsJson(
         '/opds/shelfindex',
         AuthMethod.basic,
       );
 
-      // Use fromFeedJson instead of trying to cast res as List
       _shelves = ShelfModel.fromFeedJson(res);
 
       logger.i("Successfully loaded ${_shelves.length} shelves");
     } catch (e) {
       logger.e("Error loading shelves: $e");
-      // Clear shelves on error to ensure we don't have stale data
       _shelves = [];
     } finally {
       _isLoading = false;
@@ -41,6 +45,12 @@ class ShelfViewModel extends ChangeNotifier {
     }
   }
 
+  /// Add a book to a shelf
+  ///
+  /// Parameters:
+  ///
+  /// - `shelfId`: The ID of the shelf
+  /// - `bookId`: The ID of the book
   Future<bool> addToShelf(String shelfId, String bookId) async {
     try {
       _isLoading = true;
@@ -55,9 +65,8 @@ class ShelfViewModel extends ChangeNotifier {
         return false;
       }
 
-      final path = '/shelf/add/$bookId/$shelfId';
+      final path = '/shelf/add/$shelfId/$bookId';
 
-      // Make the CSRF-protected request
       final response = await makeCsrfProtectedRequest(
         path: path,
         baseUrl: baseUrl,
@@ -65,7 +74,8 @@ class ShelfViewModel extends ChangeNotifier {
         customLogger: logger,
       );
 
-      if (response != null && response.statusCode == 204) {
+      if (response != null && (response.statusCode == 204)) {
+        _shelfCache.remove(shelfId);
         logger.i('Successfully added to shelf');
         return true;
       } else {
@@ -83,6 +93,12 @@ class ShelfViewModel extends ChangeNotifier {
     }
   }
 
+  /// Remove a book from a shelf
+  ///
+  /// Parameters:
+  ///
+  /// - `shelfId`: The ID of the shelf
+  /// - `bookId`: The ID of the book
   Future<bool> removeFromShelf(String shelfId, String bookId) async {
     try {
       _isLoading = true;
@@ -97,9 +113,8 @@ class ShelfViewModel extends ChangeNotifier {
         return false;
       }
 
-      final path = '/shelf/remove/$bookId/$shelfId';
+      final path = '/shelf/remove/$shelfId/$bookId';
 
-      // Make the CSRF-protected request
       final response = await makeCsrfProtectedRequest(
         path: path,
         baseUrl: baseUrl,
@@ -107,8 +122,10 @@ class ShelfViewModel extends ChangeNotifier {
         customLogger: logger,
       );
 
-      if (response != null && response.statusCode == 204) {
+      if (response != null && (response.statusCode == 204)) {
+        _shelfCache.remove(shelfId);
         logger.i('Successfully removing from shelf');
+        getShelf(shelfId);
         return true;
       } else {
         final statusCode = response?.statusCode ?? 0;
@@ -125,7 +142,12 @@ class ShelfViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> createShelf() async {
+  /// Create a new shelf
+  ///
+  /// Parameters:
+  ///
+  /// - `shelfName`: The name of the new shelf
+  Future<bool> createShelf(String shelfName) async {
     try {
       logger.i('Starting creating shelf');
 
@@ -134,12 +156,104 @@ class ShelfViewModel extends ChangeNotifier {
 
       if (baseUrl.isEmpty) {
         logger.e('No base URL configured');
-        return;
+        return false;
       }
 
       final path = '/shelf/create';
 
-      // Make the CSRF-protected request
+      final response = await makeCsrfProtectedRequest(
+        path: path,
+        baseUrl: baseUrl,
+        initialCookie: storedCookie,
+        customLogger: logger,
+        additionalFormData: {'title': shelfName},
+      );
+
+      if (response != null && response.statusCode == 302) {
+        logger.i('Successfully created shelf');
+
+        await loadShelfs();
+
+        return true;
+      } else {
+        final statusCode = response?.statusCode ?? 0;
+        logger.e('Failed to create shelf: $statusCode');
+        return false;
+      }
+    } catch (e, stackTrace) {
+      logger.e('Error creatig shelf: $e');
+      logger.d('Stack trace: $stackTrace');
+      return false;
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  /// Edit an existing shelf
+  ///
+  /// Parameters:
+  ///
+  /// - `shelfId`: The ID of the shelf
+  /// - `newShelfName`: The new name of the shelf
+  Future<bool> editShelf(String shelfId, String newShelfName) async {
+    try {
+      logger.i('Starting editing shelf');
+
+      final baseUrl = await getBaseUrl();
+      final storedCookie = await getStoredCookie();
+
+      if (baseUrl.isEmpty) {
+        logger.e('No base URL configured');
+        return false;
+      }
+
+      final path = '/shelf/edit/$shelfId';
+
+      final response = await makeCsrfProtectedRequest(
+        path: path,
+        baseUrl: baseUrl,
+        initialCookie: storedCookie,
+        customLogger: logger,
+        additionalFormData: {'title': newShelfName},
+      );
+
+      if (response != null && response.statusCode == 302) {
+        logger.i('Successfully edited shelf');
+
+        return true;
+      } else {
+        final statusCode = response?.statusCode ?? 0;
+        logger.e('Failed to edit shelf: $statusCode');
+        return false;
+      }
+    } catch (e, stackTrace) {
+      logger.e('Error editing shelf: $e');
+      logger.d('Stack trace: $stackTrace');
+      return false;
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  /// Delete a shelf
+  ///
+  /// Parameters:
+  ///
+  /// - `shelfId`: The ID of the shelf
+  Future<bool> deleteShelf(String shelfId) async {
+    try {
+      logger.i('Starting deleting shelf');
+
+      final baseUrl = await getBaseUrl();
+      final storedCookie = await getStoredCookie();
+
+      if (baseUrl.isEmpty) {
+        logger.e('No base URL configured');
+        return false;
+      }
+
+      final path = '/shelf/delete/$shelfId';
+
       final response = await makeCsrfProtectedRequest(
         path: path,
         baseUrl: baseUrl,
@@ -148,63 +262,138 @@ class ShelfViewModel extends ChangeNotifier {
       );
 
       if (response != null && response.statusCode == 302) {
-        logger.i('Successfully created shelf');
+        logger.i('Successfully deleted shelf');
+
+        return true;
       } else {
         final statusCode = response?.statusCode ?? 0;
-        logger.e('Failed to create shelf: $statusCode');
+        logger.e('Failed to delete shelf: $statusCode');
+        return false;
       }
     } catch (e, stackTrace) {
-      logger.e('Error creatig shelf: $e');
+      logger.e('Error deleting shelf: $e');
       logger.d('Stack trace: $stackTrace');
+      return false;
     } finally {
       notifyListeners();
     }
   }
 
-  Future<void> editShelf(String shelfId) async {
-    notifyListeners();
-  }
-
-  Future<void> deleteShelf(String shelfId, String bookId) async {
-    notifyListeners();
-  }
-
-  Future<void> getShelf(String shelfId) async {
+  /// Get detailed information about a shelf
+  ///
+  /// Parameters:
+  ///
+  /// - `shelfId`: The ID of the shelf
+  Future<ShelfDetailModel?> getShelf(String shelfId) async {
     try {
       logger.i('Starting getting shelf');
+      _isLoading = true;
+      notifyListeners();
 
       final baseUrl = await getBaseUrl();
-      final storedCookie = await getStoredCookie();
 
       if (baseUrl.isEmpty) {
         logger.e('No base URL configured');
-        return;
+        return null;
       }
 
-      final path = '/simpleshelf/$shelfId';
+      final path = '/shelf/$shelfId';
 
-      // Make the CSRF-protected request
       final response = await apiService.get(path, AuthMethod.cookie);
 
       if (response.statusCode == 200) {
         logger.i('Successfully got shelf');
-        logger.d("Response body: ${response.body}");
+
+        logger.d(response.body);
+
+        _currentShelf = parseShelfHtml(response.body);
+        return _currentShelf;
       } else {
         logger.e('Failed to get shelf: ${response.statusCode}');
+        return null;
       }
     } catch (e, stackTrace) {
       logger.e('Error getting shelf: $e');
       logger.d('Stack trace: $stackTrace');
+      return null;
     } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
+  /// Open book details page
+  ///
+  /// Parameters:
+  ///
+  /// - `bookAuthors`: List of authors of the book
+  /// - `bookTitle`: Title of the book
+  Future<String> openBookDetails(
+    List<BookAuthor> bookAuthors,
+    String bookTitle,
+  ) async {
+    JsonService jsonService = JsonService();
+    logger.i(
+      'Opening book details: $bookTitle by ${bookAuthors.map((e) => e.name).join(' ')}',
+    );
+
+    try {
+      final res = await jsonService.fetchBooks(searchQuery: bookTitle);
+
+      logger.d('UUID: ${res.first}');
+
+      return res.first.uuid;
+    } catch (e) {
+      logger.e('Error searching books: $e');
+
+      return '';
+    }
+  }
+
+  Future<List<ShelfModel>> findShelvesContainingBook(String bookId) async {
+    try {
+      logger.i('Checking which shelves contain book $bookId');
+      if (_shelves.isEmpty) {
+        await loadShelfs();
+      }
+
+      List<ShelfModel> containingShelves = [];
+
+      for (var shelf in _shelves) {
+        ShelfDetailModel? shelfDetails = _shelfCache[shelf.id];
+
+        if (shelfDetails == null) {
+          shelfDetails = await getShelf(shelf.id);
+          if (shelfDetails != null) {
+            _shelfCache[shelf.id] = shelfDetails;
+          }
+        }
+
+        if (shelfDetails != null) {
+          bool containsBook = shelfDetails.books.any(
+            (book) => book.id == bookId,
+          );
+          if (containsBook) {
+            containingShelves.add(shelf);
+          }
+        }
+      }
+
+      return containingShelves;
+    } catch (e, stackTrace) {
+      logger.e('Error checking shelves for book: $e');
+      logger.d('Stack trace: $stackTrace');
+      return [];
+    }
+  }
+
+  /// Get base URL from shared preferences
   Future<String> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('base_url') ?? '';
   }
 
+  /// Get stored session cookie from shared preferences
   Future<String> getStoredCookie() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('calibre_web_session') ?? '';
@@ -360,5 +549,107 @@ class ShelfViewModel extends ChangeNotifier {
     } finally {
       client.close();
     }
+  }
+
+  /// Parse HTML content from the shelf page
+  ShelfDetailModel parseShelfHtml(String htmlContent) {
+    final document = html_parser.parse(htmlContent);
+
+    // Extract shelf name from the h2 tag
+    final h2Element = document.querySelector('h2');
+    String shelfName = "Unknown Shelf";
+    if (h2Element != null) {
+      // Clean up the shelf name (remove 'Bücherregal: ' prefix and quotes)
+      shelfName = h2Element.text;
+      shelfName = shelfName.replaceAll('Bücherregal: ', '').replaceAll("'", "");
+    }
+
+    // Extract books
+    final List<ShelfBookItem> books = [];
+    final bookElements = document.querySelectorAll('.book');
+
+    for (var bookElement in bookElements) {
+      // Extract title
+      final titleElement = bookElement.querySelector('.title');
+      final title = titleElement?.text ?? "Unknown Title";
+
+      // Extract authors
+      final authorLinks = bookElement.querySelectorAll('.author a');
+      List<BookAuthor> authors = [];
+      for (var authorLink in authorLinks) {
+        final authorHref = authorLink.attributes['href'] ?? "";
+        final authorId = extractIdFromUrl(authorHref);
+        authors.add(BookAuthor(name: authorLink.text, id: authorId));
+      }
+
+      // Extract series if available
+      String? seriesName;
+      String? seriesId;
+      String? seriesIndex;
+      final seriesElement = bookElement.querySelector('.series');
+      if (seriesElement != null) {
+        final seriesLink = seriesElement.querySelector('a');
+        if (seriesLink != null) {
+          seriesName = seriesLink.text.trim();
+          final seriesHref = seriesLink.attributes['href'] ?? "";
+          seriesId = extractIdFromUrl(seriesHref);
+
+          // Get series index from parenthesized text
+          final seriesText = seriesElement.text;
+          RegExp regExp = RegExp(r'\((\d+(?:\.\d+)?)\)');
+          final match = regExp.firstMatch(seriesText);
+          if (match != null) {
+            seriesIndex = match.group(1);
+          }
+        }
+      }
+
+      // Extract download link and book ID
+      String bookId = "";
+      String? downloadUrl;
+
+      // Extract book ID from the book link
+      final bookLinkElement = bookElement.querySelector(
+        'a[data-toggle="modal"]',
+      );
+      if (bookLinkElement != null) {
+        final bookHref = bookLinkElement.attributes['href'];
+        if (bookHref != null) {
+          RegExp regExp = RegExp(r'/book/(\d+)');
+          final match = regExp.firstMatch(bookHref);
+          if (match != null) {
+            bookId = match.group(1) ?? "";
+          }
+        }
+      }
+
+      final downloadLinkElement = bookElement.querySelector(
+        'a[id^="btnGroupDrop"]',
+      );
+      if (downloadLinkElement != null) {
+        downloadUrl = downloadLinkElement.attributes['href'];
+      }
+
+      // Create book item
+      books.add(
+        ShelfBookItem(
+          id: bookId,
+          title: title,
+          authors: authors,
+          seriesName: seriesName,
+          seriesId: seriesId,
+          seriesIndex: seriesIndex,
+          downloadUrl: downloadUrl,
+        ),
+      );
+    }
+
+    return ShelfDetailModel(name: shelfName, books: books);
+  }
+
+  /// Extract ID from URL like '/author/stored/12345'
+  String extractIdFromUrl(String url) {
+    final parts = url.split('/');
+    return parts.isNotEmpty ? parts.last : "";
   }
 }

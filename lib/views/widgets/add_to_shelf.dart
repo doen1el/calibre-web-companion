@@ -2,7 +2,6 @@ import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/models/shelf_model.dart';
 import 'package:calibre_web_companion/view_models/shelf_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -17,12 +16,34 @@ class AddToShelf extends StatefulWidget {
 
 class AddToShelfState extends State<AddToShelf> {
   var logger = Logger();
+  bool _isLoading = true;
+  List<ShelfModel> _containingShelves = [];
 
   @override
   void initState() {
     super.initState();
+    _loadShelfsAndCheckContaining();
+  }
+
+  /// Loads the shelves and checks if the book is already in any of them.
+  Future<void> _loadShelfsAndCheckContaining() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final viewModel = context.read<ShelfViewModel>();
-    viewModel.loadShelfs();
+    await viewModel.loadShelfs();
+
+    final containingShelves = await viewModel.findShelvesContainingBook(
+      widget.book.id,
+    );
+
+    if (mounted) {
+      setState(() {
+        _containingShelves = containingShelves;
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -30,56 +51,91 @@ class AddToShelfState extends State<AddToShelf> {
     final viewModel = context.watch<ShelfViewModel>();
     AppLocalizations localizations = AppLocalizations.of(context)!;
 
+    Widget icon;
+    if (_isLoading) {
+      icon = SizedBox(
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(
+          strokeWidth: 2.5,
+          color: Theme.of(context).colorScheme.onSecondaryContainer,
+        ),
+      );
+    } else if (_containingShelves.isNotEmpty) {
+      icon = Badge(
+        backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
+        label: Text(
+          _containingShelves.length.toString(),
+          style: TextStyle(
+            fontSize: 10,
+            color: Theme.of(context).colorScheme.onTertiaryContainer,
+          ),
+        ),
+        child: const Icon(Icons.playlist_add_check_rounded),
+      );
+    } else {
+      icon = const Icon(Icons.playlist_add_rounded);
+    }
+
     return IconButton(
-      onPressed:
-          () =>
-              _showShelfDialog(context, localizations, viewModel, widget.book),
+      onPressed: () => _showShelfDialog(context, localizations, viewModel),
       icon: CircleAvatar(
         backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-        child: const Icon(Icons.playlist_add_rounded),
+
+        child: icon,
       ),
-      tooltip: localizations.addToShelf,
+      tooltip:
+          _containingShelves.isNotEmpty
+              ? localizations.manageBookShelves
+              : localizations.addToShelf,
     );
   }
 
-  /// Shows a dialog to select a shelf and perform actions
+  /// Shows a dialog with a list of shelves to add/remove the book from.
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The [BuildContext] of the widget.
+  /// - `localizations`: The [AppLocalizations] instance.
+  /// - `viewModel`: The [ShelfViewModel] instance.
   void _showShelfDialog(
     BuildContext context,
     AppLocalizations localizations,
     ShelfViewModel viewModel,
-    BookItem book,
   ) {
-    // Track the selected shelf
-    ShelfModel? selectedShelf;
-    // Local loading state for the dialog
-    bool isLoading = viewModel.isLoading;
+    bool isDialogLoading = false;
 
     showDialog(
       context: context,
-      builder: (context) {
-        // Create a local listener to update the dialog when viewModel changes
+      builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setState) {
-            // Add listener for viewModel changes
-            viewModel.addListener(() {
-              // Update local loading state when viewModel changes
-              if (mounted) {
-                setState(() {
-                  isLoading = viewModel.isLoading;
-                });
-              }
-            });
-
+          builder: (context, setDialogState) {
             return AlertDialog(
-              title: Text(localizations.selectShelf),
+              title: Text(
+                _containingShelves.isNotEmpty
+                    ? localizations.manageBookShelves
+                    : localizations.selectShelf,
+              ),
               content: SizedBox(
                 width: double.maxFinite,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (isLoading)
+                    if (_containingShelves.isNotEmpty) ...[
+                      Text(
+                        localizations.bookInShelfs(_containingShelves.length),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.secondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                    ],
+
+                    if (isDialogLoading || viewModel.isLoading)
                       const SizedBox(
-                        height: 170,
+                        height: 168,
                         child: Center(child: CircularProgressIndicator()),
                       )
                     else if (viewModel.shelves.isEmpty)
@@ -91,6 +147,7 @@ class AddToShelfState extends State<AddToShelf> {
                               size: 48,
                               color: Theme.of(
                                 context,
+                                // ignore: deprecated_member_use
                               ).colorScheme.secondary.withOpacity(0.5),
                             ),
                             const SizedBox(height: 16),
@@ -108,18 +165,39 @@ class AddToShelfState extends State<AddToShelf> {
                           itemCount: viewModel.shelves.length,
                           itemBuilder: (context, index) {
                             final shelf = viewModel.shelves[index];
-                            return RadioListTile<ShelfModel>(
+                            final isInShelf = _containingShelves.any(
+                              (s) => s.id == shelf.id,
+                            );
+
+                            return ListTile(
                               title: Text(shelf.title),
-                              value: shelf,
-                              groupValue: selectedShelf,
-                              onChanged:
-                                  isLoading
-                                      ? null // Disable selection during loading
-                                      : (ShelfModel? value) {
-                                        setState(() {
-                                          selectedShelf = value;
-                                        });
-                                      },
+                              leading: Icon(
+                                isInShelf
+                                    ? Icons.check_circle
+                                    : Icons.circle_outlined,
+                                color:
+                                    isInShelf
+                                        ? Theme.of(context).colorScheme.primary
+                                        : null,
+                              ),
+                              enabled: !isDialogLoading,
+                              onTap: () async {
+                                setDialogState(() {
+                                  isDialogLoading = true;
+                                });
+
+                                await _handleShelfAction(
+                                  context,
+                                  viewModel,
+                                  shelf,
+                                  isInShelf,
+                                  onComplete: () {
+                                    setDialogState(() {
+                                      isDialogLoading = false;
+                                    });
+                                  },
+                                );
+                              },
                             );
                           },
                         ),
@@ -128,99 +206,110 @@ class AddToShelfState extends State<AddToShelf> {
                 ),
               ),
               actions: [
-                // Cancel button (always enabled)
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text(localizations.cancel),
+                  child: Text(localizations.close),
                 ),
-
-                // Only show these buttons when a shelf is selected and not loading
-                if (!isLoading && selectedShelf != null) ...[
-                  // Remove from shelf
-                  TextButton(
-                    onPressed: () async {
-                      // Show loading first
-                      setState(() {
-                        isLoading = true;
-                      });
-
-                      bool success = await viewModel.removeFromShelf(
-                        book.id,
-                        selectedShelf!.id,
-                      );
-
-                      if (success) {
-                        Navigator.pop(context);
-                        Fluttertoast.showToast(
-                          msg: localizations.bookRemovedFromShelf(
-                            selectedShelf!.title,
-                          ),
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                        );
-                      } else {
-                        // Reset loading if operation fails
-                        setState(() {
-                          isLoading = false;
-                        });
-                        Fluttertoast.showToast(
-                          msg: localizations.failedToRemoveFromShelf,
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                        );
-                      }
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: Theme.of(context).colorScheme.error,
-                    ),
-                    child: Text(localizations.removeFromShelf),
-                  ),
-
-                  // Add to shelf button
-                  TextButton(
-                    onPressed: () async {
-                      // Show loading first
-                      setState(() {
-                        isLoading = true;
-                      });
-
-                      bool success = await viewModel.addToShelf(
-                        book.id,
-                        selectedShelf!.id,
-                      );
-
-                      if (success) {
-                        Navigator.pop(context);
-                        Fluttertoast.showToast(
-                          msg: localizations.bookAddedToShelf(
-                            selectedShelf!.title,
-                          ),
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                        );
-                      } else {
-                        // Reset loading if operation fails
-                        setState(() {
-                          isLoading = false;
-                        });
-                        Fluttertoast.showToast(
-                          msg: localizations.failedToAddToShelf,
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                        );
-                      }
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: Theme.of(context).colorScheme.primary,
-                    ),
-                    child: Text(localizations.addToShelf),
-                  ),
-                ],
               ],
             );
           },
         );
       },
+    );
+  }
+
+  /// Handles adding or removing a book from a shelf with proper state updates
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The [BuildContext] of the widget.
+  /// - `viewModel`: The [ShelfViewModel] instance.
+  /// - `shelf`: The [ShelfModel] to add/remove the book from.
+  /// - `isInShelf`: Whether the book is already in the shelf.
+  /// - `onComplete`: A callback to call when the action is completed.
+  Future<void> _handleShelfAction(
+    BuildContext context,
+    ShelfViewModel viewModel,
+    ShelfModel shelf,
+    bool isInShelf, {
+    required VoidCallback onComplete,
+  }) async {
+    final localizations = AppLocalizations.of(context)!;
+    bool success;
+
+    setState(() => _isLoading = true);
+
+    try {
+      if (isInShelf) {
+        success = await viewModel.removeFromShelf(shelf.id, widget.book.id);
+        if (success) {
+          setState(() {
+            _containingShelves.removeWhere((s) => s.id == shelf.id);
+          });
+
+          _showSnackBar(
+            // ignore: use_build_context_synchronously
+            context,
+            localizations.bookRemovedFromShelf(shelf.title),
+            isError: false,
+          );
+        } else {
+          _showSnackBar(
+            // ignore: use_build_context_synchronously
+            context,
+            localizations.failedToRemoveFromShelf,
+            isError: true,
+          );
+        }
+      } else {
+        success = await viewModel.addToShelf(shelf.id, widget.book.id);
+        if (success) {
+          setState(() {
+            _containingShelves.add(shelf);
+          });
+
+          _showSnackBar(
+            // ignore: use_build_context_synchronously
+            context,
+            localizations.bookAddedToShelf(shelf.title),
+            isError: false,
+          );
+        } else {
+          _showSnackBar(
+            // ignore: use_build_context_synchronously
+            context,
+            localizations.failedToAddToShelf,
+            isError: true,
+          );
+        }
+      }
+    } finally {
+      setState(() => _isLoading = false);
+
+      onComplete();
+    }
+  }
+
+  /// Shows a snackbar with a message.
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The [BuildContext] of the widget.
+  /// - `message`: The message to show.
+  /// - `isError`: Whether the message is an error message.
+  void _showSnackBar(
+    BuildContext context,
+    String message, {
+    required bool isError,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor:
+            isError
+                ? Theme.of(context).colorScheme.error
+                : Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 }

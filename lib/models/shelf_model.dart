@@ -58,3 +58,37 @@ class Link {
     return {'_rel': rel, '_type': type, '_href': href, 'value': value};
   }
 }
+
+class ShelfDetailModel {
+  final String name;
+  final List<ShelfBookItem> books;
+
+  ShelfDetailModel({required this.name, required this.books});
+}
+
+class ShelfBookItem {
+  final String id;
+  final String title;
+  final List<BookAuthor> authors;
+  final String? seriesName;
+  final String? seriesId;
+  final String? seriesIndex;
+  final String? downloadUrl;
+
+  ShelfBookItem({
+    required this.id,
+    required this.title,
+    required this.authors,
+    this.seriesName,
+    this.seriesId,
+    this.seriesIndex,
+    this.downloadUrl,
+  });
+}
+
+class BookAuthor {
+  final String name;
+  final String id;
+
+  BookAuthor({required this.name, required this.id});
+}
