@@ -74,6 +74,19 @@ class MyApp extends StatelessWidget {
             navigatorObservers: [routeObserver],
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
+            localeResolutionCallback: (locale, supportedLocales) {
+              // If the locale of the device is supported, use it
+              if (locale != null) {
+                for (final supportedLocale in supportedLocales) {
+                  if (supportedLocale.languageCode == locale.languageCode) {
+                    return supportedLocale;
+                  }
+                }
+              }
+              // else use the default one
+              return const Locale('en');
+            },
             home: FutureBuilder<bool>(
               future: _isLoggedIn(),
               builder: (context, snapshot) {
