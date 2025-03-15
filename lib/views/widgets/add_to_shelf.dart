@@ -19,31 +19,69 @@ class AddToShelfState extends State<AddToShelf> {
   var logger = Logger();
   bool _isLoading = true;
   List<ShelfModel> _containingShelves = [];
+  bool _hasChecked = false;
 
   @override
   void initState() {
     super.initState();
-    _loadShelfsAndCheckContaining();
+    if (!widget.isLoading) {
+      _loadShelfsAndCheckContaining();
+    }
+  }
+
+  @override
+  void didUpdateWidget(AddToShelf oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.isLoading && !widget.isLoading && !_hasChecked) {
+      _loadShelfsAndCheckContaining();
+    }
+
+    if (oldWidget.book.id != widget.book.id) {
+      _loadShelfsAndCheckContaining();
+    }
   }
 
   /// Loads the shelves and checks if the book is already in any of them.
   Future<void> _loadShelfsAndCheckContaining() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoading = true;
     });
 
-    final viewModel = context.read<ShelfViewModel>();
-    await viewModel.loadShelfs();
+    try {
+      logger.i(
+        'Loading shelfs for book: ${widget.book.id} (${widget.book.title})',
+      );
 
-    final containingShelves = await viewModel.findShelvesContainingBook(
-      widget.book.id,
-    );
+      final viewModel = context.read<ShelfViewModel>();
+      await viewModel.loadShelfs();
 
-    if (mounted) {
-      setState(() {
-        _containingShelves = containingShelves;
-        _isLoading = false;
-      });
+      logger.d('Finding shelves containing book ${widget.book.id}');
+      final containingShelves = await viewModel.findShelvesContainingBook(
+        widget.book.id,
+      );
+
+      logger.i('Found ${containingShelves.length} shelves containing the book');
+
+      if (mounted) {
+        setState(() {
+          _containingShelves = containingShelves;
+          _isLoading = false;
+          _hasChecked = true;
+        });
+      }
+    } catch (e, stack) {
+      logger.e('Error loading shelves: $e');
+      logger.d('Stack trace: $stack');
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasChecked = true;
+        });
+      }
     }
   }
 
