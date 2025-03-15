@@ -152,13 +152,14 @@ class _BookListViewState extends State<BooksView> {
               child: Text(localizations.authorZA),
             ),
             PopupMenuItem(
-              value: 'pubdate:desc',
+              value: 'added:desc',
               child: Text(localizations.newestFirst),
             ),
-            PopupMenuItem(
-              value: 'pubdate:asc',
-              child: Text(localizations.oldestFirst),
-            ),
+            // TODO: Fix sorting by added ascending
+            // PopupMenuItem(
+            //   value: 'added:asc',
+            //   child: Text(localizations.oldestFirst),
+            // ),
           ],
     );
   }

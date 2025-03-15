@@ -18,7 +18,7 @@ class BooksViewModel extends ChangeNotifier {
   final int _limit = 20;
 
   // Sorting parameters
-  String _sortBy = 'title';
+  String _sortBy = 'added';
   String _sortOrder = 'asc';
   String? _searchQuery;
 
@@ -48,13 +48,19 @@ class BooksViewModel extends ChangeNotifier {
         offset: _offset,
         limit: _limit,
         searchQuery: _searchQuery,
-        sortBy: _sortBy,
+        sortBy: _sortBy == "added" ? "" : _sortBy,
         sortOrder: _sortOrder,
       );
       if (_offset == 0) {
         books = result;
       } else {
         books.addAll(result);
+
+        if (_sortBy == 'added') {
+          if (_sortOrder == 'asc') {
+            books = books.reversed.toList();
+          }
+        }
       }
       _offset += result.length;
       hasMoreBooks = result.length == _limit;
