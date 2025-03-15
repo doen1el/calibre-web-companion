@@ -1,8 +1,8 @@
+import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/views/widgets/book_card.dart';
 import 'package:calibre_web_companion/views/widgets/book_card_skeleton.dart';
 import 'package:calibre_web_companion/views/widgets/search_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:calibre_web_companion/view_models/books_view_model.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -47,13 +47,7 @@ class _BookListViewState extends State<BooksView> {
     AppLocalizations localizations = AppLocalizations.of(context)!;
 
     if (viewModel.hasError) {
-      Fluttertoast.showToast(
-        msg: viewModel.errorMessage,
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
+      context.showSnackBar(viewModel.errorMessage, isError: true);
     }
 
     return Scaffold(
@@ -152,13 +146,14 @@ class _BookListViewState extends State<BooksView> {
               child: Text(localizations.authorZA),
             ),
             PopupMenuItem(
-              value: 'pubdate:desc',
+              value: 'added:desc',
               child: Text(localizations.newestFirst),
             ),
-            PopupMenuItem(
-              value: 'pubdate:asc',
-              child: Text(localizations.oldestFirst),
-            ),
+            // TODO: Fix sorting by added ascending
+            // PopupMenuItem(
+            //   value: 'added:asc',
+            //   child: Text(localizations.oldestFirst),
+            // ),
           ],
     );
   }

@@ -1,5 +1,5 @@
+import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:calibre_web_companion/view_models/login_view_model.dart';
 import 'package:calibre_web_companion/views/homepage_view.dart';
@@ -225,11 +225,7 @@ class _LoginState extends State<LoginView> {
     if (_urlController.text.isEmpty ||
         _usernameController.text.isEmpty ||
         _passwordController.text.isEmpty) {
-      Fluttertoast.showToast(
-        msg: localizations.pleaseFillInAllFields,
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-      );
+      context.showSnackBar(localizations.pleaseFillInAllFields, isError: true);
       return;
     }
 
@@ -261,11 +257,8 @@ class _LoginState extends State<LoginView> {
     } else if (mounted) {
       // Only show toast if error message is empty
       if (viewModel.errorMessage.isEmpty) {
-        Fluttertoast.showToast(
-          msg: localizations.failedToLognIn,
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-        );
+        // ignore: use_build_context_synchronously
+        context.showSnackBar(localizations.failedToLognIn, isError: true);
       }
     }
   }

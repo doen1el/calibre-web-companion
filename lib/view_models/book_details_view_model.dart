@@ -58,72 +58,99 @@ class BookDetailsViewModel extends ChangeNotifier {
     String format = 'epub',
   }) async {
     try {
-      logger.i('Downloading book - BookId: $bookId, Format: $format');
+      format = format.toLowerCase();
 
-      final prefs = await SharedPreferences.getInstance();
-      final baseUrl = prefs.getString('base_url');
-      final username = prefs.getString('username');
-      final password = prefs.getString('password');
+      logger.i('Downloading book - BookId: $bookId, Format: .epub');
+      isDownloading = true;
+      downloaded = 0;
+      notifyListeners();
 
-      if (baseUrl == null) {
+      final apiService = ApiService();
+      final baseUrl = apiService.getBaseUrl();
+      final username = apiService.getUsername();
+      final password = apiService.getPassword();
+
+      if (baseUrl.isEmpty) {
         logger.w('No server URL found');
         errorMessage = 'Server URL missing';
         return false;
       }
 
-      // Construct download URL
-      final downloadUrl = '$baseUrl/download/$bookId/$format/$bookId.$format';
+      final downloadUrl = '$baseUrl/download/$bookId/epub/$bookId.epub';
       logger.d('Download URL: $downloadUrl');
 
-      // Create file path
       final fileName = title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
       final filePath = path.join(selectedDirectory, '$fileName.$format');
 
-      // Create HTTP client with proper authentication
       final client = http.Client();
       try {
-        // Try cookie authentication first
         final Map<String, String> headers = {};
 
-        // Fall back to basic auth if no cookie
-        headers['Authorization'] =
-            'Basic ${base64.encode(utf8.encode('$username:$password'))}';
+        final prefs = await SharedPreferences.getInstance();
+        final cookie = prefs.getString('calibre_web_session');
+        if (cookie != null && cookie.isNotEmpty) {
+          headers['Cookie'] = cookie;
+        }
 
-        // Use a stream to handle large files and show progress
         final request = http.Request('GET', Uri.parse(downloadUrl));
         request.headers.addAll(headers);
 
         final response = await client.send(request);
+        final contentLength = response.contentLength ?? -1;
 
-        logger.i('Download response status: ${response.statusCode}');
+        logger.i(
+          'Download response status: ${response.statusCode}, Content length: $contentLength',
+        );
 
         if (response.statusCode == 200) {
-          // Create file
           final file = File(filePath);
           final sink = file.openWrite();
+          int receivedBytes = 0;
 
-          // Process the download stream
-          await response.stream.forEach((bytes) {
-            sink.add(bytes);
-          });
+          try {
+            await for (final chunk in response.stream) {
+              receivedBytes += chunk.length;
+              sink.add(chunk);
 
-          await sink.close();
+              downloaded = receivedBytes;
+              if (contentLength > 0) {
+                final progress = (receivedBytes / contentLength * 100).round();
+                logger.d(
+                  'Download progress: $progress%, $receivedBytes/$contentLength bytes',
+                );
+              }
+              notifyListeners();
+            }
+          } finally {
+            await sink.flush();
+            await sink.close();
+          }
 
-          logger.i('Download complete: $filePath');
-
+          logger.i('Download complete: $filePath with $receivedBytes bytes');
           return true;
         } else if (response.statusCode == 401) {
           logger.w('Authentication failed');
+          errorMessage = 'Authentication failed';
           return false;
         } else {
           logger.e('Failed to download book: ${response.statusCode}');
+          errorMessage = 'HTTP error ${response.statusCode}';
           return false;
         }
+      } catch (e) {
+        logger.e('Exception in download stream: $e');
+        errorMessage = 'Download error: $e';
+        return false;
       } finally {
         client.close();
+        isDownloading = false;
+        notifyListeners();
       }
     } catch (e) {
       logger.e('Exception while downloading book: $e');
+      errorMessage = 'Error: $e';
+      isDownloading = false;
+      notifyListeners();
       return false;
     }
   }
@@ -152,7 +179,7 @@ class BookDetailsViewModel extends ChangeNotifier {
         return null;
       }
 
-      final url = '$baseUrl/download/$bookId/$format/$bookId.epub';
+      final url = '$baseUrl/download/$bookId/$format/$bookId.$format';
       logger.d('Download URL: $url');
 
       // Create HTTP client with proper authentication

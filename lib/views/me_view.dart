@@ -1,7 +1,9 @@
 import 'package:calibre_web_companion/models/stats_model.dart';
+import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
 import 'package:calibre_web_companion/view_models/me_view_model.dart';
+import 'package:calibre_web_companion/view_models/shelf_view_model.dart';
 import 'package:calibre_web_companion/views/book_list.dart';
 import 'package:calibre_web_companion/views/login_view.dart';
 import 'package:calibre_web_companion/views/settings_view.dart';
@@ -11,7 +13,6 @@ import 'package:calibre_web_companion/views/widgets/long_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MeView extends StatefulWidget {
@@ -30,12 +31,9 @@ class MeViewState extends State<MeView> {
 
     if (viewModel.hasError) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Fluttertoast.showToast(
-          msg: "${localizations.error}: ${viewModel.errorMessage}",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
+        context.showSnackBar(
+          "${localizations.error}: ${viewModel.errorMessage}",
+          isError: true,
         );
       });
     }
@@ -79,10 +77,14 @@ class MeViewState extends State<MeView> {
               LongButton(
                 text: localizations.shelfs,
                 icon: Icons.list_rounded,
-                onPressed:
-                    () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => ShelfsView()),
-                    ),
+                onPressed: () async {
+                  final shelfViewModel = context.read<ShelfViewModel>();
+                  await shelfViewModel.loadShelfs();
+                  Navigator.of(
+                    // ignore: use_build_context_synchronously
+                    context,
+                  ).push(MaterialPageRoute(builder: (context) => ShelfsView()));
+                },
               ),
               LongButton(
                 text: localizations.showReadBooks,
