@@ -1,10 +1,12 @@
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/models/shelf_model.dart';
+import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/shelf_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class AddToShelf extends StatefulWidget {
   final BookItem book;
@@ -164,11 +166,24 @@ class AddToShelfState extends State<AddToShelf> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (_containingShelves.isNotEmpty) ...[
-                      Text(
-                        localizations.bookInShelfs(_containingShelves.length),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
-                          fontWeight: FontWeight.w500,
+                      Skeletonizer(
+                        enabled: _isLoading,
+                        effect: ShimmerEffect(
+                          baseColor: Theme.of(
+                            context,
+                            // ignore: deprecated_member_use
+                          ).colorScheme.primary.withOpacity(0.2),
+                          highlightColor: Theme.of(
+                            context,
+                            // ignore: deprecated_member_use
+                          ).colorScheme.primary.withOpacity(0.4),
+                        ),
+                        child: Text(
+                          localizations.bookInShelfs(_containingShelves.length),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                       const Divider(),
@@ -176,9 +191,30 @@ class AddToShelfState extends State<AddToShelf> {
                     ],
 
                     if (isDialogLoading || viewModel.isLoading)
-                      const SizedBox(
+                      SizedBox(
                         height: 168,
-                        child: Center(child: CircularProgressIndicator()),
+                        child: Skeletonizer(
+                          enabled: true,
+                          effect: ShimmerEffect(
+                            baseColor: Theme.of(
+                              context,
+                              // ignore: deprecated_member_use
+                            ).colorScheme.primary.withOpacity(0.2),
+                            highlightColor: Theme.of(
+                              context,
+                              // ignore: deprecated_member_use
+                            ).colorScheme.primary.withOpacity(0.4),
+                          ),
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: 4,
+                            itemBuilder:
+                                (context, index) => ListTile(
+                                  title: Text('Skeleton Shelf ${index + 1}'),
+                                  leading: const Icon(Icons.circle_outlined),
+                                ),
+                          ),
+                        ),
                       )
                     else if (viewModel.shelves.isEmpty)
                       Center(
@@ -288,17 +324,14 @@ class AddToShelfState extends State<AddToShelf> {
           setState(() {
             _containingShelves.removeWhere((s) => s.id == shelf.id);
           });
-
-          _showSnackBar(
-            // ignore: use_build_context_synchronously
-            context,
+          // ignore: use_build_context_synchronously
+          context.showSnackBar(
             localizations.bookRemovedFromShelf(shelf.title),
             isError: false,
           );
         } else {
-          _showSnackBar(
-            // ignore: use_build_context_synchronously
-            context,
+          // ignore: use_build_context_synchronously
+          context.showSnackBar(
             localizations.failedToRemoveFromShelf,
             isError: true,
           );
@@ -309,20 +342,14 @@ class AddToShelfState extends State<AddToShelf> {
           setState(() {
             _containingShelves.add(shelf);
           });
-
-          _showSnackBar(
-            // ignore: use_build_context_synchronously
-            context,
+          // ignore: use_build_context_synchronously
+          context.showSnackBar(
             localizations.bookAddedToShelf(shelf.title),
             isError: false,
           );
         } else {
-          _showSnackBar(
-            // ignore: use_build_context_synchronously
-            context,
-            localizations.failedToAddToShelf,
-            isError: true,
-          );
+          // ignore: use_build_context_synchronously
+          context.showSnackBar(localizations.failedToAddToShelf, isError: true);
         }
       }
     } finally {
@@ -330,28 +357,5 @@ class AddToShelfState extends State<AddToShelf> {
 
       onComplete();
     }
-  }
-
-  /// Shows a snackbar with a message.
-  ///
-  /// Parameters:
-  ///
-  /// - `context`: The [BuildContext] of the widget.
-  /// - `message`: The message to show.
-  /// - `isError`: Whether the message is an error message.
-  void _showSnackBar(
-    BuildContext context,
-    String message, {
-    required bool isError,
-  }) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor:
-            isError
-                ? Theme.of(context).colorScheme.error
-                : Theme.of(context).colorScheme.primary,
-      ),
-    );
   }
 }

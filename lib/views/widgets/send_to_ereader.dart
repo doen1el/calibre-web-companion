@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:calibre_web_companion/models/opds_item_model.dart';
+import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -379,13 +380,11 @@ class SendToEreaderState extends State<SendToEreader> {
                         if (sendMethod == SendMethod.browser) {
                           final code = codeController.text.trim().toUpperCase();
                           if (code.length != 4) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  localizations.pleaseEnter4DigitCode,
-                                ),
-                              ),
+                            context.showSnackBar(
+                              localizations.pleaseEnter4DigitCode,
+                              isError: true,
                             );
+
                             return;
                           }
 

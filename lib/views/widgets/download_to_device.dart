@@ -1,4 +1,5 @@
 import 'package:calibre_web_companion/models/opds_item_model.dart';
+import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -101,10 +102,9 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
       }
     } catch (e) {
       // Show snackbar error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${localizations.errorDownloading} ${book.title}: $e'),
-        ),
+      context.showSnackBar(
+        '${localizations.errorDownloading} ${book.title}: $e',
+        isError: true,
       );
     }
 

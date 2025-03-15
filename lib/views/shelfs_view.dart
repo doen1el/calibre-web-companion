@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/shelf_view_model.dart';
 import 'package:calibre_web_companion/views/shelf_details_view.dart';
 import 'package:flutter/material.dart';
@@ -159,15 +160,11 @@ class ShelfsView extends StatelessWidget {
                           ? null
                           : () async {
                             if (controller.text.trim().isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    localizations.shelfNameRequired,
-                                  ),
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.error,
-                                ),
+                              context.showSnackBar(
+                                localizations.shelfNameRequired,
+                                isError: true,
                               );
+
                               return;
                             }
 
@@ -183,32 +180,19 @@ class ShelfsView extends StatelessWidget {
                             Navigator.of(context).pop();
 
                             if (res) {
-                              // ignore: use_build_context_synchronously
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    localizations.shelfSuccessfullyCreated(
-                                      controller.text,
-                                    ),
-                                  ),
-                                  backgroundColor:
-                                      // ignore: use_build_context_synchronously
-                                      Theme.of(context).colorScheme.primary,
+                              context.showSnackBar(
+                                localizations.shelfSuccessfullyCreated(
+                                  controller.text,
                                 ),
+                                isError: false,
                               );
                             } else {
                               // ignore: use_build_context_synchronously
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    localizations.errorCreatingShelf(
-                                      controller.text,
-                                    ),
-                                  ),
-                                  backgroundColor:
-                                      // ignore: use_build_context_synchronously
-                                      Theme.of(context).colorScheme.error,
+                              context.showSnackBar(
+                                localizations.errorCreatingShelf(
+                                  controller.text,
                                 ),
+                                isError: true,
                               );
                             }
                           },

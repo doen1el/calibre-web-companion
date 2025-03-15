@@ -33,11 +33,16 @@ class ShelfViewModel extends ChangeNotifier {
         AuthMethod.basic,
       );
 
+      logger.d("API response structure: ${res.runtimeType}");
+      logger.d("Feed structure: ${res['feed'].runtimeType}");
+      logger.d("Entry structure: ${res['feed']['entry']?.runtimeType}");
+
       _shelves = ShelfModel.fromFeedJson(res);
 
       logger.i("Successfully loaded ${_shelves.length} shelves");
-    } catch (e) {
+    } catch (e, stack) {
       logger.e("Error loading shelves: $e");
+      logger.d("Stack trace: $stack");
       _shelves = [];
     } finally {
       _isLoading = false;

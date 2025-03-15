@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/models/download_service_model.dart';
+import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/download_service_view_model.dart';
 import 'package:calibre_web_companion/views/widgets/costum_text_field.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -449,8 +449,10 @@ class DownloadServiceView extends StatelessWidget {
                   : () async {
                     await viewModel.downloadBook(book.id);
                     await viewModel.getDownloadStatus();
-                    Fluttertoast.showToast(
-                      msg: localizations.addedBookToTheDownloadQueue,
+                    // ignore: use_build_context_synchronously
+                    context.showSnackBar(
+                      localizations.addedBookToTheDownloadQueue,
+                      isError: false,
                     );
                   },
           style: ElevatedButton.styleFrom(

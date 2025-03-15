@@ -101,9 +101,7 @@ class BookCard extends StatelessWidget {
               child: SizedBox(),
             ),
           ),
-      errorWidget:
-          (context, url, error) =>
-              const Center(child: Icon(Icons.book, size: 64)),
+      errorWidget: (context, url, error) => const SizedBox(),
       memCacheWidth: 300,
       memCacheHeight: 400,
     );

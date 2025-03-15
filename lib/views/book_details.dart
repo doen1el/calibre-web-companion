@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
+import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
 import 'package:calibre_web_companion/views/widgets/add_to_shelf.dart';
 import 'package:calibre_web_companion/views/widgets/download_to_device.dart';
 import 'package:calibre_web_companion/views/widgets/send_to_ereader.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -105,13 +105,12 @@ class BookDetails extends StatelessWidget {
                                 listen: false,
                               ).toggleArchivedStatus(book.id);
 
-                          Fluttertoast.showToast(
-                            msg:
-                                success
-                                    ? localizations.archivedBookSuccessfully
-                                    : localizations.archivedBookFailed,
-                            toastLength: Toast.LENGTH_SHORT,
-                            gravity: ToastGravity.BOTTOM,
+                          // ignore: use_build_context_synchronously
+                          context.showSnackBar(
+                            success
+                                ? localizations.archivedBookSuccessfully
+                                : localizations.archivedBookFailed,
+                            isError: !success,
                           );
                         },
                 tooltip: localizations.archiveUnarchive,

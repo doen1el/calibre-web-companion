@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/models/shelf_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
+import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/shelf_view_model.dart';
 import 'package:calibre_web_companion/views/book_details.dart';
 import 'package:flutter/material.dart';
@@ -286,9 +287,8 @@ class ShelfDetailsViewState extends State<ShelfDetailsView> {
                 );
 
                 if (res.isEmpty) {
-                  _showSnackBar(
-                    // ignore: use_build_context_synchronously
-                    context,
+                  // ignore: use_build_context_synchronously
+                  context.showSnackBar(
                     localizations.errorLoadingBooks,
                     isError: true,
                   );
@@ -469,11 +469,11 @@ class ShelfDetailsViewState extends State<ShelfDetailsView> {
                           ? null
                           : () async {
                             if (controller.text.trim().isEmpty) {
-                              _showSnackBar(
-                                context,
+                              context.showSnackBar(
                                 localizations.shelfNameRequired,
                                 isError: true,
                               );
+
                               return;
                             }
 
@@ -490,9 +490,8 @@ class ShelfDetailsViewState extends State<ShelfDetailsView> {
                             Navigator.of(context).pop();
 
                             if (res) {
-                              _showSnackBar(
-                                // ignore: use_build_context_synchronously
-                                context,
+                              // ignore: use_build_context_synchronously
+                              context.showSnackBar(
                                 localizations.successfullyEditedShelf,
                                 isError: false,
                               );
@@ -500,9 +499,8 @@ class ShelfDetailsViewState extends State<ShelfDetailsView> {
                               await viewModel.getShelf(widget.shelfId);
                               await viewModel.loadShelfs();
                             } else {
-                              _showSnackBar(
-                                // ignore: use_build_context_synchronously
-                                context,
+                              // ignore: use_build_context_synchronously
+                              context.showSnackBar(
                                 localizations.failedToEditShelf,
                                 isError: true,
                               );
@@ -585,9 +583,8 @@ class ShelfDetailsViewState extends State<ShelfDetailsView> {
                             Navigator.of(context).pop();
 
                             if (res) {
-                              _showSnackBar(
-                                // ignore: use_build_context_synchronously
-                                context,
+                              // ignore: use_build_context_synchronously
+                              context.showSnackBar(
                                 localizations.successfullyDeletedShelf,
                                 isError: false,
                               );
@@ -597,9 +594,8 @@ class ShelfDetailsViewState extends State<ShelfDetailsView> {
 
                               await viewModel.loadShelfs();
                             } else {
-                              _showSnackBar(
-                                // ignore: use_build_context_synchronously
-                                context,
+                              // ignore: use_build_context_synchronously
+                              context.showSnackBar(
                                 localizations.failedToDeleteShelf,
                                 isError: true,
                               );
@@ -631,29 +627,6 @@ class ShelfDetailsViewState extends State<ShelfDetailsView> {
           },
         );
       },
-    );
-  }
-
-  /// Shows a snackbar with a message
-  ///
-  /// Parameters:
-  ///
-  /// - `context`: The current build context
-  /// - `message`: The message to show
-  /// - `isError`: Whether the message is an error message
-  void _showSnackBar(
-    BuildContext context,
-    String message, {
-    required bool isError,
-  }) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor:
-            isError
-                ? Theme.of(context).colorScheme.error
-                : Theme.of(context).colorScheme.primary,
-      ),
     );
   }
 }

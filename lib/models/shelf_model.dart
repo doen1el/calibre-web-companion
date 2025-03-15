@@ -1,61 +1,97 @@
 class ShelfModel {
   final String title;
   final String id;
-  final Link link;
 
-  ShelfModel({required this.title, required this.id, required this.link});
-
-  factory ShelfModel.fromJson(Map<String, dynamic> json) {
-    return ShelfModel(
-      title: json['title'],
-      id: _extractId(json['id']),
-      link: Link.fromJson(json['link']),
-    );
-  }
+  ShelfModel({required this.title, required this.id});
 
   static List<ShelfModel> fromFeedJson(Map<String, dynamic> json) {
-    final entries = json['feed']['entry'] as List<dynamic>;
-    return entries.map((entry) => ShelfModel.fromJson(entry)).toList();
-  }
+    final List<ShelfModel> shelves = [];
 
-  Map<String, dynamic> toJson() {
-    return {'title': title, 'id': id, 'link': link.toJson()};
-  }
+    try {
+      final feed = json['feed'];
+      if (feed == null) return [];
 
-  static String _extractId(String fullId) {
-    final regex = RegExp(r'/opds/shelf/(\d+)');
-    final match = regex.firstMatch(fullId);
-    if (match != null) {
-      return match.group(1) ?? fullId;
+      final dynamic entry = feed['entry'];
+      if (entry == null) return [];
+
+      if (entry is Map<String, dynamic>) {
+        String title;
+        String fullId;
+
+        if (entry['title'] is String) {
+          title = entry['title'] as String;
+        } else if (entry['title'] is Map && entry['title']?['_value'] != null) {
+          title = entry['title']?['_value'];
+        } else {
+          title = 'Unkown Shelf';
+        }
+
+        if (entry['id'] is String) {
+          fullId = entry['id'] as String;
+        } else if (entry['id'] is Map && entry['id']?['_value'] != null) {
+          fullId = entry['id']['_value'].toString();
+        } else {
+          fullId = '';
+        }
+
+        final String id = _extractId(fullId);
+        shelves.add(ShelfModel(title: title, id: id));
+      } else if (entry is List) {
+        for (var shelf in entry) {
+          String title;
+          String fullId;
+
+          if (shelf['title'] is String) {
+            title = shelf['title'] as String;
+          } else if (shelf['title'] is Map &&
+              shelf['title']?['_value'] != null) {
+            title = shelf['title']?['_value'];
+          } else {
+            title = 'Unkown Shelf';
+          }
+
+          if (shelf['id'] is String) {
+            fullId = shelf['id'] as String;
+          } else if (shelf['id'] is Map && shelf['id']?['_value'] != null) {
+            fullId = shelf['id']['_value'].toString();
+          } else {
+            fullId = '';
+          }
+
+          final String id = _extractId(fullId);
+          shelves.add(ShelfModel(title: title, id: id));
+        }
+      }
+
+      return shelves;
+    } catch (e) {
+      return [];
     }
-    return fullId;
-  }
-}
-
-class Link {
-  final String rel;
-  final String type;
-  final String href;
-  final String value;
-
-  Link({
-    required this.rel,
-    required this.type,
-    required this.href,
-    required this.value,
-  });
-
-  factory Link.fromJson(Map<String, dynamic> json) {
-    return Link(
-      rel: json['_rel'],
-      type: json['_type'],
-      href: json['_href'],
-      value: json['value'],
-    );
   }
 
-  Map<String, dynamic> toJson() {
-    return {'_rel': rel, '_type': type, '_href': href, 'value': value};
+  // Helper-Methode to extract the ID from a full URL
+  static String _extractId(String fullId) {
+    if (fullId.isEmpty) {
+      return '';
+    }
+
+    try {
+      final regex = RegExp(r'/(\d+)$');
+      final match = regex.firstMatch(fullId);
+      if (match != null && match.groupCount >= 1) {
+        return match.group(1) ?? '';
+      }
+
+      final parts = fullId.split('/');
+      if (parts.isEmpty) {
+        return '';
+      }
+
+      final lastIndex = parts.length - 1;
+      return lastIndex >= 0 ? parts[lastIndex] : '';
+    } catch (e) {
+      return '';
+    }
   }
 }
 
