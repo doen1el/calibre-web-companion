@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class DownloadServiceView extends StatelessWidget {
   const DownloadServiceView({super.key});
@@ -59,22 +60,80 @@ class DownloadServiceView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSearchBar(context, viewModel, localizations),
-          if (viewModel.isSearching)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(32.0),
-                child: CircularProgressIndicator(),
+          // Loading state
+          _buildSearchContent(context, localizations, viewModel),
+        ],
+      ),
+    );
+  }
+
+  /// Build the content of the search tab
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current [BuildContext]
+  /// - `localizations`: The [AppLocalizations] instance
+  /// - `viewModel`: The [DownloadServiceViewModel] instance
+  Widget _buildSearchContent(
+    BuildContext context,
+    AppLocalizations localizations,
+    DownloadServiceViewModel viewModel,
+  ) {
+    if (viewModel.isSearching) {
+      return _buildBookCardSkeletons(context);
+    } else if (viewModel.searchResults.isNotEmpty) {
+      return _buildBookList(
+        context,
+        viewModel,
+        localizations,
+        viewModel.searchResults,
+        isSearchResults: true,
+      );
+    } else if (viewModel.hasSearched && viewModel.searchResults.isEmpty) {
+      return _buildEmptyState(
+        context,
+        Icons.search_off,
+        localizations.noBooksFound,
+      );
+    } else {
+      return _buildEmptyState(
+        context,
+        Icons.search,
+        localizations.searchForBooks,
+      );
+    }
+  }
+
+  /// Build an empty state with an icon and a message
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current [BuildContext]
+  /// - `icon`: The [IconData] to display
+  /// - `message`: The message to display
+  Widget _buildEmptyState(BuildContext context, IconData icon, String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 48.0),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 64,
+              // ignore: deprecated_member_use
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                // ignore: deprecated_member_use
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
               ),
             ),
-          if (viewModel.searchResults.isNotEmpty)
-            _buildBookList(
-              context,
-              viewModel,
-              localizations,
-              viewModel.searchResults,
-              isSearchResults: true,
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -107,20 +166,30 @@ class DownloadServiceView extends StatelessWidget {
               ],
             ),
           ),
-          if (viewModel.isLoading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(32.0),
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          if (viewModel.error != null)
-            _buildErrorMessage(context, viewModel.error!),
-          if (!viewModel.isLoading && viewModel.error == null)
-            _buildBookList(context, viewModel, localizations, viewModel.books),
+          _buildDownloadsContent(context, localizations, viewModel),
         ],
       ),
     );
+  }
+
+  Widget _buildDownloadsContent(
+    BuildContext context,
+    AppLocalizations localizations,
+    DownloadServiceViewModel viewModel,
+  ) {
+    if (viewModel.isLoading) {
+      return _buildBookCardSkeletons(context);
+    } else if (viewModel.error != null) {
+      return _buildErrorMessage(context, viewModel.error!);
+    } else if (viewModel.books.isNotEmpty) {
+      return _buildBookList(context, viewModel, localizations, viewModel.books);
+    } else {
+      return _buildEmptyState(
+        context,
+        Icons.download_done,
+        localizations.noDownloadsFound,
+      );
+    }
   }
 
   Widget _buildErrorMessage(BuildContext context, String error) {
@@ -196,6 +265,7 @@ class DownloadServiceView extends StatelessWidget {
               Icon(
                 isSearchResults ? Icons.search_off : Icons.download_done,
                 size: 48,
+                // ignore: deprecated_member_use
                 color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
               ),
               const SizedBox(height: 16),
@@ -206,6 +276,7 @@ class DownloadServiceView extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Theme.of(
                     context,
+                    // ignore: deprecated_member_use
                   ).colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
@@ -260,27 +331,20 @@ class DownloadServiceView extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12.0),
-        onTap: () {
-          // Optional: Show more details or action sheet
-        },
+
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Book cover and basic info header
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Book cover image
                 _buildBookCover(context, book),
-
-                // Book details
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Title
                         Text(
                           book.title,
                           style: Theme.of(context).textTheme.titleMedium
@@ -289,8 +353,6 @@ class DownloadServiceView extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 8),
-
-                        // Author
                         _buildInfoRow(
                           context,
                           Icons.person,
@@ -298,8 +360,6 @@ class DownloadServiceView extends StatelessWidget {
                           Theme.of(context).colorScheme.primary,
                         ),
                         const SizedBox(height: 4),
-
-                        // Publisher
                         _buildInfoRow(
                           context,
                           Icons.business,
@@ -308,8 +368,6 @@ class DownloadServiceView extends StatelessWidget {
                           textStyle: Theme.of(context).textTheme.bodySmall,
                         ),
                         const SizedBox(height: 4),
-
-                        // Year - only show if we have a valid year
                         if (book.year > 0) ...[
                           _buildInfoRow(
                             context,
@@ -320,11 +378,7 @@ class DownloadServiceView extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                         ],
-
-                        // Format, size and language badges
                         _buildInfoBadges(context, book),
-
-                        // Status indicator (only for downloads)
                         if (!isSearchResult &&
                             book.status !=
                                 DownloadServiceStatus.notDownloaded) ...[
@@ -338,7 +392,6 @@ class DownloadServiceView extends StatelessWidget {
               ],
             ),
 
-            // Show error message if applicable
             if (!isSearchResult &&
                 book.status == DownloadServiceStatus.error &&
                 book.errorMessage != null)
@@ -356,7 +409,6 @@ class DownloadServiceView extends StatelessWidget {
                 ),
               ),
 
-            // Action buttons
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(
@@ -387,36 +439,109 @@ class DownloadServiceView extends StatelessWidget {
 
     if (isSearchResult) {
       // For search results, show download button
+      final bool isLoadingThisBook = viewModel.isBookDownloading(book.id);
+
       buttons.add(
         ElevatedButton(
-          onPressed: () async {
-            await viewModel.downloadBook(book.id);
-            await viewModel.getDownloadStatus();
-            Fluttertoast.showToast(
-              msg: localizations.addedBookToTheDownloadQueue,
-            );
-          },
+          onPressed:
+              isLoadingThisBook
+                  ? null
+                  : () async {
+                    await viewModel.downloadBook(book.id);
+                    await viewModel.getDownloadStatus();
+                    Fluttertoast.showToast(
+                      msg: localizations.addedBookToTheDownloadQueue,
+                    );
+                  },
           style: ElevatedButton.styleFrom(
             backgroundColor: Theme.of(context).colorScheme.secondary,
             foregroundColor: Theme.of(context).colorScheme.onSecondary,
           ),
-          child: Text(
-            localizations.download,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSecondary),
-          ),
+          child:
+              isLoadingThisBook
+                  ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          color: Theme.of(context).colorScheme.onSecondary,
+                          strokeWidth: 2,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        localizations.loading,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSecondary,
+                        ),
+                      ),
+                    ],
+                  )
+                  : Text(
+                    localizations.download,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSecondary,
+                    ),
+                  ),
         ),
       );
     } else {
       // For downloads, show status-specific buttons
       switch (book.status) {
         case DownloadServiceStatus.error:
+          final bool isLoadingThisBook = viewModel.isBookDownloading(book.id);
+
           buttons.add(
             ElevatedButton.icon(
-              onPressed: () => viewModel.downloadBook(book.id),
-              icon: Icon(
-                Icons.refresh,
-                color: Theme.of(context).colorScheme.onError,
-              ),
+              onPressed:
+                  isLoadingThisBook
+                      ? null
+                      : () => viewModel.downloadBook(book.id),
+              icon:
+                  isLoadingThisBook
+                      ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child:
+                            isLoadingThisBook
+                                ? Skeletonizer(
+                                  enabled: true,
+                                  effect: ShimmerEffect(
+                                    baseColor: Theme.of(
+                                      context,
+                                      // ignore: deprecated_member_use
+                                    ).colorScheme.onSecondary.withOpacity(0.2),
+                                    highlightColor: Theme.of(
+                                      context,
+                                      // ignore: deprecated_member_use
+                                    ).colorScheme.onSecondary.withOpacity(0.5),
+                                  ),
+                                  child: Text(
+                                    localizations.downloading,
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onSecondary,
+                                    ),
+                                  ),
+                                )
+                                : Text(
+                                  localizations.download,
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onSecondary,
+                                  ),
+                                ),
+                      )
+                      : Icon(
+                        Icons.refresh,
+                        color: Theme.of(context).colorScheme.onError,
+                      ),
               label: Text(
                 localizations.retry,
                 style: TextStyle(color: Theme.of(context).colorScheme.onError),
@@ -454,9 +579,23 @@ class DownloadServiceView extends StatelessWidget {
                   fit: BoxFit.cover,
                   placeholder:
                       (context, url) => Container(
-                        color: Theme.of(context).colorScheme.surfaceVariant,
-                        child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                        color: Theme.of(
+                          context,
+                          // ignore: deprecated_member_use
+                        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                        child: Skeletonizer(
+                          enabled: true,
+                          effect: ShimmerEffect(
+                            baseColor: Theme.of(
+                              context,
+                              // ignore: deprecated_member_use
+                            ).colorScheme.primary.withOpacity(0.2),
+                            highlightColor: Theme.of(
+                              context,
+                              // ignore: deprecated_member_use
+                            ).colorScheme.primary.withOpacity(0.4),
+                          ),
+                          child: SizedBox(),
                         ),
                       ),
                   errorWidget:
@@ -609,6 +748,145 @@ class DownloadServiceView extends StatelessWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
+    );
+  }
+
+  Widget _buildBookCardSkeletons(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Skeletonizer(
+              enabled: true,
+              effect: ShimmerEffect(
+                baseColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withOpacity(0.2),
+                highlightColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withOpacity(0.4),
+              ),
+              child: Text(
+                "Loading books...",
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+          ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 3, // Zeige 3 Placeholder während des Ladens an
+            itemBuilder: (context, index) {
+              return _buildSkeletonBookCard(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonBookCard(BuildContext context) {
+    final dummyBook = Book(
+      id: 'skeleton-id',
+      title: 'Example Book Title with Longer Text',
+      author: 'Author Name',
+      publisher: 'Publisher Name',
+      year: 2023,
+      language: 'ENG',
+      size: '2.3 MB',
+      format: 'EPUB',
+      preview: '',
+      status: DownloadServiceStatus.available,
+    );
+
+    return Skeletonizer(
+      enabled: true,
+      effect: ShimmerEffect(
+        // ignore: deprecated_member_use
+        baseColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+        // ignore: deprecated_member_use
+        highlightColor: Theme.of(context).colorScheme.primary.withOpacity(0.4),
+      ),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 16.0),
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: _buildBookCardContent(context, dummyBook, false),
+      ),
+    );
+  }
+
+  Widget _buildBookCardContent(
+    BuildContext context,
+    Book book,
+    bool isSearchResult,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildBookCover(context, book),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      book.title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      context,
+                      Icons.person,
+                      book.author,
+                      Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(height: 4),
+                    _buildInfoRow(
+                      context,
+                      Icons.business,
+                      book.publisher,
+                      Theme.of(context).colorScheme.secondary,
+                      textStyle: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 4),
+                    _buildInfoBadges(context, book),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton(
+                onPressed: null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  foregroundColor: Theme.of(context).colorScheme.onSecondary,
+                ),
+                child: Text("Download"),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

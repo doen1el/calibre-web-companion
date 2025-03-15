@@ -8,7 +8,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AddToShelf extends StatefulWidget {
   final BookItem book;
-  const AddToShelf({super.key, required this.book});
+  final bool isLoading;
+  const AddToShelf({super.key, required this.book, required this.isLoading});
 
   @override
   AddToShelfState createState() => AddToShelfState();
@@ -78,7 +79,10 @@ class AddToShelfState extends State<AddToShelf> {
     }
 
     return IconButton(
-      onPressed: () => _showShelfDialog(context, localizations, viewModel),
+      onPressed:
+          widget.isLoading
+              ? null
+              : () => _showShelfDialog(context, localizations, viewModel),
       icon: CircleAvatar(
         backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
 

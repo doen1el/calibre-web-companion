@@ -167,5 +167,6 @@
   "shelfIsEmpty": "L'étagère est vide",
   "removing": "Suppression",
   "manageBookShelves": "Gérer les étagères de livres",
-  "bookInShelfs": "Livre dans {count, plural, =1{une étagère} other{{count} étagères}}"
+  "bookInShelfs": "Livre dans {count, plural, =1{une étagère} other{{count} étagères}}",
+  "searchForBooks": "Rechercher des livres"
 }

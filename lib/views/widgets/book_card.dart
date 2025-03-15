@@ -4,6 +4,7 @@ import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:calibre_web_companion/views/book_details.dart';
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class BookCard extends StatelessWidget {
   final BookItem book;
@@ -80,8 +81,26 @@ class BookCard extends StatelessWidget {
       fit: BoxFit.cover,
       width: double.infinity,
       placeholder:
-          (context, url) =>
-              const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          (context, url) => Container(
+            color: Theme.of(
+              context,
+              // ignore: deprecated_member_use
+            ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            child: Skeletonizer(
+              enabled: true,
+              effect: ShimmerEffect(
+                baseColor: Theme.of(
+                  context,
+                  // ignore: deprecated_member_use
+                ).colorScheme.primary.withOpacity(0.2),
+                highlightColor: Theme.of(
+                  context,
+                  // ignore: deprecated_member_use
+                ).colorScheme.primary.withOpacity(0.4),
+              ),
+              child: SizedBox(),
+            ),
+          ),
       errorWidget:
           (context, url, error) =>
               const Center(child: Icon(Icons.book, size: 64)),

@@ -167,5 +167,6 @@
   "shelfIsEmpty": "Regal ist leer",
   "removing": "Entfernen...",
   "manageBookShelves": "Bücherregale verwalten",
-  "bookInShelfs": "Buch in {count, plural, =1{einem Regal} other{{count} Regalen}}"
+  "bookInShelfs": "Buch in {count, plural, =1{einem Regal} other{{count} Regalen}}",
+  "searchForBooks": "Suche nach Büchern"
 }

@@ -11,6 +11,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class BookDetails extends StatelessWidget {
   final String bookUuid;
@@ -26,10 +27,7 @@ class BookDetails extends StatelessWidget {
         listen: false,
       ).fetchBook(bookUuid: bookUuid),
       builder: (context, snapshot) {
-        // Handle loading state
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildSkeletonLoader(context, localizations);
-        }
+        final dummyBook = _createDummyBook(localizations);
 
         if (snapshot.hasError) {
           return Scaffold(
@@ -61,7 +59,10 @@ class BookDetails extends StatelessWidget {
         }
 
         // Handle success state
-        final book = snapshot.data!;
+        final book = snapshot.data ?? dummyBook;
+
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+
         return Scaffold(
           appBar: AppBar(
             title: Text(
@@ -94,20 +95,25 @@ class BookDetails extends StatelessWidget {
                           ? Icon(Icons.delete)
                           : Icon(Icons.delete_outline),
                 ),
-                onPressed: () async {
-                  bool success = await Provider.of<BookDetailsViewModel>(
-                    context,
-                    listen: false,
-                  ).toggleArchivedStatus(book.id);
-                  Fluttertoast.showToast(
-                    msg:
-                        success
-                            ? localizations.archivedBookSuccessfully
-                            : localizations.archivedBookFailed,
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                  );
-                },
+                onPressed:
+                    isLoading
+                        ? null
+                        : () async {
+                          bool success =
+                              await Provider.of<BookDetailsViewModel>(
+                                context,
+                                listen: false,
+                              ).toggleArchivedStatus(book.id);
+
+                          Fluttertoast.showToast(
+                            msg:
+                                success
+                                    ? localizations.archivedBookSuccessfully
+                                    : localizations.archivedBookFailed,
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                          );
+                        },
                 tooltip: localizations.archiveUnarchive,
               ),
               // Read/Unread toggle
@@ -131,245 +137,59 @@ class BookDetails extends StatelessWidget {
                           : Icon(Icons.visibility_off),
                 ),
                 onPressed:
-                    () => Provider.of<BookDetailsViewModel>(
-                      context,
-                      listen: false,
-                    ).toggleReadStatus(book.id),
+                    isLoading
+                        ? null
+                        : () => Provider.of<BookDetailsViewModel>(
+                          context,
+                          listen: false,
+                        ).toggleReadStatus(book.id),
                 tooltip: localizations.markAsReadUnread,
               ),
-              AddToShelf(book: book),
-              // Download button
-              DownloadToDevice(book: book),
+              AddToShelf(book: book, isLoading: isLoading),
+              DownloadToDevice(book: book, isLoading: isLoading),
             ],
           ),
-          body: _buildBookDetails(
-            context,
-            localizations,
-            Provider.of<BookDetailsViewModel>(context, listen: false),
-            book,
+          body: Skeletonizer(
+            enabled: isLoading,
+            effect: ShimmerEffect(
+              // ignore: deprecated_member_use
+              baseColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+              highlightColor: Theme.of(
+                context,
+                // ignore: deprecated_member_use
+              ).colorScheme.primary.withOpacity(0.4),
+            ),
+            child: _buildBookDetails(
+              context,
+              localizations,
+              Provider.of<BookDetailsViewModel>(context, listen: false),
+              book,
+            ),
           ),
-          floatingActionButton: SendToEreader(book: book),
+          floatingActionButton: isLoading ? null : SendToEreader(book: book),
         );
       },
     );
   }
 
-  /// Builds a skeleton loader for the book details view
-  ///
-  /// Parameters:
-  ///
-  /// - [context]: The current build context
-  /// - [localizations]: The localized strings
-  Widget _buildSkeletonLoader(
-    BuildContext context,
-    AppLocalizations localizations,
-  ) {
-    final shimmerGradient = LinearGradient(
-      colors: [
-        Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-        Theme.of(context).colorScheme.surfaceVariant,
-        Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-      ],
-      stops: const [0.1, 0.5, 0.9],
-      begin: const Alignment(-1.0, -0.5),
-      end: const Alignment(1.0, 0.5),
-      tileMode: TileMode.clamp,
-    );
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Container(
-          width: 140,
-          height: 20,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceVariant,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        leading: const BackButton(),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Cover image skeleton
-            Container(
-              height: 300,
-              width: double.infinity,
-              decoration: BoxDecoration(gradient: shimmerGradient),
-            ),
-
-            // Rating card skeleton
-            _buildSkeletonCard(context, shimmerGradient),
-
-            // Info card skeletons
-            _buildSkeletonCard(context, shimmerGradient),
-            _buildSkeletonCard(context, shimmerGradient),
-
-            // Tags skeleton
-            _buildSkeletonCard(context, shimmerGradient),
-
-            // Description skeleton (taller)
-            _buildSkeletonCard(context, shimmerGradient, isDescription: true),
-          ],
-        ),
-      ),
-      floatingActionButton: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceVariant,
-          shape: BoxShape.circle,
-        ),
-      ),
-    );
-  }
-
-  /// Builds a skeleton card for the book details view
-  ///
-  /// Parameters:
-  ///
-  /// - [context]: The current build context
-  /// - [gradient]: The gradient to use for the skeleton
-  /// - [isDescription]: Whether this card is for the description
-  Widget _buildSkeletonCard(
-    BuildContext context,
-    LinearGradient gradient, {
-    bool isDescription = false,
-  }) {
-    return Card(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Card header with fake icon and title
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    gradient: gradient,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  width: 100,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    gradient: gradient,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Divider
-          const Divider(height: 4),
-
-          // Card content
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child:
-                isDescription
-                    ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            gradient: gradient,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          width: double.infinity,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            gradient: gradient,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          width: double.infinity * 0.7,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            gradient: gradient,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ],
-                    )
-                    : Row(
-                      children: [
-                        Container(
-                          width: 120,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            gradient: gradient,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ],
-                    ),
-          ),
-        ],
-      ),
+  BookItem _createDummyBook(AppLocalizations localizations) {
+    return BookItem(
+      id: 'dummy-id',
+      uuid: 'dummy-uuid',
+      title: localizations.loading,
+      author: 'Jane Smith & John Doe',
+      summary:
+          'This is a placeholder description for the book. It contains multiple sentences to show what the actual description might look like when the real data is loaded. This text is intentionally long to demonstrate how the skeleton will appear for longer content blocks.',
+      updated: DateTime.now(),
+      published: DateTime.now(),
+      publisher: 'Sample Publisher',
+      language: 'eng',
+      rating: 7.5,
+      fileSize: 2500000,
+      series: 'Great Sample Series',
+      seriesIndex: 2.0,
+      formats: ['EPUB', 'MOBI', 'PDF'],
+      categories: ['Fiction', 'Science Fiction', 'Adventure', 'Fantasy'],
     );
   }
 
@@ -775,11 +595,30 @@ class BookDetails extends StatelessWidget {
         httpHeaders: {'Authorization': authHeader},
         fit: BoxFit.cover,
         placeholder:
-            (context, url) =>
-                const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            (context, url) => Container(
+              color: Theme.of(
+                context,
+                // ignore: deprecated_member_use
+              ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              child: Skeletonizer(
+                enabled: true,
+                effect: ShimmerEffect(
+                  baseColor: Theme.of(
+                    context,
+                    // ignore: deprecated_member_use
+                  ).colorScheme.primary.withOpacity(0.2),
+                  highlightColor: Theme.of(
+                    context,
+                    // ignore: deprecated_member_use
+                  ).colorScheme.primary.withOpacity(0.4),
+                ),
+                child: SizedBox(),
+              ),
+            ),
+
         errorWidget:
             (context, url, error) => Container(
-              color: Theme.of(context).colorScheme.surfaceVariant,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

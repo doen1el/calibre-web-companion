@@ -8,9 +8,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 class DownloadServiceViewModel extends ChangeNotifier {
   Logger logger = Logger();
 
+  // String values
+  String? _downloadingBookId;
+
   // Bool values
   bool isSearching = false;
   bool isLoading = false;
+  bool _hasSearched = false;
 
   // Lists
   List<Book> _searchResults = [];
@@ -19,6 +23,8 @@ class DownloadServiceViewModel extends ChangeNotifier {
   // Getters
   List<Book> get searchResults => _searchResults;
   List<Book> get books => _books;
+  bool get isDownloading => _downloadingBookId != null;
+  bool get hasSearched => _hasSearched;
 
   // Error handling
   String? error;
@@ -30,6 +36,13 @@ class DownloadServiceViewModel extends ChangeNotifier {
     return prefs.getString('downloader_url') ?? '';
   }
 
+  /// Check if a book is currently downloading
+  ///
+  /// Parameters:
+  ///
+  /// - `bookId`: String
+  bool isBookDownloading(String bookId) => _downloadingBookId == bookId;
+
   /// Search for books by query
   ///
   /// Parameters:
@@ -39,6 +52,7 @@ class DownloadServiceViewModel extends ChangeNotifier {
     isSearching = true;
     error = null;
     _searchResults = [];
+    _hasSearched = true;
     notifyListeners();
 
     try {
@@ -72,25 +86,35 @@ class DownloadServiceViewModel extends ChangeNotifier {
   ///
   /// - `bookId`: String
   Future<void> downloadBook(String bookId) async {
-    final baseUrl = await getBaseUrl();
+    try {
+      _downloadingBookId = bookId;
+      notifyListeners();
 
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/download?id=$bookId'),
-    );
+      final baseUrl = await getBaseUrl();
 
-    logger.i(
-      'Making download request for $bookId on ${'$baseUrl/api/download/$bookId'}',
-    );
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/download?id=$bookId'),
+      );
 
-    if (response.statusCode == 200) {
-      final status = json.decode(response.body);
-      logger.i('Download status: $status');
-      // Handle successful response
-      logger.i('Download request successful');
-    } else {
-      // Handle error response
-      logger.e('Failed to download book: ${response.body}');
-      throw Exception('Failed to download book');
+      logger.i(
+        'Making download request for $bookId on ${'$baseUrl/api/download/$bookId'}',
+      );
+
+      if (response.statusCode == 200) {
+        final status = json.decode(response.body);
+        logger.i('Download status: $status');
+        // Handle successful response
+        logger.i('Download request successful');
+      } else {
+        // Handle error response
+        logger.e('Failed to download book: ${response.body}');
+        throw Exception('Failed to download book');
+      }
+    } catch (e) {
+      logger.e('Error downloading book: $e');
+    } finally {
+      _downloadingBookId = null;
+      notifyListeners();
     }
   }
 

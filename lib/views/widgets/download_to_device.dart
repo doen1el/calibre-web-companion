@@ -38,7 +38,13 @@ class CancellationException implements Exception {
 
 class DownloadToDevice extends StatefulWidget {
   final BookItem book;
-  const DownloadToDevice({super.key, required this.book});
+  final bool isLoading;
+
+  const DownloadToDevice({
+    super.key,
+    required this.book,
+    required this.isLoading,
+  });
 
   @override
   DownloadToDeviceState createState() => DownloadToDeviceState();
@@ -54,12 +60,14 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
 
     return IconButton(
       onPressed:
-          () => _showDownloadOptions(
-            context,
-            localizations,
-            viewModel,
-            widget.book,
-          ),
+          widget.isLoading
+              ? null
+              : () => _showDownloadOptions(
+                context,
+                localizations,
+                viewModel,
+                widget.book,
+              ),
       icon: CircleAvatar(
         backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
         child: const Icon(Icons.download_rounded),

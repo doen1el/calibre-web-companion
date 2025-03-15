@@ -1,99 +1,36 @@
+import 'package:calibre_web_companion/models/opds_item_model.dart';
+import 'package:calibre_web_companion/views/widgets/book_card.dart';
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
-class BookCardSkeleton extends StatefulWidget {
+class BookCardSkeleton extends StatelessWidget {
   const BookCardSkeleton({super.key});
 
   @override
-  State<BookCardSkeleton> createState() => _BookCardSkeletonState();
-}
-
-class _BookCardSkeletonState extends State<BookCardSkeleton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Color?> _colorAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
-
-    _colorAnimation = ColorTween(
-      begin: Colors.grey[300],
-      end: Colors.grey[100],
-    ).animate(_controller);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Card(
-          elevation: 4.0,
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Cover image skeleton
-              Expanded(
-                child: Container(
-                  color: _colorAnimation.value,
-                  width: double.infinity,
-                ),
-              ),
+    final dummyBook = BookItem(
+      id: 'skeleton-id',
+      uuid: 'skeleton-uuid',
+      title: 'Skeleton Book Title',
+      author: 'Skeleton Author',
+      summary: 'Skeleton Summary',
+      formats: ['EPUB', 'PDF'],
+      categories: ['Fiction'],
+      language: 'eng',
+      fileSize: 1500000,
+      published: DateTime.now(),
+      updated: DateTime.now(),
+    );
 
-              // Title and author skeleton
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title skeleton - two lines
-                    Container(
-                      width: double.infinity,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: _colorAnimation.value,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      width: 120,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: _colorAnimation.value,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-
-                    const SizedBox(height: 6),
-
-                    // Author skeleton - one line
-                    Container(
-                      width: 80,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: _colorAnimation.value,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+    return Skeletonizer(
+      enabled: true,
+      effect: ShimmerEffect(
+        // ignore: deprecated_member_use
+        baseColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+        // ignore: deprecated_member_use
+        highlightColor: Theme.of(context).colorScheme.primary.withOpacity(0.4),
+      ),
+      child: BookCard(book: dummyBook),
     );
   }
 }

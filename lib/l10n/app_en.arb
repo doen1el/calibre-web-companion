@@ -167,5 +167,6 @@
   "shelfIsEmpty": "Shelf is empty",
   "removing": "Removing",
   "manageBookShelves": "Manage book shelves",
-  "bookInShelfs": "Book in {count, plural, =1{one shelf} other{{count} shelfs}}"
+  "bookInShelfs": "Book in {count, plural, =1{one shelf} other{{count} shelfs}}",
+  "searchForBooks": "Search for books"
 }

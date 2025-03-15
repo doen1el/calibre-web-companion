@@ -391,8 +391,26 @@ class ShelfDetailsViewState extends State<ShelfDetailsView> {
       fit: BoxFit.cover,
       width: double.infinity,
       placeholder:
-          (context, url) =>
-              const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          (context, url) => Container(
+            color: Theme.of(
+              context,
+              // ignore: deprecated_member_use
+            ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            child: Skeletonizer(
+              enabled: true,
+              effect: ShimmerEffect(
+                baseColor: Theme.of(
+                  context,
+                  // ignore: deprecated_member_use
+                ).colorScheme.primary.withOpacity(0.2),
+                highlightColor: Theme.of(
+                  context,
+                  // ignore: deprecated_member_use
+                ).colorScheme.primary.withOpacity(0.4),
+              ),
+              child: SizedBox(),
+            ),
+          ),
       errorWidget:
           (context, url, error) =>
               const Center(child: Icon(Icons.book, size: 64)),

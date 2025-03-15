@@ -167,5 +167,6 @@
   "shelfIsEmpty": "El estante está vacío",
   "removing": "Eliminando",
   "manageBookShelves": "Gestionar estantes de libros",
-  "bookInShelfs": "Libro en {count, plural, =1{un estante} other{{count} estantes}}"
+  "bookInShelfs": "Libro en {count, plural, =1{un estante} other{{count} estantes}}",
+  "searchForBooks": "Buscar libros"
 }
