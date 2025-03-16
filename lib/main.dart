@@ -75,6 +75,7 @@ class MyApp extends StatelessWidget {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('en'),
+            debugShowCheckedModeBanner: false,
             localeResolutionCallback: (locale, supportedLocales) {
               // If the locale of the device is supported, use it
               if (locale != null) {
