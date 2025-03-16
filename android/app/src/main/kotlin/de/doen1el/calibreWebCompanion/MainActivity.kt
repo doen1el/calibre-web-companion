@@ -1,4 +1,4 @@
-package com.example.calibre_web_companion
+package de.doen1el.calibreWebCompanion
 
 import io.flutter.embedding.android.FlutterActivity
 

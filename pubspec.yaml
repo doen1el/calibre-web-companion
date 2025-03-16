@@ -46,6 +46,7 @@ dependencies:
   cached_network_image: ^3.4.1
   intl: any
   skeletonizer: ^1.4.3
+  flutter_launcher_icons: ^0.14.3
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -64,6 +65,13 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "docs/icon/icon.png"
+  remove_alpha_ios: true
+  min_sdk_android: 21
 
 # The following section is specific to Flutter packages.
 flutter:
