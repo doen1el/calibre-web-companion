@@ -181,5 +181,11 @@
   "deleteHeader": "Header löschen",
   "urlMustStartWithHttpOrHttps": "URL muss mit http:// oder https:// beginnen",
   "connection": "Verbindung",
-  "httpHeaderSettings": "HTTP-Header-Einstellungen"
+  "httpHeaderSettings": "HTTP-Header-Einstellungen",
+  "feedback": "Feedback",
+  "reportIssue": "Problem melden",
+  "reportAppIssueOrSuggestFeature": "App-Problem melden oder Funktion vorschlagen",
+  "title": "Titel",
+  "required": "Erforderlich",
+  "submit": "Absenden"
 }

@@ -1,5 +1,6 @@
 import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
 import 'package:calibre_web_companion/views/login_settings.dart';
+import 'package:calibre_web_companion/views/widgets/github_issue_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -30,9 +31,108 @@ class SettingsView extends StatelessWidget {
             _buildDownloaderToggle(context, settingsViewModel, localizations),
 
             const SizedBox(height: 24),
+            _buildSectionTitle(context, localizations.feedback),
+            _buildFeedbackCard(context, localizations, settingsViewModel),
+
+            const SizedBox(height: 24),
             _buildSectionTitle(context, localizations.about),
             _buildVersionCard(context, settingsViewModel),
+
+            const SizedBox(height: 24),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds the feedback card
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `localizations`: The current localizations
+  /// - `viewModel`: The settings view model
+  Widget _buildFeedbackCard(
+    BuildContext context,
+    AppLocalizations localizations,
+    SettingsViewModel viewModel,
+  ) {
+    BorderRadius borderRadius = BorderRadius.circular(8.0);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      child: InkWell(
+        borderRadius: borderRadius,
+        onTap: () {
+          final githubToken = const String.fromEnvironment(
+            'ISSUE_TOKEN',
+            defaultValue: '',
+          );
+
+          if (githubToken.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Issue token is not configured'),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+            return;
+          }
+
+          showDialog(
+            context: context,
+            builder: (context) {
+              return GithubIssueDialog(
+                token: const String.fromEnvironment(
+                  'ISSUE_TOKEN',
+                  defaultValue: '',
+                ),
+                owner: 'doen1el',
+                repo: 'calibre-web-companion',
+                initialTitle: "Feature Request/Bug Report",
+                initialBody:
+                    "## Description\n\n## Expected Behavior\n\n## Current Behavior\n\n## App Version\n${viewModel.appVersion}",
+              );
+            },
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(
+                Icons.bug_report_outlined,
+                size: 28,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      localizations.reportIssue,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      localizations.reportAppIssueOrSuggestFeature,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -60,7 +160,7 @@ class SettingsView extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                Icons.vpn_key_rounded, // Schlüssel-Icon für Login-Einstellungen
+                Icons.vpn_key_rounded,
                 size: 28,
                 color: Theme.of(context).colorScheme.secondary,
               ),
@@ -338,7 +438,10 @@ class SettingsView extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
-                  Text("1.3.1", style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    viewModel.appVersion,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ],
               ),
             ),

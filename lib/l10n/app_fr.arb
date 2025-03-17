@@ -181,5 +181,11 @@
   "deleteHeader": "Supprimer l'en-tête",
   "urlMustStartWithHttpOrHttps": "L'URL doit commencer par http:// ou https://",
   "connection": "Connexion",
-  "httpHeaderSettings": "Paramètres de l'en-tête HTTP"
+  "httpHeaderSettings": "Paramètres de l'en-tête HTTP",
+  "feedback": "Retour d'information",
+  "reportIssue": "Signaler un problème",
+  "reportAppIssueOrSuggestFeature": "Signaler un problème avec l'application ou suggérer une fonctionnalité",
+  "title": "Titre",
+  "required": "Requis",
+  "submit": "Soumettre"
 }

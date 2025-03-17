@@ -181,5 +181,11 @@
   "deleteHeader": "Eliminar encabezado",
   "urlMustStartWithHttpOrHttps": "La URL debe comenzar con http:// o https://",
   "connection": "Conexión",
-  "httpHeaderSettings": "Configuración de encabezado HTTP"
+  "httpHeaderSettings": "Configuración de encabezado HTTP",
+  "feedback": "Comentarios",
+  "reportIssue": "Informar de un problema",
+  "reportAppIssueOrSuggestFeature": "Informar de un problema de la aplicación o sugerir una función",
+  "title": "Título",
+  "required": "Requerido",
+  "submit": "Enviar"
 }

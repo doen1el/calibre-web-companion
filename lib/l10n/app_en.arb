@@ -181,5 +181,11 @@
   "deleteHeader": "Delete header",
   "urlMustStartWithHttpOrHttps": "URL must start with http:// or https://",
   "connection": "Connection",
-  "httpHeaderSettings": "HTTP-Header settings"
+  "httpHeaderSettings": "HTTP-Header settings",
+  "feedback": "Feedback",
+  "reportIssue": "Report issue",
+  "reportAppIssueOrSuggestFeature": "Report app issue or suggest feature",
+  "title": "Title",
+  "required": "Required",
+  "submit": "Submit"
 }
