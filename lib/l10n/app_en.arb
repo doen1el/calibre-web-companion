@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
   "loginToCalibreWb": "Login to Calibre Web",
-  "calibreWebUrl": "Calibre Web URL",
+  "calibreWebUrl": "https://calibre.example.com",
   "enterCalibreWebUrl": "Enter Calibre Web URL",
   "username": "Username",
   "enterYourUsername": "Enter your username",
@@ -168,5 +168,18 @@
   "removing": "Removing",
   "manageBookShelves": "Manage book shelves",
   "bookInShelfs": "Book in {count, plural, =1{one shelf} other{{count} shelfs}}",
-  "searchForBooks": "Search for books"
+  "searchForBooks": "Search for books",
+  "connectionSettings": "Connection settings",
+  "costumHttpPHeader": "Costum HTTP-Header",
+  "addHeader": "Add header",
+  "httpHeader": "HTTP-Header",
+  "addACostumHttpHeaderThatWillBeSentWithEveryRequest": "Add a costum HTTP-Header that will be sent with every request",
+  "noCostumHttpHeadersYet": "No costum HTTP-Header yet",
+  "header": "Header",
+  "headerKey": "Header key",
+  "headerValue": "Header value",
+  "deleteHeader": "Delete header",
+  "urlMustStartWithHttpOrHttps": "URL must start with http:// or https://",
+  "connection": "Connection",
+  "httpHeaderSettings": "HTTP-Header settings"
 }

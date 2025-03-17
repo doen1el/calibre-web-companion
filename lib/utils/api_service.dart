@@ -93,8 +93,28 @@ class ApiService {
     Map<String, String>? queryParams,
   }) async {
     await _ensureInitialized();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     final uri = _buildUri(endpoint, queryParams);
     final headers = _getAuthHeaders(authMethod);
+
+    List<Map<String, String>> costumHeaders = [];
+
+    final headersJson = prefs.getString('custom_login_headers') ?? '[]';
+
+    final List<dynamic> decodedList = jsonDecode(headersJson);
+    costumHeaders =
+        decodedList
+            .map((item) => Map<String, String>.from(item as Map))
+            .toList();
+
+    // Add custom headers
+    if (costumHeaders.isNotEmpty) {
+      for (var customHeader in costumHeaders) {
+        headers.addAll(customHeader);
+      }
+    }
+
+    _logger.d('Headers: $headers');
 
     _logger.d('GET request to: $uri');
     _logger.d('Using ${authMethod.name} authentication');
@@ -131,6 +151,7 @@ class ApiService {
     bool useCsrf = false,
     String csrfSelector = 'input[name="csrf_token"]',
   }) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     await _ensureInitialized();
     final uri = _buildUri(endpoint, queryParams);
     final headers = _getAuthHeaders(authMethod);
@@ -166,6 +187,25 @@ class ApiService {
 
     encodedBody = _encodeBody(body, contentType);
 
+    List<Map<String, String>> costumHeaders = [];
+
+    final headersJson = prefs.getString('custom_login_headers') ?? '[]';
+
+    final List<dynamic> decodedList = jsonDecode(headersJson);
+    costumHeaders =
+        decodedList
+            .map((item) => Map<String, String>.from(item as Map))
+            .toList();
+
+    // Add custom headers
+    if (costumHeaders.isNotEmpty) {
+      for (var customHeader in costumHeaders) {
+        headers.addAll(customHeader);
+      }
+    }
+
+    _logger.i("Headers: $headers");
+
     try {
       final response = await _client.post(
         uri,
@@ -193,11 +233,31 @@ class ApiService {
     AuthMethod authMethod,
   ) async {
     await _ensureInitialized();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
     // Ensure URL is complete
     final fullUrl =
         endpoint.startsWith('http') ? endpoint : '$_baseUrl$endpoint';
     final headers = _getAuthHeaders(authMethod);
+
+    List<Map<String, String>> costumHeaders = [];
+
+    final headersJson = prefs.getString('custom_login_headers') ?? '[]';
+
+    final List<dynamic> decodedList = jsonDecode(headersJson);
+    costumHeaders =
+        decodedList
+            .map((item) => Map<String, String>.from(item as Map))
+            .toList();
+
+    // Add custom headers
+    if (costumHeaders.isNotEmpty) {
+      for (var customHeader in costumHeaders) {
+        headers.addAll(customHeader);
+      }
+    }
+
+    _logger.d('Headers: $headers');
 
     _logger.d('GET stream request to: $fullUrl');
     _logger.d('Using ${authMethod.name} authentication');

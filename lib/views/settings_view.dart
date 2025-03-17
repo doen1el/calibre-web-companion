@@ -1,4 +1,5 @@
 import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
+import 'package:calibre_web_companion/views/login_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -21,6 +22,10 @@ class SettingsView extends StatelessWidget {
             _buildThemeSelector(context, settingsViewModel, localizations),
 
             const SizedBox(height: 24),
+            _buildSectionTitle(context, localizations.connection),
+            _buildLoginSettingsCard(context, localizations),
+
+            const SizedBox(height: 24),
             _buildSectionTitle(context, "Calibre Web Automated Downloader"),
             _buildDownloaderToggle(context, settingsViewModel, localizations),
 
@@ -28,6 +33,63 @@ class SettingsView extends StatelessWidget {
             _buildSectionTitle(context, localizations.about),
             _buildVersionCard(context, settingsViewModel),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginSettingsCard(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    BorderRadius borderRadius = BorderRadius.circular(8.0);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      child: InkWell(
+        borderRadius: borderRadius,
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const LoginSettings()),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(
+                Icons.vpn_key_rounded, // Schlüssel-Icon für Login-Einstellungen
+                size: 28,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      localizations.connectionSettings,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      localizations.httpHeaderSettings,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
         ),
       ),
     );

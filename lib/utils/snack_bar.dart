@@ -21,8 +21,8 @@ extension SnackBarExtension on BuildContext {
                 ? Theme.of(this).colorScheme.error
                 : Theme.of(this).colorScheme.primary,
         duration: duration,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(8),
+        // behavior: SnackBarBehavior.floating,
+        // margin: const EdgeInsets.all(8),
       ),
     );
   }

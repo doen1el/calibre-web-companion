@@ -1,7 +1,7 @@
 {
   "@@locale": "fr",
   "loginToCalibreWb": "Connexion à Calibre Web",
-  "calibreWebUrl": "URL de Calibre Web",
+  "calibreWebUrl": "https://calibre.example.com",
   "enterCalibreWebUrl": "Entrez l'URL de Calibre Web",
   "username": "Nom d'utilisateur",
   "enterYourUsername": "Entrez votre nom d'utilisateur",
@@ -168,5 +168,18 @@
   "removing": "Suppression",
   "manageBookShelves": "Gérer les étagères de livres",
   "bookInShelfs": "Livre dans {count, plural, =1{une étagère} other{{count} étagères}}",
-  "searchForBooks": "Rechercher des livres"
+  "searchForBooks": "Rechercher des livres",
+  "connectionSettings": "Paramètres de connexion",
+  "costumHttpPHeader": "En-tête HTTP personnalisé",
+  "addHeader": "Ajouter un en-tête",
+  "httpHeader": "En-tête HTTP",
+  "addACostumHttpHeaderThatWillBeSentWithEveryRequest": "Ajoutez un en-tête HTTP personnalisé qui sera envoyé avec chaque demande",
+  "noCostumHttpHeadersYet": "Pas encore d'en-têtes HTTP personnalisés",
+  "header": "En-tête",
+  "headerKey": "Clé de l'en-tête",
+  "headerValue": "Valeur de l'en-tête",
+  "deleteHeader": "Supprimer l'en-tête",
+  "urlMustStartWithHttpOrHttps": "L'URL doit commencer par http:// ou https://",
+  "connection": "Connexion",
+  "httpHeaderSettings": "Paramètres de l'en-tête HTTP"
 }
