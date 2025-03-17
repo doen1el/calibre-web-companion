@@ -187,5 +187,15 @@
   "reportAppIssueOrSuggestFeature": "Report app issue or suggest feature",
   "title": "Title",
   "required": "Required",
-  "submit": "Submit"
+  "submit": "Submit",
+  "bookActions": "Book actions",
+  "markedAsReadSuccessfully": "Marked as read/unread successfully",
+  "markedAsReadFailed": "Failed to mark as read/unread",
+  "openBookInBrowser": "Open book in browser",
+  "metadataUpdateSuccessfully": "Metadata updated successfully",
+  "editBookMetadata": "Edit book metadata",
+  "updateFailed": "Update failed",
+  "save": "Save",
+  "separateWithCommas": "Separate with commas",
+  "ratingOneToTen": "Rating (1-10)"
 }

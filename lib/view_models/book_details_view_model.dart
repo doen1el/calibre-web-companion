@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -11,9 +12,19 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
+import 'package:url_launcher/url_launcher.dart';
 
 class BookDetailsViewModel extends ChangeNotifier {
   final JsonService _jsonService = JsonService();
+
+  BookItem? _currentBook;
+  BookItem? get currentBook => _currentBook;
+
+  final _bookReloadController = StreamController<String>.broadcast();
+  Stream<String> get bookReloadStream => _bookReloadController.stream;
+
+  bool _isReloading = false;
+  bool get isReloading => _isReloading;
 
   Logger logger = Logger();
   String? errorMessage;
@@ -33,16 +44,58 @@ class BookDetailsViewModel extends ChangeNotifier {
   bool _isArchivedLoading = false;
   bool get isArchivedLoading => _isArchivedLoading;
 
+  @override
+  void dispose() {
+    _bookReloadController.close();
+    super.dispose();
+  }
+
   /// Fetch the book details from the server
   ///
   /// Parameters:
   ///
   /// - `bookUuid`: The unique identifier of the book
-  Future<BookItem> fetchBook({required String bookUuid}) async {
+  Future<void> fetchBook({required String bookUuid}) async {
     BookItem book = await _jsonService.fetchBook(bookUuid: bookUuid);
 
+    // Set current book and notify
+    _currentBook = book;
+
     await checkIfBookIsRead(book.id);
-    return book;
+
+    // Notify listeners of the update
+    notifyListeners();
+  }
+
+  /// Reload the book from the server and show loading indicator
+  ///
+  /// Parameters:
+  ///
+  /// - `bookUuid`: The unique identifier of the book
+  Future<BookItem?> reloadBook({required String bookUuid}) async {
+    try {
+      logger.i('Reloading book: $bookUuid');
+      _isReloading = true;
+      notifyListeners();
+
+      // Wait for a short delay to show loading indicator
+      await Future.delayed(Duration(milliseconds: 300));
+
+      // Fetch the book details
+      await fetchBook(bookUuid: bookUuid);
+
+      // Trigger a reload event
+      _bookReloadController.add(bookUuid);
+
+      return _currentBook;
+    } catch (e) {
+      logger.e('Error reloading book: $e');
+      errorMessage = 'Error reloading: $e';
+      return null;
+    } finally {
+      _isReloading = false;
+      notifyListeners();
+    }
   }
 
   /// Check and request storage permissions
@@ -601,6 +654,29 @@ class BookDetailsViewModel extends ChangeNotifier {
       _isArchivedLoading = false;
 
       notifyListeners();
+    }
+  }
+
+  Future<void> openInBrowser(BookItem book) async {
+    final apiService = ApiService();
+    final baseUrl = apiService.getBaseUrl();
+
+    if (baseUrl.isEmpty) {
+      logger.w('No server URL found');
+      errorMessage = 'Server URL missing';
+      return;
+    }
+
+    final Uri url = Uri.parse('$baseUrl/book/${book.id}');
+
+    try {
+      if (!await launchUrl(url)) {
+        throw Exception('Could not launch $url');
+      }
+      logger.i("Opened book in browser: $url");
+    } catch (e) {
+      logger.e('Error opening book in browser: $e');
+      errorMessage = 'Error: $e';
     }
   }
 }

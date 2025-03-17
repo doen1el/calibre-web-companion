@@ -187,5 +187,15 @@
   "reportAppIssueOrSuggestFeature": "Informar de un problema de la aplicación o sugerir una función",
   "title": "Título",
   "required": "Requerido",
-  "submit": "Enviar"
+  "submit": "Enviar",
+  "bookActions": "Acciones del libro",
+  "markedAsReadSuccessfully": "Marcado como leído/no leído con éxito",
+  "markedAsReadFailed": "Error al marcar como leído/no leído",
+  "openBookInBrowser": "Abrir libro en el navegador",
+  "metadataUpdateSuccessfully": "Metadatos actualizados con éxito",
+  "editBookMetadata": "Editar metadatos del libro",
+  "updateFailed": "Error al actualizar",
+  "save": "Guardar",
+  "separateWithCommas": "Separar con comas",
+  "ratingOneToTen": "Calificación (1-10)"
 }

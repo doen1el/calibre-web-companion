@@ -187,5 +187,15 @@
   "reportAppIssueOrSuggestFeature": "App-Problem melden oder Funktion vorschlagen",
   "title": "Titel",
   "required": "Erforderlich",
-  "submit": "Absenden"
+  "submit": "Absenden",
+  "bookActions": "Buchaktionen",
+  "markedAsReadSuccessfully": "Erfolgreich als gelesen/ungelesen markiert",
+  "markedAsReadFailed": "Fehler beim Markieren als gelesen/ungelesen",
+  "openBookInBrowser": "Buch im Browser öffnen",
+  "metadataUpdateSuccessfully": "Metadaten erfolgreich aktualisiert",
+  "editBookMetadata": "Buchmetadaten bearbeiten",
+  "updateFailed": "Aktualisierung fehlgeschlagen",
+  "save": "Speichern",
+  "separateWithCommas": "Mit Kommas trennen",
+  "ratingOneToTen": "Bewertung (1-10)"
 }

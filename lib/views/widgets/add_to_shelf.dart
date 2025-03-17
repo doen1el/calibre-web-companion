@@ -93,16 +93,7 @@ class AddToShelfState extends State<AddToShelf> {
     AppLocalizations localizations = AppLocalizations.of(context)!;
 
     Widget icon;
-    if (_isLoading) {
-      icon = SizedBox(
-        width: 24,
-        height: 24,
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          color: Theme.of(context).colorScheme.onSecondaryContainer,
-        ),
-      );
-    } else if (_containingShelves.isNotEmpty) {
+    if (_containingShelves.isNotEmpty) {
       icon = Badge(
         backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
         label: Text(
