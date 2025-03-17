@@ -7,6 +7,7 @@ import 'package:calibre_web_companion/utils/json_service.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
@@ -44,6 +45,21 @@ class BookDetailsViewModel extends ChangeNotifier {
     return book;
   }
 
+  /// Check and request storage permissions
+  Future<bool> checkAndRequestPermissions() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.manageExternalStorage.status;
+      if (!status.isGranted) {
+        final result = await Permission.manageExternalStorage.request();
+        return result.isGranted;
+      } else if (status.isPermanentlyDenied) {
+        await openAppSettings();
+      }
+      return true;
+    }
+    return true;
+  }
+
   /// Fetch the book details from the server
   ///
   /// Parameters:
@@ -67,8 +83,6 @@ class BookDetailsViewModel extends ChangeNotifier {
 
       final apiService = ApiService();
       final baseUrl = apiService.getBaseUrl();
-      final username = apiService.getUsername();
-      final password = apiService.getPassword();
 
       if (baseUrl.isEmpty) {
         logger.w('No server URL found');
@@ -103,7 +117,21 @@ class BookDetailsViewModel extends ChangeNotifier {
         );
 
         if (response.statusCode == 200) {
+          if (!await checkAndRequestPermissions()) {
+            errorMessage = 'Storage permission denied';
+            return false;
+          }
+
           final file = File(filePath);
+
+          try {
+            await Directory(path.dirname(filePath)).create(recursive: true);
+          } catch (e) {
+            logger.e('Error creating directory: $e');
+            errorMessage = 'Could not create directory: $e';
+            return false;
+          }
+
           final sink = file.openWrite();
           int receivedBytes = 0;
 
@@ -121,6 +149,10 @@ class BookDetailsViewModel extends ChangeNotifier {
               }
               notifyListeners();
             }
+          } catch (e) {
+            logger.e('Error while downloading book: $e');
+            errorMessage = 'Download error: $e';
+            return false;
           } finally {
             await sink.flush();
             await sink.close();

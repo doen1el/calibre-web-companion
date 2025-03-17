@@ -48,6 +48,7 @@ dependencies:
   skeletonizer: ^1.4.3
   flutter_launcher_icons: ^0.14.3
   package_info_plus: ^8.3.0
+  permission_handler: ^11.4.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
