@@ -89,11 +89,31 @@ class _BookDetailsState extends State<BookDetails> {
 
             return Scaffold(
               appBar: AppBar(
-                title: Text(
-                  book.title.length > 30
-                      ? "${book.title.substring(0, 30)}..."
-                      : book.title,
-                ),
+                title:
+                    isLoading
+                        ? Skeletonizer(
+                          enabled: true,
+                          effect: ShimmerEffect(
+                            baseColor: Theme.of(
+                              context,
+                              // ignore: deprecated_member_use
+                            ).colorScheme.primary.withOpacity(0.2),
+                            highlightColor: Theme.of(
+                              context,
+                              // ignore: deprecated_member_use
+                            ).colorScheme.primary.withOpacity(0.4),
+                          ),
+                          child: Container(
+                            height: 20,
+                            width: 300,
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                          ),
+                        )
+                        : Text(
+                          book.title.length > 30
+                              ? "${book.title.substring(0, 30)}..."
+                              : book.title,
+                        ),
                 leading: IconButton(
                   onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(Icons.arrow_back),

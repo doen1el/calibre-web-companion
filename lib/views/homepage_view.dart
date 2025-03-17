@@ -40,31 +40,34 @@ class HomepageView extends StatelessWidget {
     HomepageViewModel viewModel,
     SettingsViewModel settingsViewModel,
   ) {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      items: [
-        BottomNavigationBarItem(
+    NavigationDestinationLabelBehavior labelBehavior =
+        NavigationDestinationLabelBehavior.alwaysShow;
+
+    return NavigationBar(
+      destinations: [
+        NavigationDestination(
           icon: Icon(Icons.book_rounded),
           label: localizations.books,
         ),
-        BottomNavigationBarItem(
+        NavigationDestination(
           icon: Icon(Icons.search_rounded),
           label: localizations.discover,
         ),
-        BottomNavigationBarItem(
+        NavigationDestination(
           icon: Icon(Icons.person_rounded),
           label: localizations.me,
         ),
 
         if (settingsViewModel.isDownloaderEnabled)
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.download_rounded),
             label: localizations.download,
           ),
       ],
+      labelBehavior: labelBehavior,
 
-      currentIndex: viewModel.currentNavIndex,
-      onTap: (index) => viewModel.setCurrentNavIndex(index),
+      selectedIndex: viewModel.currentNavIndex,
+      onDestinationSelected: (index) => viewModel.setCurrentNavIndex(index),
     );
   }
 }

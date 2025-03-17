@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
 import 'package:calibre_web_companion/views/login_settings.dart';
 import 'package:calibre_web_companion/views/widgets/github_issue_dialog.dart';
@@ -151,9 +152,9 @@ class SettingsView extends StatelessWidget {
       child: InkWell(
         borderRadius: borderRadius,
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const LoginSettings()),
-          );
+          Navigator.of(
+            context,
+          ).push(AppTransitions.createSlideRoute(LoginSettings()));
         },
         child: Padding(
           padding: const EdgeInsets.all(16),

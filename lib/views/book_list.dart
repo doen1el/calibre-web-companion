@@ -1,4 +1,5 @@
 import 'package:calibre_web_companion/models/opds_item_model.dart';
+import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/views/widgets/book_card.dart';
 import 'package:calibre_web_companion/views/widgets/book_card_skeleton.dart';
@@ -376,6 +377,6 @@ class BookListState extends State<BookList> with RouteAware {
   /// - `context`: BuildContext
   /// - `page`: The page to navigate to
   void _navigateToPage(BuildContext context, Widget page) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+    Navigator.push(context, AppTransitions.createSlideRoute(page));
   }
 }

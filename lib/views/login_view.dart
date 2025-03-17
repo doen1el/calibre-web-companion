@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/views/login_settings.dart';
 import 'package:flutter/material.dart';
@@ -224,9 +225,8 @@ class _LoginState extends State<LoginView> {
                                 ),
                                 onTap: () {
                                   Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) => const LoginSettings(),
+                                    AppTransitions.createSlideRoute(
+                                      const LoginSettings(),
                                     ),
                                   );
                                 },
@@ -359,10 +359,10 @@ class _LoginState extends State<LoginView> {
     );
 
     if (success && mounted) {
-      // ignore: use_build_context_synchronously
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomepageView()),
-      );
+      Navigator.of(
+        // ignore: use_build_context_synchronously
+        context,
+      ).pushReplacement(AppTransitions.createSlideRoute(const HomepageView()));
     } else if (mounted) {
       // Only show toast if error message is empty
       if (viewModel.errorMessage.isEmpty) {

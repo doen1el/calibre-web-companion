@@ -1,4 +1,5 @@
 import 'package:calibre_web_companion/models/stats_model.dart';
+import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
@@ -49,9 +50,9 @@ class MeViewState extends State<MeView> {
               prefs.remove("calibre_web_session");
 
               // ignore: use_build_context_synchronously
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => LoginView()),
-              );
+              Navigator.of(
+                context,
+              ).pushReplacement(AppTransitions.createSlideRoute(LoginView()));
 
               viewModel.logOut();
               homePageViewModel.setCurrentNavIndex(0);
@@ -71,9 +72,9 @@ class MeViewState extends State<MeView> {
                 text: localizations.settings,
                 icon: Icons.settings_rounded,
                 onPressed:
-                    () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => SettingsView()),
-                    ),
+                    () => Navigator.of(
+                      context,
+                    ).push(AppTransitions.createSlideRoute(SettingsView())),
               ),
               LongButton(
                 text: localizations.shelfs,
@@ -84,7 +85,7 @@ class MeViewState extends State<MeView> {
                   Navigator.of(
                     // ignore: use_build_context_synchronously
                     context,
-                  ).push(MaterialPageRoute(builder: (context) => ShelfsView()));
+                  ).push(AppTransitions.createSlideRoute(ShelfsView()));
                 },
               ),
               LongButton(
@@ -92,12 +93,11 @@ class MeViewState extends State<MeView> {
                 icon: Icons.my_library_books_rounded,
                 onPressed:
                     () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder:
-                            (context) => BookList(
-                              title: localizations.readBooks,
-                              bookListType: BookListType.readbooks,
-                            ),
+                      AppTransitions.createSlideRoute(
+                        BookList(
+                          title: localizations.readBooks,
+                          bookListType: BookListType.readbooks,
+                        ),
                       ),
                     ),
               ),
@@ -106,12 +106,11 @@ class MeViewState extends State<MeView> {
                 icon: Icons.read_more_rounded,
                 onPressed:
                     () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder:
-                            (context) => BookList(
-                              title: localizations.unreadBooks,
-                              bookListType: BookListType.unreadbooks,
-                            ),
+                      AppTransitions.createSlideRoute(
+                        BookList(
+                          title: localizations.unreadBooks,
+                          bookListType: BookListType.unreadbooks,
+                        ),
                       ),
                     ),
               ),

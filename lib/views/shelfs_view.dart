@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/shelf_view_model.dart';
 import 'package:calibre_web_companion/views/shelf_details_view.dart';
@@ -102,8 +103,8 @@ class ShelfsView extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap:
                 () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ShelfDetailsView(shelfId: shelf.id),
+                  AppTransitions.createSlideRoute(
+                    ShelfDetailsView(shelfId: shelf.id),
                   ),
                 ),
           ),

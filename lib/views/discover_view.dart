@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/views/book_list.dart';
 import 'package:calibre_web_companion/views/widgets/long_button.dart';
@@ -42,12 +43,11 @@ class DiscoverView extends StatelessWidget {
           icon: Icons.search,
           onPressed:
               () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) => BookList(
-                        title: localizations.discoverBooks,
-                        bookListType: BookListType.discover,
-                      ),
+                AppTransitions.createSlideRoute(
+                  BookList(
+                    title: localizations.discoverBooks,
+                    bookListType: BookListType.discover,
+                  ),
                 ),
               ),
         ),
@@ -56,12 +56,11 @@ class DiscoverView extends StatelessWidget {
           icon: Icons.local_fire_department_rounded,
           onPressed:
               () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) => BookList(
-                        title: localizations.hotBooks,
-                        bookListType: BookListType.hot,
-                      ),
+                AppTransitions.createSlideRoute(
+                  BookList(
+                    title: localizations.hotBooks,
+                    bookListType: BookListType.hot,
+                  ),
                 ),
               ),
         ),
@@ -70,12 +69,11 @@ class DiscoverView extends StatelessWidget {
           icon: Icons.new_releases_rounded,
           onPressed:
               () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) => BookList(
-                        title: localizations.newBooks,
-                        bookListType: BookListType.newlyAdded,
-                      ),
+                AppTransitions.createSlideRoute(
+                  BookList(
+                    title: localizations.newBooks,
+                    bookListType: BookListType.newlyAdded,
+                  ),
                 ),
               ),
         ),
@@ -84,12 +82,11 @@ class DiscoverView extends StatelessWidget {
           icon: Icons.star_border_rounded,
           onPressed:
               () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) => BookList(
-                        title: localizations.ratedBooks,
-                        bookListType: BookListType.rated,
-                      ),
+                AppTransitions.createSlideRoute(
+                  BookList(
+                    title: localizations.ratedBooks,
+                    bookListType: BookListType.rated,
+                  ),
                 ),
               ),
         ),
@@ -113,12 +110,11 @@ class DiscoverView extends StatelessWidget {
           icon: Icons.people_rounded,
           onPressed:
               () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) => BookList(
-                        title: localizations.authors,
-                        categoryType: CategoryType.author,
-                      ),
+                AppTransitions.createSlideRoute(
+                  BookList(
+                    title: localizations.authors,
+                    categoryType: CategoryType.author,
+                  ),
                 ),
               ),
         ),
@@ -127,12 +123,11 @@ class DiscoverView extends StatelessWidget {
           icon: Icons.category_rounded,
           onPressed:
               () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) => BookList(
-                        title: localizations.categories,
-                        categoryType: CategoryType.category,
-                      ),
+                AppTransitions.createSlideRoute(
+                  BookList(
+                    title: localizations.categories,
+                    categoryType: CategoryType.category,
+                  ),
                 ),
               ),
         ),
@@ -141,12 +136,11 @@ class DiscoverView extends StatelessWidget {
           icon: Icons.library_books_rounded,
           onPressed:
               () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) => BookList(
-                        title: localizations.series,
-                        categoryType: CategoryType.series,
-                      ),
+                AppTransitions.createSlideRoute(
+                  BookList(
+                    title: localizations.series,
+                    categoryType: CategoryType.series,
+                  ),
                 ),
               ),
         ),
@@ -155,12 +149,11 @@ class DiscoverView extends StatelessWidget {
           icon: Icons.file_open_rounded,
           onPressed:
               () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) => BookList(
-                        title: localizations.formats,
-                        categoryType: CategoryType.formats,
-                      ),
+                AppTransitions.createSlideRoute(
+                  BookList(
+                    title: localizations.formats,
+                    categoryType: CategoryType.formats,
+                  ),
                 ),
               ),
         ),
@@ -169,12 +162,11 @@ class DiscoverView extends StatelessWidget {
           icon: Icons.language_rounded,
           onPressed:
               () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) => BookList(
-                        title: localizations.languages,
-                        categoryType: CategoryType.language,
-                      ),
+                AppTransitions.createSlideRoute(
+                  BookList(
+                    title: localizations.languages,
+                    categoryType: CategoryType.language,
+                  ),
                 ),
               ),
         ),
@@ -183,12 +175,11 @@ class DiscoverView extends StatelessWidget {
           icon: Icons.business_rounded,
           onPressed:
               () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) => BookList(
-                        title: localizations.publishers,
-                        categoryType: CategoryType.publisher,
-                      ),
+                AppTransitions.createSlideRoute(
+                  BookList(
+                    title: localizations.publishers,
+                    categoryType: CategoryType.publisher,
+                  ),
                 ),
               ),
         ),
@@ -197,12 +188,11 @@ class DiscoverView extends StatelessWidget {
           icon: Icons.star_rounded,
           onPressed:
               () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) => BookList(
-                        title: localizations.ratings,
-                        categoryType: CategoryType.ratings,
-                      ),
+                AppTransitions.createSlideRoute(
+                  BookList(
+                    title: localizations.ratings,
+                    categoryType: CategoryType.ratings,
+                  ),
                 ),
               ),
         ),
