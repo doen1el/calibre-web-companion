@@ -1,4 +1,6 @@
+import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/utils/snack_bar.dart';
+import 'package:calibre_web_companion/views/login_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:calibre_web_companion/view_models/login_view_model.dart';
@@ -41,6 +43,13 @@ class _LoginState extends State<LoginView> {
     );
   }
 
+  /// Build the login form
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The BuildContext
+  /// - `localizations`: The AppLocalizations
+  ///   - `viewModel`: The LoginViewModel
   Widget _buildLoginForm(
     BuildContext context,
     AppLocalizations localizations,
@@ -116,7 +125,6 @@ class _LoginState extends State<LoginView> {
 
                 const SizedBox(height: 24),
 
-                // Login button with loading state
                 viewModel.isLoading
                     ? Center(
                       child: Container(
@@ -134,49 +142,109 @@ class _LoginState extends State<LoginView> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.0),
                       ),
-                      child: Material(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12.0),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12.0),
-                          onTap:
-                              () => _handleLogin(
-                                viewModel,
-                                localizations,
-                                context,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 5,
+                            child: Material(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(12.0),
+                                bottomLeft: Radius.circular(12.0),
                               ),
-                          child: Container(
-                            width: double.infinity,
-                            height: 50,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.login_rounded,
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimaryContainer,
+                              child: InkWell(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(12.0),
+                                  bottomLeft: Radius.circular(12.0),
                                 ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  localizations.login,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                onTap:
+                                    () => _handleLogin(
+                                      viewModel,
+                                      localizations,
+                                      context,
+                                    ),
+                                child: Container(
+                                  height: 50,
+                                  alignment: Alignment.center,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.login_rounded,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimaryContainer,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        localizations.login,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimaryContainer,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          Container(
+                            height: 50,
+                            width: 1,
+                            color: Theme.of(
+                              context,
+                              // ignore: deprecated_member_use
+                            ).colorScheme.onPrimaryContainer.withOpacity(0.3),
+                          ),
+
+                          Expanded(
+                            flex: 1,
+                            child: Material(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.only(
+                                topRight: Radius.circular(12.0),
+                                bottomRight: Radius.circular(12.0),
+                              ),
+                              child: InkWell(
+                                borderRadius: BorderRadius.only(
+                                  topRight: Radius.circular(12.0),
+                                  bottomRight: Radius.circular(12.0),
+                                ),
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    AppTransitions.createSlideRoute(
+                                      const LoginSettings(),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  height: 50,
+                                  alignment: Alignment.center,
+                                  child: Icon(
+                                    Icons.settings,
                                     color:
                                         Theme.of(
                                           context,
                                         ).colorScheme.onPrimaryContainer,
                                   ),
                                 ),
-                              ],
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
               ],
@@ -187,6 +255,16 @@ class _LoginState extends State<LoginView> {
     );
   }
 
+  /// Build a text field
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The BuildContext
+  /// - `controller`: The TextEditingController
+  /// - `labelText`: The label text of the text field
+  /// - `prefixIcon`: The icon to display before the text field
+  /// - `hintText`: The hint text of the text field
+  /// - `obscureText`: Whether the text field should obscure the text
   Widget _buildTextField({
     required BuildContext context,
     required TextEditingController controller,
@@ -195,24 +273,53 @@ class _LoginState extends State<LoginView> {
     String? hintText,
     bool obscureText = false,
   }) {
-    return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      decoration: InputDecoration(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
-        labelText: labelText,
-        hintText: hintText,
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.surface,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16.0,
-          vertical: 14.0,
-        ),
-      ),
+    final ValueNotifier<bool> isObscureTextNotifier = ValueNotifier<bool>(
+      obscureText,
+    );
+
+    return ValueListenableBuilder<bool>(
+      valueListenable: isObscureTextNotifier,
+      builder: (context, isObscureText, _) {
+        return TextField(
+          controller: controller,
+          obscureText: isObscureText,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            labelText: labelText,
+            hintText: hintText,
+            prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+            suffixIcon:
+                obscureText
+                    ? IconButton(
+                      icon: Icon(
+                        isObscureText ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        isObscureTextNotifier.value = !isObscureText;
+                      },
+                    )
+                    : null,
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surface,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
+          ),
+        );
+      },
     );
   }
 
+  /// Handle login
+  ///
+  /// Parameters:
+  ///
+  /// - `viewModel`: The LoginViewModel
+  /// - `localizations`: The AppLocalizations
+  /// - `context`: The BuildContext
   Future<void> _handleLogin(
     LoginViewModel viewModel,
     AppLocalizations localizations,
@@ -232,8 +339,10 @@ class _LoginState extends State<LoginView> {
     // Fix URL if needed (add https:// if missing)
     String url = _urlController.text.trim();
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = 'https://$url';
-      _urlController.text = url;
+      context.showSnackBar(
+        localizations.urlMustStartWithHttpOrHttps,
+        isError: true,
+      );
     }
 
     // Save to shared preferences
@@ -250,10 +359,10 @@ class _LoginState extends State<LoginView> {
     );
 
     if (success && mounted) {
-      // ignore: use_build_context_synchronously
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomepageView()),
-      );
+      Navigator.of(
+        // ignore: use_build_context_synchronously
+        context,
+      ).pushReplacement(AppTransitions.createSlideRoute(const HomepageView()));
     } else if (mounted) {
       // Only show toast if error message is empty
       if (viewModel.errorMessage.isEmpty) {

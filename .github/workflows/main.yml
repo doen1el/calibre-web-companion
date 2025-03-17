@@ -51,7 +51,7 @@ jobs:
 
       #6 Building APK
       - name: Build APK
-        run: flutter build apk --target-platform android-arm,android-arm64,android-x64 --split-per-abi --no-tree-shake-icons
+        run: flutter build apk --dart-define=ISSUE_TOKEN=${{ secrets.ISSUE_TOKEN }} --target-platform android-arm,android-arm64,android-x64 --split-per-abi --no-tree-shake-icons
 
       #7 Building App Bundle (aab)
       # - name: Build appBundle

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
+import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/views/book_details.dart';
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -19,9 +20,7 @@ class BookCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => BookDetails(bookUuid: book.uuid),
-            ),
+            AppTransitions.createSlideRoute(BookDetails(bookUuid: book.uuid)),
           );
         },
         child: Column(

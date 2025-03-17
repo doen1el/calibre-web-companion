@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/models/shelf_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
+import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/shelf_view_model.dart';
 import 'package:calibre_web_companion/views/book_details.dart';
@@ -295,9 +296,7 @@ class ShelfDetailsViewState extends State<ShelfDetailsView> {
                 } else {
                   // ignore: use_build_context_synchronously
                   Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => BookDetails(bookUuid: res),
-                    ),
+                    AppTransitions.createSlideRoute(BookDetails(bookUuid: res)),
                   );
                 }
               } finally {

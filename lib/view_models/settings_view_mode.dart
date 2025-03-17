@@ -1,6 +1,7 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsViewModel extends ChangeNotifier {
@@ -11,15 +12,36 @@ class SettingsViewModel extends ChangeNotifier {
   bool _isDownloaderEnabled = false;
   String _downloaderUrl = '';
   final TextEditingController downloaderUrlController = TextEditingController();
+  String? _appVersion;
+  String? _buildNumber;
 
   // Getters
   ThemeMode get currentTheme => _currentTheme;
   bool get isDownloaderEnabled => _isDownloaderEnabled;
   String get downloaderUrl => _downloaderUrl;
+  String get appVersion => _appVersion ?? '';
+  String get buildNumber => _buildNumber ?? '';
 
   Future<void> loadSettings() async {
     await loadCurrentTheme();
     await loadDownloaderSettings();
+    await loadAppInfo();
+  }
+
+  Future<void> loadAppInfo() async {
+    try {
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      logger.i(
+        'Loaded app info: ${packageInfo.appName} ${packageInfo.version}+${packageInfo.buildNumber}',
+      );
+      _appVersion = packageInfo.version;
+      _buildNumber = packageInfo.buildNumber;
+      notifyListeners();
+    } catch (e) {
+      _appVersion = 'Unknown';
+      logger.e('Error loading app info: $e');
+      notifyListeners();
+    }
   }
 
   /// Load downloader settings from SharedPreferences

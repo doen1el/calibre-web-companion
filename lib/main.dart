@@ -1,9 +1,11 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
+import 'package:calibre_web_companion/view_models/book_metadata_edit_view_model.dart';
 import 'package:calibre_web_companion/view_models/books_view_model.dart';
 import 'package:calibre_web_companion/view_models/download_service_view_model.dart';
 import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
+import 'package:calibre_web_companion/view_models/login_settings_view_model.dart';
 import 'package:calibre_web_companion/view_models/login_view_model.dart';
 import 'package:calibre_web_companion/view_models/main_view_model.dart';
 import 'package:calibre_web_companion/view_models/me_view_model.dart';
@@ -34,6 +36,10 @@ void main() {
         ),
         ChangeNotifierProvider(create: (_) => DownloadServiceViewModel()),
         ChangeNotifierProvider(create: (_) => ShelfViewModel()..loadShelfs()),
+        ChangeNotifierProvider(
+          create: (_) => LoginSettingsViewModel()..loadHeaders(),
+        ),
+        ChangeNotifierProvider(create: (_) => BookMetadataEditViewModel()),
       ],
       child: const MyApp(),
     ),

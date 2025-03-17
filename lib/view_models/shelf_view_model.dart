@@ -309,8 +309,6 @@ class ShelfViewModel extends ChangeNotifier {
       if (response.statusCode == 200) {
         logger.i('Successfully got shelf');
 
-        logger.d(response.body);
-
         _currentShelf = parseShelfHtml(response.body);
         return _currentShelf;
       } else {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -7,12 +8,23 @@ import 'package:calibre_web_companion/utils/json_service.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
+import 'package:url_launcher/url_launcher.dart';
 
 class BookDetailsViewModel extends ChangeNotifier {
   final JsonService _jsonService = JsonService();
+
+  BookItem? _currentBook;
+  BookItem? get currentBook => _currentBook;
+
+  final _bookReloadController = StreamController<String>.broadcast();
+  Stream<String> get bookReloadStream => _bookReloadController.stream;
+
+  bool _isReloading = false;
+  bool get isReloading => _isReloading;
 
   Logger logger = Logger();
   String? errorMessage;
@@ -32,16 +44,75 @@ class BookDetailsViewModel extends ChangeNotifier {
   bool _isArchivedLoading = false;
   bool get isArchivedLoading => _isArchivedLoading;
 
+  @override
+  void dispose() {
+    _bookReloadController.close();
+    super.dispose();
+  }
+
   /// Fetch the book details from the server
   ///
   /// Parameters:
   ///
   /// - `bookUuid`: The unique identifier of the book
-  Future<BookItem> fetchBook({required String bookUuid}) async {
+  Future<void> fetchBook({required String bookUuid}) async {
     BookItem book = await _jsonService.fetchBook(bookUuid: bookUuid);
 
+    // Set current book and notify
+    _currentBook = book;
+
     await checkIfBookIsRead(book.id);
-    return book;
+
+    await checkIfBookIsBookArchived(book.id);
+
+    // Notify listeners of the update
+    notifyListeners();
+  }
+
+  /// Reload the book from the server and show loading indicator
+  ///
+  /// Parameters:
+  ///
+  /// - `bookUuid`: The unique identifier of the book
+  Future<BookItem?> reloadBook({required String bookUuid}) async {
+    try {
+      logger.i('Reloading book: $bookUuid');
+      _isReloading = true;
+      notifyListeners();
+
+      // Wait for a short delay to show loading indicator
+      await Future.delayed(Duration(milliseconds: 300));
+
+      // Fetch the book details
+      await fetchBook(bookUuid: bookUuid);
+
+      // Trigger a reload event
+      _bookReloadController.add(bookUuid);
+
+      return _currentBook;
+    } catch (e) {
+      logger.e('Error reloading book: $e');
+      errorMessage = 'Error reloading: $e';
+      return null;
+    } finally {
+      _isReloading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Check and request storage permissions
+  Future<bool> checkAndRequestPermissions() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.manageExternalStorage.status;
+      if (!status.isGranted) {
+        final result = await Permission.manageExternalStorage.request();
+        return result.isGranted;
+      } else if (status.isPermanentlyDenied) {
+        await openAppSettings();
+      }
+      return true;
+    }
+    return true;
   }
 
   /// Fetch the book details from the server
@@ -67,8 +138,6 @@ class BookDetailsViewModel extends ChangeNotifier {
 
       final apiService = ApiService();
       final baseUrl = apiService.getBaseUrl();
-      final username = apiService.getUsername();
-      final password = apiService.getPassword();
 
       if (baseUrl.isEmpty) {
         logger.w('No server URL found');
@@ -103,7 +172,21 @@ class BookDetailsViewModel extends ChangeNotifier {
         );
 
         if (response.statusCode == 200) {
+          if (!await checkAndRequestPermissions()) {
+            errorMessage = 'Storage permission denied';
+            return false;
+          }
+
           final file = File(filePath);
+
+          try {
+            await Directory(path.dirname(filePath)).create(recursive: true);
+          } catch (e) {
+            logger.e('Error creating directory: $e');
+            errorMessage = 'Could not create directory: $e';
+            return false;
+          }
+
           final sink = file.openWrite();
           int receivedBytes = 0;
 
@@ -121,6 +204,10 @@ class BookDetailsViewModel extends ChangeNotifier {
               }
               notifyListeners();
             }
+          } catch (e) {
+            logger.e('Error while downloading book: $e');
+            errorMessage = 'Download error: $e';
+            return false;
           } finally {
             await sink.flush();
             await sink.close();
@@ -379,7 +466,6 @@ class BookDetailsViewModel extends ChangeNotifier {
       );
 
       logger.i('POST response status: ${postResponse.statusCode}');
-      logger.d('POST response body: ${postResponse.body}');
 
       return postResponse;
     } finally {
@@ -568,6 +654,72 @@ class BookDetailsViewModel extends ChangeNotifier {
     } finally {
       _isArchivedLoading = false;
 
+      notifyListeners();
+    }
+  }
+
+  Future<void> openInBrowser(BookItem book) async {
+    final apiService = ApiService();
+    final baseUrl = apiService.getBaseUrl();
+
+    if (baseUrl.isEmpty) {
+      logger.w('No server URL found');
+      errorMessage = 'Server URL missing';
+      return;
+    }
+
+    final Uri url = Uri.parse('$baseUrl/book/${book.id}');
+
+    try {
+      if (!await launchUrl(url)) {
+        throw Exception('Could not launch $url');
+      }
+      logger.i("Opened book in browser: $url");
+    } catch (e) {
+      logger.e('Error opening book in browser: $e');
+      errorMessage = 'Error: $e';
+    }
+  }
+
+  /// Check if the book is archived
+  ///
+  /// Parameters:
+  ///
+  /// - `bookId`: The unique identifier of the book
+  /// Check if the book is archived
+  ///
+  /// Parameters:
+  ///
+  /// - `bookId`: The unique identifier of the book
+  Future<bool> checkIfBookIsBookArchived(String bookId) async {
+    ApiService apiService = ApiService();
+
+    try {
+      final path = '/archived/stored/';
+
+      final response = await apiService.get(path, AuthMethod.cookie);
+
+      logger.d("Checking if book $bookId is archived");
+      logger.d("Response status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final pattern = 'href="/book/$bookId"';
+
+        final isArchived = response.body.contains(pattern);
+
+        _isArchived = isArchived;
+        logger.i("Book $bookId archived status: $isArchived");
+
+        return isArchived;
+      } else {
+        logger.w("Failed to check archived status: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      logger.e('Error checking if book is archived: $e');
+      errorMessage = 'Error checking archive status: $e';
+      return false;
+    } finally {
       notifyListeners();
     }
   }
