@@ -63,6 +63,8 @@ class BookDetailsViewModel extends ChangeNotifier {
 
     await checkIfBookIsRead(book.id);
 
+    await checkIfBookIsBookArchived(book.id);
+
     // Notify listeners of the update
     notifyListeners();
   }
@@ -464,7 +466,6 @@ class BookDetailsViewModel extends ChangeNotifier {
       );
 
       logger.i('POST response status: ${postResponse.statusCode}');
-      logger.d('POST response body: ${postResponse.body}');
 
       return postResponse;
     } finally {
@@ -677,6 +678,49 @@ class BookDetailsViewModel extends ChangeNotifier {
     } catch (e) {
       logger.e('Error opening book in browser: $e');
       errorMessage = 'Error: $e';
+    }
+  }
+
+  /// Check if the book is archived
+  ///
+  /// Parameters:
+  ///
+  /// - `bookId`: The unique identifier of the book
+  /// Check if the book is archived
+  ///
+  /// Parameters:
+  ///
+  /// - `bookId`: The unique identifier of the book
+  Future<bool> checkIfBookIsBookArchived(String bookId) async {
+    ApiService apiService = ApiService();
+
+    try {
+      final path = '/archived/stored/';
+
+      final response = await apiService.get(path, AuthMethod.cookie);
+
+      logger.d("Checking if book $bookId is archived");
+      logger.d("Response status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final pattern = 'href="/book/$bookId"';
+
+        final isArchived = response.body.contains(pattern);
+
+        _isArchived = isArchived;
+        logger.i("Book $bookId archived status: $isArchived");
+
+        return isArchived;
+      } else {
+        logger.w("Failed to check archived status: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      logger.e('Error checking if book is archived: $e');
+      errorMessage = 'Error checking archive status: $e';
+      return false;
+    } finally {
+      notifyListeners();
     }
   }
 }

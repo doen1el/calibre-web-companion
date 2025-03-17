@@ -197,5 +197,9 @@
   "updateFailed": "Aktualisierung fehlgeschlagen",
   "save": "Speichern",
   "separateWithCommas": "Mit Kommas trennen",
-  "ratingOneToTen": "Bewertung (1-10)"
+  "ratingOneToTen": "Bewertung (1-10)",
+  "markedAsUnreadSuccessfully": "Erfolgreich als ungelesen markiert",
+  "markedAsUnreadFailed": "Fehler beim Markieren als ungelesen",
+  "unarchivedBookSuccessfully": "Buch erfolgreich aus der Archivierung geholt",
+  "unarchivedBookFailed": "Fehler beim Aufheben der Archivierung des Buches"
 }

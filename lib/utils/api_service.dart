@@ -65,8 +65,8 @@ class ApiService {
   }) async {
     final response = await get(endpoint, authMethod, queryParams: queryParams);
     try {
-      if (response.body.length > 100) {
-        _logger.d('Response body: ${response.body.substring(0, 100)}...');
+      if (response.body.length > 50) {
+        _logger.d('Response body: ${response.body.substring(0, 50)}...');
       } else {
         _logger.d('Response body: ${response.body}');
       }

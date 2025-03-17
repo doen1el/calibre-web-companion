@@ -480,18 +480,32 @@ class _BookDetailsState extends State<BookDetails> {
           onPressed:
               isLoading
                   ? null
-                  : () =>
-                      Provider.of<BookDetailsViewModel>(context, listen: false)
-                          .toggleReadStatus(book.id)
-                          .then(
-                            // ignore: use_build_context_synchronously
-                            (res) => context.showSnackBar(
-                              res
+                  : () => Provider.of<BookDetailsViewModel>(
+                        context,
+                        listen: false,
+                      )
+                      .toggleReadStatus(book.id)
+                      .then(
+                        // ignore: use_build_context_synchronously
+                        (res) => context.showSnackBar(
+                          res
+                              ? (Provider.of<BookDetailsViewModel>(
+                                    // ignore: use_build_context_synchronously
+                                    context,
+                                    listen: false,
+                                  ).isBookRead
                                   ? localizations.markedAsReadSuccessfully
-                                  : localizations.markedAsReadFailed,
-                              isError: !res,
-                            ),
-                          ),
+                                  : localizations.markedAsUnreadSuccessfully)
+                              : (Provider.of<BookDetailsViewModel>(
+                                    // ignore: use_build_context_synchronously
+                                    context,
+                                    listen: false,
+                                  ).isBookRead
+                                  ? localizations.markedAsReadFailed
+                                  : localizations.markedAsUnreadFailed),
+                          isError: !res,
+                        ),
+                      ),
           tooltip: localizations.markAsReadUnread,
         ),
         // Archive/Unarchive toggle
@@ -500,14 +514,16 @@ class _BookDetailsState extends State<BookDetails> {
             backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
             child:
                 Provider.of<BookDetailsViewModel>(context).isArchivedLoading
-                    ? SizedBox(
+                    ? const SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 3),
                     )
-                    : Provider.of<BookDetailsViewModel>(context).isArchived
-                    ? Icon(Icons.delete)
-                    : Icon(Icons.delete_outline),
+                    : Icon(
+                      Provider.of<BookDetailsViewModel>(context).isArchived
+                          ? Icons.archive
+                          : Icons.unarchive,
+                    ),
           ),
           onPressed:
               isLoading
@@ -521,8 +537,20 @@ class _BookDetailsState extends State<BookDetails> {
                     // ignore: use_build_context_synchronously
                     context.showSnackBar(
                       success
-                          ? localizations.archivedBookSuccessfully
-                          : localizations.archivedBookFailed,
+                          ? (Provider.of<BookDetailsViewModel>(
+                                // ignore: use_build_context_synchronously
+                                context,
+                                listen: false,
+                              ).isArchived
+                              ? localizations.archivedBookSuccessfully
+                              : localizations.unarchivedBookSuccessfully)
+                          : (Provider.of<BookDetailsViewModel>(
+                                // ignore: use_build_context_synchronously
+                                context,
+                                listen: false,
+                              ).isArchived
+                              ? localizations.archivedBookFailed
+                              : localizations.unarchivedBookFailed),
                       isError: !success,
                     );
                   },

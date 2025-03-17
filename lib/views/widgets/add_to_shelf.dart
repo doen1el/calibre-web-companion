@@ -311,7 +311,7 @@ class AddToShelfState extends State<AddToShelf> {
     try {
       if (isInShelf) {
         success = await viewModel.removeFromShelf(shelf.id, widget.book.id);
-        if (success) {
+        if (mounted) {
           setState(() {
             _containingShelves.removeWhere((s) => s.id == shelf.id);
           });
@@ -329,7 +329,7 @@ class AddToShelfState extends State<AddToShelf> {
         }
       } else {
         success = await viewModel.addToShelf(shelf.id, widget.book.id);
-        if (success) {
+        if (mounted) {
           setState(() {
             _containingShelves.add(shelf);
           });

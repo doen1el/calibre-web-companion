@@ -22,7 +22,7 @@ class JsonService {
         AuthMethod.basic,
       );
 
-      logger.d(response.body);
+      // logger.d(response.body);
 
       if (response.statusCode == 200) {
         try {

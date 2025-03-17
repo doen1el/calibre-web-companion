@@ -197,5 +197,9 @@
   "updateFailed": "Error al actualizar",
   "save": "Guardar",
   "separateWithCommas": "Separar con comas",
-  "ratingOneToTen": "Calificación (1-10)"
+  "ratingOneToTen": "Calificación (1-10)",
+  "markedAsUnreadSuccessfully": "Marcado como no leído con éxito",
+  "markedAsUnreadFailed": "Error al marcar como no leído",
+  "unarchivedBookSuccessfully": "Libro desarchivado con éxito",
+  "unarchivedBookFailed": "Error al desarchivar el libro"
 }
