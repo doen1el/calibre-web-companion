@@ -452,6 +452,15 @@ class _BookDetailsState extends State<BookDetails> {
     );
   }
 
+  /// Builds the book actions row
+  ///
+  /// Parameters:
+  ///
+  /// - [context]: The current build context
+  /// - [viewModel]: The view model for the book details
+  /// - [localizations]: The localized strings
+  /// - [book]: The book item to display
+  /// - [isLoading]: Whether the book is currently loading
   Widget _buildBookActions(
     BuildContext context,
     BookDetailsViewModel viewModel,
@@ -459,121 +468,124 @@ class _BookDetailsState extends State<BookDetails> {
     BookItem book,
     bool isLoading,
   ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        // Read/Unread toggle
-        IconButton(
-          icon: CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-            child:
-                Provider.of<BookDetailsViewModel>(context).isReadToggleLoading
-                    ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 3),
-                    )
-                    : Provider.of<BookDetailsViewModel>(context).isBookRead
-                    ? Icon(Icons.visibility)
-                    : Icon(Icons.visibility_off),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          // Read/Unread toggle
+          IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              child:
+                  Provider.of<BookDetailsViewModel>(context).isReadToggleLoading
+                      ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      )
+                      : Provider.of<BookDetailsViewModel>(context).isBookRead
+                      ? Icon(Icons.visibility)
+                      : Icon(Icons.visibility_off),
+            ),
+            onPressed:
+                isLoading
+                    ? null
+                    : () => Provider.of<BookDetailsViewModel>(
+                          context,
+                          listen: false,
+                        )
+                        .toggleReadStatus(book.id)
+                        .then(
+                          // ignore: use_build_context_synchronously
+                          (res) => context.showSnackBar(
+                            res
+                                ? (Provider.of<BookDetailsViewModel>(
+                                      // ignore: use_build_context_synchronously
+                                      context,
+                                      listen: false,
+                                    ).isBookRead
+                                    ? localizations.markedAsReadSuccessfully
+                                    : localizations.markedAsUnreadSuccessfully)
+                                : (Provider.of<BookDetailsViewModel>(
+                                      // ignore: use_build_context_synchronously
+                                      context,
+                                      listen: false,
+                                    ).isBookRead
+                                    ? localizations.markedAsReadFailed
+                                    : localizations.markedAsUnreadFailed),
+                            isError: !res,
+                          ),
+                        ),
+            tooltip: localizations.markAsReadUnread,
           ),
-          onPressed:
-              isLoading
-                  ? null
-                  : () => Provider.of<BookDetailsViewModel>(
+          // Archive/Unarchive toggle
+          IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              child:
+                  Provider.of<BookDetailsViewModel>(context).isArchivedLoading
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      )
+                      : Icon(
+                        Provider.of<BookDetailsViewModel>(context).isArchived
+                            ? Icons.archive
+                            : Icons.unarchive,
+                      ),
+            ),
+            onPressed:
+                isLoading
+                    ? null
+                    : () async {
+                      bool success = await Provider.of<BookDetailsViewModel>(
                         context,
                         listen: false,
-                      )
-                      .toggleReadStatus(book.id)
-                      .then(
-                        // ignore: use_build_context_synchronously
-                        (res) => context.showSnackBar(
-                          res
-                              ? (Provider.of<BookDetailsViewModel>(
-                                    // ignore: use_build_context_synchronously
-                                    context,
-                                    listen: false,
-                                  ).isBookRead
-                                  ? localizations.markedAsReadSuccessfully
-                                  : localizations.markedAsUnreadSuccessfully)
-                              : (Provider.of<BookDetailsViewModel>(
-                                    // ignore: use_build_context_synchronously
-                                    context,
-                                    listen: false,
-                                  ).isBookRead
-                                  ? localizations.markedAsReadFailed
-                                  : localizations.markedAsUnreadFailed),
-                          isError: !res,
-                        ),
-                      ),
-          tooltip: localizations.markAsReadUnread,
-        ),
-        // Archive/Unarchive toggle
-        IconButton(
-          icon: CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-            child:
-                Provider.of<BookDetailsViewModel>(context).isArchivedLoading
-                    ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 3),
-                    )
-                    : Icon(
-                      Provider.of<BookDetailsViewModel>(context).isArchived
-                          ? Icons.archive
-                          : Icons.unarchive,
-                    ),
-          ),
-          onPressed:
-              isLoading
-                  ? null
-                  : () async {
-                    bool success = await Provider.of<BookDetailsViewModel>(
-                      context,
-                      listen: false,
-                    ).toggleArchivedStatus(book.id);
+                      ).toggleArchivedStatus(book.id);
 
-                    // ignore: use_build_context_synchronously
-                    context.showSnackBar(
-                      success
-                          ? (Provider.of<BookDetailsViewModel>(
-                                // ignore: use_build_context_synchronously
-                                context,
-                                listen: false,
-                              ).isArchived
-                              ? localizations.archivedBookSuccessfully
-                              : localizations.unarchivedBookSuccessfully)
-                          : (Provider.of<BookDetailsViewModel>(
-                                // ignore: use_build_context_synchronously
-                                context,
-                                listen: false,
-                              ).isArchived
-                              ? localizations.archivedBookFailed
-                              : localizations.unarchivedBookFailed),
-                      isError: !success,
-                    );
-                  },
-          tooltip: localizations.archiveUnarchive,
-        ),
-        EditBookMetadata(
-          book: book,
-          isLoading: isLoading,
-          viewModel: viewModel,
-        ),
-        AddToShelf(book: book, isLoading: isLoading),
-        DownloadToDevice(book: book, isLoading: isLoading),
-        IconButton(
-          icon: CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-            child: Icon(Icons.open_in_browser_rounded),
+                      // ignore: use_build_context_synchronously
+                      context.showSnackBar(
+                        success
+                            ? (Provider.of<BookDetailsViewModel>(
+                                  // ignore: use_build_context_synchronously
+                                  context,
+                                  listen: false,
+                                ).isArchived
+                                ? localizations.archivedBookSuccessfully
+                                : localizations.unarchivedBookSuccessfully)
+                            : (Provider.of<BookDetailsViewModel>(
+                                  // ignore: use_build_context_synchronously
+                                  context,
+                                  listen: false,
+                                ).isArchived
+                                ? localizations.archivedBookFailed
+                                : localizations.unarchivedBookFailed),
+                        isError: !success,
+                      );
+                    },
+            tooltip: localizations.archiveUnarchive,
           ),
-          onPressed: () async {
-            await viewModel.openInBrowser(book);
-          },
-          tooltip: localizations.openBookInBrowser,
-        ),
-      ],
+          EditBookMetadata(
+            book: book,
+            isLoading: isLoading,
+            viewModel: viewModel,
+          ),
+          AddToShelf(book: book, isLoading: isLoading),
+          DownloadToDevice(book: book, isLoading: isLoading),
+          IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              child: Icon(Icons.open_in_browser_rounded),
+            ),
+            onPressed: () async {
+              await viewModel.openInBrowser(book);
+            },
+            tooltip: localizations.openBookInBrowser,
+          ),
+        ],
+      ),
     );
   }
 
