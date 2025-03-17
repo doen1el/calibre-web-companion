@@ -167,53 +167,52 @@ class _EditBookMetadataState extends State<EditBookMetadata> {
           ),
           const SizedBox(height: 16),
 
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: TextFormField(
-                  controller: model.seriesController,
-                  decoration: InputDecoration(labelText: localizations.series),
-                  enabled: !model.isLoading,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  controller: model.seriesIndexController,
-                  decoration: InputDecoration(labelText: localizations.book),
-                  keyboardType: TextInputType.number,
-                  enabled: !model.isLoading,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+          // Row(
+          //   children: [
+          //     Expanded(
+          //       flex: 2,
+          //       child: TextFormField(
+          //         controller: model.seriesController,
+          //         decoration: InputDecoration(labelText: localizations.series),
+          //         enabled: !model.isLoading,
+          //       ),
+          //     ),
+          //     const SizedBox(width: 8),
+          //     Expanded(
+          //       child: TextFormField(
+          //         controller: model.seriesIndexController,
+          //         decoration: InputDecoration(labelText: localizations.book),
+          //         keyboardType: TextInputType.number,
+          //         enabled: !model.isLoading,
+          //       ),
+          //     ),
+          //   ],
+          // ),
+          // const SizedBox(height: 16),
 
-          TextFormField(
-            controller: model.ratingController,
-            decoration: InputDecoration(
-              labelText: localizations.rating,
-              helperText: localizations.ratingOneToTen,
-            ),
-            keyboardType: TextInputType.number,
-            enabled: !model.isLoading,
-          ),
-          const SizedBox(height: 16),
+          // TextFormField(
+          //   controller: model.ratingController,
+          //   decoration: InputDecoration(
+          //     labelText: localizations.rating,
+          //     helperText: localizations.ratingOneToTen,
+          //   ),
+          //   keyboardType: TextInputType.number,
+          //   enabled: !model.isLoading,
+          // ),
+          // const SizedBox(height: 16),
 
-          TextFormField(
-            controller: model.publisherController,
-            decoration: InputDecoration(labelText: localizations.publisher),
-            enabled: !model.isLoading,
-          ),
-          const SizedBox(height: 16),
+          // TextFormField(
+          //   controller: model.publisherController,
+          //   decoration: InputDecoration(labelText: localizations.publisher),
+          //   enabled: !model.isLoading,
+          // ),
+          // const SizedBox(height: 16),
 
-          TextFormField(
-            controller: model.languageController,
-            decoration: InputDecoration(labelText: localizations.language),
-            enabled: !model.isLoading,
-          ),
-
+          // TextFormField(
+          //   controller: model.languageController,
+          //   decoration: InputDecoration(labelText: localizations.language),
+          //   enabled: !model.isLoading,
+          // ),
           if (model.errorMessage != null) ...[
             const SizedBox(height: 16),
             Text(
