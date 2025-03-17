@@ -1,0 +1,1 @@
+Unofficial companion app for calibre web (automated)

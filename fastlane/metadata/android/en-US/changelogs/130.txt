@@ -1,0 +1,8 @@
+- updated feedback when editing books
+- added shelf functionality (edit, delete, create)
+- updated loading indicators
+- fixed order by added date desc
+
+- Fixed #9: Default language is now English
+- Fixed #8: Book is now completely downloaded to device
+- Fixed #4: Books will now be added to shelf

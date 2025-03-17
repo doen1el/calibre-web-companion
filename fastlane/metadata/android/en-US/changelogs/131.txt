@@ -1,0 +1,3 @@
+- updated package name
+- added icon to ios build
+- updated feature graphics in readme

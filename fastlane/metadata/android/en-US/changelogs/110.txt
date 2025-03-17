@@ -1,0 +1,5 @@
+- edited workflow
+- added localization for en, de, es, fr
+- you can now switch between kindle and kobo mode when uploading
+- added theme modes (dark mode)
+- added loading skeleton for book details

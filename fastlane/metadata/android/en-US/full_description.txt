@@ -1,0 +1,35 @@
+Unofficial companion application for Calibre Web and Calibre Web Automated that lets you browse your book collection and manage your digital library on the go.
+
+Built with <b>Flutter</b> and <b>Material You</b> to deliver a modern, intuitive and responsive user experience.
+
+<b>Supported features:</b>
+<ul>
+    <li>Browse your Calibre Web library</li>
+    <ul>
+        <li>View books by author, series, trending, and more</li>
+        <li>View detailed book information</li>
+        <li>Access comprehensive collection statistics</li>
+    </ul>
+    <li>Library management</li>
+    <ul>
+        <li>Mark books as read or unread</li>
+        <li>Archive and unarchive books</li>
+        <li>Organize books into shelves</li>
+        <li>Manage and customize your shelves</li>
+    </ul>
+    <li>Reading & devices</li>
+    <ul>
+        <li>Download books directly to your device</li>
+        <li>Send books to your e-reader (Kindle/Kobo) via send2ereader</li>
+        <li>Use Calibre Web's mail function for device delivery</li>
+    </ul>
+    <li>Automation integration</li>
+    <ul>
+        <li>Works with Calibre Web Automated</li>
+        <li>Automatically download books with calibre-web-automated-book-downloader</li>
+    </ul>
+</ul>
+
+Please note that the app is currently in active development. You can open issues on GitHub for bugs, feedback, and feature ideas.
+
+Credits: Calibre Web, Calibre Web Automated, send2ereader, calibre-web-automated-book-downloader

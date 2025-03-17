@@ -1,0 +1,2 @@
+- added animation for stats numbers
+- added instruction how to get app via obtainium
