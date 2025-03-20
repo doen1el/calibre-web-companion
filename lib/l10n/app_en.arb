@@ -218,5 +218,12 @@
   "lightBlue": "Light blue",
   "lime": "Lime",
   "teal": "Teal",
-  "appVersion": "App version"
+  "appVersion": "App version",
+  "bookRecommendations": "Book recommendations",
+  "recommendations": "Recommendations",
+  "selectABookFromYourLibrary": "Select a book from your library",
+  "searchRecommendations": "Search recommendations",
+  "selectBook": "Select book",
+  "selectABookToGetRecommendations": "Select a book to get recommendations",
+  "noRecommendationsFoundForThisBook": "No recommendations found for this book"
 }

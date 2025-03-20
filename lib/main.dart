@@ -2,6 +2,7 @@ import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/view_models/book_metadata_edit_view_model.dart';
+import 'package:calibre_web_companion/view_models/book_recommendation_view_model.dart';
 import 'package:calibre_web_companion/view_models/books_view_model.dart';
 import 'package:calibre_web_companion/view_models/download_service_view_model.dart';
 import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
@@ -56,6 +57,7 @@ void main() async {
           create: (_) => LoginSettingsViewModel()..loadHeaders(),
         ),
         ChangeNotifierProvider(create: (_) => BookMetadataEditViewModel()),
+        ChangeNotifierProvider(create: (_) => BookRecommendationsViewModel()),
       ],
       child: MyApp(savedThemeMode: savedThemeMode),
     ),
