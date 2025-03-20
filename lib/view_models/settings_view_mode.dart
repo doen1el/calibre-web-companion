@@ -4,11 +4,54 @@ import 'package:logger/logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+enum ThemeSource { system, custom }
+
+AdaptiveThemeMode? _lastSavedThemeMode;
+
 class SettingsViewModel extends ChangeNotifier {
   var logger = Logger();
 
+  final GlobalKey<NavigatorState> navigatorKey;
+  final String initialColorKey;
+  final ThemeSource initialThemeSource;
+
+  SettingsViewModel({
+    required this.navigatorKey,
+    this.initialColorKey = 'lightGreen',
+    this.initialThemeSource = ThemeSource.custom,
+  }) {
+    _selectedColorKey = initialColorKey;
+    _selectedColor = predefinedColors[initialColorKey] ?? Colors.lightGreen;
+    _themeSource = initialThemeSource;
+  }
   // Properties
   ThemeMode _currentTheme = ThemeMode.system;
+  ThemeSource _themeSource = ThemeSource.custom;
+
+  MaterialColor _selectedColor = Colors.lightGreen;
+  String _selectedColorKey = 'lightGreen';
+
+  // Define predefined colors as a static Map for easier access in the view
+  static final Map<String, MaterialColor> predefinedColors = {
+    'lightGreen': Colors.lightGreen,
+    'amber': Colors.amber,
+    'blueGrey': Colors.blueGrey,
+    'grey': Colors.grey,
+    'lightBlue': Colors.lightBlue,
+    'lime': Colors.lime,
+    'teal': Colors.teal,
+  };
+
+  final Map<String, String> predefinedColorNames = {
+    'lightGreen': 'Light Green',
+    'amber': 'Amber',
+    'blueGrey': 'Blue Grey',
+    'grey': 'Grey',
+    'lightBlue': 'Light Blue',
+    'lime': 'Lime',
+    'teal': 'Teal',
+  };
+
   bool _isDownloaderEnabled = false;
   String _downloaderUrl = '';
   final TextEditingController downloaderUrlController = TextEditingController();
@@ -17,6 +60,9 @@ class SettingsViewModel extends ChangeNotifier {
 
   // Getters
   ThemeMode get currentTheme => _currentTheme;
+  ThemeSource get themeSource => _themeSource;
+  MaterialColor get selectedColor => _selectedColor;
+  String get selectedColorKey => _selectedColorKey;
   bool get isDownloaderEnabled => _isDownloaderEnabled;
   String get downloaderUrl => _downloaderUrl;
   String get appVersion => _appVersion ?? '';
@@ -24,10 +70,12 @@ class SettingsViewModel extends ChangeNotifier {
 
   Future<void> loadSettings() async {
     await loadCurrentTheme();
+    await loadThemeSourceAndColor();
     await loadDownloaderSettings();
     await loadAppInfo();
   }
 
+  /// Load the theme source and selected color from SharedPreferences
   Future<void> loadAppInfo() async {
     try {
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -44,6 +92,59 @@ class SettingsViewModel extends ChangeNotifier {
     }
   }
 
+  /// Loads the theme source and color from SharedPreferences
+  Future<void> loadThemeSourceAndColor() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final sourceIndex =
+          prefs.getInt('theme_source') ?? initialThemeSource.index;
+      _themeSource = ThemeSource.values[sourceIndex];
+
+      _selectedColorKey = prefs.getString('theme_color_key') ?? initialColorKey;
+      _selectedColor = predefinedColors[_selectedColorKey] ?? Colors.lightGreen;
+
+      logger.i('Loaded theme source: $_themeSource, color: $_selectedColor');
+      notifyListeners();
+    } catch (e) {
+      logger.e('Error loading theme source and color: $e');
+    }
+  }
+
+  /// Set the selected color
+  ///
+  /// Parameters:
+  ///
+  /// - `source`: The new theme source
+  Future<void> setThemeSource(ThemeSource source) async {
+    if (_themeSource == source) return;
+
+    _themeSource = source;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('theme_source', source.index);
+
+    notifyListeners();
+  }
+
+  /// Set the selected color
+  ///
+  /// Parameters:
+  ///
+  /// - `colorKey`: The key of the selected color
+  Future<void> setSelectedColor(String colorKey) async {
+    if (_selectedColorKey == colorKey) return;
+    if (!predefinedColors.containsKey(colorKey)) return;
+
+    _selectedColorKey = colorKey;
+    _selectedColor = predefinedColors[colorKey]!;
+    _themeSource = ThemeSource.custom;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('theme_color_key', colorKey);
+    await prefs.setInt('theme_source', ThemeSource.custom.index);
+
+    notifyListeners();
+  }
+
   /// Load downloader settings from SharedPreferences
   Future<void> loadDownloaderSettings() async {
     try {
@@ -58,6 +159,10 @@ class SettingsViewModel extends ChangeNotifier {
   }
 
   /// Toggle downloader enabled state
+  ///
+  /// Parameters:
+  ///
+  /// - `value`: The new value
   Future<void> toggleDownloader(bool value) async {
     _isDownloaderEnabled = value;
     final prefs = await SharedPreferences.getInstance();
@@ -66,6 +171,10 @@ class SettingsViewModel extends ChangeNotifier {
   }
 
   /// Set downloader URL
+  ///
+  /// Parameters:
+  ///
+  /// - `url`: The new URL
   Future<void> setDownloaderUrl(String url) async {
     _downloaderUrl = url;
     final prefs = await SharedPreferences.getInstance();
@@ -76,24 +185,15 @@ class SettingsViewModel extends ChangeNotifier {
   /// Load the current theme from the system settings
   Future<void> loadCurrentTheme() async {
     try {
-      final mode = await AdaptiveTheme.getThemeMode();
+      final prefs = await SharedPreferences.getInstance();
+      final themeModeIndex =
+          prefs.getInt('theme_mode') ?? ThemeMode.system.index;
+      _currentTheme = ThemeMode.values[themeModeIndex];
 
-      switch (mode) {
-        case AdaptiveThemeMode.light:
-          _currentTheme = ThemeMode.light;
-          break;
-        case AdaptiveThemeMode.dark:
-          _currentTheme = ThemeMode.dark;
-          break;
-        case AdaptiveThemeMode.system:
-          _currentTheme = ThemeMode.system;
-          break;
-        default:
-          _currentTheme = ThemeMode.system;
-          break;
-      }
+      logger.i('Loaded theme mode: $_currentTheme');
     } catch (e) {
-      logger.e('Error loading current theme, $e');
+      logger.e('Error loading current theme: $e');
+      _currentTheme = ThemeMode.system;
     }
   }
 
@@ -103,21 +203,29 @@ class SettingsViewModel extends ChangeNotifier {
   ///
   /// - `context`: The current build context
   /// - `themeMode`: The theme mode to set
-  void setTheme(BuildContext context, ThemeMode themeMode) {
+  Future<void> setTheme(ThemeMode themeMode) async {
     if (_currentTheme == themeMode) return;
 
     _currentTheme = themeMode;
 
-    switch (themeMode) {
-      case ThemeMode.light:
-        AdaptiveTheme.of(context).setLight();
-        break;
-      case ThemeMode.dark:
-        AdaptiveTheme.of(context).setDark();
-        break;
-      case ThemeMode.system:
-        AdaptiveTheme.of(context).setSystem();
-        break;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('theme_mode', themeMode.index);
+    logger.i('Set theme mode: $themeMode');
+
+    try {
+      switch (themeMode) {
+        case ThemeMode.light:
+          _lastSavedThemeMode = AdaptiveThemeMode.light;
+          break;
+        case ThemeMode.dark:
+          _lastSavedThemeMode = AdaptiveThemeMode.dark;
+          break;
+        case ThemeMode.system:
+          _lastSavedThemeMode = AdaptiveThemeMode.system;
+          break;
+      }
+    } catch (e) {
+      logger.e('Error setting AdaptiveTheme: $e');
     }
 
     notifyListeners();

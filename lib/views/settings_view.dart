@@ -22,6 +22,7 @@ class SettingsView extends StatelessWidget {
           children: [
             _buildSectionTitle(context, localizations.appearance),
             _buildThemeSelector(context, settingsViewModel, localizations),
+            _buildColorThemeSelector(context, settingsViewModel, localizations),
 
             const SizedBox(height: 24),
             _buildSectionTitle(context, localizations.connection),
@@ -37,9 +38,152 @@ class SettingsView extends StatelessWidget {
 
             const SizedBox(height: 24),
             _buildSectionTitle(context, localizations.about),
-            _buildVersionCard(context, settingsViewModel),
+            _buildVersionCard(context, settingsViewModel, localizations),
 
             const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds the color theme selector
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `viewModel`: The settings view model
+  /// - `localizations`: The current localizations
+  Widget _buildColorThemeSelector(
+    BuildContext context,
+    SettingsViewModel viewModel,
+    AppLocalizations localizations,
+  ) {
+    BorderRadius borderRadius = BorderRadius.circular(8.0);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.palette,
+                  size: 28,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    localizations.themeColor,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                DropdownButton<ThemeSource>(
+                  value: viewModel.themeSource,
+                  underline: Container(),
+                  onChanged: (ThemeSource? newValue) {
+                    if (newValue != null) {
+                      viewModel.setThemeSource(newValue);
+                    }
+                  },
+                  items: [
+                    DropdownMenuItem(
+                      value: ThemeSource.system,
+                      child: Text(localizations.system),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeSource.custom,
+                      child: Text(localizations.custom),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            if (viewModel.themeSource == ThemeSource.custom) ...[
+              const SizedBox(height: 16),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children:
+                      SettingsViewModel.predefinedColors.entries.map((entry) {
+                        final isSelected =
+                            viewModel.selectedColorKey == entry.key;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 12.0),
+                          child: Column(
+                            children: [
+                              InkWell(
+                                onTap:
+                                    () => viewModel.setSelectedColor(entry.key),
+                                borderRadius: BorderRadius.circular(30),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  width: 50,
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    color: entry.value,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color:
+                                          isSelected
+                                              ? Theme.of(
+                                                context,
+                                              ).colorScheme.primary
+                                              : Colors.transparent,
+                                      width: 3,
+                                    ),
+                                    boxShadow:
+                                        isSelected
+                                            ? [
+                                              BoxShadow(
+                                                // ignore: deprecated_member_use
+                                                color: entry.value.withOpacity(
+                                                  0.5,
+                                                ),
+                                                blurRadius: 6,
+                                                spreadRadius: 1,
+                                              ),
+                                            ]
+                                            : null,
+                                  ),
+                                  child:
+                                      isSelected
+                                          ? const Icon(
+                                            Icons.check,
+                                            color: Colors.white,
+                                          )
+                                          : null,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(viewModel.predefinedColorNames[entry.key]!),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                ),
+              ),
+            ],
+
+            if (viewModel.themeSource == ThemeSource.system) ...[
+              const SizedBox(height: 12),
+              Text(
+                localizations.systemThemeDescription,
+
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -139,6 +283,12 @@ class SettingsView extends StatelessWidget {
     );
   }
 
+  /// Builds the login settings card
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `localizations`: The current localizations
   Widget _buildLoginSettingsCard(
     BuildContext context,
     AppLocalizations localizations,
@@ -196,6 +346,12 @@ class SettingsView extends StatelessWidget {
     );
   }
 
+  /// Builds the section title
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `title`: The title of the section
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -209,6 +365,13 @@ class SettingsView extends StatelessWidget {
     );
   }
 
+  /// Builds the downloader toggle
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `viewModel`: The settings view model
+  /// - `localizations`: The current localizations
   Widget _buildDownloaderToggle(
     BuildContext context,
     SettingsViewModel viewModel,
@@ -271,6 +434,17 @@ class SettingsView extends StatelessWidget {
     );
   }
 
+  /// Builds a text field
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `controller`: The text controller
+  /// - `labelText`: The label text
+  /// - `prefixIcon`: The prefix icon
+  /// - `hintText`: The hint text
+  /// - `obscureText`: Whether the text should be obscured
+  /// - `onChanged`: The onChanged callback
   Widget _buildTextField({
     required BuildContext context,
     required TextEditingController controller,
@@ -363,6 +537,15 @@ class SettingsView extends StatelessWidget {
     );
   }
 
+  /// Builds a theme option
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `mode`: The theme mode
+  /// - `icon`: The icon
+  /// - `label`: The label
+  /// - `viewModel`: The settings view model
   Widget _buildThemeOption(
     BuildContext context,
     ThemeMode mode,
@@ -375,7 +558,7 @@ class SettingsView extends StatelessWidget {
     return Expanded(
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        onTap: () => viewModel.setTheme(context, mode),
+        onTap: () => viewModel.setTheme(mode),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
           decoration: BoxDecoration(
@@ -413,7 +596,18 @@ class SettingsView extends StatelessWidget {
     );
   }
 
-  Widget _buildVersionCard(BuildContext context, SettingsViewModel viewModel) {
+  /// Builds the version card
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `viewModel`: The settings view model
+  /// - `localizations`: The current localizations
+  Widget _buildVersionCard(
+    BuildContext context,
+    SettingsViewModel viewModel,
+    AppLocalizations localizations,
+  ) {
     BorderRadius borderRadius = BorderRadius.circular(8.0);
 
     return Card(
@@ -435,7 +629,7 @@ class SettingsView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'App Version',
+                    localizations.appVersion,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),

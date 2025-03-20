@@ -201,5 +201,22 @@
   "archivedBookSuccessfully": "Archived book successfully",
   "archivedBookFailed": "Failed to archive book",
   "unarchivedBookSuccessfully": "Unarchived book successfully",
-  "unarchivedBookFailed": "Failed to unarchive book"
+  "unarchivedBookFailed": "Failed to unarchive book",
+  "themeColor": "Theme color",
+  "system": "System",
+  "custom": "Custom",
+  "systemThemeDescription": "The app will use the system theme",
+  "selectDownloadSchema": "Select download schema",
+  "schemaFlat": "Flat",
+  "schemaAuthorOnly": "Author only",
+  "schemaAuthorBook": "Author/Book",
+  "schemaAuthorSeriesBook": "Author/Series/Book",
+  "lightGreen": "Light green",
+  "amber": "Amber",
+  "blueGrey": "Blue grey",
+  "grey": "Grey",
+  "lightBlue": "Light blue",
+  "lime": "Lime",
+  "teal": "Teal",
+  "appVersion": "App version"
 }

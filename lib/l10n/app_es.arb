@@ -201,5 +201,22 @@
   "markedAsUnreadSuccessfully": "Marcado como no leído con éxito",
   "markedAsUnreadFailed": "Error al marcar como no leído",
   "unarchivedBookSuccessfully": "Libro desarchivado con éxito",
-  "unarchivedBookFailed": "Error al desarchivar el libro"
+  "unarchivedBookFailed": "Error al desarchivar el libro",
+  "themeColor": "Color del tema",
+  "system": "Sistema",
+  "custom": "Personalizado",
+  "systemThemeDescription": "La aplicación usará el tema del sistema",
+  "selectDownloadSchema": "Seleccionar esquema de descarga",
+  "schemaFlat": "Plano",
+  "schemaAuthorOnly": "Solo autor",
+  "schemaAuthorBook": "Autor/Libro",
+  "schemaAuthorSeriesBook": "Autor/Serie/Libro",
+  "lightGreen": "Verde claro",
+  "amber": "Ámbar",
+  "blueGrey": "Azul grisáceo",
+  "grey": "Gris",
+  "lightBlue": "Azul claro",
+  "lime": "Lima",
+  "teal": "Verde azulado",
+  "appVersion": "Versión de la aplicación"
 }

@@ -201,5 +201,22 @@
   "markedAsUnreadSuccessfully": "Erfolgreich als ungelesen markiert",
   "markedAsUnreadFailed": "Fehler beim Markieren als ungelesen",
   "unarchivedBookSuccessfully": "Buch erfolgreich aus der Archivierung geholt",
-  "unarchivedBookFailed": "Fehler beim Aufheben der Archivierung des Buches"
+  "unarchivedBookFailed": "Fehler beim Aufheben der Archivierung des Buches",
+  "themeColor": "Themenfarbe",
+  "system": "System",
+  "custom": "Benutzerdefiniert",
+  "systemThemeDescription": "Die App verwendet das Systemthema",
+  "selectDownloadSchema": "Download-Schema auswählen",
+  "schemaFlat": "Flach",
+  "schemaAuthorOnly": "Nur Autor",
+  "schemaAuthorBook": "Autor/Buch",
+  "schemaAuthorSeriesBook": "Autor/Serie/Buch",
+  "lightGreen": "Hellgrün",
+  "amber": "Bernstein",
+  "blueGrey": "Blaugrau",
+  "grey": "Grau",
+  "lightBlue": "Hellblau",
+  "lime": "Limette",
+  "teal": "Türkis",
+  "appVersion": "App-Version"
 }
