@@ -676,19 +676,26 @@ class BookDetailsViewModel extends ChangeNotifier {
   ///
   /// - `bookId`: The unique identifier of the book
   Future<void> checkIfBookIsRead(String bookId) async {
-    BookListViewModel bookListViewModel = BookListViewModel();
+    try {
+      BookListViewModel bookListViewModel = BookListViewModel();
+      await bookListViewModel.loadBooks(BookListType.readbooks);
 
-    await bookListViewModel.loadBooks(BookListType.readbooks);
+      _isBookRead = false;
 
-    bookListViewModel.bookFeed?.items.forEach((element) async {
-      if (element.id == bookId) {
-        _isBookRead = true;
-        notifyListeners();
+      if (bookListViewModel.bookFeed != null &&
+          bookListViewModel.bookFeed!.items.isNotEmpty) {
+        _isBookRead = bookListViewModel.bookFeed!.items.any(
+          (book) => book.id == bookId,
+        );
+        logger.i('Book read status: $_isBookRead (ID: $bookId)');
       } else {
-        _isBookRead = false;
-        notifyListeners();
+        logger.i('No read books found or feed is empty');
       }
-    });
+    } catch (e) {
+      logger.e('Error checking if book is read: $e');
+    } finally {
+      notifyListeners();
+    }
   }
 
   /// Toggle the archived status of a book
