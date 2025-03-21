@@ -275,7 +275,7 @@ class AddToShelfState extends State<AddToShelf> {
                 ),
               ),
               actions: [
-                TextButton(
+                ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text(localizations.close),
                 ),

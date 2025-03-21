@@ -305,7 +305,7 @@ Future<DownloadSchema?> _showSchemaSelectionDialog(
           ),
         ),
         actions: <Widget>[
-          TextButton(
+          ElevatedButton(
             child: Text(localizations.cancel),
             onPressed: () {
               Navigator.of(context).pop();
