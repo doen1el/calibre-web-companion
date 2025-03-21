@@ -275,7 +275,7 @@ class AddToShelfState extends State<AddToShelf> {
                 ),
               ),
               actions: [
-                TextButton(
+                ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text(localizations.close),
                 ),
@@ -304,13 +304,12 @@ class AddToShelfState extends State<AddToShelf> {
     required VoidCallback onComplete,
   }) async {
     final localizations = AppLocalizations.of(context)!;
-    bool success;
 
     setState(() => _isLoading = true);
 
     try {
       if (isInShelf) {
-        success = await viewModel.removeFromShelf(shelf.id, widget.book.id);
+        await viewModel.removeFromShelf(shelf.id, widget.book.id);
         if (mounted) {
           setState(() {
             _containingShelves.removeWhere((s) => s.id == shelf.id);
@@ -328,7 +327,7 @@ class AddToShelfState extends State<AddToShelf> {
           );
         }
       } else {
-        success = await viewModel.addToShelf(shelf.id, widget.book.id);
+        await viewModel.addToShelf(shelf.id, widget.book.id);
         if (mounted) {
           setState(() {
             _containingShelves.add(shelf);

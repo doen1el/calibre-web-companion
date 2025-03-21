@@ -15,6 +15,14 @@ enum DownloadStatus {
   failed,
 }
 
+// Add this enum above the DownloadStatus enum
+enum DownloadSchema {
+  flat, // Just the book file in the selected directory
+  authorOnly, // author/book.epub
+  authorBook, // author/book/book.epub
+  authorSeriesBook, // author/series/book/book.epub
+}
+
 class CancellationToken {
   bool _isCancelled = false;
 
@@ -182,9 +190,21 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
 
     final cancelToken = CancellationToken();
 
-    _showDownloadStatusSheet(
+    // First show schema selection dialog
+    final selectedSchema = await _showSchemaSelectionDialog(
       context,
       localizations,
+    );
+    if (selectedSchema == null) {
+      return;
+    }
+
+    _showDownloadStatusSheet(
+      // ignore: use_build_context_synchronously
+      context,
+      localizations,
+      viewModel,
+
       downloadStatus,
       errorMessage,
       () {
@@ -197,6 +217,9 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
     String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
     if (selectedDirectory == null) {
       logger.i('Download cancelled: No directory selected');
+      // ignore: use_build_context_synchronously
+      Navigator.pop(context);
+      return;
     }
 
     try {
@@ -210,9 +233,10 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
 
       // Download ebook
       final response = await viewModel.downloadBook(
-        book.id,
+        book,
         book.title,
-        selectedDirectory!,
+        selectedSchema,
+        selectedDirectory,
         format: format,
       );
       if (!response) {
@@ -234,16 +258,134 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
   }
 }
 
+/// Show the schema selection dialog
+///
+/// Parameters:
+///
+/// - `context`: The current build context
+/// - `localizations`: The app localizations
+Future<DownloadSchema?> _showSchemaSelectionDialog(
+  BuildContext context,
+  AppLocalizations localizations,
+) async {
+  return showDialog<DownloadSchema>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(localizations.selectDownloadSchema),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildSchemaOption(
+                context,
+                DownloadSchema.flat,
+                localizations.schemaFlat,
+                '/book1.epub',
+              ),
+              _buildSchemaOption(
+                context,
+                DownloadSchema.authorOnly,
+                localizations.schemaAuthorOnly,
+                '/author/book1.epub',
+              ),
+              _buildSchemaOption(
+                context,
+                DownloadSchema.authorBook,
+                localizations.schemaAuthorBook,
+                '/author/book1/book1.epub',
+              ),
+              _buildSchemaOption(
+                context,
+                DownloadSchema.authorSeriesBook,
+                localizations.schemaAuthorSeriesBook,
+                '/author/series/book1/book1.epub',
+              ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          ElevatedButton(
+            child: Text(localizations.cancel),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+/// Build a schema option for the download schema selection dialog
+///
+/// Parameters:
+///
+/// - `context`: The current build context
+/// - `schema`: The schema to select
+/// - `title`: The title of the schema
+/// - `example`: An example of the schema
+Widget _buildSchemaOption(
+  BuildContext context,
+  DownloadSchema schema,
+  String title,
+  String example,
+) {
+  return Container(
+    width: double.infinity,
+    margin: const EdgeInsets.only(bottom: 8.0),
+    child: Card(
+      elevation: 2,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Material(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(8.0),
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).pop(schema);
+          },
+          borderRadius: BorderRadius.circular(8.0),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  example,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 /// Show the download status sheet
 ///
 /// Parameters:
 ///
 /// - `context`: The current build context
+/// - `localizations`: The app localizations
+/// - `viewModel`: The view model for the book details
 /// - `status`: The download status notifier
 /// - `errorMessage`: The error message to display
+/// - `onCancel`: The callback to call when the cancel button is pressed
 void _showDownloadStatusSheet(
   BuildContext context,
   AppLocalizations localizations,
+  BookDetailsViewModel viewModel,
   ValueNotifier<DownloadStatus> status,
   String? errorMessage,
   VoidCallback? onCancel,
@@ -260,122 +402,157 @@ void _showDownloadStatusSheet(
         child: ValueListenableBuilder<DownloadStatus>(
           valueListenable: status,
           builder: (context, currentStatus, _) {
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Status icon
-                    _buildStatusIcon(currentStatus),
-                    const SizedBox(height: 20),
+            return ListenableBuilder(
+              listenable: viewModel,
+              builder: (context, _) {
+                return SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Status icon
+                        _buildStatusIcon(currentStatus),
+                        const SizedBox(height: 20),
 
-                    // Status text
-                    Text(
-                      _getStatusMessage(currentStatus, localizations),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-
-                    // Error message if available
-                    if (errorMessage != null &&
-                        currentStatus == DownloadStatus.failed)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          errorMessage,
-                          style: TextStyle(
-                            color: Colors.red[800],
-                            fontSize: 12,
+                        // Status text
+                        Text(
+                          _getStatusMessage(currentStatus, localizations),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
                         ),
-                      ),
 
-                    const SizedBox(height: 20),
-
-                    // Progress indicator for loading states
-                    if (currentStatus == DownloadStatus.slectinDestination ||
-                        currentStatus == DownloadStatus.downloading)
-                      LinearProgressIndicator(
-                        backgroundColor: Colors.grey[200],
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Theme.of(context).primaryColor,
-                        ),
-                      ),
-
-                    const SizedBox(height: 20),
-
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: Material(
-                        color: Theme.of(context).colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(12.0),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12.0),
-                          onTap: () {
-                            // If operation is in progress, call cancellation
-                            if (currentStatus == DownloadStatus.loading ||
-                                currentStatus ==
-                                    DownloadStatus.slectinDestination ||
-                                currentStatus == DownloadStatus.downloading) {
-                              if (onCancel != null) onCancel();
-                            }
-
-                            // Close the sheet
-                            Navigator.of(context).pop();
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            height: 50,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0,
+                        // Error message if available
+                        if (errorMessage != null &&
+                            currentStatus == DownloadStatus.failed)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              errorMessage,
+                              style: TextStyle(
+                                color: Colors.red[800],
+                                fontSize: 12,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  currentStatus == DownloadStatus.success ||
-                                          currentStatus == DownloadStatus.failed
-                                      ? Icons.close
-                                      : Icons.cancel_rounded,
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimaryContainer,
+                          ),
+
+                        const SizedBox(height: 20),
+
+                        // Progress indicator for loading states
+                        if (currentStatus == DownloadStatus.slectinDestination)
+                          LinearProgressIndicator(
+                            backgroundColor: Colors.grey[200],
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Theme.of(context).primaryColor,
+                            ),
+                          ),
+
+                        // Progress indicator with percentage for downloading
+                        if (currentStatus == DownloadStatus.downloading)
+                          Column(
+                            children: [
+                              LinearProgressIndicator(
+                                backgroundColor: Colors.grey[200],
+                                value:
+                                    viewModel.progress /
+                                    100, // Convert to 0.0-1.0 range
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Theme.of(context).primaryColor,
                                 ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  currentStatus == DownloadStatus.success ||
-                                          currentStatus == DownloadStatus.failed
-                                      ? localizations.close
-                                      : localizations.cancel,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.onPrimaryContainer,
-                                  ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '${viewModel.progress}%',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
-                              ],
+                              ),
+                            ],
+                          ),
+
+                        const SizedBox(height: 20),
+
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          child: Material(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(12.0),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12.0),
+                              onTap: () {
+                                // If operation is in progress, call cancellation
+                                if (currentStatus == DownloadStatus.loading ||
+                                    currentStatus ==
+                                        DownloadStatus.slectinDestination ||
+                                    currentStatus ==
+                                        DownloadStatus.downloading) {
+                                  if (onCancel != null) onCancel();
+                                }
+
+                                // Close the sheet
+                                Navigator.of(context).pop();
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                height: 50,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      currentStatus == DownloadStatus.success ||
+                                              currentStatus ==
+                                                  DownloadStatus.failed
+                                          ? Icons.close
+                                          : Icons.cancel_rounded,
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimaryContainer,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      currentStatus == DownloadStatus.success ||
+                                              currentStatus ==
+                                                  DownloadStatus.failed
+                                          ? localizations.close
+                                          : localizations.cancel,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimaryContainer,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             );
           },
         ),

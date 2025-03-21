@@ -6,6 +6,7 @@ import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:calibre_web_companion/utils/json_service.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
+import 'package:calibre_web_companion/views/widgets/download_to_device.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -43,6 +44,9 @@ class BookDetailsViewModel extends ChangeNotifier {
 
   bool _isArchivedLoading = false;
   bool get isArchivedLoading => _isArchivedLoading;
+
+  int _progress = 0;
+  int get progress => _progress;
 
   @override
   void dispose() {
@@ -122,16 +126,20 @@ class BookDetailsViewModel extends ChangeNotifier {
   /// - `bookId`: The unique identifier of the book
   /// - `title`: The title of the book
   /// - `format`: The format of the book (e.g. epub, pdf)
+  /// - `selectedDirectory`: The directory to save the book
+  /// - `schema`: The download schema (flat or nested)
+  /// - `book`: The book item object
   Future<bool> downloadBook(
-    String bookId,
+    BookItem book,
     String title,
+    DownloadSchema schema,
     String selectedDirectory, {
     String format = 'epub',
   }) async {
     try {
       format = format.toLowerCase();
 
-      logger.i('Downloading book - BookId: $bookId, Format: .epub');
+      logger.i('Downloading book - BookId: ${book.id}, Format: .epub');
       isDownloading = true;
       downloaded = 0;
       notifyListeners();
@@ -145,11 +153,17 @@ class BookDetailsViewModel extends ChangeNotifier {
         return false;
       }
 
-      final downloadUrl = '$baseUrl/download/$bookId/epub/$bookId.epub';
+      final downloadUrl = '$baseUrl/download/${book.id}/epub/${book.id}.epub';
       logger.d('Download URL: $downloadUrl');
 
-      final fileName = title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-      final filePath = path.join(selectedDirectory, '$fileName.$format');
+      // Create the file path based on the selected schema
+      String filePath;
+      filePath = await _createPathBasedOnSchema(
+        selectedDirectory,
+        book,
+        format,
+        schema,
+      );
 
       final client = http.Client();
       try {
@@ -197,7 +211,7 @@ class BookDetailsViewModel extends ChangeNotifier {
 
               downloaded = receivedBytes;
               if (contentLength > 0) {
-                final progress = (receivedBytes / contentLength * 100).round();
+                _progress = (receivedBytes / contentLength * 100).round();
                 logger.d(
                   'Download progress: $progress%, $receivedBytes/$contentLength bytes',
                 );
@@ -239,7 +253,80 @@ class BookDetailsViewModel extends ChangeNotifier {
       isDownloading = false;
       notifyListeners();
       return false;
+    } finally {
+      _progress = 0;
     }
+  }
+
+  /// Creates a file path based on the selected schema
+  ///
+  /// Parameters:
+  ///
+  /// - `baseDirectory`: The base directory selected by the user
+  /// - `book`: The book item to download
+  /// - `format`: The format of the book (e.g. epub, pdf)
+  /// - `schema`: The organization schema to use
+  Future<String> _createPathBasedOnSchema(
+    String baseDirectory,
+    BookItem book,
+    String format,
+    DownloadSchema schema,
+  ) async {
+    // Sanitize the file name to prevent invalid characters
+    final safeTitle = book.title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    final safeAuthor = book.author.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    final fileName = '$safeTitle.$format';
+    String? safeSeries;
+
+    if (book.series != null && book.series!.isNotEmpty) {
+      safeSeries = book.series!.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    }
+
+    String filePath;
+    Directory directory;
+
+    switch (schema) {
+      case DownloadSchema.flat:
+        // Just return the base directory with the file
+        filePath = path.join(baseDirectory, fileName);
+
+      case DownloadSchema.authorOnly:
+        // Create author directory
+        final authorDir = path.join(baseDirectory, safeAuthor);
+        directory = Directory(authorDir);
+        await directory.create(recursive: true);
+        filePath = path.join(authorDir, fileName);
+
+      case DownloadSchema.authorBook:
+        // Create author/book directory
+        final bookDir = path.join(baseDirectory, safeAuthor, safeTitle);
+        directory = Directory(bookDir);
+        await directory.create(recursive: true);
+        filePath = path.join(bookDir, fileName);
+
+      case DownloadSchema.authorSeriesBook:
+        // Create author/series/book directory if series exists
+        if (safeSeries != null) {
+          final bookDir = path.join(
+            baseDirectory,
+            safeAuthor,
+            safeSeries,
+            safeTitle,
+          );
+          directory = Directory(bookDir);
+          await directory.create(recursive: true);
+          filePath = path.join(bookDir, fileName);
+        } else {
+          // If no series, fall back to author/book
+          final bookDir = path.join(baseDirectory, safeAuthor, safeTitle);
+          directory = Directory(bookDir);
+          await directory.create(recursive: true);
+          filePath = path.join(bookDir, fileName);
+        }
+    }
+
+    logger.d('Created path based on schema $schema: $filePath');
+    return filePath;
   }
 
   /// Download book bytes from the server
@@ -589,19 +676,26 @@ class BookDetailsViewModel extends ChangeNotifier {
   ///
   /// - `bookId`: The unique identifier of the book
   Future<void> checkIfBookIsRead(String bookId) async {
-    BookListViewModel bookListViewModel = BookListViewModel();
+    try {
+      BookListViewModel bookListViewModel = BookListViewModel();
+      await bookListViewModel.loadBooks(BookListType.readbooks);
 
-    await bookListViewModel.loadBooks(BookListType.readbooks);
+      _isBookRead = false;
 
-    bookListViewModel.bookFeed?.items.forEach((element) async {
-      if (element.id == bookId) {
-        _isBookRead = true;
-        notifyListeners();
+      if (bookListViewModel.bookFeed != null &&
+          bookListViewModel.bookFeed!.items.isNotEmpty) {
+        _isBookRead = bookListViewModel.bookFeed!.items.any(
+          (book) => book.id == bookId,
+        );
+        logger.i('Book read status: $_isBookRead (ID: $bookId)');
       } else {
-        _isBookRead = false;
-        notifyListeners();
+        logger.i('No read books found or feed is empty');
       }
-    });
+    } catch (e) {
+      logger.e('Error checking if book is read: $e');
+    } finally {
+      notifyListeners();
+    }
   }
 
   /// Toggle the archived status of a book

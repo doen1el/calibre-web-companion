@@ -10,44 +10,52 @@ class SearchDialog extends StatefulWidget {
 
 class SearchDialogState extends State<SearchDialog> {
   final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations appLocalizations = AppLocalizations.of(context)!;
+    final AppLocalizations localizations = AppLocalizations.of(context)!;
+    final ThemeData theme = Theme.of(context);
+    final borderRadius = BorderRadius.circular(16.0);
+
     return AlertDialog(
-      title: Text(appLocalizations.searchBook),
-      content: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              decoration: InputDecoration(
-                hintText: appLocalizations.enterTitleAuthorOrTags,
-              ),
-              autofocus: true,
-            ),
+      title: Text(localizations.searchBook),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: TextField(
+          controller: _controller,
+          decoration: InputDecoration(
+            labelText: localizations.enterTitleAuthorOrTags,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.search),
           ),
-          IconButton(
-            icon: const Icon(Icons.clear),
-            onPressed: () => Navigator.of(context).pop(_controller.text = ''),
-          ),
-        ],
+          autofocus: true,
+          textInputAction: TextInputAction.search,
+          onSubmitted: (value) {
+            Navigator.of(context).pop(value);
+          },
+        ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(appLocalizations.cancel),
+          child: Text(localizations.cancel),
         ),
-
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(_controller.text),
-          child: Text(appLocalizations.search),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop(_controller.text);
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [Text(localizations.search)],
+          ),
         ),
       ],
     );

@@ -6,6 +6,7 @@ import 'package:calibre_web_companion/views/widgets/book_card_skeleton.dart';
 import 'package:calibre_web_companion/views/widgets/category_list_item.dart';
 import 'package:calibre_web_companion/views/widgets/category_list_item_skeleton.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/web.dart';
 import 'package:provider/provider.dart';
 import 'package:calibre_web_companion/main.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -58,7 +59,7 @@ class BookListState extends State<BookList> with RouteAware {
 
   @override
   void didPopNext() {
-    _loadData();
+    _forceReload();
   }
 
   @override
@@ -71,6 +72,20 @@ class BookListState extends State<BookList> with RouteAware {
     }
   }
 
+  /// Force reload the data
+  void _forceReload() {
+    final viewModel = context.read<BookListViewModel>();
+
+    if (widget.fullPath != null) {
+      viewModel.loadBooksFromPath(widget.fullPath!);
+    } else if (widget.bookListType != null) {
+      viewModel.loadBooks(widget.bookListType!, subPath: widget.subPath);
+    } else if (widget.categoryType != null) {
+      viewModel.loadCategories(widget.categoryType!, subPath: widget.subPath);
+    }
+  }
+
+  /// Load the data
   void _loadData() {
     final viewModel = context.read<BookListViewModel>();
 
@@ -91,36 +106,135 @@ class BookListState extends State<BookList> with RouteAware {
     AppLocalizations localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
-      body: Consumer<BookListViewModel>(
-        builder: (context, viewModel, _) {
-          if (viewModel.isLoading) {
-            // If we're loading categories, show category skeletons
-            if (widget.categoryType != null && widget.bookListType == null) {
-              return _buildCategoryListSkeletons();
+      appBar: AppBar(
+        title: _buildAppBarTitle(widget.title, widget.categoryType),
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          _forceReload();
+        },
+        child: Consumer<BookListViewModel>(
+          builder: (context, viewModel, _) {
+            if (viewModel.isLoading) {
+              // If we're loading categories, show category skeletons
+              if (widget.categoryType != null && widget.bookListType == null) {
+                return _buildCategoryListSkeletons();
+              }
+
+              // Otherwise show skeleton book cards
+              return _buildBookGridSkeletons();
             }
 
-            // Otherwise show skeleton book cards
-            return _buildBookGridSkeletons();
-          }
+            if (viewModel.hasError) {
+              return _buildErrorWidget(viewModel, localizations);
+            }
 
-          if (viewModel.hasError) {
-            _buildErrorWidget(viewModel, localizations);
-          }
+            // Display books as grid
+            if (viewModel.bookFeed != null &&
+                viewModel.bookFeed!.items.isNotEmpty) {
+              return _buildBookGrid(viewModel.bookFeed!);
+            }
 
-          // Display books as grid
-          if (viewModel.bookFeed != null) {
-            return _buildBookGrid(viewModel.bookFeed!);
-          }
+            // Display categories as list
+            if (viewModel.categoryFeed != null &&
+                viewModel.categoryFeed!.items.isNotEmpty) {
+              return _buildCategoryList(viewModel.categoryFeed!);
+            }
 
-          // Display categories as list
-          if (viewModel.categoryFeed != null) {
-            return _buildCategoryList(viewModel.categoryFeed!);
-          }
-
-          return Center(child: Text(localizations.noDataFound));
-        },
+            // Display an icon with text when no data is found
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.search_off,
+                    size: 64,
+                    color: Theme.of(
+                      context,
+                      // ignore: deprecated_member_use
+                    ).colorScheme.primary.withOpacity(0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    localizations.noDataFound,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
+    );
+  }
+
+  /// Build the app bar title
+  ///
+  /// Parameters:
+  ///
+  /// - `title`: The title to display
+  /// - `categoryType`: The category type to check for rating values
+  Widget _buildAppBarTitle(String title, CategoryType? categoryType) {
+    double ratingValue = _isRatingValue(title);
+
+    if (ratingValue == -1) {
+      return Text(title);
+    } else {
+      return _buildStarRating(ratingValue);
+    }
+  }
+
+  /// Check if the title contains a rating value
+  ///
+  /// Parameters:
+  ///
+  /// - `title`: The title to check
+  double _isRatingValue(String title) {
+    final parts = title.split(' ');
+    for (final part in parts) {
+      if (double.tryParse(part) != null) {
+        Logger().i('Rating value found: ${double.parse(part)}');
+        return double.parse(part);
+      }
+    }
+
+    return -1;
+  }
+
+  /// Build a star rating widget
+  ///
+  /// Parameters:
+  ///
+  /// - `ratingValue`: The rating value to display
+  Widget _buildStarRating(double ratingValue) {
+    final int fullStars = ratingValue.floor();
+    final double remainder = ratingValue - fullStars;
+
+    final List<Widget> stars = [];
+
+    for (int i = 0; i < fullStars; i++) {
+      stars.add(const Icon(Icons.star, color: Colors.amber, size: 24));
+    }
+
+    if (remainder >= 0.25 && remainder < 0.75) {
+      stars.add(const Icon(Icons.star_half, color: Colors.amber, size: 24));
+    } else if (remainder >= 0.75) {
+      stars.add(const Icon(Icons.star, color: Colors.amber, size: 24));
+    }
+
+    while (stars.length < 5) {
+      stars.add(const Icon(Icons.star_border, color: Colors.amber, size: 24));
+    }
+
+    final formattedRating = ratingValue.toStringAsFixed(1);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ...stars,
+        const SizedBox(width: 8),
+        Text('($formattedRating)'),
+      ],
     );
   }
 
@@ -215,7 +329,7 @@ class BookListState extends State<BookList> with RouteAware {
 
         return CategoryListItem(
           category: category,
-          type: widget.categoryType!,
+          type: widget.categoryType ?? CategoryType.category,
           onTap: () {
             _navigateToCategoryOrBooks(context, category);
           },
