@@ -10,6 +10,7 @@ class BookRecommendationCard extends StatelessWidget {
   final bool isLoading;
   final int loadingRecommendationId;
   final VoidCallback onDownload;
+  final VoidCallback? onTap;
 
   const BookRecommendationCard({
     super.key,
@@ -17,6 +18,7 @@ class BookRecommendationCard extends StatelessWidget {
     required this.isLoading,
     required this.loadingRecommendationId,
     required this.onDownload,
+    this.onTap,
   });
 
   @override
@@ -26,94 +28,101 @@ class BookRecommendationCard extends StatelessWidget {
     return Card(
       elevation: 4,
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 6,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                CachedNetworkImage(
-                  imageUrl: recommendation.coverUrl,
-                  fit: BoxFit.cover,
-                  placeholder:
-                      (context, url) => Container(
-                        color: Theme.of(
-                          context,
-                          // ignore: deprecated_member_use
-                        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                        child: Skeletonizer(
-                          enabled: true,
-                          effect: ShimmerEffect(
-                            baseColor: Theme.of(
-                              context,
-                              // ignore: deprecated_member_use
-                            ).colorScheme.primary.withOpacity(0.2),
-                            highlightColor: Theme.of(
-                              context,
-                              // ignore: deprecated_member_use
-                            ).colorScheme.primary.withOpacity(0.4),
-                          ),
-                          child: SizedBox(),
-                        ),
-                      ),
-                  errorWidget: (context, url, error) => const SizedBox(),
-                ),
-                viewModel.isDownloaderEnabled
-                    ? Positioned(
-                      bottom: 8,
-                      right: 8,
-                      child: FloatingActionButton.small(
-                        onPressed: onDownload,
-                        child:
-                            isLoading &&
-                                    loadingRecommendationId == recommendation.id
-                                ? SizedBox(
-                                  width: 25,
-                                  height: 25,
-                                  child: const CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                                : const Icon(Icons.download_rounded),
-                      ),
-                    )
-                    : const SizedBox(),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 6,
+              child: Stack(
+                fit: StackFit.expand,
                 children: [
-                  Text(
-                    recommendation.title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  CachedNetworkImage(
+                    imageUrl: recommendation.coverUrl,
+                    fit: BoxFit.cover,
+                    placeholder:
+                        (context, url) => Container(
+                          color: Theme.of(
+                            context,
+                            // ignore: deprecated_member_use
+                          ).colorScheme.surfaceContainerHighest.withOpacity(
+                            0.3,
+                          ),
+                          child: Skeletonizer(
+                            enabled: true,
+                            effect: ShimmerEffect(
+                              baseColor: Theme.of(
+                                context,
+                                // ignore: deprecated_member_use
+                              ).colorScheme.primary.withOpacity(0.2),
+                              highlightColor: Theme.of(
+                                context,
+                                // ignore: deprecated_member_use
+                              ).colorScheme.primary.withOpacity(0.4),
+                            ),
+                            child: SizedBox(),
+                          ),
+                        ),
+                    errorWidget: (context, url, error) => const SizedBox(),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    recommendation.author.join(', '),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).textTheme.bodySmall?.color,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  viewModel.isDownloaderEnabled
+                      ? Positioned(
+                        bottom: 8,
+                        right: 8,
+                        child: FloatingActionButton.small(
+                          heroTag: "download_${recommendation.id}",
+                          onPressed: onDownload,
+                          child:
+                              isLoading &&
+                                      loadingRecommendationId ==
+                                          recommendation.id
+                                  ? SizedBox(
+                                    width: 25,
+                                    height: 25,
+                                    child: const CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : const Icon(Icons.download_rounded),
+                        ),
+                      )
+                      : const SizedBox(),
                 ],
               ),
             ),
-          ),
-        ],
+            Expanded(
+              flex: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      recommendation.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      recommendation.author.join(', '),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

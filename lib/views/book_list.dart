@@ -146,7 +146,14 @@ class BookListState extends State<BookList> with RouteAware {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.search_off, size: 64, color: Colors.grey),
+                  Icon(
+                    Icons.search_off,
+                    size: 64,
+                    color: Theme.of(
+                      context,
+                      // ignore: deprecated_member_use
+                    ).colorScheme.primary.withOpacity(0.5),
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     localizations.noDataFound,

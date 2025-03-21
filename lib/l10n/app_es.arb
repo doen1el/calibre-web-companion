@@ -232,5 +232,8 @@
   "refresh": "Actualizar",
   "noMatchingBooksFound": "No se encontraron libros coincidentes",
   "bookCouldNotBeFound": "No se pudo encontrar el libro",
-  "logout": "Cerrar sesión"
+  "logout": "Cerrar sesión",
+  "searching": "Buscando...",
+  "tags": "Etiquetas",
+  "recommendedBasedOn": "Recomendado en función de"
 }

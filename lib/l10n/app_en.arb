@@ -232,5 +232,8 @@
   "refresh": "Refresh",
   "noMatchingBooksFound": "No matching books found",
   "bookCouldNotBeFound": "Book could not be found",
-  "logout": "Logout"
+  "logout": "Logout",
+  "searching": "Searching...",
+  "tags": "Tags",
+  "recommendedBasedOn": "Recommended based on"
 }

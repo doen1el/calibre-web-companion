@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/models/book_recommendation_model.dart';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/snack_bar.dart';
@@ -116,6 +117,16 @@ class BookRecommendationsViewState extends State<BookRecommendationsView> {
   Widget _buildSkeletonRecommendations(BuildContext context) {
     return Skeletonizer(
       enabled: true,
+      effect: ShimmerEffect(
+        baseColor: Theme.of(
+          context,
+          // ignore: deprecated_member_use
+        ).colorScheme.primary.withOpacity(0.2),
+        highlightColor: Theme.of(
+          context,
+          // ignore: deprecated_member_use
+        ).colorScheme.primary.withOpacity(0.4),
+      ),
       child: GridView.builder(
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -131,6 +142,7 @@ class BookRecommendationsViewState extends State<BookRecommendationsView> {
             isLoading: isLoading,
             loadingRecommendationId: loadingRecommendationId,
             onDownload: () {},
+            onTap: () {},
           );
         },
       ),
@@ -249,6 +261,16 @@ class BookRecommendationsViewState extends State<BookRecommendationsView> {
   Widget _buildSkeletonDropdown() {
     return Skeletonizer(
       enabled: true,
+      effect: ShimmerEffect(
+        baseColor: Theme.of(
+          context,
+          // ignore: deprecated_member_use
+        ).colorScheme.primary.withOpacity(0.2),
+        highlightColor: Theme.of(
+          context,
+          // ignore: deprecated_member_use
+        ).colorScheme.primary.withOpacity(0.4),
+      ),
       child: DropdownButtonFormField<String>(
         value: "Sample Book (Author)",
         isExpanded: true,
@@ -412,6 +434,9 @@ class BookRecommendationsViewState extends State<BookRecommendationsView> {
           recommendation: recommendation,
           isLoading: isLoading,
           loadingRecommendationId: loadingRecommendationId,
+          onTap: () {
+            _showBookDetails(context, recommendation, localizations);
+          },
           onDownload: () async {
             isLoading = true;
             loadingRecommendationId = recommendation.id;
@@ -448,5 +473,209 @@ class BookRecommendationsViewState extends State<BookRecommendationsView> {
         );
       },
     );
+  }
+
+  /// Shows details for a book recommendation
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `recommendation`: The book recommendation to show details for
+  /// - `localizations`: The localized strings
+  void _showBookDetails(
+    BuildContext context,
+    BookRecommendation recommendation,
+    AppLocalizations localizations,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 8,
+          clipBehavior: Clip.antiAlias,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: CachedNetworkImage(
+                    imageUrl: recommendation.coverUrl,
+                    fit: BoxFit.cover,
+                    placeholder:
+                        (context, url) => Container(
+                          color:
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                    errorWidget:
+                        (context, url, error) => Container(
+                          color:
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                          child: const Icon(Icons.error_outline, size: 48),
+                        ),
+                  ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        recommendation.title,
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        recommendation.author.join(', '),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+
+                      const Divider(height: 24),
+
+                      _buildInfoSection(
+                        context,
+                        localizations.recommendedBasedOn,
+                        _removeHTMLFromTitle(recommendation.sourceBookTitle),
+                        Icons.book,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      if (recommendation.about.isNotEmpty)
+                        _buildInfoSection(
+                          context,
+                          localizations.about,
+                          recommendation.about.join('\n\n'),
+                          Icons.description,
+                        ),
+
+                      const SizedBox(height: 16),
+
+                      if (recommendation.reactions.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.tag,
+                                  size: 18,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  localizations.tags,
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              height: 40,
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children:
+                                      recommendation.reactions.map((tag) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            right: 8.0,
+                                          ),
+                                          child: Chip(
+                                            label: Text(tag),
+                                            backgroundColor:
+                                                Theme.of(context)
+                                                    .colorScheme
+                                                    .surfaceContainerHighest,
+                                            labelStyle: TextStyle(
+                                              color:
+                                                  Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(localizations.close),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Builds a section with an icon, title and content
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `title`: The title of the section
+  /// - `content`: The content of the section
+  /// - `icon`: The icon to display
+  Widget _buildInfoSection(
+    BuildContext context,
+    String title,
+    String content,
+    IconData icon,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 8),
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(content, style: Theme.of(context).textTheme.bodyMedium),
+      ],
+    );
+  }
+
+  /// Removes HTML tags from a title
+  ///
+  /// Parameters:
+  ///
+  /// - `sourceTitle`: The title with HTML tags
+  String _removeHTMLFromTitle(String sourceTitle) {
+    final noHtml = sourceTitle.replaceAll(RegExp(r'<[^>]*>'), '');
+
+    return noHtml;
   }
 }

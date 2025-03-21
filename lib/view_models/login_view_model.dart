@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:calibre_web_companion/utils/api_service.dart';
-import 'package:calibre_web_companion/view_models/login_settings_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
