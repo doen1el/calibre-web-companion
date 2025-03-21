@@ -130,7 +130,7 @@
   "makeSureEmailSettingsAreConfigured": "Stelle sicher, dass die SMTP-Mail-Einstellungen auf dem Server konfiguriert sind.",
   "markAsReadUnread": "Als gelesen/ungelesen markieren",
   "archiveUnarchive": "Archivieren/Archivierung aufheben",
-  "addToShelf": "Hinzufügen",
+  "addToShelf": "Zum Regal hinzufügen",
   "selectShelf": "Regal auswählen",
   "noShelvesFound": "Keine Regale gefunden",
   "bookAddedToShelf": "Buch zum Regal hinzugefügt {book}",

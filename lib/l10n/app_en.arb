@@ -130,7 +130,7 @@
   "makeSureEmailSettingsAreConfigured": "Make sure SMTP mail settings are configured on the server.",
   "markAsReadUnread": "Mark as read/unread",
   "archiveUnarchive": "Archive/Unarchive",
-  "addToShelf": "Add",
+  "addToShelf": "Add to shelf",
   "selectShelf": "Select shelf",
   "noShelvesFound": "No shelfs found",
   "bookAddedToShelf": "Book added to shelf {book}",
