@@ -221,9 +221,15 @@
   "appVersion": "App version",
   "bookRecommendations": "Book recommendations",
   "recommendations": "Recommendations",
-  "selectABookFromYourLibrary": "Select a book from your library",
+  "selectABookFromYourLibrary": "Select a read book from your library",
   "searchRecommendations": "Search recommendations",
   "selectBook": "Select book",
   "selectABookToGetRecommendations": "Select a book to get recommendations",
-  "noRecommendationsFoundForThisBook": "No recommendations found for this book"
+  "noRecommendationsFoundForThisBook": "No recommendations found for this book",
+  "bookRecommendationsInfo1": "Book recommendations are fetched from ",
+  "bookRecommendationsInfo2": " and work best with English book titles.",
+  "info": "Info",
+  "refresh": "Refresh",
+  "noMatchingBooksFound": "No matching books found",
+  "bookCouldNotBeFound": "Book could not be found"
 }

@@ -1,19 +1,28 @@
 import 'package:calibre_web_companion/models/book_recommendation_model.dart';
+import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class BookRecommendationCard extends StatelessWidget {
   final BookRecommendation recommendation;
+  final bool isLoading;
+  final int loadingRecommendationId;
   final VoidCallback onDownload;
 
   const BookRecommendationCard({
     super.key,
     required this.recommendation,
+    required this.isLoading,
+    required this.loadingRecommendationId,
     required this.onDownload,
   });
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<SettingsViewModel>();
+
     return Card(
       elevation: 4,
       clipBehavior: Clip.antiAlias,
@@ -30,24 +39,47 @@ class BookRecommendationCard extends StatelessWidget {
                   fit: BoxFit.cover,
                   placeholder:
                       (context, url) => Container(
-                        color: Colors.grey[300],
-                        child: const Center(child: CircularProgressIndicator()),
+                        color: Theme.of(
+                          context,
+                          // ignore: deprecated_member_use
+                        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                        child: Skeletonizer(
+                          enabled: true,
+                          effect: ShimmerEffect(
+                            baseColor: Theme.of(
+                              context,
+                              // ignore: deprecated_member_use
+                            ).colorScheme.primary.withOpacity(0.2),
+                            highlightColor: Theme.of(
+                              context,
+                              // ignore: deprecated_member_use
+                            ).colorScheme.primary.withOpacity(0.4),
+                          ),
+                          child: SizedBox(),
+                        ),
                       ),
-                  errorWidget:
-                      (context, url, error) => Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.error),
-                      ),
+                  errorWidget: (context, url, error) => const SizedBox(),
                 ),
-                // Positioned(
-                //   bottom: 8,
-                //   right: 8,
-                //   child: FloatingActionButton.small(
-                //     heroTag: 'download_${recommendation.id}',
-                //     onPressed: onDownload,
-                //     child: const Icon(Icons.download),
-                //   ),
-                // ),
+                viewModel.isDownloaderEnabled
+                    ? Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: FloatingActionButton.small(
+                        onPressed: onDownload,
+                        child:
+                            isLoading &&
+                                    loadingRecommendationId == recommendation.id
+                                ? SizedBox(
+                                  width: 25,
+                                  height: 25,
+                                  child: const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : const Icon(Icons.download_rounded),
+                      ),
+                    )
+                    : const SizedBox(),
               ],
             ),
           ),

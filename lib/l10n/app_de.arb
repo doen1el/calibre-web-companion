@@ -221,9 +221,15 @@
   "appVersion": "App-Version",
   "bookRecommendations": "Buch-Empfehlungen",
   "recommendations": "Empfehlungen",
-  "selectABookFromYourLibrary": "Wähle ein Buch aus deiner Bibliothek",
+  "selectABookFromYourLibrary": "Wähle ein gelesenes Buch aus deiner Bibliothek",
   "searchRecommendations": "Empfehlungen suchen",
   "selectBook": "Buch auswählen",
   "selectABookToGetRecommendations": "Wähle ein Buch, um Empfehlungen zu erhalten",
-  "noRecommendationsFoundForThisBook": "Keine Empfehlungen für dieses Buch gefunden"
+  "noRecommendationsFoundForThisBook": "Keine Empfehlungen für dieses Buch gefunden",
+  "bookRecommendationsInfo1": "Buch-Empfehlungen werden von ",
+  "bookRecommendationsInfo2": " abgerufen und funktionieren am besten mit englischen Buchtiteln.",
+  "info": "Info",
+  "refresh": "Aktualisieren",
+  "noMatchingBooksFound": "Keine passenden Bücher gefunden",
+  "bookCouldNotBeFound": "Buch konnte nicht gefunden werden"
 }

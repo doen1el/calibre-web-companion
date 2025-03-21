@@ -225,5 +225,11 @@
   "searchRecommendations": "Buscar recomendaciones",
   "selectBook": "Seleccionar libro",
   "selectABookToGetRecommendations": "Selecciona un libro para obtener recomendaciones",
-  "noRecommendationsFoundForThisBook": "No se encontraron recomendaciones para este libro"
+  "noRecommendationsFoundForThisBook": "No se encontraron recomendaciones para este libro",
+  "bookRecommendationsInfo1": "Las recomendaciones de libros se obtienen de ",
+  "bookRecommendationsInfo2": " y funcionan mejor con títulos de libros en inglés.",
+  "info": "Información",
+  "refresh": "Actualizar",
+  "noMatchingBooksFound": "No se encontraron libros coincidentes",
+  "bookCouldNotBeFound": "No se pudo encontrar el libro"
 }

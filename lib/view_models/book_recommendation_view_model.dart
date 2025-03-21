@@ -13,6 +13,7 @@ class BookRecommendationsViewModel extends ChangeNotifier {
   List<BookItem> _userBooks = [];
   BookItem? _selectedBook;
   List<BookRecommendation> _recommendations = [];
+  List<BookSearchResult> _matchingBooks = [];
   bool _isLoadingBooks = false;
   bool _isLoadingRecommendations = false;
   String _error = '';
@@ -21,6 +22,7 @@ class BookRecommendationsViewModel extends ChangeNotifier {
   List<BookItem> get userBooks => _userBooks;
   BookItem? get selectedBook => _selectedBook;
   List<BookRecommendation> get recommendations => _recommendations;
+  List<BookSearchResult> get matchingBooks => _matchingBooks;
   bool get isLoadingBooks => _isLoadingBooks;
   bool get isLoadingRecommendations => _isLoadingRecommendations;
   String get error => _error;
@@ -78,12 +80,11 @@ class BookRecommendationsViewModel extends ChangeNotifier {
     try {
       final searchResults = await _recommendationService.searchBook(book.title);
 
-      final matchingBooks =
+      _matchingBooks =
           searchResults.where((result) => result.type == 'book').toList()
             ..sort((a, b) => (b.score ?? 0).compareTo(a.score ?? 0));
 
       if (matchingBooks.isEmpty) {
-        _error = 'No hit for "${book.title}".';
         notifyListeners();
         return;
       }
@@ -97,10 +98,6 @@ class BookRecommendationsViewModel extends ChangeNotifier {
       _recommendations = await _recommendationService.getRecommendations(
         bestMatch,
       );
-
-      if (_recommendations.isEmpty) {
-        _error = 'No recommendation for "${book.title}".';
-      }
     } catch (e) {
       _error = 'Error loading recommendation: $e';
       logger.e(_error);

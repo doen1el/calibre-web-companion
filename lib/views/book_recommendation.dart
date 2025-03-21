@@ -1,6 +1,8 @@
 import 'package:calibre_web_companion/models/book_recommendation_model.dart';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
+import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/book_recommendation_view_model.dart';
+import 'package:calibre_web_companion/view_models/download_service_view_model.dart';
 import 'package:calibre_web_companion/views/widgets/book_recommendation_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +17,9 @@ class BookRecommendationsView extends StatefulWidget {
 }
 
 class BookRecommendationsViewState extends State<BookRecommendationsView> {
+  bool isLoading = false;
+  int loadingRecommendationId = 0;
+
   // Dummy-Data
   final List<BookRecommendation> _dummyRecommendations = List.generate(
     6,
@@ -50,13 +55,21 @@ class BookRecommendationsViewState extends State<BookRecommendationsView> {
         title: Text(localizations.bookRecommendations),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.info_rounded),
+            onPressed: () {
+              _showInfoDialog(context, localizations);
+            },
+            tooltip: localizations.info,
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
             onPressed: () {
               Provider.of<BookRecommendationsViewModel>(
                 context,
                 listen: false,
               ).loadUserBooks();
             },
+            tooltip: localizations.refresh,
           ),
         ],
       ),
@@ -95,7 +108,11 @@ class BookRecommendationsViewState extends State<BookRecommendationsView> {
     );
   }
 
-  // Skelett-Ansicht mit Dummy-Daten
+  /// Builds the skeleton for the recommendations
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
   Widget _buildSkeletonRecommendations(BuildContext context) {
     return Skeletonizer(
       enabled: true,
@@ -103,7 +120,7 @@ class BookRecommendationsViewState extends State<BookRecommendationsView> {
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.65, // Angepasst um Overflow zu vermeiden
+          childAspectRatio: 0.65,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
         ),
@@ -111,10 +128,61 @@ class BookRecommendationsViewState extends State<BookRecommendationsView> {
         itemBuilder: (context, index) {
           return BookRecommendationCard(
             recommendation: _dummyRecommendations[index],
+            isLoading: isLoading,
+            loadingRecommendationId: loadingRecommendationId,
             onDownload: () {},
           );
         },
       ),
+    );
+  }
+
+  /// Shows the info dialog
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `localizations`: The localized strings
+  _showInfoDialog(BuildContext context, AppLocalizations localizations) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(localizations.bookRecommendations),
+
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RichText(
+                textAlign: TextAlign.left,
+                text: TextSpan(
+                  text: localizations.bookRecommendationsInfo1,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                  children: <TextSpan>[
+                    const TextSpan(
+                      text: 'meetnewbook.com',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    TextSpan(text: localizations.bookRecommendationsInfo2),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              label: Text(localizations.close),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -136,6 +204,7 @@ class BookRecommendationsViewState extends State<BookRecommendationsView> {
         color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
+            // ignore: deprecated_member_use
             color: Colors.black.withOpacity(0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -255,12 +324,74 @@ class BookRecommendationsViewState extends State<BookRecommendationsView> {
     AppLocalizations localizations,
   ) {
     if (viewModel.selectedBook == null) {
-      return Center(child: Text(localizations.selectABookToGetRecommendations));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.book_outlined,
+              size: 48,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              localizations.selectABookToGetRecommendations,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     if (viewModel.recommendations.isEmpty && viewModel.error.isEmpty) {
       return Center(
-        child: Text(localizations.noRecommendationsFoundForThisBook),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.sentiment_dissatisfied,
+              size: 48,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              localizations.noRecommendationsFoundForThisBook,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (viewModel.matchingBooks.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.sentiment_dissatisfied,
+              size: 48,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              localizations.noMatchingBooksFound,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -274,10 +405,46 @@ class BookRecommendationsViewState extends State<BookRecommendationsView> {
       ),
       itemCount: viewModel.recommendations.length,
       itemBuilder: (context, index) {
+        final downloadViewModel = context.watch<DownloadServiceViewModel>();
+
         final recommendation = viewModel.recommendations[index];
         return BookRecommendationCard(
           recommendation: recommendation,
-          onDownload: () {},
+          isLoading: isLoading,
+          loadingRecommendationId: loadingRecommendationId,
+          onDownload: () async {
+            isLoading = true;
+            loadingRecommendationId = recommendation.id;
+            await downloadViewModel.searchBooks(
+              '${recommendation.title} ${recommendation.author.join(' ')}',
+            );
+
+            if (downloadViewModel.searchResults.isNotEmpty) {
+              downloadViewModel.downloadBook(
+                downloadViewModel.searchResults.first.id,
+              );
+
+              // ignore: use_build_context_synchronously
+              context.showSnackBar(
+                localizations.addedBookToTheDownloadQueue,
+                isError: false,
+              );
+            } else {
+              // ignore: use_build_context_synchronously
+              context.showSnackBar(
+                localizations.bookCouldNotBeFound,
+                isError: true,
+              );
+            }
+
+            if (downloadViewModel.error != null) {
+              // ignore: use_build_context_synchronously
+              context.showSnackBar(downloadViewModel.error!, isError: true);
+            }
+
+            downloadViewModel.clearSearchResults();
+            isLoading = false;
+          },
         );
       },
     );
