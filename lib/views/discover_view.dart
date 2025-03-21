@@ -1,6 +1,7 @@
 import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/views/book_list.dart';
+import 'package:calibre_web_companion/views/book_recommendation.dart';
 import 'package:calibre_web_companion/views/widgets/long_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -38,6 +39,14 @@ class DiscoverView extends StatelessWidget {
   ) {
     return Column(
       children: [
+        LongButton(
+          text: localizations.recommendations,
+          icon: Icons.star_rounded,
+          onPressed:
+              () => Navigator.of(context).push(
+                AppTransitions.createSlideRoute(BookRecommendationsView()),
+              ),
+        ),
         LongButton(
           text: localizations.discover,
           icon: Icons.search,

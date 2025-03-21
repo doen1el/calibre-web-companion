@@ -96,7 +96,10 @@ class SendToEreaderState extends State<SendToEreader> {
                         // Send method toggle (Browser vs Email)
                         Container(
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceVariant,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -188,7 +191,9 @@ class SendToEreaderState extends State<SendToEreader> {
                           Container(
                             decoration: BoxDecoration(
                               color:
-                                  Theme.of(context).colorScheme.surfaceVariant,
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
@@ -322,7 +327,9 @@ class SendToEreaderState extends State<SendToEreader> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color:
-                                  Theme.of(context).colorScheme.surfaceVariant,
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
@@ -357,10 +364,11 @@ class SendToEreaderState extends State<SendToEreader> {
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontStyle: FontStyle.italic,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant
-                                        .withOpacity(0.8),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant
+                                    // ignore: deprecated_member_use
+                                    .withOpacity(0.8),
                                   ),
                                 ),
                               ],
@@ -375,7 +383,7 @@ class SendToEreaderState extends State<SendToEreader> {
                       onPressed: () => Navigator.pop(context),
                       child: Text(localizations.cancel),
                     ),
-                    TextButton(
+                    ElevatedButton(
                       onPressed: () {
                         if (sendMethod == SendMethod.browser) {
                           final code = codeController.text.trim().toUpperCase();

@@ -26,6 +26,13 @@ class DownloadServiceViewModel extends ChangeNotifier {
   bool get isDownloading => _downloadingBookId != null;
   bool get hasSearched => _hasSearched;
 
+  // Setter
+  void clearSearchResults() {
+    _searchResults = [];
+    _hasSearched = false;
+    notifyListeners();
+  }
+
   // Error handling
   String? error;
 
@@ -68,7 +75,8 @@ class DownloadServiceViewModel extends ChangeNotifier {
 
         logger.i('Found ${_searchResults.length} books matching "$query"');
       } else {
-        error = 'Failed to search books: ${response.statusCode}';
+        error =
+            'Failed to search books: ${response.statusCode} ${response.body}';
         logger.e(error!);
       }
     } catch (e) {

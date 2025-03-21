@@ -34,6 +34,19 @@ class BookListViewModel extends ChangeNotifier {
   OpdsFeed<BookItem>? bookFeed;
   OpdsFeed<CategoryItem>? categoryFeed;
 
+  final Map<String, OpdsFeed<BookItem>> _bookFeedCache = {};
+  final Map<String, OpdsFeed<CategoryItem>> _categoryFeedCache = {};
+
+  /// Get the cache key for a specific type
+  ///
+  /// Parameters:
+  ///
+  /// - `type`: The type of books to load
+  /// - `subPath`: The subpath to load books from
+  String _getCacheKey(dynamic type, {String? subPath}) {
+    return "${type.toString()}${subPath ?? ''}";
+  }
+
   /// Load books for a specific type
   ///
   /// Parameters:
@@ -41,6 +54,17 @@ class BookListViewModel extends ChangeNotifier {
   /// - `type`: The type of books to load
   /// - `subPath`: The subpath to load books from
   Future<void> loadBooks(BookListType type, {String? subPath}) async {
+    // Get the cache key
+    final cacheKey = _getCacheKey(type, subPath: subPath);
+
+    // Check if we have a cached version
+    if (_bookFeedCache.containsKey(cacheKey)) {
+      bookFeed = _bookFeedCache[cacheKey];
+      categoryFeed = null;
+      notifyListeners();
+      return;
+    }
+
     isLoading = true;
     errorMessage = null;
     notifyListeners();
@@ -48,6 +72,8 @@ class BookListViewModel extends ChangeNotifier {
     try {
       final feed = await _opdsService.getBookFeed(type, subPath: subPath);
       bookFeed = feed;
+      // Cache the response
+      _bookFeedCache[cacheKey] = feed;
       categoryFeed = null;
       _logger.i("Loaded ${feed.items.length} books for ${type.name}");
     } catch (e) {
@@ -67,6 +93,17 @@ class BookListViewModel extends ChangeNotifier {
   /// - `type`: The type of categories to load
   /// - `subPath`: The subpath to load categories from
   Future<void> loadCategories(CategoryType type, {String? subPath}) async {
+    // Generate a cache key
+    final cacheKey = _getCacheKey(type, subPath: subPath);
+
+    // Check if we have a cached version
+    if (_categoryFeedCache.containsKey(cacheKey)) {
+      categoryFeed = _categoryFeedCache[cacheKey];
+      bookFeed = null;
+      notifyListeners();
+      return;
+    }
+
     isLoading = true;
     errorMessage = null;
     notifyListeners();
@@ -74,6 +111,8 @@ class BookListViewModel extends ChangeNotifier {
     try {
       final feed = await _opdsService.getCategoryFeed(type, subPath: subPath);
       categoryFeed = feed;
+      // Cache the response
+      _categoryFeedCache[cacheKey] = feed;
       bookFeed = null;
       _logger.i("Loaded ${feed.items.length} categories for ${type.name}");
     } catch (e) {
@@ -101,6 +140,14 @@ class BookListViewModel extends ChangeNotifier {
   ///
   /// - `fullPath`: The full path to load books from
   Future<void> loadBooksFromPath(String fullPath) async {
+    // Use the path as cache key
+    if (_bookFeedCache.containsKey(fullPath)) {
+      bookFeed = _bookFeedCache[fullPath];
+      categoryFeed = null;
+      notifyListeners();
+      return;
+    }
+
     isLoading = true;
     errorMessage = null;
     notifyListeners();
@@ -108,14 +155,23 @@ class BookListViewModel extends ChangeNotifier {
     try {
       final feed = await _opdsService.getBooksFromPath(fullPath);
       bookFeed = feed;
-      isLoading = false;
-      notifyListeners();
+      // Cache the response
+      _bookFeedCache[fullPath] = feed;
+      categoryFeed = null;
+      _logger.i("Loaded ${feed.items.length} books from path");
     } catch (e) {
-      _logger.e('Error loading books from path: $e');
-      errorMessage = 'Error loading books from path: $e';
-      isLoading = false;
+      _logger.e("Error loading books from path: $e");
+      errorMessage = "Failed to load books: $e";
       hasError = true;
+    } finally {
+      isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Clear the cache
+  void clearCache() {
+    _bookFeedCache.clear();
+    _categoryFeedCache.clear();
   }
 }
