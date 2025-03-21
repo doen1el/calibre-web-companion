@@ -231,5 +231,6 @@
   "info": "Información",
   "refresh": "Actualizar",
   "noMatchingBooksFound": "No se encontraron libros coincidentes",
-  "bookCouldNotBeFound": "No se pudo encontrar el libro"
+  "bookCouldNotBeFound": "No se pudo encontrar el libro",
+  "logout": "Cerrar sesión"
 }

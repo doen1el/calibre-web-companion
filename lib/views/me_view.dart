@@ -49,8 +49,8 @@ class MeViewState extends State<MeView> {
               SharedPreferences prefs = await SharedPreferences.getInstance();
               prefs.remove("calibre_web_session");
 
-              // ignore: use_build_context_synchronously
               Navigator.of(
+                // ignore: use_build_context_synchronously
                 context,
               ).pushReplacement(AppTransitions.createSlideRoute(LoginView()));
 
@@ -58,6 +58,7 @@ class MeViewState extends State<MeView> {
               homePageViewModel.setCurrentNavIndex(0);
             },
             icon: const Icon(Icons.logout),
+            tooltip: localizations.logout,
           ),
         ],
       ),

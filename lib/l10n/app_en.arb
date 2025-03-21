@@ -231,5 +231,6 @@
   "info": "Info",
   "refresh": "Refresh",
   "noMatchingBooksFound": "No matching books found",
-  "bookCouldNotBeFound": "Book could not be found"
+  "bookCouldNotBeFound": "Book could not be found",
+  "logout": "Logout"
 }

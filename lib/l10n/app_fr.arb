@@ -231,5 +231,6 @@
   "info": "Info",
   "refresh": "Actualiser",
   "noMatchingBooksFound": "Aucun livre correspondant trouvé",
-  "bookCouldNotBeFound": "Le livre n'a pas pu être trouvé"
+  "bookCouldNotBeFound": "Le livre n'a pas pu être trouvé",
+  "logout": "Déconnexion"
 }
