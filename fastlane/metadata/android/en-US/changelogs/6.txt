@@ -1,0 +1,5 @@
+- added ability to change theme color
+- added ability to specify different folder schemas
+- added book recommendation page
+- added download ability to recommendation page
+- several minor bug fixes and ui changes

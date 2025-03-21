@@ -1,6 +1,0 @@
-- added integration for calibre web automated book downloader
-- you can now send ebooks to your kindle via email
-- you can now mark books as read / unread
-- you can now toggle the archived status of a book
-- you can add and remove books from shelfs
-- changed namespace

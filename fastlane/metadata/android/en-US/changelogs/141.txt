@@ -1,1 +1,0 @@
-- hot fix for book action buttons

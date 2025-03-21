@@ -1,8 +1,0 @@
-First release of `calibre-web-companion`
-
-Base features:
-
-- connect to calibre web app
-- discover book trough different categories
-- download books to device
-- share books to your e-reader

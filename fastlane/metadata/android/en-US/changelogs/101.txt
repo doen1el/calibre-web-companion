@@ -1,2 +1,0 @@
-- added internet permission to the android manifest
-- changes some screenshots in the readme

@@ -1,5 +1,0 @@
-- support for costum headers
-- feedback dialog
-- edit book metadata #13 
-- new page transitions
-- book archived toggle
