@@ -289,7 +289,7 @@ class _BookDetailsState extends State<BookDetails> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
                   book.seriesIndex != null
-                      ? '${book.series} (${localizations.book} ${book.seriesIndex})'
+                      ? '${book.series} (${localizations.book} ${book.seriesIndex?.toInt()})'
                       : book.series!,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),

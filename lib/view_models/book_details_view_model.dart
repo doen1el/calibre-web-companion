@@ -6,7 +6,7 @@ import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:calibre_web_companion/utils/json_service.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
-import 'package:calibre_web_companion/views/widgets/download_to_device.dart';
+import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -61,6 +61,8 @@ class BookDetailsViewModel extends ChangeNotifier {
   /// - `bookUuid`: The unique identifier of the book
   Future<void> fetchBook({required String bookUuid}) async {
     BookItem book = await _jsonService.fetchBook(bookUuid: bookUuid);
+
+    logger.i("Series: ${book.series} - ${book.seriesIndex} - ${book.uuid}");
 
     // Set current book and notify
     _currentBook = book;

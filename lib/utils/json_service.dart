@@ -25,17 +25,24 @@ class JsonService {
       // logger.d(response.body);
 
       if (response.statusCode == 200) {
+        BookItem book;
+
         try {
           // Try parsing the JSON response
           final bookJson = json.decode(response.body);
-          return _parseBookFromJson(bookJson)!;
+          book = _parseBookFromJson(bookJson)!;
         } catch (jsonError) {
           // JSON parsing failed, use manual extraction
           logger.w('JSON parsing failed: $jsonError. Using manual extraction.');
 
           final bookData = _extractBookData(response.body, bookUuid);
-          return _parseBookFromJson(bookData)!;
+          book = _parseBookFromJson(bookData)!;
         }
+
+        // Serieninformationen hinzufügen, wenn nötig
+        book = await enhanceBookWithSeriesInfo(book);
+
+        return book;
       } else {
         throw Exception('Server error: ${response.statusCode}');
       }
@@ -327,20 +334,17 @@ class JsonService {
         published = null;
       }
 
-      // Extract series information
-      String? series;
       double? seriesIndex;
-      if (bookData['series'] != null && bookData['series'] != '') {
-        series = bookData['series'].toString();
 
-        if (bookData['series_index'] != null) {
-          try {
-            seriesIndex = double.parse(bookData['series_index'].toString());
-          } catch (e) {
-            // Failed to parse series index
-          }
+      if (bookData['series_index'] != null) {
+        try {
+          seriesIndex = double.parse(bookData['series_index'].toString());
+        } catch (e) {
+          logger.e("Failed to parse series index: $e");
         }
       }
+
+      logger.d('Series index: $seriesIndex');
 
       // Extract categories (tags)
       List<String> categories = [];
@@ -424,7 +428,6 @@ class JsonService {
         categories: categories,
         summary: summary,
         fileSize: fileSize,
-        series: series,
         seriesIndex: seriesIndex,
         formats: formats,
         downloadLinks: downloadLinks,
@@ -436,5 +439,102 @@ class JsonService {
       logger.e('Error in _parseBookFromJson: $e');
       return null;
     }
+  }
+
+  // Neue Methode hinzufügen, um Serieninformationen aus HTML zu extrahieren
+  /// Holt Serieninformationen für ein Buch aus der HTML-Seite
+  ///
+  /// Parameters:
+  ///
+  /// - `bookId`: Die ID des Buchs
+  /// Holt nur den Seriennamen aus der HTML-Seite
+  ///
+  /// Parameters:
+  ///
+  /// - `bookId`: Die ID des Buchs
+  Future<String> fetchSeriesInfoFromHtml(String bookId) async {
+    logger.i('Fetching series info from HTML for book ID: $bookId');
+
+    try {
+      final response = await _apiService.get(
+        '/book/$bookId',
+        AuthMethod.cookie,
+      );
+
+      if (response.statusCode == 200) {
+        final html = response.body;
+
+        // Find the series link using string methods
+        final String seriesPrefix = '/series/stored/';
+        final int seriesIndex = html.indexOf(seriesPrefix);
+
+        if (seriesIndex != -1) {
+          // Log the context for debugging
+          final start = seriesIndex - 50 > 0 ? seriesIndex - 50 : 0;
+          final end =
+              seriesIndex + 150 < html.length ? seriesIndex + 150 : html.length;
+          final context = html.substring(start, end);
+          logger.d('Context around series mention: $context');
+
+          // Find the closing position of the href attribute
+          final int hrefEnd = html.indexOf('>', seriesIndex);
+          if (hrefEnd != -1) {
+            // Find the closing tag after the href
+            final int closingTag = html.indexOf('</a>', hrefEnd);
+            if (closingTag != -1) {
+              // Extract the series name (text between > and </a>)
+              final String seriesName =
+                  html.substring(hrefEnd + 1, closingTag).trim();
+              logger.i('Found series info in HTML: $seriesName');
+              return seriesName;
+            }
+          }
+        }
+
+        logger.i('No series information found in HTML');
+      } else {
+        logger.w('Error fetching book page: ${response.statusCode}');
+      }
+    } catch (e) {
+      logger.e('Error fetching series info from HTML: $e');
+    }
+
+    return '';
+  }
+
+  /// Extend a book object with series information if available
+  ///
+  /// Parameters:
+  ///
+  /// - `book`: The book object to enhance
+  Future<BookItem> enhanceBookWithSeriesInfo(BookItem book) async {
+    if ((book.series == null || book.series!.isEmpty) && book.id.isNotEmpty) {
+      final seriesName = await fetchSeriesInfoFromHtml(book.id);
+
+      if (seriesName != '') {
+        return BookItem(
+          id: book.id,
+          title: book.title,
+          author: book.author,
+          uuid: book.uuid,
+          publisher: book.publisher,
+          updated: book.updated,
+          published: book.published,
+          language: book.language,
+          categories: book.categories,
+          summary: book.summary,
+          fileSize: book.fileSize,
+          series: seriesName,
+          seriesIndex: book.seriesIndex,
+          formats: book.formats,
+          downloadLinks: book.downloadLinks,
+          rating: book.rating,
+          coverUrl: book.coverUrl,
+          thumbnailUrl: book.thumbnailUrl,
+        );
+      }
+    }
+
+    return book;
   }
 }

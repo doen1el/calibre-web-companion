@@ -1,10 +1,18 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum ThemeSource { system, custom }
+
+enum DownloadSchema {
+  flat, // Just the book file in the selected directory
+  authorOnly, // author/book.epub
+  authorBook, // author/book/book.epub
+  authorSeriesBook, // author/series/book/book.epub
+}
 
 AdaptiveThemeMode? _lastSavedThemeMode;
 
@@ -57,6 +65,8 @@ class SettingsViewModel extends ChangeNotifier {
   final TextEditingController downloaderUrlController = TextEditingController();
   String? _appVersion;
   String? _buildNumber;
+  String? _defaultDownloadPath;
+  DownloadSchema _downloadSchema = DownloadSchema.flat;
 
   // Getters
   ThemeMode get currentTheme => _currentTheme;
@@ -67,11 +77,14 @@ class SettingsViewModel extends ChangeNotifier {
   String get downloaderUrl => _downloaderUrl;
   String get appVersion => _appVersion ?? '';
   String get buildNumber => _buildNumber ?? '';
+  String get defaultDownloadPath => _defaultDownloadPath ?? '';
+  DownloadSchema get downloadSchema => _downloadSchema;
 
   Future<void> loadSettings() async {
     await loadCurrentTheme();
     await loadThemeSourceAndColor();
     await loadDownloaderSettings();
+    await loadDefaultDownloadInfo();
     await loadAppInfo();
   }
 
@@ -90,6 +103,45 @@ class SettingsViewModel extends ChangeNotifier {
       logger.e('Error loading app info: $e');
       notifyListeners();
     }
+  }
+
+  /// Load the default download path and schema from SharedPreferences
+  Future<void> loadDefaultDownloadInfo() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _defaultDownloadPath = prefs.getString('default_download_path') ?? '';
+      final schemaIndex =
+          prefs.getInt('download_schema') ?? DownloadSchema.flat.index;
+      _downloadSchema = DownloadSchema.values[schemaIndex];
+
+      logger.i('Loaded default download path: $_defaultDownloadPath');
+      notifyListeners();
+    } catch (e) {
+      logger.e('Error loading default download path: $e');
+    }
+  }
+
+  /// Set the default download path
+  ///
+  /// Parameters:
+  ///
+  /// - `path`: The new default download path
+  Future<void> setDefaultDownloadPath(String path) async {
+    _defaultDownloadPath = path;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('default_download_path', path);
+    notifyListeners();
+  }
+
+  /// Set the download schema
+  /// Parameters:
+  ///
+  /// - `schema`: The new download schema
+  Future<void> setDownloadSchema(DownloadSchema schema) async {
+    _downloadSchema = schema;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('download_schema', schema.index);
+    notifyListeners();
   }
 
   /// Loads the theme source and color from SharedPreferences
