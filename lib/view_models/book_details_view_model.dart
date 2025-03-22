@@ -106,21 +106,6 @@ class BookDetailsViewModel extends ChangeNotifier {
     }
   }
 
-  /// Check and request storage permissions
-  Future<bool> checkAndRequestPermissions() async {
-    if (Platform.isAndroid) {
-      final status = await Permission.manageExternalStorage.status;
-      if (!status.isGranted) {
-        final result = await Permission.manageExternalStorage.request();
-        return result.isGranted;
-      } else if (status.isPermanentlyDenied) {
-        await openAppSettings();
-      }
-      return true;
-    }
-    return true;
-  }
-
   /// Fetch the book details from the server
   ///
   /// Parameters:
@@ -188,11 +173,6 @@ class BookDetailsViewModel extends ChangeNotifier {
         );
 
         if (response.statusCode == 200) {
-          if (!await checkAndRequestPermissions()) {
-            errorMessage = 'Storage permission denied';
-            return false;
-          }
-
           final file = File(filePath);
 
           try {
