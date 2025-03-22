@@ -1,0 +1,4 @@
+- added ability set download folder globally
+- added ability set download schema globally
+- fixed download schema series bug
+- updated workflow to hopefully update conflict
