@@ -1,7 +1,9 @@
 import 'package:calibre_web_companion/utils/app_transition.dart';
+import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
 import 'package:calibre_web_companion/views/login_settings.dart';
 import 'package:calibre_web_companion/views/widgets/github_issue_dialog.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -29,6 +31,19 @@ class SettingsView extends StatelessWidget {
             _buildLoginSettingsCard(context, localizations),
 
             const SizedBox(height: 24),
+            _buildSectionTitle(context, "Download Options"),
+            _buildSelectingDownloadFolder(
+              context,
+              settingsViewModel,
+              localizations,
+            ),
+            _buildSelectingDownloadSchema(
+              context,
+              settingsViewModel,
+              localizations,
+            ),
+
+            const SizedBox(height: 24),
             _buildSectionTitle(context, "Calibre Web Automated Downloader"),
             _buildDownloaderToggle(context, settingsViewModel, localizations),
 
@@ -42,6 +57,301 @@ class SettingsView extends StatelessWidget {
 
             const SizedBox(height: 24),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds the selecting download folder card
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `settingsViewModel`: The settings view model
+  /// - `localizations`: The current localizations
+  _buildSelectingDownloadFolder(
+    BuildContext context,
+    SettingsViewModel settingsViewModel,
+    AppLocalizations localizations,
+  ) {
+    BorderRadius borderRadius = BorderRadius.circular(8.0);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Download Folder",
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    settingsViewModel.defaultDownloadPath.isNotEmpty
+                        ? settingsViewModel.defaultDownloadPath
+                        : "No folder selected",
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            ElevatedButton(
+              onPressed: () async {
+                String? selectedDirectory =
+                    await FilePicker.platform.getDirectoryPath();
+                if (selectedDirectory == null) {
+                  // ignore: use_build_context_synchronously
+                  context.showSnackBar("No folder was selected", isError: true);
+                  return;
+                }
+                await settingsViewModel.setDefaultDownloadPath(
+                  selectedDirectory,
+                );
+
+                // ignore: use_build_context_synchronously
+                context.showSnackBar(
+                  "Folder selected successfully",
+                  isError: false,
+                );
+              },
+              child: Text("Select"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds the selecting download schema card
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `settingsViewModel`: The settings view model
+  /// - `localizations`: The current localizations
+  _buildSelectingDownloadSchema(
+    BuildContext context,
+    SettingsViewModel settingsViewModel,
+    AppLocalizations localizations,
+  ) {
+    BorderRadius borderRadius = BorderRadius.circular(8.0);
+
+    final schemaInfo = _getSchemaDisplayInfo(
+      settingsViewModel.downloadSchema,
+      localizations,
+    );
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Download Schema",
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    schemaInfo['title'] ?? '',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    schemaInfo['example'] ?? '',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            ElevatedButton(
+              onPressed: () async {
+                _showSchemaSelectionDialog(context, localizations).then((
+                  value,
+                ) async {
+                  if (value != null) {
+                    await settingsViewModel.setDownloadSchema(value);
+
+                    // ignore: use_build_context_synchronously
+                    context.showSnackBar(
+                      "Schema selected successfully",
+                      isError: false,
+                    );
+                  }
+                });
+              },
+              child: Text("Select"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Get the schema display information
+  ///
+  /// Parameters:
+  ///
+  /// - `schema`: The schema to get information for
+  /// - `localizations`: The current localizations
+  Map<String, String> _getSchemaDisplayInfo(
+    DownloadSchema schema,
+    AppLocalizations localizations,
+  ) {
+    switch (schema) {
+      case DownloadSchema.flat:
+        return {'title': localizations.schemaFlat, 'example': '/book1.epub'};
+      case DownloadSchema.authorOnly:
+        return {
+          'title': localizations.schemaAuthorOnly,
+          'example': '/author/book1.epub',
+        };
+      case DownloadSchema.authorBook:
+        return {
+          'title': localizations.schemaAuthorBook,
+          'example': '/author/book1/book1.epub',
+        };
+      case DownloadSchema.authorSeriesBook:
+        return {
+          'title': localizations.schemaAuthorSeriesBook,
+          'example': '/author/series/book1/book1.epub',
+        };
+    }
+  }
+
+  /// Show the schema selection dialog
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `localizations`: The app localizations
+  Future<DownloadSchema?> _showSchemaSelectionDialog(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) async {
+    return showDialog<DownloadSchema>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(localizations.selectDownloadSchema),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildSchemaOption(
+                  context,
+                  DownloadSchema.flat,
+                  localizations.schemaFlat,
+                  '/book1.epub',
+                ),
+                _buildSchemaOption(
+                  context,
+                  DownloadSchema.authorOnly,
+                  localizations.schemaAuthorOnly,
+                  '/author/book1.epub',
+                ),
+                _buildSchemaOption(
+                  context,
+                  DownloadSchema.authorBook,
+                  localizations.schemaAuthorBook,
+                  '/author/book1/book1.epub',
+                ),
+                _buildSchemaOption(
+                  context,
+                  DownloadSchema.authorSeriesBook,
+                  localizations.schemaAuthorSeriesBook,
+                  '/author/series/book1/book1.epub',
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              child: Text(localizations.cancel),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Build a schema option for the download schema selection dialog
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `schema`: The schema to select
+  /// - `title`: The title of the schema
+  /// - `example`: An example of the schema
+  Widget _buildSchemaOption(
+    BuildContext context,
+    DownloadSchema schema,
+    String title,
+    String example,
+  ) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8.0),
+      child: Card(
+        elevation: 2,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        child: Material(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(8.0),
+          child: InkWell(
+            onTap: () {
+              Navigator.of(context).pop(schema);
+            },
+            borderRadius: BorderRadius.circular(8.0),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    example,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

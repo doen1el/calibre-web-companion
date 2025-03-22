@@ -1,6 +1,7 @@
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
+import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -13,14 +14,6 @@ enum DownloadStatus {
   downloading,
   success,
   failed,
-}
-
-// Add this enum above the DownloadStatus enum
-enum DownloadSchema {
-  flat, // Just the book file in the selected directory
-  authorOnly, // author/book.epub
-  authorBook, // author/book/book.epub
-  authorSeriesBook, // author/series/book/book.epub
 }
 
 class CancellationToken {
@@ -181,6 +174,8 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
     BookItem book,
     String format,
   ) async {
+    final settingsViewModel = context.read<SettingsViewModel>();
+
     // Create transfer status notifier
     final downloadStatus = ValueNotifier<DownloadStatus>(
       DownloadStatus.loading,
@@ -189,15 +184,6 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
     String? errorMessage;
 
     final cancelToken = CancellationToken();
-
-    // First show schema selection dialog
-    final selectedSchema = await _showSchemaSelectionDialog(
-      context,
-      localizations,
-    );
-    if (selectedSchema == null) {
-      return;
-    }
 
     _showDownloadStatusSheet(
       // ignore: use_build_context_synchronously
@@ -212,14 +198,20 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
       },
     );
 
-    downloadStatus.value = DownloadStatus.slectinDestination;
+    String? selectedDirectory;
 
-    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
-    if (selectedDirectory == null) {
-      logger.i('Download cancelled: No directory selected');
-      // ignore: use_build_context_synchronously
-      Navigator.pop(context);
-      return;
+    if (settingsViewModel.defaultDownloadPath == '') {
+      downloadStatus.value = DownloadStatus.slectinDestination;
+
+      selectedDirectory = await FilePicker.platform.getDirectoryPath();
+      if (selectedDirectory == null) {
+        logger.i('Download cancelled: No directory selected');
+        // ignore: use_build_context_synchronously
+        Navigator.pop(context);
+        return;
+      }
+    } else {
+      selectedDirectory = settingsViewModel.defaultDownloadPath;
     }
 
     try {
@@ -235,7 +227,7 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
       final response = await viewModel.downloadBook(
         book,
         book.title,
-        selectedSchema,
+        settingsViewModel.downloadSchema,
         selectedDirectory,
         format: format,
       );
@@ -256,120 +248,6 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
       downloadStatus.value = DownloadStatus.failed;
     }
   }
-}
-
-/// Show the schema selection dialog
-///
-/// Parameters:
-///
-/// - `context`: The current build context
-/// - `localizations`: The app localizations
-Future<DownloadSchema?> _showSchemaSelectionDialog(
-  BuildContext context,
-  AppLocalizations localizations,
-) async {
-  return showDialog<DownloadSchema>(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text(localizations.selectDownloadSchema),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildSchemaOption(
-                context,
-                DownloadSchema.flat,
-                localizations.schemaFlat,
-                '/book1.epub',
-              ),
-              _buildSchemaOption(
-                context,
-                DownloadSchema.authorOnly,
-                localizations.schemaAuthorOnly,
-                '/author/book1.epub',
-              ),
-              _buildSchemaOption(
-                context,
-                DownloadSchema.authorBook,
-                localizations.schemaAuthorBook,
-                '/author/book1/book1.epub',
-              ),
-              _buildSchemaOption(
-                context,
-                DownloadSchema.authorSeriesBook,
-                localizations.schemaAuthorSeriesBook,
-                '/author/series/book1/book1.epub',
-              ),
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          ElevatedButton(
-            child: Text(localizations.cancel),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
-/// Build a schema option for the download schema selection dialog
-///
-/// Parameters:
-///
-/// - `context`: The current build context
-/// - `schema`: The schema to select
-/// - `title`: The title of the schema
-/// - `example`: An example of the schema
-Widget _buildSchemaOption(
-  BuildContext context,
-  DownloadSchema schema,
-  String title,
-  String example,
-) {
-  return Container(
-    width: double.infinity,
-    margin: const EdgeInsets.only(bottom: 8.0),
-    child: Card(
-      elevation: 2,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: Material(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(8.0),
-        child: InkWell(
-          onTap: () {
-            Navigator.of(context).pop(schema);
-          },
-          borderRadius: BorderRadius.circular(8.0),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  example,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).textTheme.bodySmall?.color,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
 }
 
 /// Show the download status sheet
