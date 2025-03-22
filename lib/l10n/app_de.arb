@@ -235,5 +235,13 @@
   "logout": "Abmelden",
   "searching": "Suchen...",
   "tags": "Tags",
-  "recommendedBasedOn": "Empfohlen basierend auf"
+  "recommendedBasedOn": "Empfohlen basierend auf",
+  "storagePermissionRequiredToSelectAFolder": "Speicherberechtigung erforderlich, um einen Ordner auszuwählen",
+  "noFolderWasSelected": "Es wurde kein Ordner ausgewählt",
+  "folderSelectedSuccessfully": "Ordner erfolgreich ausgewählt",
+  "select": "Auswählen",
+  "schemaWasSelectedSuccessfully": "Schema erfolgreich ausgewählt",
+  "downloadSchema": "Download-Schema",
+  "noFolderSelected": "Kein Ordner ausgewählt",
+  "downloadFolder": "Download-Ordner"
 }

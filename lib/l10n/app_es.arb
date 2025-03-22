@@ -235,5 +235,13 @@
   "logout": "Cerrar sesión",
   "searching": "Buscando...",
   "tags": "Etiquetas",
-  "recommendedBasedOn": "Recomendado en función de"
+  "recommendedBasedOn": "Recomendado en función de",
+  "storagePermissionRequiredToSelectAFolder": "Se requiere permiso de almacenamiento para seleccionar una carpeta",
+  "noFolderWasSelected": "No se seleccionó ninguna carpeta",
+  "folderSelectedSuccessfully": "Carpeta seleccionada con éxito",
+  "select": "Seleccionar",
+  "schemaWasSelectedSuccessfully": "Esquema seleccionado con éxito",
+  "downloadSchema": "Esquema de descarga",
+  "noFolderSelected": "No se seleccionó ninguna carpeta",
+  "downloadFolder": "Carpeta de descarga"
 }

@@ -1,0 +1,2 @@
+- added translation to download settings
+- changed order of getting folder permissions

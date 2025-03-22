@@ -235,5 +235,13 @@
   "logout": "Logout",
   "searching": "Searching...",
   "tags": "Tags",
-  "recommendedBasedOn": "Recommended based on"
+  "recommendedBasedOn": "Recommended based on",
+  "storagePermissionRequiredToSelectAFolder": "Storage permission required to select a folder",
+  "noFolderWasSelected": "No folder was selected",
+  "folderSelectedSuccessfully": "Folder selected successfully",
+  "select": "Select",
+  "schemaWasSelectedSuccessfully": "Schema was selected successfully",
+  "downloadSchema": "Download schema",
+  "noFolderSelected": "No folder selected",
+  "downloadFolder": "Download folder"
 }

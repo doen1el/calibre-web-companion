@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
@@ -5,6 +7,7 @@ import 'package:calibre_web_companion/views/login_settings.dart';
 import 'package:calibre_web_companion/views/widgets/github_issue_dialog.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -89,14 +92,14 @@ class SettingsView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Download Folder",
+                    localizations.downloadFolder,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     settingsViewModel.defaultDownloadPath.isNotEmpty
                         ? settingsViewModel.defaultDownloadPath
-                        : "No folder selected",
+                        : localizations.noFolderSelected,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -108,11 +111,23 @@ class SettingsView extends StatelessWidget {
             const SizedBox(width: 16),
             ElevatedButton(
               onPressed: () async {
+                if (!await checkAndRequestPermissions()) {
+                  // ignore: use_build_context_synchronously
+                  context.showSnackBar(
+                    localizations.storagePermissionRequiredToSelectAFolder,
+                    isError: true,
+                  );
+                  return;
+                }
+
                 String? selectedDirectory =
                     await FilePicker.platform.getDirectoryPath();
                 if (selectedDirectory == null) {
                   // ignore: use_build_context_synchronously
-                  context.showSnackBar("No folder was selected", isError: true);
+                  context.showSnackBar(
+                    localizations.noFolderWasSelected,
+                    isError: true,
+                  );
                   return;
                 }
                 await settingsViewModel.setDefaultDownloadPath(
@@ -121,16 +136,31 @@ class SettingsView extends StatelessWidget {
 
                 // ignore: use_build_context_synchronously
                 context.showSnackBar(
-                  "Folder selected successfully",
+                  localizations.folderSelectedSuccessfully,
                   isError: false,
                 );
               },
-              child: Text("Select"),
+              child: Text(localizations.select),
             ),
           ],
         ),
       ),
     );
+  }
+
+  /// Check and request storage permissions
+  Future<bool> checkAndRequestPermissions() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.manageExternalStorage.status;
+      if (!status.isGranted) {
+        final result = await Permission.manageExternalStorage.request();
+        return result.isGranted;
+      } else if (status.isPermanentlyDenied) {
+        await openAppSettings();
+      }
+      return true;
+    }
+    return true;
   }
 
   /// Builds the selecting download schema card
@@ -165,7 +195,7 @@ class SettingsView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Download Schema",
+                    localizations.downloadSchema,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
@@ -198,13 +228,13 @@ class SettingsView extends StatelessWidget {
 
                     // ignore: use_build_context_synchronously
                     context.showSnackBar(
-                      "Schema selected successfully",
+                      localizations.schemaWasSelectedSuccessfully,
                       isError: false,
                     );
                   }
                 });
               },
-              child: Text("Select"),
+              child: Text(localizations.select),
             ),
           ],
         ),

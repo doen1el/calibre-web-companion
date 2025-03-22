@@ -235,5 +235,13 @@
   "logout": "Déconnexion",
   "searching": "Recherche en cours...",
   "tags": "Tags",
-  "recommendedBasedOn": "Recommandé en fonction de"
+  "recommendedBasedOn": "Recommandé en fonction de",
+  "storagePermissionRequiredToSelectAFolder": "Autorisation de stockage requise pour sélectionner un dossier",
+  "noFolderWasSelected": "Aucun dossier n'a été sélectionné",
+  "folderSelectedSuccessfully": "Dossier sélectionné avec succès",
+  "select": "Sélectionner",
+  "schemaWasSelectedSuccessfully": "Le schéma a été sélectionné avec succès",
+  "downloadSchema": "Schéma de téléchargement",
+  "noFolderSelected": "Aucun dossier sélectionné",
+  "downloadFolder": "Dossier de téléchargement"
 }
