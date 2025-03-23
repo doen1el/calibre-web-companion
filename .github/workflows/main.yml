@@ -51,7 +51,7 @@ jobs:
 
       #6 Building APK
       - name: Build APK
-        run: flutter build apk --release --dart-define=ISSUE_TOKEN=${{ secrets.ISSUE_TOKEN }} --target-platform android-arm,android-arm64,android-x64 --split-per-abi --no-tree-shake-icons
+        run: flutter build apk --release --dart-define=ISSUE_TOKEN=${{ secrets.ISSUE_TOKEN }} --target-platform="android-arm64" --no-tree-shake-icons
 
       #7 Building App Bundle (aab)
       # - name: Build appBundle
@@ -69,10 +69,7 @@ jobs:
         with:
           name: Releases
           path: |
-            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-            build/app/outputs/flutter-apk/app-x86_64-release.apk
-            build/ios_build.tar.gz
+            build/app/outputs/flutter-apk/app-release.apk
 
         #10 Extract Version
       - name: Extract version from pubspec.yaml
@@ -104,7 +101,7 @@ jobs:
       - name: Create Release Draft
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/app-arm64-v8a-release.apk,build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk,build/app/outputs/flutter-apk/app-x86_64-release.apk"
+          artifacts: "build/app/outputs/flutter-apk/app-release.apk"
           tag: v${{ env.VERSION }}
           draft: true
           token: ${{ secrets.TOKEN }}

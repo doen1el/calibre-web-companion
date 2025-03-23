@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
@@ -5,6 +7,7 @@ import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -201,6 +204,15 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
     String? selectedDirectory;
 
     if (settingsViewModel.defaultDownloadPath == '') {
+      if (!await checkAndRequestPermissions()) {
+        // ignore: use_build_context_synchronously
+        context.showSnackBar(
+          localizations.storagePermissionRequiredToSelectAFolder,
+          isError: true,
+        );
+        return;
+      }
+
       downloadStatus.value = DownloadStatus.slectinDestination;
 
       selectedDirectory = await FilePicker.platform.getDirectoryPath();
@@ -479,4 +491,19 @@ String _getStatusMessage(
     case DownloadStatus.failed:
       return localizations.downloadFailed;
   }
+}
+
+/// Check and request storage permissions
+Future<bool> checkAndRequestPermissions() async {
+  if (Platform.isAndroid) {
+    final status = await Permission.manageExternalStorage.status;
+    if (!status.isGranted) {
+      final result = await Permission.manageExternalStorage.request();
+      return result.isGranted;
+    } else if (status.isPermanentlyDenied) {
+      await openAppSettings();
+    }
+    return true;
+  }
+  return true;
 }
