@@ -1,0 +1,3 @@
+- updated version code generation
+- hot fix for book download
+- removed book recommendation (for now)

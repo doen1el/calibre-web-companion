@@ -39,14 +39,14 @@ class DiscoverView extends StatelessWidget {
   ) {
     return Column(
       children: [
-        LongButton(
-          text: localizations.recommendations,
-          icon: Icons.star_rounded,
-          onPressed:
-              () => Navigator.of(context).push(
-                AppTransitions.createSlideRoute(BookRecommendationsView()),
-              ),
-        ),
+        // LongButton(
+        //   text: localizations.recommendations,
+        //   icon: Icons.star_rounded,
+        //   onPressed:
+        //       () => Navigator.of(context).push(
+        //         AppTransitions.createSlideRoute(BookRecommendationsView()),
+        //       ),
+        // ),
         LongButton(
           text: localizations.discover,
           icon: Icons.search,
