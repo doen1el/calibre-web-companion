@@ -1,0 +1,1 @@
+- removed dependencies info for f-droid build
