@@ -1,7 +1,7 @@
 <p align="center">
     <img src="docs/icon/icon.png" alt="App Icon" width="100" />
     <br>
-    v1.5.4
+    v1.5.5
 </p>
 
 # Calibre Web Companion

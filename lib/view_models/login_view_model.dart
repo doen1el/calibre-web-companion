@@ -39,23 +39,18 @@ class LoginViewModel extends ChangeNotifier {
       );
 
       if (response.statusCode == 200 || response.statusCode == 302) {
-        // Extract and save the session cookie
-
-        if (response.headers.containsKey('set-cookie')) {
-          final cookie = response.headers['set-cookie']!;
-          await prefs.setString('calibre_web_session', cookie);
-          await apiService.initialize();
-          logger.i('Session cookie saved');
-        } else {
-          logger.w('No cookie received in login response');
-        }
-
-        // Check if login was successful
-        final isSuccess =
-            !response.body.contains('login-form') ||
-            response.headers['location']?.contains('index') == true;
+        final isSuccess = !response.body.contains('flash_danger');
 
         if (isSuccess) {
+          if (response.headers.containsKey('set-cookie')) {
+            final cookie = response.headers['set-cookie']!;
+            await prefs.setString('calibre_web_session', cookie);
+            await apiService.initialize();
+            logger.i('Session cookie saved');
+          } else {
+            logger.w('No cookie received in login response');
+          }
+
           logger.i('Login successful');
           errorMessage = '';
         } else {
