@@ -6,49 +6,39 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 class BookRecommendationsViewModel extends ChangeNotifier {
-  final BookRecommendationService _recommendationService =
-      BookRecommendationService();
+  final BookRecommendationService _dbpediaService = BookRecommendationService();
   final Logger logger = Logger();
 
   List<BookItem> _userBooks = [];
-  BookItem? _selectedBook;
-  List<BookRecommendation> _recommendations = [];
-  List<BookSearchResult> _matchingBooks = [];
+  Map<String, List<String>> _bookSubjects = {};
+  List<String> _allSubjects = [];
   bool _isLoadingBooks = false;
-  bool _isLoadingRecommendations = false;
+  bool _isLoadingSubjects = false;
   String _error = '';
+  List<BookRecommendation> _recommendations = [];
+  bool _isLoadingRecommendations = false;
 
   // Getters
   List<BookItem> get userBooks => _userBooks;
-  BookItem? get selectedBook => _selectedBook;
-  List<BookRecommendation> get recommendations => _recommendations;
-  List<BookSearchResult> get matchingBooks => _matchingBooks;
+  Map<String, List<String>> get bookSubjects => _bookSubjects;
+  List<String> get allSubjects => _allSubjects;
   bool get isLoadingBooks => _isLoadingBooks;
-  bool get isLoadingRecommendations => _isLoadingRecommendations;
+  bool get isLoadingSubjects => _isLoadingSubjects;
   String get error => _error;
   bool get hasBooks => _userBooks.isNotEmpty;
-
-  // Setters
-  set selectedBook(BookItem? book) {
-    _selectedBook = book;
-    if (book != null) {
-      loadRecommendationsForBook(book);
-    } else {
-      _recommendations = [];
-    }
-    notifyListeners();
-  }
+  bool get hasSubjects => _allSubjects.isNotEmpty;
+  bool get hasRecommendations => _recommendations.isNotEmpty;
+  List<BookRecommendation> get recommendations => _recommendations;
+  bool get isLoadingRecommendations => _isLoadingRecommendations;
 
   /// Get all books that have been read
   Future<void> loadUserBooks() async {
     _isLoadingBooks = true;
     _error = '';
-    _selectedBook = null;
     notifyListeners();
 
     try {
       BookListViewModel bookListViewModel = BookListViewModel();
-
       await bookListViewModel.loadBooks(BookListType.readbooks);
 
       _userBooks = bookListViewModel.bookFeed?.items ?? [];
@@ -56,6 +46,9 @@ class BookRecommendationsViewModel extends ChangeNotifier {
 
       if (_userBooks.isEmpty) {
         _error = 'No books found.';
+      } else {
+        // Load subjects for all books
+        await _loadSubjectsForAllBooks();
       }
     } catch (e) {
       _error = 'Error loading books: $e';
@@ -66,40 +59,101 @@ class BookRecommendationsViewModel extends ChangeNotifier {
     }
   }
 
-  /// Load recommendations for a book
-  ///
-  /// Parameters:
-  ///
-  /// - `book`: BookItem
-  Future<void> loadRecommendationsForBook(BookItem book) async {
-    _isLoadingRecommendations = true;
-    _recommendations = [];
-    _error = '';
+  /// Load subjects for all read books from DBpedia
+  Future<void> _loadSubjectsForAllBooks() async {
+    _isLoadingSubjects = true;
+    _bookSubjects = {};
+    _allSubjects = []; // Initialisiere als leere Liste
     notifyListeners();
 
     try {
-      final searchResults = await _recommendationService.searchBook(book.title);
+      int booksFound = 0;
+      List<Map<String, dynamic>> dbpediaBooks = [];
 
-      _matchingBooks =
-          searchResults.where((result) => result.type == 'book').toList()
-            ..sort((a, b) => (b.score ?? 0).compareTo(a.score ?? 0));
+      // First find all books in DBpedia
+      for (var book in _userBooks) {
+        try {
+          final dbpediaBook = await _dbpediaService.findBookInDBpedia(
+            book.title,
+            book.author,
+          );
 
-      if (matchingBooks.isEmpty) {
-        notifyListeners();
+          if (dbpediaBook != null &&
+              dbpediaBook.containsKey('results') &&
+              dbpediaBook['results']['bindings'].isNotEmpty) {
+            final binding = dbpediaBook['results']['bindings'][0];
+            if (binding.containsKey('book')) {
+              dbpediaBooks.add(binding);
+              booksFound++;
+            }
+          }
+        } catch (e) {
+          logger.w('Could not find book "${book.title}": $e');
+        }
+      }
+
+      logger.i('Found $booksFound books in DBpedia');
+
+      // Get subjects for individual books and collect all subjects
+      for (var i = 0; i < _userBooks.length; i++) {
+        final book = _userBooks[i];
+        if (i < dbpediaBooks.length && dbpediaBooks[i].containsKey('book')) {
+          final bookUri = dbpediaBooks[i]['book']['value'];
+          final subjects = await _dbpediaService.getBookSubjects(bookUri);
+
+          if (subjects.isNotEmpty) {
+            // Speichere Subjects für das Buch
+            _bookSubjects[book.id] = subjects;
+
+            // Füge alle Subjects zur Gesamtliste hinzu
+            _allSubjects.addAll(subjects);
+
+            logger.i('Found ${subjects.length} subjects for "${book.title}"');
+          }
+        }
+      }
+
+      logger.i('Collected ${_allSubjects.length} subjects across all books');
+    } catch (e) {
+      _error = 'Error loading subjects: $e';
+      logger.e(_error);
+    } finally {
+      _isLoadingSubjects = false;
+      notifyListeners();
+    }
+  }
+
+  /// Find book recommendations based on all collected subjects
+  Future<void> findRecommendedBooks({int minimumMatches = 3}) async {
+    _isLoadingRecommendations = true;
+    _recommendations = [];
+    notifyListeners();
+
+    try {
+      if (_allSubjects.isEmpty) {
+        _error = 'No subjects found to base recommendations on';
         return;
       }
 
-      final bestMatch = matchingBooks.first;
+      // Get list of titles to exclude (books we've already read)
+      final excludeTitles = _userBooks.map((book) => book.title).toList();
 
-      logger.i(
-        'Best match for "${book.title}": ${bestMatch.line1} (Score: ${bestMatch.score})',
+      // Find books matching our subjects
+      _recommendations = await _dbpediaService.findBooksByMultipleSubjects(
+        _allSubjects,
+        minimumMatches: minimumMatches,
+        excludeTitles: excludeTitles,
       );
 
-      _recommendations = await _recommendationService.getRecommendations(
-        bestMatch,
-      );
+      if (_recommendations.isEmpty) {
+        _error =
+            'No matching books found with $minimumMatches or more common subjects';
+        logger.w(_error);
+      } else {
+        logger.i('Found ${_recommendations.length} book recommendations');
+      }
     } catch (e) {
-      _error = 'Error loading recommendation: $e';
+      _error = 'Error finding book recommendations: $e';
       logger.e(_error);
     } finally {
       _isLoadingRecommendations = false;

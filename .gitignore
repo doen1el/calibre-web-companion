@@ -45,3 +45,4 @@ app.*.map.json
 /android/app/release
 
 *.jks
+de.doen1el.calibreWebCompanion.yml

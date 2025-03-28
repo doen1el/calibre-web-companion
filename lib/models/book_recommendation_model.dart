@@ -43,7 +43,7 @@ class BookSearchResult {
 }
 
 class BookRecommendation {
-  final int id;
+  int id;
   final String title;
   final List<String> author;
   final String? shortTitle;
@@ -53,18 +53,20 @@ class BookRecommendation {
   final String? teaser;
   final int sourceBookId;
   final String sourceBookTitle;
+  final int matchCount;
 
   BookRecommendation({
-    required this.id,
+    this.id = 0,
     required this.title,
     required this.author,
     this.shortTitle,
-    required this.coverUrl,
-    required this.about,
-    required this.reactions,
-    this.teaser,
-    required this.sourceBookId,
-    required this.sourceBookTitle,
+    this.coverUrl = '',
+    this.about = const [],
+    this.reactions = const [],
+    this.teaser = '',
+    this.sourceBookId = 0,
+    this.sourceBookTitle = '',
+    this.matchCount = 0,
   });
 
   factory BookRecommendation.fromJson(
