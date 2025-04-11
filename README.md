@@ -13,6 +13,9 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 ## 📦 Installation
 
 <p align="left">
+    <a href="https://f-droid.org/en/packages/de.doen1el.calibreWebCompanion/">
+        <img src="https://f-droid.org/badge/get-it-on.png" height="80">
+    </a>
     <a href="https://github.com/doen1el/calibre-web-companion/releases">
         <img src="docs/badges/badge_github.png" alt="Get it on GitHub" height="80">
     </a>
