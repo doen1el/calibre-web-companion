@@ -26,6 +26,7 @@ class BookItem extends OpdsItem {
   final String? thumbnailUrl;
   final Map<String, int>? formatSizes;
   final String authorSort;
+  final int seriesId;
 
   BookItem({
     required super.id,
@@ -48,6 +49,7 @@ class BookItem extends OpdsItem {
     this.thumbnailUrl,
     this.formatSizes,
     this.authorSort = '',
+    this.seriesId = 0,
   });
 
   /// Create a BookItem from an OPDS entry

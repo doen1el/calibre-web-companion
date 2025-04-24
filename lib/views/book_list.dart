@@ -91,6 +91,7 @@ class BookListState extends State<BookList> with RouteAware {
 
     // If a full path is provided, load books from that path
     if (widget.fullPath != null) {
+      print("PATH" + widget.fullPath!);
       viewModel.loadBooksFromPath(widget.fullPath!);
     }
     // Otherwise, load books based on the type

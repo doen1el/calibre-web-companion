@@ -452,7 +452,7 @@ class JsonService {
   /// Parameters:
   ///
   /// - `bookId`: Die ID des Buchs
-  Future<String> fetchSeriesInfoFromHtml(String bookId) async {
+  Future<Map<String, dynamic>?> fetchSeriesInfoFromHtml(String bookId) async {
     logger.i('Fetching series info from HTML for book ID: $bookId');
 
     try {
@@ -464,34 +464,51 @@ class JsonService {
       if (response.statusCode == 200) {
         final html = response.body;
 
-        // Find the series link using string methods
-        final String seriesPrefix = '/series/stored/';
-        final int seriesIndex = html.indexOf(seriesPrefix);
+        // logger.d('HTML response: $html'); // Optional: Nur bei Bedarf aktivieren
 
-        if (seriesIndex != -1) {
-          // Log the context for debugging
-          final start = seriesIndex - 50 > 0 ? seriesIndex - 50 : 0;
-          final end =
-              seriesIndex + 150 < html.length ? seriesIndex + 150 : html.length;
-          final context = html.substring(start, end);
-          logger.d('Context around series mention: $context');
+        // Regex, um den Link und die ID zu finden
+        final RegExp seriesRegex = RegExp(
+          r'''href=['"](/series/stored/(\d+))['"]''',
+          caseSensitive: false,
+        );
 
-          // Find the closing position of the href attribute
-          final int hrefEnd = html.indexOf('>', seriesIndex);
-          if (hrefEnd != -1) {
-            // Find the closing tag after the href
-            final int closingTag = html.indexOf('</a>', hrefEnd);
-            if (closingTag != -1) {
-              // Extract the series name (text between > and </a>)
-              final String seriesName =
-                  html.substring(hrefEnd + 1, closingTag).trim();
-              logger.i('Found series info in HTML: $seriesName');
-              return seriesName;
+        final Match? match = seriesRegex.firstMatch(html);
+
+        if (match != null && match.groupCount >= 2) {
+          final String seriesLink =
+              match.group(1)!; // Kompletter Link, z.B. /series/stored/15
+          final String seriesIdStr =
+              match.group(2)!; // Die ID als String, z.B. "15"
+          final int? seriesId = int.tryParse(seriesIdStr);
+
+          if (seriesId != null) {
+            // Finde den Namen der Serie (Text innerhalb des <a> Tags)
+            final int linkEndIndex =
+                match.end; // Ende des gesamten href-Matches
+            final int tagCloseIndex = html.indexOf('>', linkEndIndex);
+            if (tagCloseIndex != -1) {
+              final int closingTagIndex = html.indexOf('</a>', tagCloseIndex);
+              if (closingTagIndex != -1) {
+                final String seriesName =
+                    html.substring(tagCloseIndex + 1, closingTagIndex).trim();
+
+                logger.i(
+                  'Found series info in HTML: Name="$seriesName", ID=$seriesId',
+                );
+                return {'name': seriesName, 'id': seriesId};
+              }
             }
+            // Fallback, falls Name nicht extrahiert werden kann, aber ID vorhanden ist
+            logger.i(
+              'Found series ID in HTML: $seriesId (Name extraction failed)',
+            );
+            return {'name': 'Unknown Series', 'id': seriesId};
+          } else {
+            logger.w('Found series link, but failed to parse ID: $seriesIdStr');
           }
+        } else {
+          logger.i('No series link matching pattern found in HTML');
         }
-
-        logger.i('No series information found in HTML');
       } else {
         logger.w('Error fetching book page: ${response.statusCode}');
       }
@@ -499,7 +516,7 @@ class JsonService {
       logger.e('Error fetching series info from HTML: $e');
     }
 
-    return '';
+    return null; // Keine Serieninfo gefunden
   }
 
   /// Extend a book object with series information if available
@@ -508,10 +525,17 @@ class JsonService {
   ///
   /// - `book`: The book object to enhance
   Future<BookItem> enhanceBookWithSeriesInfo(BookItem book) async {
+    // Nur versuchen, wenn keine Serie vorhanden ist UND eine Buch-ID existiert
     if ((book.series == null || book.series!.isEmpty) && book.id.isNotEmpty) {
-      final seriesName = await fetchSeriesInfoFromHtml(book.id);
+      final seriesInfo = await fetchSeriesInfoFromHtml(book.id);
 
-      if (seriesName != '') {
+      if (seriesInfo != null && seriesInfo['name'] != null) {
+        // Hier könntest du auch die seriesId speichern, falls dein BookItem-Modell das unterstützt
+        // final int seriesId = seriesInfo['id'];
+        final String seriesName = seriesInfo['name'];
+        final int seriesId = seriesInfo['id'];
+
+        // Erstelle eine Kopie des Buches mit dem neuen Seriennamen
         return BookItem(
           id: book.id,
           title: book.title,
@@ -524,17 +548,18 @@ class JsonService {
           categories: book.categories,
           summary: book.summary,
           fileSize: book.fileSize,
-          series: seriesName,
+          series: seriesName, // Aktualisierter Serienname
           seriesIndex: book.seriesIndex,
           formats: book.formats,
           downloadLinks: book.downloadLinks,
           rating: book.rating,
           coverUrl: book.coverUrl,
           thumbnailUrl: book.thumbnailUrl,
+          seriesId: seriesId,
         );
       }
     }
-
+    // Wenn keine Serie gefunden wurde oder bereits eine vorhanden war, gib das Originalbuch zurück
     return book;
   }
 }

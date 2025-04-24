@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
+import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
+import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
+import 'package:calibre_web_companion/views/book_list.dart';
 import 'package:calibre_web_companion/views/widgets/add_to_shelf.dart';
 import 'package:calibre_web_companion/views/widgets/download_to_device.dart';
 import 'package:calibre_web_companion/views/widgets/edit_book_metadata.dart';
@@ -285,13 +288,30 @@ class _BookDetailsState extends State<BookDetails> {
               context,
               Icons.bookmark_rounded,
               localizations.series,
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Text(
-                  book.seriesIndex != null
-                      ? '${book.series} (${localizations.book} ${book.seriesIndex?.toInt()})'
-                      : book.series!,
-                  style: Theme.of(context).textTheme.bodyLarge,
+              InkWell(
+                borderRadius: BorderRadius.circular(8.0),
+                onTap: () {
+                  Navigator.of(context).push(
+                    AppTransitions.createSlideRoute(
+                      BookList(
+                        title: book.series!,
+                        categoryType: CategoryType.series,
+                        fullPath: "/opds/series/${book.seriesId}",
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 4.0,
+                    horizontal: 4.0,
+                  ),
+
+                  child: Text(
+                    book.seriesIndex != null
+                        ? '${book.series} (${localizations.book} ${book.seriesIndex?.toInt()})'
+                        : book.series!,
+                  ),
                 ),
               ),
             ),
