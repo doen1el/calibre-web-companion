@@ -1,43 +1,54 @@
 class BookSearchResult {
-  final String? line1;
-  final String? line2;
-  final String? line3;
-  final int? bookId;
-  final String? idWithTitleSuffix;
-  final String? type;
-  final String? phrase;
-  final String? shortTitle;
-  final String? author;
-  final int? occurrences;
+  final String id;
+  final String key;
+  final String line1; // Titel
+  final String line2; // Autor(en)
+  final String? coverUrl;
   final double? score;
+  final String type;
 
   BookSearchResult({
-    this.line1,
-    this.line2,
-    this.line3,
-    this.bookId,
-    this.idWithTitleSuffix,
-    this.type,
-    this.phrase,
-    this.shortTitle,
-    this.author,
-    this.occurrences,
+    required this.id,
+    required this.key,
+    required this.line1,
+    required this.line2,
+    this.coverUrl,
     this.score,
+    required this.type,
   });
 
-  factory BookSearchResult.fromJson(Map<String, dynamic> json) {
+  factory BookSearchResult.fromOpenLibrary(Map<String, dynamic> json) {
+    String key = json['key'] ?? '';
+    String id = json['key']?.replaceAll('/works/', '') ?? '';
+
+    // Cover-URL bestimmen
+    String? coverUrl;
+    if (json['cover_i'] != null) {
+      coverUrl = 'https://covers.openlibrary.org/b/id/${json['cover_i']}-M.jpg';
+    } else if (json['cover_edition_key'] != null) {
+      coverUrl =
+          'https://covers.openlibrary.org/b/olid/${json['cover_edition_key']}-M.jpg';
+    }
+
+    // Autoren bestimmen
+    String authors = 'Unknown Author';
+    if (json['author_name'] != null &&
+        json['author_name'] is List &&
+        json['author_name'].isNotEmpty) {
+      authors = (json['author_name'] as List).join(', ');
+    }
+
+    // Relevanz-Score berechnen (falls nicht vorhanden)
+    double? score = json['_score']?.toDouble();
+
     return BookSearchResult(
-      line1: json['line1'],
-      line2: json['line2'],
-      line3: json['line3'],
-      bookId: json['bookId'],
-      idWithTitleSuffix: json['idWithTitleSuffix'],
-      type: json['type'],
-      phrase: json['phrase'],
-      shortTitle: json['shortTitle'],
-      author: json['author'],
-      occurrences: json['occurrences'],
-      score: json['score']?.toDouble(),
+      id: id,
+      key: key,
+      line1: json['title'] ?? 'Unknown Title',
+      line2: authors,
+      coverUrl: coverUrl,
+      score: score,
+      type: 'book',
     );
   }
 }
