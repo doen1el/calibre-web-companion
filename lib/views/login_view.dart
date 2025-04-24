@@ -66,188 +66,200 @@ class _LoginState extends State<LoginView> {
           ),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // App logo or icon
-                Center(
-                  child: Icon(
-                    Icons.menu_book_rounded,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Server URL field
-                _buildTextField(
-                  context: context,
-                  controller: _urlController,
-                  labelText: localizations.calibreWebUrl,
-                  hintText: localizations.enterCalibreWebUrl,
-                  prefixIcon: Icons.link_rounded,
-                ),
-                const SizedBox(height: 16),
-
-                // Username field
-                _buildTextField(
-                  context: context,
-                  controller: _usernameController,
-                  labelText: localizations.username,
-                  hintText: localizations.enterYourUsername,
-                  prefixIcon: Icons.person_rounded,
-                ),
-                const SizedBox(height: 16),
-
-                // Password field
-                _buildTextField(
-                  context: context,
-                  controller: _passwordController,
-                  labelText: localizations.password,
-                  hintText: localizations.enterYourPassword,
-                  obscureText: true,
-                  prefixIcon: Icons.lock_rounded,
-                ),
-
-                // Error message if any
-                if (viewModel.errorMessage.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    viewModel.errorMessage,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                      fontWeight: FontWeight.bold,
+            child: AutofillGroup(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // App logo or icon
+                  Center(
+                    child: Icon(
+                      Icons.menu_book_rounded,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ],
+                  const SizedBox(height: 24),
 
-                const SizedBox(height: 24),
+                  // Server URL field
+                  _buildTextField(
+                    context: context,
+                    controller: _urlController,
+                    labelText: localizations.calibreWebUrl,
+                    hintText: localizations.enterCalibreWebUrl,
+                    prefixIcon: Icons.link_rounded,
+                    autofillHint: AutofillHints.url,
+                    keyboardType: TextInputType.url,
+                  ),
+                  const SizedBox(height: 16),
 
-                viewModel.isLoading
-                    ? Center(
-                      child: Container(
-                        width: double.infinity,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
+                  // Username field
+                  _buildTextField(
+                    context: context,
+                    controller: _usernameController,
+                    labelText: localizations.username,
+                    hintText: localizations.enterYourUsername,
+                    prefixIcon: Icons.person_rounded,
+                    autofillHint: AutofillHints.username,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Password field
+                  _buildTextField(
+                    context: context,
+                    controller: _passwordController,
+                    labelText: localizations.password,
+                    hintText: localizations.enterYourPassword,
+                    obscureText: true,
+                    prefixIcon: Icons.lock_rounded,
+                    autofillHint: AutofillHints.password,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted:
+                        (_) => _handleLogin(viewModel, localizations, context),
+                  ),
+
+                  // Error message if any
+                  if (viewModel.errorMessage.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      viewModel.errorMessage,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+
+                  const SizedBox(height: 24),
+
+                  viewModel.isLoading
+                      ? Center(
+                        child: Container(
+                          width: double.infinity,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                      )
+                      : Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.0),
                         ),
-                        child: const Center(child: CircularProgressIndicator()),
-                      ),
-                    )
-                    : Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 5,
-                            child: Material(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(12.0),
-                                bottomLeft: Radius.circular(12.0),
-                              ),
-                              child: InkWell(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 5,
+                              child: Material(
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.primaryContainer,
                                 borderRadius: BorderRadius.only(
                                   topLeft: Radius.circular(12.0),
                                   bottomLeft: Radius.circular(12.0),
                                 ),
-                                onTap:
-                                    () => _handleLogin(
-                                      viewModel,
-                                      localizations,
-                                      context,
-                                    ),
-                                child: Container(
-                                  height: 50,
-                                  alignment: Alignment.center,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.login_rounded,
-                                        color:
-                                            Theme.of(
-                                              context,
-                                            ).colorScheme.onPrimaryContainer,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(12.0),
+                                    bottomLeft: Radius.circular(12.0),
+                                  ),
+                                  onTap:
+                                      () => _handleLogin(
+                                        viewModel,
+                                        localizations,
+                                        context,
                                       ),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                        localizations.login,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
+                                  child: Container(
+                                    height: 50,
+                                    alignment: Alignment.center,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.login_rounded,
                                           color:
                                               Theme.of(
                                                 context,
                                               ).colorScheme.onPrimaryContainer,
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          localizations.login,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color:
+                                                Theme.of(context)
+                                                    .colorScheme
+                                                    .onPrimaryContainer,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
 
-                          Container(
-                            height: 50,
-                            width: 1,
-                            color: Theme.of(
-                              context,
-                              // ignore: deprecated_member_use
-                            ).colorScheme.onPrimaryContainer.withOpacity(0.3),
-                          ),
+                            Container(
+                              height: 50,
+                              width: 1,
+                              color: Theme.of(
+                                context,
+                                // ignore: deprecated_member_use
+                              ).colorScheme.onPrimaryContainer.withOpacity(0.3),
+                            ),
 
-                          Expanded(
-                            flex: 1,
-                            child: Material(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.only(
-                                topRight: Radius.circular(12.0),
-                                bottomRight: Radius.circular(12.0),
-                              ),
-                              child: InkWell(
+                            Expanded(
+                              flex: 1,
+                              child: Material(
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.primaryContainer,
                                 borderRadius: BorderRadius.only(
                                   topRight: Radius.circular(12.0),
                                   bottomRight: Radius.circular(12.0),
                                 ),
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    AppTransitions.createSlideRoute(
-                                      const LoginSettings(),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(12.0),
+                                    bottomRight: Radius.circular(12.0),
+                                  ),
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      AppTransitions.createSlideRoute(
+                                        const LoginSettings(),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    height: 50,
+                                    alignment: Alignment.center,
+                                    child: Icon(
+                                      Icons.settings,
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimaryContainer,
                                     ),
-                                  );
-                                },
-                                child: Container(
-                                  height: 50,
-                                  alignment: Alignment.center,
-                                  child: Icon(
-                                    Icons.settings,
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.onPrimaryContainer,
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -272,6 +284,10 @@ class _LoginState extends State<LoginView> {
     IconData? prefixIcon,
     String? hintText,
     bool obscureText = false,
+    String? autofillHint,
+    TextInputType? keyboardType,
+    TextInputAction? textInputAction,
+    ValueChanged<String>? onSubmitted,
   }) {
     final ValueNotifier<bool> isObscureTextNotifier = ValueNotifier<bool>(
       obscureText,
@@ -282,6 +298,10 @@ class _LoginState extends State<LoginView> {
       builder: (context, isObscureText, _) {
         return TextField(
           controller: controller,
+          autofillHints: autofillHint != null ? [autofillHint] : null,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          onSubmitted: onSubmitted,
           obscureText: isObscureText,
           decoration: InputDecoration(
             border: OutlineInputBorder(
