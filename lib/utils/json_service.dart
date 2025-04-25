@@ -42,6 +42,11 @@ class JsonService {
         // Serieninformationen hinzufügen, wenn nötig
         book = await enhanceBookWithSeriesInfo(book);
 
+        if (book.categories.isNotEmpty) {
+          final categoryMap = await fetchCategoryMappings();
+          book = await enhanceBookWithCategoryIds(book, categoryMap);
+        }
+
         return book;
       } else {
         throw Exception('Server error: ${response.statusCode}');
@@ -441,17 +446,11 @@ class JsonService {
     }
   }
 
-  // Neue Methode hinzufügen, um Serieninformationen aus HTML zu extrahieren
-  /// Holt Serieninformationen für ein Buch aus der HTML-Seite
+  /// Fetches series information from the HTML of a book page
   ///
   /// Parameters:
   ///
-  /// - `bookId`: Die ID des Buchs
-  /// Holt nur den Seriennamen aus der HTML-Seite
-  ///
-  /// Parameters:
-  ///
-  /// - `bookId`: Die ID des Buchs
+  /// - `bookId`: The ID of the book to fetch series info for
   Future<Map<String, dynamic>?> fetchSeriesInfoFromHtml(String bookId) async {
     logger.i('Fetching series info from HTML for book ID: $bookId');
 
@@ -464,9 +463,6 @@ class JsonService {
       if (response.statusCode == 200) {
         final html = response.body;
 
-        // logger.d('HTML response: $html'); // Optional: Nur bei Bedarf aktivieren
-
-        // Regex, um den Link und die ID zu finden
         final RegExp seriesRegex = RegExp(
           r'''href=['"](/series/stored/(\d+))['"]''',
           caseSensitive: false,
@@ -475,16 +471,12 @@ class JsonService {
         final Match? match = seriesRegex.firstMatch(html);
 
         if (match != null && match.groupCount >= 2) {
-          final String seriesLink =
-              match.group(1)!; // Kompletter Link, z.B. /series/stored/15
-          final String seriesIdStr =
-              match.group(2)!; // Die ID als String, z.B. "15"
+          final String seriesLink = match.group(1)!;
+          final String seriesIdStr = match.group(2)!;
           final int? seriesId = int.tryParse(seriesIdStr);
 
           if (seriesId != null) {
-            // Finde den Namen der Serie (Text innerhalb des <a> Tags)
-            final int linkEndIndex =
-                match.end; // Ende des gesamten href-Matches
+            final int linkEndIndex = match.end;
             final int tagCloseIndex = html.indexOf('>', linkEndIndex);
             if (tagCloseIndex != -1) {
               final int closingTagIndex = html.indexOf('</a>', tagCloseIndex);
@@ -498,7 +490,6 @@ class JsonService {
                 return {'name': seriesName, 'id': seriesId};
               }
             }
-            // Fallback, falls Name nicht extrahiert werden kann, aber ID vorhanden ist
             logger.i(
               'Found series ID in HTML: $seriesId (Name extraction failed)',
             );
@@ -516,7 +507,7 @@ class JsonService {
       logger.e('Error fetching series info from HTML: $e');
     }
 
-    return null; // Keine Serieninfo gefunden
+    return null;
   }
 
   /// Extend a book object with series information if available
@@ -525,17 +516,13 @@ class JsonService {
   ///
   /// - `book`: The book object to enhance
   Future<BookItem> enhanceBookWithSeriesInfo(BookItem book) async {
-    // Nur versuchen, wenn keine Serie vorhanden ist UND eine Buch-ID existiert
     if ((book.series == null || book.series!.isEmpty) && book.id.isNotEmpty) {
       final seriesInfo = await fetchSeriesInfoFromHtml(book.id);
 
       if (seriesInfo != null && seriesInfo['name'] != null) {
-        // Hier könntest du auch die seriesId speichern, falls dein BookItem-Modell das unterstützt
-        // final int seriesId = seriesInfo['id'];
         final String seriesName = seriesInfo['name'];
         final int seriesId = seriesInfo['id'];
 
-        // Erstelle eine Kopie des Buches mit dem neuen Seriennamen
         return BookItem(
           id: book.id,
           title: book.title,
@@ -548,7 +535,7 @@ class JsonService {
           categories: book.categories,
           summary: book.summary,
           fileSize: book.fileSize,
-          series: seriesName, // Aktualisierter Serienname
+          series: seriesName,
           seriesIndex: book.seriesIndex,
           formats: book.formats,
           downloadLinks: book.downloadLinks,
@@ -559,7 +546,99 @@ class JsonService {
         );
       }
     }
-    // Wenn keine Serie gefunden wurde oder bereits eine vorhanden war, gib das Originalbuch zurück
+    return book;
+  }
+
+  /// Fetches all categories and their IDs from the server
+  Future<Map<String, int>> fetchCategoryMappings() async {
+    logger.i('Fetching category mappings');
+    final categoriesMap = <String, int>{};
+
+    try {
+      final response = await _apiService.get('/category', AuthMethod.cookie);
+
+      if (response.statusCode == 200) {
+        final html = response.body;
+
+        // Use regex to extract categories and their IDs
+        final RegExp categoryRegex = RegExp(
+          r'''<a\s+id="list_\d+"\s+href="/category/stored/(\d+)">\s*(\w[^<]+)''',
+          caseSensitive: false,
+          multiLine: true,
+          dotAll: true,
+        );
+
+        final matches = categoryRegex.allMatches(html);
+        for (var match in matches) {
+          if (match.groupCount >= 2) {
+            final categoryId = int.tryParse(match.group(1)!) ?? 0;
+            final categoryName = match.group(2)!.trim();
+
+            if (categoryId > 0 && categoryName.isNotEmpty) {
+              categoriesMap[categoryName] = categoryId;
+            }
+          }
+        }
+
+        logger.i('Found ${categoriesMap.length} categories with IDs');
+      } else {
+        logger.w('Failed to fetch category page: ${response.statusCode}');
+      }
+    } catch (e) {
+      logger.e('Error fetching category mappings: $e');
+    }
+
+    return categoriesMap;
+  }
+
+  /// Enhance a book with category IDs
+  ///
+  /// Parameters:
+  ///
+  /// - `book`: The book object to enhance
+  /// - `categoryMap`: A map of category names to IDs
+  Future<BookItem> enhanceBookWithCategoryIds(
+    BookItem book,
+    Map<String, int> categoryMap,
+  ) async {
+    final bookCategoryIds = <String, int>{};
+
+    if (book.categories.isEmpty) {
+      return book;
+    }
+
+    for (final category in book.categories) {
+      if (categoryMap.containsKey(category)) {
+        bookCategoryIds[category] = categoryMap[category]!;
+      }
+    }
+
+    if (bookCategoryIds.isNotEmpty) {
+      return BookItem(
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        uuid: book.uuid,
+        publisher: book.publisher,
+        updated: book.updated,
+        published: book.published,
+        language: book.language,
+        categories: book.categories,
+        categoriesMap: bookCategoryIds,
+        summary: book.summary,
+        fileSize: book.fileSize,
+        series: book.series,
+        seriesIndex: book.seriesIndex,
+        formats: book.formats,
+        downloadLinks: book.downloadLinks,
+        rating: book.rating,
+        coverUrl: book.coverUrl,
+        thumbnailUrl: book.thumbnailUrl,
+        authorSort: book.authorSort,
+        seriesId: book.seriesId,
+      );
+    }
+
     return book;
   }
 }

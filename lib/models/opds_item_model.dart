@@ -15,6 +15,7 @@ class BookItem extends OpdsItem {
   final DateTime? published;
   final String? language;
   final List<String> categories;
+  final Map<String, int> categoriesMap;
   final String? summary;
   final int? fileSize;
   final String? series;
@@ -38,6 +39,7 @@ class BookItem extends OpdsItem {
     this.published,
     this.language,
     required this.categories,
+    this.categoriesMap = const {},
     this.summary,
     this.fileSize,
     this.series,

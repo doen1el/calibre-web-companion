@@ -391,7 +391,7 @@ class _BookDetailsState extends State<BookDetails> {
               localizations.categories,
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: _buildTags(context, book.categories),
+                child: _buildTags(context, book.categories, book.categoriesMap),
               ),
             ),
 
@@ -870,22 +870,41 @@ class _BookDetailsState extends State<BookDetails> {
   ///
   /// - [context]: The current build context
   /// - [tags]: The list of tags to display
-  Widget _buildTags(BuildContext context, List<String> tags) {
+  Widget _buildTags(
+    BuildContext context,
+    List<String> tags,
+    Map<String, int> tagsMap,
+  ) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children:
             tags.map((tag) {
+              final categoryId = tagsMap[tag];
               return Padding(
                 padding: const EdgeInsets.only(right: 8.0),
-                child: Chip(
-                  label: Text(tag),
-                  backgroundColor:
-                      Theme.of(context).colorScheme.secondaryContainer,
-                  labelStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8.0),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      AppTransitions.createSlideRoute(
+                        BookList(
+                          title: tag,
+                          categoryType: CategoryType.category,
+                          fullPath: "/opds/category/$categoryId",
+                        ),
+                      ),
+                    );
+                  },
+                  child: Chip(
+                    label: Text(tag),
+                    backgroundColor:
+                        Theme.of(context).colorScheme.secondaryContainer,
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
+                    visualDensity: VisualDensity.compact,
                   ),
-                  visualDensity: VisualDensity.compact,
                 ),
               );
             }).toList(),
