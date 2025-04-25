@@ -243,5 +243,8 @@
   "schemaWasSelectedSuccessfully": "Le schéma a été sélectionné avec succès",
   "downloadSchema": "Schéma de téléchargement",
   "noFolderSelected": "Aucun dossier sélectionné",
-  "downloadFolder": "Dossier de téléchargement"
+  "downloadFolder": "Dossier de téléchargement",
+  "openInReader": "Ouvrir dans le lecteur",
+  "bookOpenedExternallySuccessfully": "Livre ouvert avec succès dans l'application externe",
+  "openBookExternallyFailed": "Échec de l'ouverture du livre dans l'application externe"
 }

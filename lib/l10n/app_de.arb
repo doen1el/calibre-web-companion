@@ -243,5 +243,8 @@
   "schemaWasSelectedSuccessfully": "Schema erfolgreich ausgewählt",
   "downloadSchema": "Download-Schema",
   "noFolderSelected": "Kein Ordner ausgewählt",
-  "downloadFolder": "Download-Ordner"
+  "downloadFolder": "Download-Ordner",
+  "openInReader": "In E-Book App öffnen",
+  "bookOpenedExternallySuccessfully": "Buch wurde in externer App geöffnet",
+  "openBookExternallyFailed": "Buch konnte nicht in externer App geöffnet werden"
 }

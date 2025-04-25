@@ -7,16 +7,19 @@ import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:calibre_web_companion/utils/json_service.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
+import 'package:calibre_web_companion/views/download_service_view.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_file/open_file.dart';
 
 class BookDetailsViewModel extends ChangeNotifier {
   final JsonService _jsonService = JsonService();
+  final DownloadServiceView _downloadService = DownloadServiceView();
 
   BookItem? _currentBook;
   BookItem? get currentBook => _currentBook;
@@ -47,6 +50,9 @@ class BookDetailsViewModel extends ChangeNotifier {
 
   int _progress = 0;
   int get progress => _progress;
+
+  bool _isOpeningInReader = false;
+  bool get isOpeningInReader => _isOpeningInReader;
 
   @override
   void dispose() {
@@ -116,7 +122,7 @@ class BookDetailsViewModel extends ChangeNotifier {
   /// - `selectedDirectory`: The directory to save the book
   /// - `schema`: The download schema (flat or nested)
   /// - `book`: The book item object
-  Future<bool> downloadBook(
+  Future<String> downloadBook(
     BookItem book,
     String title,
     DownloadSchema schema,
@@ -137,7 +143,7 @@ class BookDetailsViewModel extends ChangeNotifier {
       if (baseUrl.isEmpty) {
         logger.w('No server URL found');
         errorMessage = 'Server URL missing';
-        return false;
+        return "";
       }
 
       final downloadUrl = '$baseUrl/download/${book.id}/epub/${book.id}.epub';
@@ -151,6 +157,13 @@ class BookDetailsViewModel extends ChangeNotifier {
         format,
         schema,
       );
+
+      // Check if the file already exists
+      final file = File(filePath);
+      if (await file.exists()) {
+        logger.i('File already exists: $filePath');
+        return filePath;
+      }
 
       final client = http.Client();
       try {
@@ -173,14 +186,12 @@ class BookDetailsViewModel extends ChangeNotifier {
         );
 
         if (response.statusCode == 200) {
-          final file = File(filePath);
-
           try {
             await Directory(path.dirname(filePath)).create(recursive: true);
           } catch (e) {
             logger.e('Error creating directory: $e');
             errorMessage = 'Could not create directory: $e';
-            return false;
+            return "";
           }
 
           final sink = file.openWrite();
@@ -203,27 +214,27 @@ class BookDetailsViewModel extends ChangeNotifier {
           } catch (e) {
             logger.e('Error while downloading book: $e');
             errorMessage = 'Download error: $e';
-            return false;
+            return "";
           } finally {
             await sink.flush();
             await sink.close();
           }
 
           logger.i('Download complete: $filePath with $receivedBytes bytes');
-          return true;
+          return filePath;
         } else if (response.statusCode == 401) {
           logger.w('Authentication failed');
           errorMessage = 'Authentication failed';
-          return false;
+          return "";
         } else {
           logger.e('Failed to download book: ${response.statusCode}');
           errorMessage = 'HTTP error ${response.statusCode}';
-          return false;
+          return "";
         }
       } catch (e) {
         logger.e('Exception in download stream: $e');
         errorMessage = 'Download error: $e';
-        return false;
+        return "";
       } finally {
         client.close();
         isDownloading = false;
@@ -234,7 +245,7 @@ class BookDetailsViewModel extends ChangeNotifier {
       errorMessage = 'Error: $e';
       isDownloading = false;
       notifyListeners();
-      return false;
+      return "";
     } finally {
       _progress = 0;
     }
@@ -798,5 +809,52 @@ class BookDetailsViewModel extends ChangeNotifier {
     } finally {
       notifyListeners();
     }
+  }
+
+  /// Open the book in the reader
+  ///
+  /// Parameters:
+  ///
+  /// - `book`: The book item to open
+  /// - `selectedDirectory`: The directory to save the book
+  /// - `schema`: The download schema (flat or nested)
+  Future<bool> openInReader(
+    BookItem book,
+    String selectedDirectory,
+    DownloadSchema schema,
+  ) async {
+    try {
+      setOpeningInReader(true);
+
+      String filePath = await downloadBook(
+        book,
+        book.title,
+        schema,
+        selectedDirectory,
+      );
+
+      final result = await OpenFile.open(filePath);
+
+      // Überprüfe das Ergebnis
+      if (result.type != ResultType.done) {
+        logger.e('Error while opening the file: ${result.message}');
+        errorMessage = 'Error while opneing: ${result.message}';
+        return false;
+      }
+
+      logger.i('Opened book successfully');
+      return true;
+    } catch (e) {
+      logger.e('Error while opening the book: $e');
+      errorMessage = 'Error: $e';
+      return false;
+    } finally {
+      setOpeningInReader(false);
+    }
+  }
+
+  void setOpeningInReader(bool value) {
+    _isOpeningInReader = value;
+    notifyListeners();
   }
 }

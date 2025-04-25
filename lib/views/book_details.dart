@@ -6,11 +6,13 @@ import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
+import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
 import 'package:calibre_web_companion/views/book_list.dart';
 import 'package:calibre_web_companion/views/widgets/add_to_shelf.dart';
 import 'package:calibre_web_companion/views/widgets/download_to_device.dart';
 import 'package:calibre_web_companion/views/widgets/edit_book_metadata.dart';
 import 'package:calibre_web_companion/views/widgets/send_to_ereader.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
@@ -587,6 +589,7 @@ class _BookDetailsState extends State<BookDetails> {
                     },
             tooltip: localizations.archiveUnarchive,
           ),
+
           EditBookMetadata(
             book: book,
             isLoading: isLoading,
@@ -594,6 +597,69 @@ class _BookDetailsState extends State<BookDetails> {
           ),
           AddToShelf(book: book, isLoading: isLoading),
           DownloadToDevice(book: book, isLoading: isLoading),
+          IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              child:
+                  Provider.of<BookDetailsViewModel>(context).isOpeningInReader
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      )
+                      : const Icon(Icons.open_in_new_rounded),
+            ),
+            onPressed:
+                isLoading
+                    ? null
+                    : () async {
+                      final settingsViewModel =
+                          context.read<SettingsViewModel>();
+                      final String? selectedDirectory;
+
+                      if (settingsViewModel.defaultDownloadPath == '') {
+                        if (!await checkAndRequestPermissions()) {
+                          // ignore: use_build_context_synchronously
+                          context.showSnackBar(
+                            localizations
+                                .storagePermissionRequiredToSelectAFolder,
+                            isError: true,
+                          );
+                          return;
+                        }
+
+                        selectedDirectory =
+                            await FilePicker.platform.getDirectoryPath();
+                        if (selectedDirectory == null) {
+                          // ignore: use_build_context_synchronously
+                          Navigator.pop(context);
+                          return;
+                        }
+                      } else {
+                        selectedDirectory =
+                            settingsViewModel.defaultDownloadPath;
+                      }
+
+                      final success = await Provider.of<BookDetailsViewModel>(
+                        // ignore: use_build_context_synchronously
+                        context,
+                        listen: false,
+                      ).openInReader(
+                        book,
+                        selectedDirectory,
+                        settingsViewModel.downloadSchema,
+                      );
+
+                      // ignore: use_build_context_synchronously
+                      context.showSnackBar(
+                        success
+                            ? localizations.bookOpenedExternallySuccessfully
+                            : localizations.openBookExternallyFailed,
+                        isError: !success,
+                      );
+                    },
+            tooltip: localizations.openInReader,
+          ),
           IconButton(
             icon: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
