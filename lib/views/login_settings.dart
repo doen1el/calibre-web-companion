@@ -10,11 +10,23 @@ class LoginSettings extends StatefulWidget {
   LoginSettingsState createState() => LoginSettingsState();
 }
 
-class LoginSettingsState extends State<LoginSettings> {
+class LoginSettingsState extends State<LoginSettings>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final TextEditingController _basePathController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
-    Provider.of<LoginSettingsViewModel>(context, listen: false).loadHeaders();
+    _tabController = TabController(length: 2, vsync: this);
+    Provider.of<LoginSettingsViewModel>(context, listen: false).loadSettings();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _basePathController.dispose();
+    super.dispose();
   }
 
   @override
@@ -22,56 +34,200 @@ class LoginSettingsState extends State<LoginSettings> {
     final viewModel = context.watch<LoginSettingsViewModel>();
     final localizations = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(localizations.connectionSettings)),
-      body:
-          viewModel.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // HTTP Header Section
-                    _buildSectionTitle(
-                      context,
-                      localizations.costumHttpPHeader,
-                    ),
-                    _buildHeadersCard(context, viewModel, localizations),
+    if (viewModel.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: Text(localizations.connectionSettings)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
-                    // Add Header Button
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 16.0,
-                      ),
-                      child: Center(
-                        child: ElevatedButton.icon(
-                          onPressed: viewModel.addHeader,
-                          icon: const Icon(Icons.add),
-                          label: Text(localizations.addHeader),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primaryContainer,
-                            foregroundColor:
-                                Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
-                          ),
-                        ),
+    // Set the initial value of the base path text field
+    _basePathController.text =
+        viewModel.basePath.startsWith('/')
+            ? viewModel.basePath.substring(1)
+            : viewModel.basePath;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(localizations.connectionSettings),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: [
+            Tab(text: localizations.headers, icon: const Icon(Icons.code)),
+            Tab(
+              text: localizations.authSystems,
+              icon: const Icon(Icons.security),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            tooltip: localizations.save,
+            onPressed: () {
+              viewModel.saveAllSettings();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(localizations.settingsSaved)),
+              );
+            },
+          ),
+        ],
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          // Tab 1: Custom HTTP Headers
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionTitle(context, localizations.costumHttpPHeader),
+                _buildHeadersCard(context, viewModel, localizations),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 16.0,
+                  ),
+                  child: Center(
+                    child: ElevatedButton.icon(
+                      onPressed: viewModel.addHeader,
+                      icon: const Icon(Icons.add),
+                      label: Text(localizations.addHeader),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            Theme.of(context).colorScheme.primaryContainer,
+                        foregroundColor:
+                            Theme.of(context).colorScheme.onPrimaryContainer,
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
+            ),
+          ),
+
+          // Tab 2: Authentication Systems
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionTitle(context, localizations.basePath),
+                Card(
+                  margin: const EdgeInsets.only(bottom: 24.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          localizations.basePathDescription,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _basePathController,
+                          decoration: InputDecoration(
+                            labelText: localizations.basePath,
+                            hintText: 'calibre',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            prefixText: '/',
+                            filled: true,
+                            fillColor: Theme.of(context).colorScheme.surface,
+                          ),
+                          onChanged: (value) {
+                            viewModel.setBasePath(value);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                _buildSectionTitle(context, localizations.authSystem),
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          localizations.authSystemDescription,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        ...viewModel.authSystemNames.entries.map((entry) {
+                          return RadioListTile<AuthSystem>(
+                            title: Text(entry.value),
+                            value: entry.key,
+                            groupValue: viewModel.selectedAuthSystem,
+                            onChanged: (AuthSystem? value) {
+                              if (value != null) {
+                                viewModel.setAuthSystem(value);
+                              }
+                            },
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+                _buildSectionTitle(context, localizations.helpAndInfo),
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ListTile(
+                          leading: Icon(
+                            Icons.info_outline,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          title: Text(localizations.authSystemHelp1),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: Icon(
+                            Icons.security,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          title: Text(localizations.authSystemHelp2),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: Icon(
+                            Icons.code,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          title: Text(localizations.authSystemHelp3),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   /// Build a section title with the same style as SettingsView
-  ///
-  /// Parameters:
-  ///
-  /// - `context`: The BuildContext
-  /// - `title`: The title to display
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -86,11 +242,6 @@ class LoginSettingsState extends State<LoginSettings> {
   }
 
   /// Build the card for the custom HTTP headers
-  ///
-  /// Parameters:
-  ///
-  /// - `context`: The BuildContext
-  /// - `viewModel`: The LoginSettingsViewModel
   Widget _buildHeadersCard(
     BuildContext context,
     LoginSettingsViewModel viewModel,
@@ -229,16 +380,6 @@ class LoginSettingsState extends State<LoginSettings> {
   }
 
   /// Textfield
-  ///
-  /// Parameters:
-  ///
-  /// - `context`: The BuildContext
-  /// - `initialValue`: The initial value of the text field
-  /// - `labelText`: The label text of the text field
-  /// - `prefixIcon`: The icon to display before the text field
-  /// - `hintText`: The hint text of the text field
-  /// - `obscureText`: Whether the text should be obscured
-  /// - `onChanged`: The function to call when the text changes
   Widget _buildTextField({
     required BuildContext context,
     String? initialValue,
