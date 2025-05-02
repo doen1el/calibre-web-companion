@@ -66,6 +66,7 @@ class SettingsViewModel extends ChangeNotifier {
   String? _appVersion;
   String? _buildNumber;
   String? _defaultDownloadPath;
+  String? _baseUrl;
   DownloadSchema _downloadSchema = DownloadSchema.flat;
 
   // Getters
@@ -79,6 +80,7 @@ class SettingsViewModel extends ChangeNotifier {
   String get buildNumber => _buildNumber ?? '';
   String get defaultDownloadPath => _defaultDownloadPath ?? '';
   DownloadSchema get downloadSchema => _downloadSchema;
+  String get baseUrl => _baseUrl ?? '';
 
   Future<void> loadSettings() async {
     await loadCurrentTheme();
@@ -113,6 +115,8 @@ class SettingsViewModel extends ChangeNotifier {
       final schemaIndex =
           prefs.getInt('download_schema') ?? DownloadSchema.flat.index;
       _downloadSchema = DownloadSchema.values[schemaIndex];
+
+      _baseUrl = prefs.getString('base_path');
 
       logger.i('Loaded default download path: $_defaultDownloadPath');
       notifyListeners();

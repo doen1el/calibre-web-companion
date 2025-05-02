@@ -2,12 +2,17 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/api_service.dart';
+import 'package:calibre_web_companion/utils/app_transition.dart';
 import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
+import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
+import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
+import 'package:calibre_web_companion/views/book_list.dart';
 import 'package:calibre_web_companion/views/widgets/add_to_shelf.dart';
 import 'package:calibre_web_companion/views/widgets/download_to_device.dart';
 import 'package:calibre_web_companion/views/widgets/edit_book_metadata.dart';
 import 'package:calibre_web_companion/views/widgets/send_to_ereader.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
@@ -285,13 +290,30 @@ class _BookDetailsState extends State<BookDetails> {
               context,
               Icons.bookmark_rounded,
               localizations.series,
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Text(
-                  book.seriesIndex != null
-                      ? '${book.series} (${localizations.book} ${book.seriesIndex?.toInt()})'
-                      : book.series!,
-                  style: Theme.of(context).textTheme.bodyLarge,
+              InkWell(
+                borderRadius: BorderRadius.circular(8.0),
+                onTap: () {
+                  Navigator.of(context).push(
+                    AppTransitions.createSlideRoute(
+                      BookList(
+                        title: book.series!,
+                        categoryType: CategoryType.series,
+                        fullPath: "/opds/series/${book.seriesId}",
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 4.0,
+                    horizontal: 4.0,
+                  ),
+
+                  child: Text(
+                    book.seriesIndex != null
+                        ? '${book.series} (${localizations.book} ${book.seriesIndex?.toInt()})'
+                        : book.series!,
+                  ),
                 ),
               ),
             ),
@@ -369,7 +391,7 @@ class _BookDetailsState extends State<BookDetails> {
               localizations.categories,
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: _buildTags(context, book.categories),
+                child: _buildTags(context, book.categories, book.categoriesMap),
               ),
             ),
 
@@ -567,6 +589,7 @@ class _BookDetailsState extends State<BookDetails> {
                     },
             tooltip: localizations.archiveUnarchive,
           ),
+
           EditBookMetadata(
             book: book,
             isLoading: isLoading,
@@ -574,6 +597,69 @@ class _BookDetailsState extends State<BookDetails> {
           ),
           AddToShelf(book: book, isLoading: isLoading),
           DownloadToDevice(book: book, isLoading: isLoading),
+          IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              child:
+                  Provider.of<BookDetailsViewModel>(context).isOpeningInReader
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      )
+                      : const Icon(Icons.open_in_new_rounded),
+            ),
+            onPressed:
+                isLoading
+                    ? null
+                    : () async {
+                      final settingsViewModel =
+                          context.read<SettingsViewModel>();
+                      final String? selectedDirectory;
+
+                      if (settingsViewModel.defaultDownloadPath == '') {
+                        if (!await checkAndRequestPermissions()) {
+                          // ignore: use_build_context_synchronously
+                          context.showSnackBar(
+                            localizations
+                                .storagePermissionRequiredToSelectAFolder,
+                            isError: true,
+                          );
+                          return;
+                        }
+
+                        selectedDirectory =
+                            await FilePicker.platform.getDirectoryPath();
+                        if (selectedDirectory == null) {
+                          // ignore: use_build_context_synchronously
+                          Navigator.pop(context);
+                          return;
+                        }
+                      } else {
+                        selectedDirectory =
+                            settingsViewModel.defaultDownloadPath;
+                      }
+
+                      final success = await Provider.of<BookDetailsViewModel>(
+                        // ignore: use_build_context_synchronously
+                        context,
+                        listen: false,
+                      ).openInReader(
+                        book,
+                        selectedDirectory,
+                        settingsViewModel.downloadSchema,
+                      );
+
+                      // ignore: use_build_context_synchronously
+                      context.showSnackBar(
+                        success
+                            ? localizations.bookOpenedExternallySuccessfully
+                            : localizations.openBookExternallyFailed,
+                        isError: !success,
+                      );
+                    },
+            tooltip: localizations.openInReader,
+          ),
           IconButton(
             icon: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
@@ -784,22 +870,41 @@ class _BookDetailsState extends State<BookDetails> {
   ///
   /// - [context]: The current build context
   /// - [tags]: The list of tags to display
-  Widget _buildTags(BuildContext context, List<String> tags) {
+  Widget _buildTags(
+    BuildContext context,
+    List<String> tags,
+    Map<String, int> tagsMap,
+  ) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children:
             tags.map((tag) {
+              final categoryId = tagsMap[tag];
               return Padding(
                 padding: const EdgeInsets.only(right: 8.0),
-                child: Chip(
-                  label: Text(tag),
-                  backgroundColor:
-                      Theme.of(context).colorScheme.secondaryContainer,
-                  labelStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8.0),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      AppTransitions.createSlideRoute(
+                        BookList(
+                          title: tag,
+                          categoryType: CategoryType.category,
+                          fullPath: "/opds/category/$categoryId",
+                        ),
+                      ),
+                    );
+                  },
+                  child: Chip(
+                    label: Text(tag),
+                    backgroundColor:
+                        Theme.of(context).colorScheme.secondaryContainer,
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
+                    visualDensity: VisualDensity.compact,
                   ),
-                  visualDensity: VisualDensity.compact,
                 ),
               );
             }).toList(),

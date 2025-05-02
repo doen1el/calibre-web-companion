@@ -243,7 +243,7 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
         selectedDirectory,
         format: format,
       );
-      if (!response) {
+      if (response == "") {
         throw Exception('Failed to download ebook');
       }
 

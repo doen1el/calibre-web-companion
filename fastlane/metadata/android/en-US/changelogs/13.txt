@@ -1,0 +1,5 @@
+- added clickable series name
+- added clickable tag 
+- added autofill to login page
+- added ability to open books in installed readers
+- added support for reverse proxy authentication
