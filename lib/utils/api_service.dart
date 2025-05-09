@@ -100,29 +100,10 @@ class ApiService {
     Map<String, String>? queryParams,
   }) async {
     await _ensureInitialized();
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     final uri = await _buildUri(endpoint, queryParams);
     final headers = await _getAuthHeaders(authMethod);
 
-    List<Map<String, String>> costumHeaders = [];
-
-    final headersJson = prefs.getString('custom_login_headers') ?? '[]';
-
-    final List<dynamic> decodedList = jsonDecode(headersJson);
-    costumHeaders =
-        decodedList
-            .map((item) => Map<String, String>.from(item as Map))
-            .toList();
-
-    // Add custom headers
-    if (costumHeaders.isNotEmpty) {
-      for (var customHeader in costumHeaders) {
-        headers.addAll(customHeader);
-      }
-    }
-
     _logger.d('Headers: $headers');
-
     _logger.d('GET request to: $uri');
     _logger.d('Using ${authMethod.name} authentication');
 
@@ -193,23 +174,6 @@ class ApiService {
     }
 
     encodedBody = _encodeBody(body, contentType);
-
-    List<Map<String, String>> costumHeaders = [];
-
-    final headersJson = prefs.getString('custom_login_headers') ?? '[]';
-
-    final List<dynamic> decodedList = jsonDecode(headersJson);
-    costumHeaders =
-        decodedList
-            .map((item) => Map<String, String>.from(item as Map))
-            .toList();
-
-    // Add custom headers
-    if (costumHeaders.isNotEmpty) {
-      for (var customHeader in costumHeaders) {
-        headers.addAll(customHeader);
-      }
-    }
 
     _logger.i("Headers: $headers");
 
@@ -362,7 +326,6 @@ class ApiService {
   /// Parameters:
   ///
   /// - `authMethod`: The authentication method to use
-  // Modifiziere die Methode, die Headers zusammenstellt
   Future<Map<String, String>> _getAuthHeaders(AuthMethod authMethod) async {
     final headers = <String, String>{};
 
@@ -382,17 +345,6 @@ class ApiService {
         if (storedCookie.isNotEmpty) {
           headers['Cookie'] = storedCookie;
         }
-
-        final prefs = await SharedPreferences.getInstance();
-        final webViewCookie = prefs.getString('webview_session_cookie');
-        if (webViewCookie != null && webViewCookie.isNotEmpty) {
-          if (storedCookie.isNotEmpty) {
-            headers['Cookie'] = '$storedCookie; $webViewCookie';
-          } else {
-            headers['Cookie'] = webViewCookie;
-          }
-        }
-
         break;
       case AuthMethod.none:
         break;
