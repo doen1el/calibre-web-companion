@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
 import 'package:calibre_web_companion/utils/snack_bar.dart';
 import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
+import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -47,7 +48,7 @@ class SendToEreader extends StatefulWidget {
 class SendToEreaderState extends State<SendToEreader> {
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<BookDetailsViewModel>();
+    final viewModel = context.read<BookDetailsViewModel>();
     AppLocalizations localizations = AppLocalizations.of(context)!;
 
     return FloatingActionButton.extended(
@@ -80,6 +81,7 @@ class SendToEreaderState extends State<SendToEreader> {
     // Add state variables
     bool isKindle = false;
     SendMethod sendMethod = SendMethod.browser;
+    final settingsView = context.read<SettingsViewModel>();
 
     showDialog(
       context: context,
@@ -311,8 +313,8 @@ class SendToEreaderState extends State<SendToEreader> {
                                 color: Theme.of(context).hintColor,
                               ),
                               children: <TextSpan>[
-                                const TextSpan(
-                                  text: ' send.djazz.se ',
+                                TextSpan(
+                                  text: ' ${settingsView.send2ereaderUrl} ',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 TextSpan(text: localizations.onYourEReader),
@@ -490,6 +492,7 @@ class SendToEreaderState extends State<SendToEreader> {
     bool isKindle,
     SendMethod sendMethod,
   ) async {
+    final settingsView = context.read<SettingsViewModel>();
     var logger = Logger();
 
     // Create transfer status notifier
@@ -529,8 +532,9 @@ class SendToEreaderState extends State<SendToEreader> {
 
       transferStatus.value = TransferStatus.uploading;
 
-      // Upload to send.djazz.se
-      final result = await _uploadToSendDjazz(
+      // Upload to send2ereader
+      final result = await _uploadToSend2Ereader(
+        settingsView.send2ereaderUrl,
         code,
         "${book.title}.epub",
         ebookBytes,
@@ -743,15 +747,17 @@ class SendToEreaderState extends State<SendToEreader> {
     }
   }
 
-  /// Upload the file to send.djazz.se
+  /// Upload the file to send2ereader
   ///
   /// Parameters:
   ///
+  /// - `context`: The current build context
   /// - `code`: The 4-digit code to use for the transfer
   /// - `filename`: The name of the file to upload
   /// - `fileBytes`: The bytes of the file to upload
   /// - `isKindle`: Whether to convert the file for Kindle
-  Future<bool> _uploadToSendDjazz(
+  Future<bool> _uploadToSend2Ereader(
+    String url,
     String code,
     String filename,
     Uint8List fileBytes, {
@@ -761,7 +767,7 @@ class SendToEreaderState extends State<SendToEreader> {
     var logger = Logger();
 
     try {
-      final uri = Uri.parse('https://send.djazz.se/upload');
+      final uri = Uri.parse("$url/upload");
 
       // Check cancellation before starting
       if (cancelToken?.isCancelled == true) {
@@ -823,7 +829,7 @@ class SendToEreaderState extends State<SendToEreader> {
       }
     } catch (e) {
       if (e is! CancellationException) {
-        logger.e('Error uploading to send.djazz.se: $e');
+        logger.e('Error uploading to send2ereader: $e');
       }
       rethrow;
     }

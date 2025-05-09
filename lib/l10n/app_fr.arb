@@ -280,5 +280,8 @@
   "webViewHelp1": "L'authentification via navigateur est utile pour les SSO et les systèmes d'authentification complexes.",
   "webViewHelp2": "La session est enregistrée et utilisée pour les requêtes futures.",
   "webViewHelp3": "Les sessions peuvent expirer après un certain temps.",
-  "settingsSaved": "Paramètres enregistrés"
+  "settingsSaved": "Paramètres enregistrés",
+  "send2ereaderService": "Service Send2ereader",
+  "send2ereaderServiceUrl": "URL du service Send2ereader",
+  "enterUrlOfYourSend2ereaderService": "Entrez l'URL de votre service Send2ereader"
 }

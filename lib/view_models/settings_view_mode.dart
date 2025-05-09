@@ -61,8 +61,12 @@ class SettingsViewModel extends ChangeNotifier {
   };
 
   bool _isDownloaderEnabled = false;
+  bool _isCostumSend2ereaderEnabled = false;
   String _downloaderUrl = '';
+  String _send2ereaderUrl = '';
   final TextEditingController downloaderUrlController = TextEditingController();
+  final TextEditingController send2ereaderUrlController =
+      TextEditingController();
   String? _appVersion;
   String? _buildNumber;
   String? _defaultDownloadPath;
@@ -81,11 +85,14 @@ class SettingsViewModel extends ChangeNotifier {
   String get defaultDownloadPath => _defaultDownloadPath ?? '';
   DownloadSchema get downloadSchema => _downloadSchema;
   String get baseUrl => _baseUrl ?? '';
+  String get send2ereaderUrl => _send2ereaderUrl;
+  bool get isCostumSend2ereaderEnabled => _isCostumSend2ereaderEnabled;
 
   Future<void> loadSettings() async {
     await loadCurrentTheme();
     await loadThemeSourceAndColor();
     await loadDownloaderSettings();
+    await loadSend2ereaderSettings();
     await loadDefaultDownloadInfo();
     await loadAppInfo();
   }
@@ -214,6 +221,22 @@ class SettingsViewModel extends ChangeNotifier {
     }
   }
 
+  /// Load send2ereader settings from SharedPreferences
+  Future<void> loadSend2ereaderSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isCostumSend2ereaderEnabled =
+          prefs.getBool('send2ereader_enabled') ?? false;
+      _send2ereaderUrl =
+          prefs.getString('send2ereader_url') ?? 'https://send.djazz.se/';
+      send2ereaderUrlController.text = _send2ereaderUrl;
+
+      notifyListeners();
+    } catch (e) {
+      logger.e('Error loading send2ereader settings: $e');
+    }
+  }
+
   /// Toggle downloader enabled state
   ///
   /// Parameters:
@@ -226,6 +249,18 @@ class SettingsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Toggle send2ereader enabled state
+  ///
+  /// Parameters:
+  ///
+  /// - `value`: The new value
+  Future<void> toggleSend2ereader(bool value) async {
+    _isCostumSend2ereaderEnabled = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('send2ereader_enabled', value);
+    notifyListeners();
+  }
+
   /// Set downloader URL
   ///
   /// Parameters:
@@ -235,6 +270,18 @@ class SettingsViewModel extends ChangeNotifier {
     _downloaderUrl = url;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('downloader_url', url);
+    notifyListeners();
+  }
+
+  /// Set send2ereader URL
+  ///
+  /// Parameters:
+  ///
+  /// - `url`: The new URL
+  Future<void> setSend2ereaderUrl(String url) async {
+    _send2ereaderUrl = url;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('send2ereader_url', url);
     notifyListeners();
   }
 
