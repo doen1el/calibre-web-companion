@@ -16,7 +16,6 @@ class ApiService {
   String? _cookie;
   String? _username;
   String? _password;
-  String? _basePath;
 
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
@@ -38,11 +37,6 @@ class ApiService {
     return _password ?? '';
   }
 
-  /// Returns the base path or an empty string
-  String getBasePath() {
-    return _basePath ?? '';
-  }
-
   /// Initializes the API service with credentials from shared preferences
   Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
@@ -50,7 +44,6 @@ class ApiService {
     _cookie = prefs.getString('calibre_web_session');
     _username = prefs.getString('username');
     _password = prefs.getString('password');
-    _basePath = prefs.getString('base_path');
   }
 
   void dispose() {
@@ -100,10 +93,29 @@ class ApiService {
     Map<String, String>? queryParams,
   }) async {
     await _ensureInitialized();
-    final uri = await _buildUri(endpoint, queryParams);
-    final headers = await _getAuthHeaders(authMethod);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final uri = _buildUri(endpoint, queryParams);
+    final headers = _getAuthHeaders(authMethod);
+
+    List<Map<String, String>> costumHeaders = [];
+
+    final headersJson = prefs.getString('custom_login_headers') ?? '[]';
+
+    final List<dynamic> decodedList = jsonDecode(headersJson);
+    costumHeaders =
+        decodedList
+            .map((item) => Map<String, String>.from(item as Map))
+            .toList();
+
+    // Add custom headers
+    if (costumHeaders.isNotEmpty) {
+      for (var customHeader in costumHeaders) {
+        headers.addAll(customHeader);
+      }
+    }
 
     _logger.d('Headers: $headers');
+
     _logger.d('GET request to: $uri');
     _logger.d('Using ${authMethod.name} authentication');
 
@@ -141,8 +153,8 @@ class ApiService {
   }) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await _ensureInitialized();
-    final uri = await _buildUri(endpoint, queryParams);
-    final headers = await _getAuthHeaders(authMethod);
+    final uri = _buildUri(endpoint, queryParams);
+    final headers = _getAuthHeaders(authMethod);
     headers['Content-Type'] = contentType;
 
     _logger.d('Headers: $headers');
@@ -174,6 +186,23 @@ class ApiService {
     }
 
     encodedBody = _encodeBody(body, contentType);
+
+    List<Map<String, String>> costumHeaders = [];
+
+    final headersJson = prefs.getString('custom_login_headers') ?? '[]';
+
+    final List<dynamic> decodedList = jsonDecode(headersJson);
+    costumHeaders =
+        decodedList
+            .map((item) => Map<String, String>.from(item as Map))
+            .toList();
+
+    // Add custom headers
+    if (costumHeaders.isNotEmpty) {
+      for (var customHeader in costumHeaders) {
+        headers.addAll(customHeader);
+      }
+    }
 
     _logger.i("Headers: $headers");
 
@@ -209,7 +238,7 @@ class ApiService {
     // Ensure URL is complete
     final fullUrl =
         endpoint.startsWith('http') ? endpoint : '$_baseUrl$endpoint';
-    final headers = await _getAuthHeaders(authMethod);
+    final headers = _getAuthHeaders(authMethod);
 
     List<Map<String, String>> costumHeaders = [];
 
@@ -295,30 +324,10 @@ class ApiService {
   /// Parameters:
   ///
   /// - `endpoint`: The API endpoint to request
-  Future<Uri> _buildUri(
-    String endpoint,
-    Map<String, String>? queryParams,
-  ) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String basePath = prefs.getString('base_path') ?? '';
-
-    // Normalise the base URL
-    if (basePath.isNotEmpty) {
-      if (!basePath.startsWith('/')) {
-        basePath = '/$basePath';
-      }
-      if (basePath.endsWith('/')) {
-        basePath = basePath.substring(0, basePath.length - 1);
-      }
-    }
-
-    // Normalise the endpoint
-    if (!endpoint.startsWith('/')) {
-      endpoint = '/$endpoint';
-    }
-
-    final fullUrl = '$_baseUrl$basePath$endpoint';
-    return Uri.parse(fullUrl).replace(queryParameters: queryParams);
+  Uri _buildUri(String endpoint, Map<String, String>? queryParams) {
+    return Uri.parse(
+      '$_baseUrl$endpoint',
+    ).replace(queryParameters: queryParams);
   }
 
   /// Gets authentication headers based on the auth method
@@ -326,53 +335,14 @@ class ApiService {
   /// Parameters:
   ///
   /// - `authMethod`: The authentication method to use
-  Future<Map<String, String>> _getAuthHeaders(AuthMethod authMethod) async {
-    final headers = <String, String>{};
+  Map<String, String> _getAuthHeaders(AuthMethod authMethod) {
+    Map<String, String> headers = {};
 
-    switch (authMethod) {
-      case AuthMethod.basic:
-        final username = _username ?? '';
-        final password = _password ?? '';
-        if (username.isNotEmpty && password.isNotEmpty) {
-          final basicAuth =
-              'Basic ${base64Encode(utf8.encode('$username:$password'))}';
-          headers['Authorization'] = basicAuth;
-        }
-        break;
-
-      case AuthMethod.cookie:
-        final storedCookie = _cookie ?? '';
-        if (storedCookie.isNotEmpty) {
-          headers['Cookie'] = storedCookie;
-        }
-        break;
-      case AuthMethod.none:
-        break;
-    }
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final customHeadersJson = prefs.getString('custom_login_headers') ?? '';
-    if (customHeadersJson.isNotEmpty) {
-      try {
-        List<dynamic> decodedList = jsonDecode(customHeadersJson);
-        for (var item in decodedList) {
-          final headerMap = Map<String, String>.from(item as Map);
-          if (headerMap.isNotEmpty) {
-            final key = headerMap.keys.first;
-            String value = headerMap.values.first;
-
-            if (value.contains('\${USERNAME}')) {
-              value = value.replaceAll('\${USERNAME}', _username ?? '');
-            }
-
-            if (key.isNotEmpty) {
-              headers[key] = value;
-            }
-          }
-        }
-      } catch (e) {
-        _logger.e('Failed to parse custom headers: $e');
-      }
+    if (authMethod == AuthMethod.cookie && _cookie != null) {
+      headers['Cookie'] = _cookie!;
+    } else if (_username != null && _password != null) {
+      headers['Authorization'] =
+          'Basic ${base64.encode(utf8.encode('$_username:$_password'))}';
     }
 
     return headers;
