@@ -1,7 +1,14 @@
+import 'dart:io';
+
 import 'package:calibre_web_companion/models/opds_item_model.dart';
+import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:calibre_web_companion/utils/json_service.dart';
+import 'package:calibre_web_companion/views/books_view.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart' show MediaType;
+import 'dart:async';
 
 class BooksViewModel extends ChangeNotifier {
   final JsonService _jsonService = JsonService();
@@ -89,5 +96,110 @@ class BooksViewModel extends ChangeNotifier {
   void setSearchQuery(String? query) {
     _searchQuery = query;
     refreshBooks();
+  }
+
+  Future<bool> uploadEbookToCalibre(
+    File book,
+    CancellationToken cancelToken,
+  ) async {
+    isLoading = true;
+    hasError = false;
+    errorMessage = '';
+    notifyListeners();
+
+    try {
+      logger.i('Starting upload of book: ${book.path.split('/').last}');
+
+      // Hole das CSRF-Token von der Hauptseite statt von /upload
+      final csrfResult = await _jsonService.getApiService().fetchCsrfToken(
+        '/', // Verwende die Hauptseite statt /upload
+        AuthMethod.cookie,
+        'input[name="csrf_token"]',
+      );
+
+      final csrfToken = csrfResult['token'];
+      if (csrfToken == null) {
+        throw Exception('Failed to get CSRF token for upload');
+      }
+
+      logger.d('Got CSRF token: $csrfToken');
+
+      // Rest des Codes bleibt gleich
+      final uri = Uri.parse(
+        '${_jsonService.getApiService().getBaseUrl()}/upload',
+      );
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add authentication cookies
+      request.headers['Cookie'] = csrfResult['cookies'] ?? '';
+
+      // Add CSRF token as form field
+      request.fields['csrf_token'] = csrfToken;
+
+      // Add the file
+      final fileName = book.path.split('/').last;
+      final fileExtension = fileName.split('.').last.toLowerCase();
+
+      // Determine content type based on file extension
+      String contentType = 'application/octet-stream';
+      if (fileExtension == 'epub') {
+        contentType = 'application/epub+zip';
+      } else if (fileExtension == 'pdf') {
+        contentType = 'application/pdf';
+      } else if (fileExtension == 'mobi') {
+        contentType = 'application/x-mobipocket-ebook';
+      }
+
+      // Add file to the request
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'btn-upload',
+          book.path,
+          filename: fileName,
+          contentType: MediaType.parse(contentType),
+        ),
+      );
+
+      // Add empty btn-upload2 field required by Calibre-Web
+      request.fields['btn-upload2'] = '';
+
+      // Set a timeout to handle potential long uploads
+      final client = http.Client();
+      try {
+        // Send the request with timeout
+        final streamedResponse = await client
+            .send(request)
+            .timeout(
+              Duration(seconds: 60),
+              onTimeout: () {
+                cancelToken.cancel();
+                throw TimeoutException('Upload request timed out');
+              },
+            );
+
+        // Convert the streamed response to a regular response to check status
+        final response = await http.Response.fromStream(streamedResponse);
+
+        if (response.statusCode == 200 || response.statusCode == 302) {
+          logger.i('Book uploaded successfully: ${fileName}');
+          return true;
+        } else {
+          logger.e('Failed to upload book: Status ${response.statusCode}');
+          errorMessage = 'Upload failed with status ${response.statusCode}';
+          hasError = true;
+          return false;
+        }
+      } finally {
+        client.close();
+      }
+    } catch (e) {
+      logger.e('Error uploading book: $e');
+      errorMessage = 'Upload error: $e';
+      hasError = true;
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 }

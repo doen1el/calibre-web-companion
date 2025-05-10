@@ -283,5 +283,9 @@
   "settingsSaved": "Ajustes guardados",
   "send2ereaderService": "Servicio Send2ereader",
   "send2ereaderServiceUrl": "URL del servicio Send2ereader",
-  "enterUrlOfYourSend2ereaderService": "Introduce la URL de tu servicio Send2ereader"
+  "enterUrlOfYourSend2ereaderService": "Introduce la URL de tu servicio Send2ereader",
+  "noFilesSelected": "No se seleccionaron archivos",
+  "preparingUpload": "Preparando carga",
+  "uploadFailed": "Error al cargar",
+  "uploadingBook": "Cargando libro"
 }

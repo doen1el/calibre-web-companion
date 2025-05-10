@@ -283,5 +283,9 @@
   "settingsSaved": "Settings saved successfully",
   "send2ereaderService": "Send2Ereader service",
   "send2ereaderServiceUrl": "Send2Ereader service URL",
-  "enterUrlOfYourSend2ereaderService": "Enter the URL of your Send2Ereader service"
+  "enterUrlOfYourSend2ereaderService": "Enter the URL of your Send2Ereader service",
+  "noFilesSelected": "No files selected",
+  "preparingUpload": "Preparing upload",
+  "uploadFailed": "Upload failed",
+  "uploadingBook": "Uploading book"
 }

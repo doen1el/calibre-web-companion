@@ -21,20 +21,12 @@ class LoginSettingsViewModel extends ChangeNotifier {
   bool _isLoading = true;
   String _basePath = '';
   AuthSystem _selectedAuthSystem = AuthSystem.none;
-  String? _webViewSessionCookie;
-  DateTime? _lastWebViewAuth;
 
   // Getter
   List<Map<String, String>> get customHeaders => _customHeaders;
   bool get isLoading => _isLoading;
   String get basePath => _basePath;
   AuthSystem get selectedAuthSystem => _selectedAuthSystem;
-  String? get webViewSessionCookie => _webViewSessionCookie;
-  DateTime? get lastWebViewAuth => _lastWebViewAuth;
-  bool get hasValidWebViewSession =>
-      _webViewSessionCookie != null &&
-      _lastWebViewAuth != null &&
-      DateTime.now().difference(_lastWebViewAuth!).inHours < 24;
 
   Map<AuthSystem, String> get authSystemNames => {
     AuthSystem.none: 'None',
@@ -79,19 +71,8 @@ class LoginSettingsViewModel extends ChangeNotifier {
         _selectedAuthSystem = AuthSystem.none;
       }
 
-      _webViewSessionCookie = prefs.getString('webview_session_cookie');
-      final lastAuthTimestamp = prefs.getInt('webview_auth_timestamp');
-      if (lastAuthTimestamp != null) {
-        _lastWebViewAuth = DateTime.fromMillisecondsSinceEpoch(
-          lastAuthTimestamp,
-        );
-      }
-
       logger.i('Loaded auth system: $_selectedAuthSystem');
       logger.i('Loaded base path: $_basePath');
-      logger.i(
-        'Loaded WebView session: ${_webViewSessionCookie != null ? "yes" : "no"}',
-      );
     } catch (e) {
       logger.e('Error loading settings: $e');
     } finally {
@@ -224,35 +205,6 @@ class LoginSettingsViewModel extends ChangeNotifier {
     }
 
     _saveHeaders();
-  }
-
-  /// Save WebView session cookie
-  Future<void> saveWebViewSession(String cookie) async {
-    _webViewSessionCookie = cookie;
-    _lastWebViewAuth = DateTime.now();
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('webview_session_cookie', cookie);
-    await prefs.setInt(
-      'webview_auth_timestamp',
-      _lastWebViewAuth!.millisecondsSinceEpoch,
-    );
-
-    logger.i('Saved WebView session cookie');
-    notifyListeners();
-  }
-
-  /// Clear WebView session
-  Future<void> clearWebViewSession() async {
-    _webViewSessionCookie = null;
-    _lastWebViewAuth = null;
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('webview_session_cookie');
-    await prefs.remove('webview_auth_timestamp');
-
-    logger.i('Cleared WebView session');
-    notifyListeners();
   }
 
   /// Add new header

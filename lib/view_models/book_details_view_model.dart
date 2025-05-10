@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:calibre_web_companion/models/opds_item_model.dart';
@@ -7,19 +6,15 @@ import 'package:calibre_web_companion/utils/api_service.dart';
 import 'package:calibre_web_companion/utils/json_service.dart';
 import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
 import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
-import 'package:calibre_web_companion/views/download_service_view.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 
 class BookDetailsViewModel extends ChangeNotifier {
   final JsonService _jsonService = JsonService();
-  final DownloadServiceView _downloadService = DownloadServiceView();
 
   BookItem? _currentBook;
   BookItem? get currentBook => _currentBook;
@@ -131,27 +126,15 @@ class BookDetailsViewModel extends ChangeNotifier {
   }) async {
     try {
       format = format.toLowerCase();
-
-      logger.i('Downloading book - BookId: ${book.id}, Format: .epub');
+      logger.i('Downloading book - BookId: ${book.id}, Format: $format');
       isDownloading = true;
       downloaded = 0;
       notifyListeners();
 
       final apiService = ApiService();
-      final baseUrl = apiService.getBaseUrl();
-
-      if (baseUrl.isEmpty) {
-        logger.w('No server URL found');
-        errorMessage = 'Server URL missing';
-        return "";
-      }
-
-      final downloadUrl = '$baseUrl/download/${book.id}/epub/${book.id}.epub';
-      logger.d('Download URL: $downloadUrl');
 
       // Create the file path based on the selected schema
-      String filePath;
-      filePath = await _createPathBasedOnSchema(
+      String filePath = await _createPathBasedOnSchema(
         selectedDirectory,
         book,
         format,
@@ -165,89 +148,58 @@ class BookDetailsViewModel extends ChangeNotifier {
         return filePath;
       }
 
-      final client = http.Client();
       try {
-        final Map<String, String> headers = {};
+        // Create directory structure if needed
+        await Directory(path.dirname(filePath)).create(recursive: true);
 
-        final prefs = await SharedPreferences.getInstance();
-        final cookie = prefs.getString('calibre_web_session');
-        if (cookie != null && cookie.isNotEmpty) {
-          headers['Cookie'] = cookie;
-        }
+        // Get stream response using ApiService
+        final response = await apiService.getStream(
+          '/download/${book.id}/$format/${book.id}.$format',
+          AuthMethod.cookie,
+        );
 
-        final request = http.Request('GET', Uri.parse(downloadUrl));
-        request.headers.addAll(headers);
-
-        final response = await client.send(request);
         final contentLength = response.contentLength ?? -1;
-
         logger.i(
           'Download response status: ${response.statusCode}, Content length: $contentLength',
         );
 
-        if (response.statusCode == 200) {
-          try {
-            await Directory(path.dirname(filePath)).create(recursive: true);
-          } catch (e) {
-            logger.e('Error creating directory: $e');
-            errorMessage = 'Could not create directory: $e';
-            return "";
-          }
+        final sink = file.openWrite();
+        int receivedBytes = 0;
 
-          final sink = file.openWrite();
-          int receivedBytes = 0;
+        try {
+          await for (final chunk in response.stream) {
+            receivedBytes += chunk.length;
+            sink.add(chunk);
 
-          try {
-            await for (final chunk in response.stream) {
-              receivedBytes += chunk.length;
-              sink.add(chunk);
-
-              downloaded = receivedBytes;
-              if (contentLength > 0) {
-                _progress = (receivedBytes / contentLength * 100).round();
-                logger.d(
-                  'Download progress: $progress%, $receivedBytes/$contentLength bytes',
-                );
-              }
-              notifyListeners();
+            downloaded = receivedBytes;
+            if (contentLength > 0) {
+              _progress = (receivedBytes / contentLength * 100).round();
+              logger.d(
+                'Download progress: $_progress%, $receivedBytes/$contentLength bytes',
+              );
             }
-          } catch (e) {
-            logger.e('Error while downloading book: $e');
-            errorMessage = 'Download error: $e';
-            return "";
-          } finally {
-            await sink.flush();
-            await sink.close();
+            notifyListeners();
           }
-
-          logger.i('Download complete: $filePath with $receivedBytes bytes');
-          return filePath;
-        } else if (response.statusCode == 401) {
-          logger.w('Authentication failed');
-          errorMessage = 'Authentication failed';
-          return "";
-        } else {
-          logger.e('Failed to download book: ${response.statusCode}');
-          errorMessage = 'HTTP error ${response.statusCode}';
-          return "";
+        } finally {
+          await sink.flush();
+          await sink.close();
         }
+
+        logger.i('Download complete: $filePath with $receivedBytes bytes');
+        return filePath;
       } catch (e) {
-        logger.e('Exception in download stream: $e');
+        logger.e('Error while downloading book: $e');
         errorMessage = 'Download error: $e';
         return "";
-      } finally {
-        client.close();
-        isDownloading = false;
-        notifyListeners();
       }
     } catch (e) {
       logger.e('Exception while downloading book: $e');
       errorMessage = 'Error: $e';
-      isDownloading = false;
-      notifyListeners();
       return "";
     } finally {
+      isDownloading = false;
       _progress = 0;
+      notifyListeners();
     }
   }
 
@@ -333,63 +285,23 @@ class BookDetailsViewModel extends ChangeNotifier {
     required String format,
   }) async {
     try {
-      // Get authentication details as in downloadBook
       final apiService = ApiService();
-      final baseUrl = apiService.getBaseUrl();
-      final prefs = await SharedPreferences.getInstance();
-      final cookie = prefs.getString('calibre_web_session');
-      final username = apiService.getUsername();
-      final password = apiService.getPassword();
+      logger.i('Downloading book bytes - BookId: $bookId, Format: $format');
 
-      if (baseUrl.isEmpty) {
-        logger.w('No server URL found');
+      final response = await apiService.getStream(
+        '/download/$bookId/$format/$bookId.$format',
+        AuthMethod.cookie,
+      );
+
+      if (response.statusCode == 200) {
+        logger.i('Successfully downloaded book bytes');
+        return await response.stream.toBytes();
+      } else {
+        logger.e('Error downloading book bytes: HTTP ${response.statusCode}');
         return null;
       }
-
-      final url = '$baseUrl/download/$bookId/$format/$bookId.$format';
-      logger.d('Download URL: $url');
-
-      // Create HTTP client with proper authentication
-      final client = http.Client();
-      try {
-        // Setup headers with cookie-first authentication strategy
-        final Map<String, String> headers = {};
-        if (cookie != null && cookie.isNotEmpty) {
-          // Try cookie authentication first
-          headers['Cookie'] = cookie;
-        } else if (username.isNotEmpty && password.isNotEmpty) {
-          // Fall back to basic auth if no cookie
-          headers['Authorization'] =
-              'Basic ${base64.encode(utf8.encode('$username:$password'))}';
-        } else {
-          logger.e('No authentication credentials available');
-          return null;
-        }
-
-        // Use the same request method as downloadBook for consistency
-        final request = http.Request('GET', Uri.parse(url));
-        request.headers.addAll(headers);
-
-        final response = await client.send(request);
-
-        // Check status code
-        if (response.statusCode == 200) {
-          logger.i('Successfully downloaded book bytes');
-          // Convert the streamed response to bytes
-          final bytes = await response.stream.toBytes();
-          return bytes;
-        } else if (response.statusCode == 401) {
-          logger.e('Authentication failed: 401 Unauthorized');
-          return null;
-        } else {
-          logger.e('Error downloading book: HTTP ${response.statusCode}');
-          return null;
-        }
-      } finally {
-        client.close();
-      }
     } catch (e) {
-      logger.e('Exception downloading book: $e');
+      logger.e('Exception downloading book bytes: $e');
       return null;
     }
   }
@@ -459,100 +371,6 @@ class BookDetailsViewModel extends ChangeNotifier {
     return initialCookie;
   }
 
-  /// Makes a CSRF-protected POST request
-  ///
-  /// Parameters:
-  ///
-  /// - `path`: The path to the API endpoint
-  /// - `baseUrl`: The base URL of the server
-  /// - `initialCookie`: The initial session cookie
-  /// - `additionalFormData`: Additional form data to include in the request
-  /// - `customLogger`: Optional custom logger instance
-  Future<http.Response?> makeCsrfProtectedRequest({
-    required String path,
-    required String baseUrl,
-    required String initialCookie,
-    Map<String, String> additionalFormData = const {},
-    Logger? customLogger,
-  }) async {
-    final logger = customLogger ?? Logger();
-    final client = http.Client();
-
-    try {
-      // STEP 1: Make GET request to fetch CSRF token
-      final getUrl = Uri.parse('$baseUrl$path');
-      logger.i('Making initial GET request to: $getUrl');
-
-      final getHeaders = {
-        'Cookie': initialCookie,
-        'Accept': 'text/html,application/xhtml+xml,application/xml',
-      };
-
-      final getResponse = await http.get(getUrl, headers: getHeaders);
-      logger.d('GET response status: ${getResponse.statusCode}');
-
-      if (getResponse.statusCode != 200) {
-        logger.e('Initial GET request failed: ${getResponse.statusCode}');
-        return null;
-      }
-
-      // Extract session cookie
-      final sessionCookie = extractSessionCookie(
-        getResponse,
-        initialCookie,
-        logger,
-      );
-
-      // Extract CSRF token
-      final csrfToken = extractCsrfToken(getResponse.body, logger);
-      if (csrfToken == null) {
-        logger.e('Failed to extract CSRF token');
-        return null;
-      }
-
-      // STEP 2: Make POST request with the CSRF token
-      final postUrl = Uri.parse('$baseUrl$path');
-      logger.i('Making POST request to: $postUrl');
-
-      final postHeaders = {
-        'Cookie': sessionCookie,
-        'X-CSRFToken': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest',
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Referer': '$baseUrl$path',
-        'Origin': baseUrl,
-      };
-
-      // Create form data with CSRF token and additional fields
-      final Map<String, String> formData = {
-        'csrf_token': csrfToken,
-        ...additionalFormData,
-      };
-
-      final encodedBody = formData.entries
-          .map(
-            (e) =>
-                '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
-          )
-          .join('&');
-
-      logger.d('POST headers: $postHeaders');
-      logger.d('POST body: $encodedBody');
-
-      final postResponse = await http.post(
-        postUrl,
-        headers: postHeaders,
-        body: encodedBody,
-      );
-
-      logger.i('POST response status: ${postResponse.statusCode}');
-
-      return postResponse;
-    } finally {
-      client.close();
-    }
-  }
-
   /// Send book via email
   ///
   /// Parameters:
@@ -570,39 +388,28 @@ class BookDetailsViewModel extends ChangeNotifier {
         'Starting email send process for bookId: $bookId, format: $format, conversion: $conversion',
       );
 
-      // Get stored authentication details
-      final prefs = await SharedPreferences.getInstance();
-      final baseUrl = prefs.getString('base_url') ?? '';
-      final storedCookie = prefs.getString('calibre_web_session') ?? '';
-
-      if (baseUrl.isEmpty) {
-        logger.e('No base URL configured');
-        errorMessage = 'Server URL missing';
-        return false;
-      }
-
+      final apiService = ApiService();
       final path = '/send/$bookId/$format/$conversion';
 
-      // Make the CSRF-protected request
-      final response = await makeCsrfProtectedRequest(
-        path: path,
-        baseUrl: baseUrl,
-        initialCookie: storedCookie,
-        customLogger: logger,
+      // Use ApiService post with CSRF protection
+      final response = await apiService.post(
+        path,
+        null, // No query parameters
+        {}, // Empty body, CSRF token will be added automatically
+        AuthMethod.cookie,
+        useCsrf: true,
       );
 
-      if (response != null && response.statusCode == 200) {
+      if (response.statusCode == 200) {
         logger.i('Successfully sent book via email');
         return true;
       } else {
-        final statusCode = response?.statusCode ?? 0;
-        logger.e('Failed to send book via email: $statusCode');
-        errorMessage = 'Failed to send email ($statusCode)';
+        logger.e('Failed to send book via email: ${response.statusCode}');
+        errorMessage = 'Failed to send email (${response.statusCode})';
         return false;
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       logger.e('Error sending book via email: $e');
-      logger.d('Stack trace: $stackTrace');
       errorMessage = 'Error: $e';
       return false;
     } finally {
@@ -621,40 +428,30 @@ class BookDetailsViewModel extends ChangeNotifier {
       notifyListeners();
       logger.i('Starting toggling read status for bookId: $bookId');
 
-      // Get stored authentication details
-      final prefs = await SharedPreferences.getInstance();
-      final baseUrl = prefs.getString('base_url') ?? '';
-      final storedCookie = prefs.getString('calibre_web_session') ?? '';
-
-      if (baseUrl.isEmpty) {
-        logger.e('No base URL configured');
-        errorMessage = 'Server URL missing';
-        return false;
-      }
-
+      final apiService = ApiService();
       final path = '/ajax/toggleread/$bookId';
 
-      // Make the CSRF-protected request
-      final response = await makeCsrfProtectedRequest(
-        path: path,
-        baseUrl: baseUrl,
-        initialCookie: storedCookie,
-        customLogger: logger,
+      // Use ApiService post with CSRF protection
+      final response = await apiService.post(
+        path,
+        null, // No query parameters
+        {}, // Empty body, CSRF token will be added automatically
+        AuthMethod.cookie,
+        useCsrf: true,
+        contentType: 'application/x-www-form-urlencoded',
       );
 
-      if (response != null && response.statusCode == 200) {
+      if (response.statusCode == 200) {
         logger.i('Successfully toggled read status');
         await checkIfBookIsRead(bookId);
         return true;
       } else {
-        final statusCode = response?.statusCode ?? 0;
-        logger.e('Failed to toggle read status: $statusCode');
-        errorMessage = 'Failed to toggle read status ($statusCode)';
+        logger.e('Failed to toggle read status: ${response.statusCode}');
+        errorMessage = 'Failed to toggle read status (${response.statusCode})';
         return false;
       }
-    } catch (e, stackTrace) {
-      logger.e('Error sending toggling read statu: $e');
-      logger.d('Stack trace: $stackTrace');
+    } catch (e) {
+      logger.e('Error toggling read status: $e');
       errorMessage = 'Error: $e';
       return false;
     } finally {
@@ -702,49 +499,44 @@ class BookDetailsViewModel extends ChangeNotifier {
       notifyListeners();
       logger.i('Starting toggling archived status for bookId: $bookId');
 
-      // Get stored authentication details
-      final prefs = await SharedPreferences.getInstance();
-      final baseUrl = prefs.getString('base_url') ?? '';
-      final storedCookie = prefs.getString('calibre_web_session') ?? '';
-
-      if (baseUrl.isEmpty) {
-        logger.e('No base URL configured');
-        errorMessage = 'Server URL missing';
-        return false;
-      }
-
+      final apiService = ApiService();
       final path = '/ajax/togglearchived/$bookId';
 
-      // Make the CSRF-protected request
-      final response = await makeCsrfProtectedRequest(
-        path: path,
-        baseUrl: baseUrl,
-        initialCookie: storedCookie,
-        customLogger: logger,
+      // Use ApiService post with CSRF protection
+      final response = await apiService.post(
+        path,
+        null, // No query parameters
+        {}, // Empty body, CSRF token will be added automatically
+        AuthMethod.cookie,
+        useCsrf: true,
+        contentType: 'application/x-www-form-urlencoded',
       );
 
-      if (response != null && response.statusCode == 200) {
+      if (response.statusCode == 200) {
         logger.i('Successfully toggled archived status');
         _isArchived = !_isArchived;
         return true;
       } else {
-        final statusCode = response?.statusCode ?? 0;
-        logger.e('Failed to toggle archived status: $statusCode');
-        errorMessage = 'Failed to toggle archived status ($statusCode)';
+        logger.e('Failed to toggle archived status: ${response.statusCode}');
+        errorMessage =
+            'Failed to toggle archived status (${response.statusCode})';
         return false;
       }
-    } catch (e, stackTrace) {
-      logger.e('Error sending toggling archived statu: $e');
-      logger.d('Stack trace: $stackTrace');
+    } catch (e) {
+      logger.e('Error toggling archived status: $e');
       errorMessage = 'Error: $e';
       return false;
     } finally {
       _isArchivedLoading = false;
-
       notifyListeners();
     }
   }
 
+  /// Open the book in the browser
+  ///
+  /// Parameters:
+  ///
+  /// - `book`: The book item to open
   Future<void> openInBrowser(BookItem book) async {
     final apiService = ApiService();
     final baseUrl = apiService.getBaseUrl();
@@ -779,24 +571,23 @@ class BookDetailsViewModel extends ChangeNotifier {
   ///
   /// - `bookId`: The unique identifier of the book
   Future<bool> checkIfBookIsBookArchived(String bookId) async {
-    ApiService apiService = ApiService();
-
     try {
-      final path = '/archived/stored/';
-
-      final response = await apiService.get(path, AuthMethod.cookie);
-
+      final apiService = ApiService();
       logger.d("Checking if book $bookId is archived");
+
+      final response = await apiService.get(
+        '/archived/stored/',
+        AuthMethod.cookie,
+      );
+
       logger.d("Response status: ${response.statusCode}");
 
       if (response.statusCode == 200) {
         final pattern = 'href="/book/$bookId"';
-
         final isArchived = response.body.contains(pattern);
 
         _isArchived = isArchived;
         logger.i("Book $bookId archived status: $isArchived");
-
         return isArchived;
       } else {
         logger.w("Failed to check archived status: ${response.statusCode}");
@@ -833,12 +624,17 @@ class BookDetailsViewModel extends ChangeNotifier {
         selectedDirectory,
       );
 
+      if (filePath.isEmpty) {
+        logger.e('Error downloading file for reader');
+        errorMessage = 'Error downloading file';
+        return false;
+      }
+
       final result = await OpenFile.open(filePath);
 
-      // Überprüfe das Ergebnis
       if (result.type != ResultType.done) {
         logger.e('Error while opening the file: ${result.message}');
-        errorMessage = 'Error while opneing: ${result.message}';
+        errorMessage = 'Error while opening: ${result.message}';
         return false;
       }
 

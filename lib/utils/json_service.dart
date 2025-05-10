@@ -8,6 +8,11 @@ class JsonService {
   final ApiService _apiService = ApiService();
   Logger logger = Logger();
 
+  // Add this to JsonService class
+  ApiService getApiService() {
+    return _apiService;
+  }
+
   /// Loads a specific book item by its UUID
   ///
   /// Parameters:
