@@ -287,5 +287,7 @@
   "noFilesSelected": "Aucun fichier sélectionné",
   "preparingUpload": "Préparation du téléchargement",
   "uploadFailed": "Échec du téléchargement",
-  "uploadingBook": "Téléchargement du livre"
+  "uploadingBook": "Téléchargement du livre",
+  "columnsCount": "Nombre de colonnes",
+  "columns": "Colonnes"
 }

@@ -39,6 +39,10 @@ class _BookListViewState extends State<BooksView> {
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<BooksViewModel>().loadSettings();
+    });
   }
 
   @override
@@ -72,6 +76,7 @@ class _BookListViewState extends State<BooksView> {
       appBar: AppBar(
         title: Text(localizations.books),
         actions: [
+          _buildColumnSelector(viewModel, localizations),
           _buildSortOptions(viewModel, localizations),
           _buildSearchButton(viewModel),
         ],
@@ -134,12 +139,63 @@ class _BookListViewState extends State<BooksView> {
     );
   }
 
+  /// Builds the column selector popup menu
+  ///
+  /// Parameters:
+  ///
+  /// - `viewModel`: The view model to use
+  /// - `localizations`: The localizations to use
+  Widget _buildColumnSelector(
+    BooksViewModel viewModel,
+    AppLocalizations localizations,
+  ) {
+    return PopupMenuButton<int>(
+      icon: const Icon(Icons.grid_view_rounded),
+      tooltip: localizations.columnsCount,
+      onSelected: (int value) {
+        viewModel.setColumnCount(value);
+      },
+      itemBuilder:
+          (context) => [
+            for (int i = 1; i <= 5; i++)
+              PopupMenuItem<int>(
+                value: i,
+                child: Row(
+                  children: [
+                    Icon(
+                      i == 1
+                          ? Icons.looks_one
+                          : i == 2
+                          ? Icons.looks_two
+                          : i == 3
+                          ? Icons.looks_3
+                          : i == 4
+                          ? Icons.looks_4
+                          : Icons.looks_5,
+
+                      color:
+                          viewModel.columnCount.toInt() == i
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Text('$i ${localizations.columns}'),
+                  ],
+                ),
+              ),
+          ],
+    );
+  }
+
   Widget _buildBookGridSkeletons() {
+    final viewModel = context.read<BooksViewModel>();
+    final double aspectRatio = viewModel.columnCount <= 2 ? 0.7 : 0.9;
+
     return GridView.builder(
       padding: const EdgeInsets.all(16.0),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.7,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: viewModel.columnCount.toInt(),
+        childAspectRatio: aspectRatio,
         crossAxisSpacing: 16.0,
         mainAxisSpacing: 16.0,
       ),
@@ -225,14 +281,16 @@ class _BookListViewState extends State<BooksView> {
   ///
   /// - `viewModel`: The view model to use
   Widget _buildRefreshIndicatorAndGridView(BooksViewModel viewModel) {
+    final double aspectRatio = viewModel.columnCount <= 2 ? 0.7 : 0.9;
+
     return RefreshIndicator(
       onRefresh: () => viewModel.refreshBooks(),
       child: GridView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.all(16.0),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.7,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: viewModel.columnCount.toInt(),
+          childAspectRatio: aspectRatio,
           crossAxisSpacing: 16.0,
           mainAxisSpacing: 16.0,
         ),

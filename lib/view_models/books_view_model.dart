@@ -10,6 +10,8 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart' show MediaType;
 import 'dart:async';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class BooksViewModel extends ChangeNotifier {
   final JsonService _jsonService = JsonService();
 
@@ -28,6 +30,10 @@ class BooksViewModel extends ChangeNotifier {
   String _sortBy = '';
   String _sortOrder = '';
   String? _searchQuery;
+
+  // Column count for grid view
+  int _columnCount = 2; // Default-Wert
+  double get columnCount => _columnCount.toDouble();
 
   /// Reset and fetch books from beginning and fetches books
   Future<void> refreshBooks() async {
@@ -201,5 +207,30 @@ class BooksViewModel extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Set the column count for the grid view
+  ///
+  /// Parameters:
+  ///
+  /// - `count`: The number of columns to set (1-5)
+  Future<void> setColumnCount(int count) async {
+    if (count < 1) count = 1;
+    if (count > 5) count = 5;
+
+    _columnCount = count;
+
+    // Save the column count to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('grid_column_count', count);
+
+    notifyListeners();
+  }
+
+  /// Load the column count from SharedPreferences
+  Future<void> loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    _columnCount = prefs.getInt('grid_column_count') ?? 2;
+    notifyListeners();
   }
 }

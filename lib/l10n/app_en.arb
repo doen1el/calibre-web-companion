@@ -287,5 +287,7 @@
   "noFilesSelected": "No files selected",
   "preparingUpload": "Preparing upload",
   "uploadFailed": "Upload failed",
-  "uploadingBook": "Uploading book"
+  "uploadingBook": "Uploading book",
+  "columnsCount": "Columns count",
+  "columns": "Columns"
 }

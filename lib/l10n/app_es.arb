@@ -287,5 +287,6 @@
   "noFilesSelected": "No se seleccionaron archivos",
   "preparingUpload": "Preparando carga",
   "uploadFailed": "Error al cargar",
-  "uploadingBook": "Cargando libro"
-}
+  "uploadingBook": "Cargando libro",
+  "columnsCount": "Número de columnas",
+  "columns": "Columnas"}
