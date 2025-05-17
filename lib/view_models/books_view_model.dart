@@ -70,7 +70,13 @@ class BooksViewModel extends ChangeNotifier {
         books.addAll(result);
       }
       _offset += result.length;
-      hasMoreBooks = result.length == _limit;
+      // Hotfix for weird authors pagination issue
+      if (_sortBy == 'authors') {
+        hasMoreBooks = true;
+      } else {
+        hasMoreBooks = result.length == _limit;
+      }
+      logger.i('Has more books: $hasMoreBooks');
     } catch (e) {
       logger.e('Error fetching books: $e');
       hasError = true;
