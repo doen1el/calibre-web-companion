@@ -125,15 +125,22 @@ class BookDetailsViewModel extends ChangeNotifier {
     String format = 'epub',
   }) async {
     try {
-      format = format.toLowerCase();
-      logger.i('Downloading book - BookId: ${book.id}, Format: $format');
+      String sizeInfo = "unknown size";
+      if (book.formatSizes != null &&
+          book.formatSizes!.containsKey(format.toUpperCase())) {
+        final size = book.formatSizes![format.toUpperCase()]!;
+        sizeInfo = '${(size / 1024 / 1024).toStringAsFixed(2)} MB';
+      }
+
+      logger.i(
+        'Downloading book - BookId: ${book.id}, Format: $format, Size: $sizeInfo',
+      );
       isDownloading = true;
       downloaded = 0;
       notifyListeners();
 
       final apiService = ApiService();
 
-      // Create the file path based on the selected schema
       String filePath = await _createPathBasedOnSchema(
         selectedDirectory,
         book,
@@ -141,7 +148,6 @@ class BookDetailsViewModel extends ChangeNotifier {
         schema,
       );
 
-      // Check if the file already exists
       final file = File(filePath);
       if (await file.exists()) {
         logger.i('File already exists: $filePath');
@@ -149,10 +155,11 @@ class BookDetailsViewModel extends ChangeNotifier {
       }
 
       try {
-        // Create directory structure if needed
         await Directory(path.dirname(filePath)).create(recursive: true);
 
-        // Get stream response using ApiService
+        final tempFilePath = '$filePath.downloading';
+        final tempFile = File(tempFilePath);
+
         final response = await apiService.getStream(
           '/download/${book.id}/$format/${book.id}.$format',
           AuthMethod.cookie,
@@ -163,7 +170,7 @@ class BookDetailsViewModel extends ChangeNotifier {
           'Download response status: ${response.statusCode}, Content length: $contentLength',
         );
 
-        final sink = file.openWrite();
+        final sink = tempFile.openWrite();
         int receivedBytes = 0;
 
         try {
@@ -180,13 +187,29 @@ class BookDetailsViewModel extends ChangeNotifier {
             }
             notifyListeners();
           }
-        } finally {
+
           await sink.flush();
           await sink.close();
-        }
 
-        logger.i('Download complete: $filePath with $receivedBytes bytes');
-        return filePath;
+          if (await tempFile.exists()) {
+            await tempFile.rename(filePath);
+          } else {
+            throw Exception('Temporary file was not created correctly');
+          }
+
+          logger.i('Download complete: $filePath with $receivedBytes bytes');
+          return filePath;
+        } catch (e) {
+          logger.e('Error during download: $e');
+
+          await sink.close();
+
+          if (await tempFile.exists()) {
+            await tempFile.delete();
+          }
+
+          rethrow;
+        }
       } catch (e) {
         logger.e('Error while downloading book: $e');
         errorMessage = 'Download error: $e';
@@ -617,11 +640,24 @@ class BookDetailsViewModel extends ChangeNotifier {
     try {
       setOpeningInReader(true);
 
+      String format = 'epub';
+
+      if (book.formats.isNotEmpty) {
+        format = book.formats.first.toLowerCase();
+        logger.i('Using format from book.formats: $format');
+      } else if (book.main_format.isNotEmpty) {
+        format = book.main_format.keys.first.toLowerCase();
+        logger.i('Using format from main_format: $format');
+      }
+
+      logger.i('Opening book in reader with format: $format');
+
       String filePath = await downloadBook(
         book,
         book.title,
         schema,
         selectedDirectory,
+        format: format,
       );
 
       if (filePath.isEmpty) {

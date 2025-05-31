@@ -21,6 +21,7 @@ class BookItem extends OpdsItem {
   final String? series;
   final double? seriesIndex;
   final List<String> formats;
+  final Map<String, String> main_format;
   final Map<String, String> downloadLinks;
   final double? rating;
   final String? coverUrl;
@@ -45,6 +46,7 @@ class BookItem extends OpdsItem {
     this.series,
     this.seriesIndex,
     this.formats = const [],
+    this.main_format = const {},
     this.downloadLinks = const {},
     this.rating,
     this.coverUrl,

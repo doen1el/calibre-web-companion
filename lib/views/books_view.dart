@@ -133,6 +133,7 @@ class _BookListViewState extends State<BooksView> {
           // ignore: use_build_context_synchronously
           _uploadEbook(context, localizations, viewModel, book);
         },
+        tooltip: localizations.uploadEbook,
 
         child: Icon(Icons.upload_rounded),
       ),

@@ -289,5 +289,6 @@
   "uploadFailed": "Upload fehlgeschlagen",
   "uploadingBook": "Buch hochladen",
   "columnsCount": "Anzahl der Spalten",
-  "columns": "Spalten"
+  "columns": "Spalten",
+  "uploadEbook": "E-Book hochladen"
 }

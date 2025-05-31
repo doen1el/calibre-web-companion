@@ -289,4 +289,6 @@
   "uploadFailed": "Error al cargar",
   "uploadingBook": "Cargando libro",
   "columnsCount": "Número de columnas",
-  "columns": "Columnas"}
+  "columns": "Columnas",
+  "uploadEbook": "Cargar libro electrónico"
+}

@@ -289,5 +289,6 @@
   "uploadFailed": "Échec du téléchargement",
   "uploadingBook": "Téléchargement du livre",
   "columnsCount": "Nombre de colonnes",
-  "columns": "Colonnes"
+  "columns": "Colonnes",
+  "uploadEbook": "Télécharger un eBook"
 }

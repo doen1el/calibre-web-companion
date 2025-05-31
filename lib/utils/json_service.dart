@@ -218,6 +218,15 @@ class JsonService {
       if (languageMatch != null) {
         result['languages'] = languageMatch.group(1);
       }
+
+      final formatsSection = _extractSection(responseBody, 'formats');
+      if (formatsSection != null) {
+        final formats = _extractStringArray(formatsSection);
+        if (formats.isNotEmpty) {
+          result['formats'] = formats;
+          logger.d('Extracted formats: $formats');
+        }
+      }
     } catch (e) {
       logger.e('Error during manual data extraction: $e');
     }
@@ -377,6 +386,7 @@ class JsonService {
       int? fileSize;
       List<String> formats = [];
       Map<String, String> downloadLinks = {};
+      Map<String, String> mainFormat = {};
 
       // Extract formats list
       if (bookData['formats'] is List) {
@@ -397,12 +407,31 @@ class JsonService {
         }
       }
 
-      // Extract main format download link
-      if (bookData['main_format'] is Map) {
-        final mainFormat = bookData['main_format'] as Map;
-        mainFormat.forEach((key, value) {
-          downloadLinks[key.toString().toLowerCase()] = value.toString();
-        });
+      // Flexible Verarbeitung für verschiedene Typen
+      logger.i(bookData);
+      if (bookData['main_format'] != null) {
+        var data = bookData['main_format'];
+
+        if (data is Map) {
+          // Verarbeite als Map
+          data.forEach((key, value) {
+            mainFormat[key.toString().toLowerCase()] = value.toString();
+            downloadLinks[key.toString().toLowerCase()] = value.toString();
+          });
+        } else if (data is String) {
+          // Versuche String als JSON zu parsen
+          try {
+            final parsed = json.decode(data);
+            if (parsed is Map) {
+              parsed.forEach((key, value) {
+                mainFormat[key.toString().toLowerCase()] = value.toString();
+                downloadLinks[key.toString().toLowerCase()] = value.toString();
+              });
+            }
+          } catch (e) {
+            logger.e('Failed to parse main_format as JSON: $e');
+          }
+        }
       }
 
       // Extract other formats download links
@@ -444,6 +473,7 @@ class JsonService {
         rating: rating,
         coverUrl: coverUrl,
         thumbnailUrl: thumbnailUrl,
+        main_format: mainFormat,
       );
     } catch (e) {
       logger.e('Error in _parseBookFromJson: $e');
