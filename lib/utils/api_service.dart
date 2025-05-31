@@ -8,6 +8,17 @@ import 'package:html/parser.dart' as parser;
 /// Authentication methods supported by the API
 enum AuthMethod { none, cookie, basic }
 
+/// Authentication systems for proxies
+enum AuthSystem {
+  none,
+  authelia,
+  cloudflareZeroTrust,
+  swag,
+  traefik,
+  nginxProxy,
+  custom,
+}
+
 /// Service class to handle API requests with various authentication methods
 class ApiService {
   final Logger _logger = Logger();
@@ -17,6 +28,7 @@ class ApiService {
   String? _username;
   String? _password;
   String? _basePath;
+  AuthSystem _authSystem = AuthSystem.none;
 
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
@@ -38,11 +50,6 @@ class ApiService {
     return _password ?? '';
   }
 
-  /// Returns the base path or an empty string
-  String getBasePath() {
-    return _basePath ?? '';
-  }
-
   /// Initializes the API service with credentials from shared preferences
   Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
@@ -50,7 +57,19 @@ class ApiService {
     _cookie = prefs.getString('calibre_web_session');
     _username = prefs.getString('username');
     _password = prefs.getString('password');
-    _basePath = prefs.getString('base_path');
+    _basePath = prefs.getString('base_path') ?? '';
+
+    final authSystemString = prefs.getString('auth_system') ?? 'none';
+    try {
+      _authSystem = AuthSystem.values.firstWhere(
+        (e) => e.toString().split('.').last == authSystemString,
+        orElse: () => AuthSystem.none,
+      );
+    } catch (e) {
+      _authSystem = AuthSystem.none;
+    }
+
+    _logger.i('Initialized API service with auth system: $_authSystem');
   }
 
   void dispose() {
@@ -100,31 +119,18 @@ class ApiService {
     Map<String, String>? queryParams,
   }) async {
     await _ensureInitialized();
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final uri = await _buildUri(endpoint, queryParams);
-    final headers = await _getAuthHeaders(authMethod);
+    final uri = _buildUri(endpoint, queryParams);
+    final headers = _getAuthHeaders(authMethod);
 
-    List<Map<String, String>> costumHeaders = [];
-
-    final headersJson = prefs.getString('custom_login_headers') ?? '[]';
-
-    final List<dynamic> decodedList = jsonDecode(headersJson);
-    costumHeaders =
-        decodedList
-            .map((item) => Map<String, String>.from(item as Map))
-            .toList();
-
-    // Add custom headers
-    if (costumHeaders.isNotEmpty) {
-      for (var customHeader in costumHeaders) {
-        headers.addAll(customHeader);
-      }
-    }
-
-    _logger.d('Headers: $headers');
+    // Add processed custom headers for auth system
+    final customHeaders = await _processCustomHeaders();
+    headers.addAll(customHeaders);
 
     _logger.d('GET request to: $uri');
-    _logger.d('Using ${authMethod.name} authentication');
+    _logger.d(
+      'Using ${authMethod.name} authentication with ${_authSystem.name} proxy system',
+    );
+    _logger.d('Headers: $headers');
 
     try {
       final response = await _client.get(uri, headers: headers);
@@ -147,7 +153,17 @@ class ApiService {
   /// - `authMethod`: The authentication method to use
   /// - `contentType`: The content type of the request
   /// - `useCsrf`: Whether to fetch and include CSRF token
-  /// - `csrfEndpoint`: The endpoint to fetch CSRF token from (defaults to same endpoint)
+  /// - `csrfSelector`: CSS selector for the CSRF token input field
+  /// Makes an authenticated POST request with optional CSRF token
+  ///
+  /// Parameters:
+  ///
+  /// - `endpoint`: The API endpoint to request
+  /// - `queryParams`: Optional query parameters
+  /// - `body`: The request body
+  /// - `authMethod`: The authentication method to use
+  /// - `contentType`: The content type of the request
+  /// - `useCsrf`: Whether to fetch and include CSRF token
   /// - `csrfSelector`: CSS selector for the CSRF token input field
   Future<http.Response> post(
     String endpoint,
@@ -158,73 +174,131 @@ class ApiService {
     bool useCsrf = false,
     String csrfSelector = 'input[name="csrf_token"]',
   }) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     await _ensureInitialized();
-    final uri = await _buildUri(endpoint, queryParams);
-    final headers = await _getAuthHeaders(authMethod);
-    headers['Content-Type'] = contentType;
+    final uri = _buildUri(endpoint, queryParams);
 
-    _logger.d('Headers: $headers');
+    // Add processed custom headers for auth system
+    final customHeaders = await _processCustomHeaders();
 
-    _logger.d('POST request to: $uri');
-
-    // Handle CSRF token if needed
-    String? csrfToken;
-    String? cookies;
-
+    // If we need to handle CSRF protection, use a two-step process
     if (useCsrf) {
-      final csrfData = await fetchCsrfToken(endpoint, authMethod, csrfSelector);
-      csrfToken = csrfData['token'];
-      cookies = csrfData['cookies'];
+      _logger.i('Making CSRF-protected POST request to: $uri');
 
-      if (cookies != null && !headers.containsKey('Cookie')) {
-        headers['Cookie'] = cookies;
-      }
-    }
+      // STEP 1: Make initial GET request to fetch CSRF token
+      final getHeaders = _getAuthHeaders(authMethod);
+      getHeaders.addAll(customHeaders);
+      getHeaders['Accept'] = 'text/html,application/xhtml+xml,application/xml';
 
-    // Prepare the body
-    dynamic encodedBody;
-    if (body is Map && useCsrf && csrfToken != null) {
-      if (body is Map<String, dynamic>) {
-        body['csrf_token'] = csrfToken;
-      } else if (body is Map<String, String>) {
-        body['csrf_token'] = csrfToken;
-      }
-    }
-
-    encodedBody = _encodeBody(body, contentType);
-
-    List<Map<String, String>> costumHeaders = [];
-
-    final headersJson = prefs.getString('custom_login_headers') ?? '[]';
-
-    final List<dynamic> decodedList = jsonDecode(headersJson);
-    costumHeaders =
-        decodedList
-            .map((item) => Map<String, String>.from(item as Map))
-            .toList();
-
-    // Add custom headers
-    if (costumHeaders.isNotEmpty) {
-      for (var customHeader in costumHeaders) {
-        headers.addAll(customHeader);
-      }
-    }
-
-    _logger.i("Headers: $headers");
-
-    try {
-      final response = await _client.post(
-        uri,
-        headers: headers,
-        body: encodedBody ?? "",
+      final getResponse = await _client.get(uri, headers: getHeaders);
+      _logger.d(
+        'GET response status for CSRF fetch: ${getResponse.statusCode}',
       );
-      _logger.i('POST response status: ${response.body}');
-      _checkResponseStatus(response.statusCode);
-      return response;
-    } catch (e) {
-      _logger.e('POST request failed: $e');
-      rethrow;
+
+      if (getResponse.statusCode != 200) {
+        _logger.e(
+          'Initial GET request for CSRF token failed: ${getResponse.statusCode}',
+        );
+        throw Exception(
+          'Failed to fetch CSRF token: ${getResponse.statusCode}',
+        );
+      }
+
+      // Extract CSRF token from HTML
+      final document = parser.parse(getResponse.body);
+      final csrfElement = document.querySelector(csrfSelector);
+      final csrfToken = csrfElement?.attributes['value'];
+
+      if (csrfToken == null) {
+        _logger.e('Could not find CSRF token using selector: $csrfSelector');
+        throw Exception('CSRF token not found');
+      }
+
+      // Extract new session cookie if available
+      String sessionCookie = _cookie ?? '';
+      if (getResponse.headers.containsKey('set-cookie')) {
+        final setCookieHeader = getResponse.headers['set-cookie']!;
+        final sessionMatch = RegExp(
+          r'session=([^;]+)',
+        ).firstMatch(setCookieHeader);
+        if (sessionMatch != null && sessionMatch.groupCount >= 1) {
+          sessionCookie = 'session=${sessionMatch.group(1)}';
+        }
+      }
+
+      // STEP 2: Make POST request with extracted CSRF token
+      final postHeaders = {
+        'Content-Type': contentType,
+        'Cookie': sessionCookie,
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Referer': uri.toString(),
+        'Origin':
+            '${uri.scheme}://${uri.host}${uri.port != 80 && uri.port != 443 ? ":${uri.port}" : ""}',
+      };
+      postHeaders.addAll(customHeaders);
+
+      // Add CSRF token to body if it's a map
+      Map<String, dynamic> finalBody;
+      if (body is Map) {
+        if (body is Map<String, dynamic>) {
+          finalBody = Map<String, dynamic>.from(body);
+        } else {
+          finalBody = Map<String, dynamic>.from(
+            body.map((key, value) => MapEntry(key.toString(), value)),
+          );
+        }
+        finalBody['csrf_token'] = csrfToken;
+      } else {
+        finalBody = {'csrf_token': csrfToken};
+      }
+
+      final encodedBody = _encodeBody(finalBody, contentType);
+
+      _logger.d('CSRF-protected POST headers: $postHeaders');
+      _logger.d('CSRF-protected POST body: $encodedBody');
+
+      try {
+        final response = await _client.post(
+          uri,
+          headers: postHeaders,
+          body: encodedBody,
+        );
+        _logger.i(
+          'CSRF-protected POST response status: ${response.statusCode}',
+        );
+        _checkResponseStatus(response.statusCode);
+        return response;
+      } catch (e) {
+        _logger.e('CSRF-protected POST request failed: $e');
+        rethrow;
+      }
+    } else {
+      // Standard POST request without CSRF protection
+      final headers = _getAuthHeaders(authMethod);
+      headers['Content-Type'] = contentType;
+      headers.addAll(customHeaders);
+
+      _logger.d('POST request to: $uri');
+      _logger.d(
+        'Using ${authMethod.name} authentication with ${_authSystem.name} proxy system',
+      );
+      _logger.d('Headers: $headers');
+
+      final encodedBody = _encodeBody(body, contentType);
+
+      try {
+        final response = await _client.post(
+          uri,
+          headers: headers,
+          body: encodedBody ?? "",
+        );
+        _logger.i('POST response status: ${response.statusCode}');
+        _checkResponseStatus(response.statusCode);
+        return response;
+      } catch (e) {
+        _logger.e('POST request failed: $e');
+        rethrow;
+      }
     }
   }
 
@@ -240,34 +314,32 @@ class ApiService {
     AuthMethod authMethod,
   ) async {
     await _ensureInitialized();
-    SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // Ensure URL is complete
-    final fullUrl =
-        endpoint.startsWith('http') ? endpoint : '$_baseUrl$endpoint';
-    final headers = await _getAuthHeaders(authMethod);
-
-    List<Map<String, String>> costumHeaders = [];
-
-    final headersJson = prefs.getString('custom_login_headers') ?? '[]';
-
-    final List<dynamic> decodedList = jsonDecode(headersJson);
-    costumHeaders =
-        decodedList
-            .map((item) => Map<String, String>.from(item as Map))
-            .toList();
-
-    // Add custom headers
-    if (costumHeaders.isNotEmpty) {
-      for (var customHeader in costumHeaders) {
-        headers.addAll(customHeader);
+    // Ensure URL is complete with base path
+    String fullPath = endpoint;
+    if (_basePath != null &&
+        _basePath!.isNotEmpty &&
+        !endpoint.startsWith('http')) {
+      if (endpoint.startsWith('/')) {
+        fullPath = '/$_basePath$endpoint';
+      } else {
+        fullPath = '/$_basePath/$endpoint';
       }
     }
+    final fullUrl =
+        endpoint.startsWith('http') ? endpoint : '$_baseUrl$fullPath';
 
-    _logger.d('Headers: $headers');
+    final headers = _getAuthHeaders(authMethod);
+
+    // Add processed custom headers for auth system
+    final customHeaders = await _processCustomHeaders();
+    headers.addAll(customHeaders);
 
     _logger.d('GET stream request to: $fullUrl');
-    _logger.d('Using ${authMethod.name} authentication');
+    _logger.d(
+      'Using ${authMethod.name} authentication with ${_authSystem.name} proxy system',
+    );
+    _logger.d('Headers: $headers');
 
     final request = http.Request('GET', Uri.parse(fullUrl));
     request.headers.addAll(headers);
@@ -331,30 +403,49 @@ class ApiService {
   /// Parameters:
   ///
   /// - `endpoint`: The API endpoint to request
-  Future<Uri> _buildUri(
-    String endpoint,
-    Map<String, String>? queryParams,
-  ) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String basePath = prefs.getString('base_path') ?? '';
-
-    // Normalise the base URL
-    if (basePath.isNotEmpty) {
-      if (!basePath.startsWith('/')) {
-        basePath = '/$basePath';
-      }
-      if (basePath.endsWith('/')) {
-        basePath = basePath.substring(0, basePath.length - 1);
+  Uri _buildUri(String endpoint, Map<String, String>? queryParams) {
+    // Handle base path if set
+    String fullPath = endpoint;
+    if (_basePath != null && _basePath!.isNotEmpty) {
+      // Make sure we don't duplicate slashes
+      if (endpoint.startsWith('/')) {
+        fullPath = '/$_basePath$endpoint';
+      } else {
+        fullPath = '/$_basePath/$endpoint';
       }
     }
 
-    // Normalise the endpoint
-    if (!endpoint.startsWith('/')) {
-      endpoint = '/$endpoint';
+    return Uri.parse(
+      '$_baseUrl$fullPath',
+    ).replace(queryParameters: queryParams);
+  }
+
+  /// Process custom headers, replacing placeholders with actual values
+  Future<Map<String, String>> _processCustomHeaders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final headersJson = prefs.getString('custom_login_headers') ?? '[]';
+
+    final List<dynamic> decodedList = jsonDecode(headersJson);
+    final List<Map<String, String>> customHeaders =
+        decodedList
+            .map((item) => Map<String, String>.from(item as Map))
+            .toList();
+
+    Map<String, String> processedHeaders = {};
+
+    for (var header in customHeaders) {
+      String key = header.keys.first;
+      String value = header.values.first;
+
+      // Replace username placeholder if available
+      if (value.contains('\${USERNAME}') && _username != null) {
+        value = value.replaceAll('\${USERNAME}', _username!);
+      }
+
+      processedHeaders[key] = value;
     }
 
-    final fullUrl = '$_baseUrl$basePath$endpoint';
-    return Uri.parse(fullUrl).replace(queryParameters: queryParams);
+    return processedHeaders;
   }
 
   /// Gets authentication headers based on the auth method
@@ -362,65 +453,14 @@ class ApiService {
   /// Parameters:
   ///
   /// - `authMethod`: The authentication method to use
-  // Modifiziere die Methode, die Headers zusammenstellt
-  Future<Map<String, String>> _getAuthHeaders(AuthMethod authMethod) async {
-    final headers = <String, String>{};
+  Map<String, String> _getAuthHeaders(AuthMethod authMethod) {
+    Map<String, String> headers = {};
 
-    switch (authMethod) {
-      case AuthMethod.basic:
-        final username = _username ?? '';
-        final password = _password ?? '';
-        if (username.isNotEmpty && password.isNotEmpty) {
-          final basicAuth =
-              'Basic ${base64Encode(utf8.encode('$username:$password'))}';
-          headers['Authorization'] = basicAuth;
-        }
-        break;
-
-      case AuthMethod.cookie:
-        final storedCookie = _cookie ?? '';
-        if (storedCookie.isNotEmpty) {
-          headers['Cookie'] = storedCookie;
-        }
-
-        final prefs = await SharedPreferences.getInstance();
-        final webViewCookie = prefs.getString('webview_session_cookie');
-        if (webViewCookie != null && webViewCookie.isNotEmpty) {
-          if (storedCookie.isNotEmpty) {
-            headers['Cookie'] = '$storedCookie; $webViewCookie';
-          } else {
-            headers['Cookie'] = webViewCookie;
-          }
-        }
-
-        break;
-      case AuthMethod.none:
-        break;
-    }
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final customHeadersJson = prefs.getString('custom_login_headers') ?? '';
-    if (customHeadersJson.isNotEmpty) {
-      try {
-        List<dynamic> decodedList = jsonDecode(customHeadersJson);
-        for (var item in decodedList) {
-          final headerMap = Map<String, String>.from(item as Map);
-          if (headerMap.isNotEmpty) {
-            final key = headerMap.keys.first;
-            String value = headerMap.values.first;
-
-            if (value.contains('\${USERNAME}')) {
-              value = value.replaceAll('\${USERNAME}', _username ?? '');
-            }
-
-            if (key.isNotEmpty) {
-              headers[key] = value;
-            }
-          }
-        }
-      } catch (e) {
-        _logger.e('Failed to parse custom headers: $e');
-      }
+    if (authMethod == AuthMethod.cookie && _cookie != null) {
+      headers['Cookie'] = _cookie!;
+    } else if (_username != null && _password != null) {
+      headers['Authorization'] =
+          'Basic ${base64.encode(utf8.encode('$_username:$_password'))}';
     }
 
     return headers;

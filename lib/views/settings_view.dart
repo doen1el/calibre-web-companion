@@ -47,6 +47,14 @@ class SettingsView extends StatelessWidget {
             ),
 
             const SizedBox(height: 24),
+            _buildSectionTitle(context, "Costum send2ereader"),
+            _buildCostumSend2EreaderToggle(
+              context,
+              settingsViewModel,
+              localizations,
+            ),
+
+            const SizedBox(height: 24),
             _buildSectionTitle(context, "Calibre Web Automated Downloader"),
             _buildDownloaderToggle(context, settingsViewModel, localizations),
 
@@ -763,6 +771,75 @@ class SettingsView extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 localizations.enterUrlOfYourDownloadService,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds the send2ereader toggle
+  ///
+  /// Parameters:
+  ///
+  /// - `context`: The current build context
+  /// - `viewModel`: The settings view model
+  /// - `localizations`: The current localizations
+  Widget _buildCostumSend2EreaderToggle(
+    BuildContext context,
+    SettingsViewModel viewModel,
+    AppLocalizations localizations,
+  ) {
+    BorderRadius borderRadius = BorderRadius.circular(8.0);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.send_rounded,
+                  size: 28,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    localizations.send2ereaderService,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Switch(
+                  value: viewModel.isCostumSend2ereaderEnabled,
+                  onChanged: (value) => viewModel.toggleSend2ereader(value),
+                  activeColor: Theme.of(context).colorScheme.primary,
+                ),
+              ],
+            ),
+
+            // Conditional text field
+            if (viewModel.isCostumSend2ereaderEnabled) ...[
+              const SizedBox(height: 16),
+              _buildTextField(
+                context: context,
+                controller: viewModel.send2ereaderUrlController,
+                labelText: localizations.send2ereaderServiceUrl,
+                prefixIcon: Icons.link,
+                hintText: "https://send.djazz.se/",
+                onChanged: (value) => viewModel.setSend2ereaderUrl(value),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                localizations.enterUrlOfYourSend2ereaderService,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),

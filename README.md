@@ -1,7 +1,7 @@
 <p align="center">
     <img src="docs/icon/icon.png" alt="App Icon" width="100" />
     <br>
-    v1.6.0
+    v1.6.5
 </p>
 
 # Calibre Web Companion
@@ -33,9 +33,10 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 - Easily mark books as read or unread, organize them into shelves, or archive them.
 - Access comprehensive collection statistics at a glance.
 - Download books directly onto your device.
-- Instantly send books to your e-reader using [send2ereader](https://github.com/daniel-j/send2ereader) or via Calibre Web's mail function.
+- Instantly send books to your e-reader using [send2ereader](https://github.com/daniel-j/send2ereader) or via Calibre Web's mail function. You can also use your own send2ereader instance.
 - Automatically download books to your collection with [calibre-web-automated-book-downloader](https://github.com/calibrain/calibre-web-automated-book-downloader).
 - Manage and customize your shelves.
+- Upload books to your Calibre Web server.
 
 ## 🖼️ Impressions
 

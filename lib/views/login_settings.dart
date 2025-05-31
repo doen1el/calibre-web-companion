@@ -50,16 +50,16 @@ class LoginSettingsState extends State<LoginSettings>
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.connectionSettings),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(text: localizations.headers, icon: const Icon(Icons.code)),
-            Tab(
-              text: localizations.authSystems,
-              icon: const Icon(Icons.security),
-            ),
-          ],
-        ),
+        // bottom: TabBar(
+        //   controller: _tabController,
+        //   tabs: [
+        //     Tab(text: localizations.headers, icon: const Icon(Icons.code)),
+        //     Tab(
+        //       text: localizations.authSystems,
+        //       icon: const Icon(Icons.security),
+        //     ),
+        //   ],
+        // ),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
@@ -73,157 +73,156 @@ class LoginSettingsState extends State<LoginSettings>
           ),
         ],
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // Tab 1: Custom HTTP Headers
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSectionTitle(context, localizations.costumHttpPHeader),
-                _buildHeadersCard(context, viewModel, localizations),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 16.0,
-                  ),
-                  child: Center(
-                    child: ElevatedButton.icon(
-                      onPressed: viewModel.addHeader,
-                      icon: const Icon(Icons.add),
-                      label: Text(localizations.addHeader),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.primaryContainer,
-                        foregroundColor:
-                            Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                    ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle(context, localizations.costumHttpPHeader),
+            _buildHeadersCard(context, viewModel, localizations),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 16.0,
+              ),
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: viewModel.addHeader,
+                  icon: const Icon(Icons.add),
+                  label: Text(localizations.addHeader),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                    foregroundColor:
+                        Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-
-          // Tab 2: Authentication Systems
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSectionTitle(context, localizations.basePath),
-                Card(
-                  margin: const EdgeInsets.only(bottom: 24.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          localizations.basePathDescription,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _basePathController,
-                          decoration: InputDecoration(
-                            labelText: localizations.basePath,
-                            hintText: 'calibre',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                            prefixText: '/',
-                            filled: true,
-                            fillColor: Theme.of(context).colorScheme.surface,
-                          ),
-                          onChanged: (value) {
-                            viewModel.setBasePath(value);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                _buildSectionTitle(context, localizations.authSystem),
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          localizations.authSystemDescription,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 16),
-                        ...viewModel.authSystemNames.entries.map((entry) {
-                          return RadioListTile<AuthSystem>(
-                            title: Text(entry.value),
-                            value: entry.key,
-                            groupValue: viewModel.selectedAuthSystem,
-                            onChanged: (AuthSystem? value) {
-                              if (value != null) {
-                                viewModel.setAuthSystem(value);
-                              }
-                            },
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-                _buildSectionTitle(context, localizations.helpAndInfo),
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ListTile(
-                          leading: Icon(
-                            Icons.info_outline,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          title: Text(localizations.authSystemHelp1),
-                        ),
-                        const Divider(),
-                        ListTile(
-                          leading: Icon(
-                            Icons.security,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          title: Text(localizations.authSystemHelp2),
-                        ),
-                        const Divider(),
-                        ListTile(
-                          leading: Icon(
-                            Icons.code,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          title: Text(localizations.authSystemHelp3),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
+
+      //   TabBarView(
+      // controller: _tabController,
+      // children: [
+      // Tab 1: Custom HTTP Headers
+
+      // Tab 2: Authentication Systems
+      // SingleChildScrollView(
+      //   padding: const EdgeInsets.all(16.0),
+      //   child: Column(
+      //     crossAxisAlignment: CrossAxisAlignment.start,
+      //     children: [
+      //       _buildSectionTitle(context, localizations.basePath),
+      //       Card(
+      //         margin: const EdgeInsets.only(bottom: 24.0),
+      //         shape: RoundedRectangleBorder(
+      //           borderRadius: BorderRadius.circular(8.0),
+      //         ),
+      //         child: Padding(
+      //           padding: const EdgeInsets.all(16.0),
+      //           child: Column(
+      //             crossAxisAlignment: CrossAxisAlignment.start,
+      //             children: [
+      //               Text(
+      //                 localizations.basePathDescription,
+      //                 style: Theme.of(context).textTheme.bodyMedium,
+      //               ),
+      //               const SizedBox(height: 16),
+      //               TextFormField(
+      //                 controller: _basePathController,
+      //                 decoration: InputDecoration(
+      //                   labelText: localizations.basePath,
+      //                   hintText: 'calibre',
+      //                   border: OutlineInputBorder(
+      //                     borderRadius: BorderRadius.circular(12.0),
+      //                   ),
+      //                   prefixText: '/',
+      //                   filled: true,
+      //                   fillColor: Theme.of(context).colorScheme.surface,
+      //                 ),
+      //                 onChanged: (value) {
+      //                   viewModel.setBasePath(value);
+      //                 },
+      //               ),
+      //             ],
+      //           ),
+      //         ),
+      //       ),
+
+      //       _buildSectionTitle(context, localizations.authSystem),
+      //       Card(
+      //         shape: RoundedRectangleBorder(
+      //           borderRadius: BorderRadius.circular(8.0),
+      //         ),
+      //         child: Padding(
+      //           padding: const EdgeInsets.all(16.0),
+      //           child: Column(
+      //             crossAxisAlignment: CrossAxisAlignment.start,
+      //             children: [
+      //               Text(
+      //                 localizations.authSystemDescription,
+      //                 style: Theme.of(context).textTheme.bodyMedium,
+      //               ),
+      //               const SizedBox(height: 16),
+      //               ...viewModel.authSystemNames.entries.map((entry) {
+      //                 return RadioListTile<AuthSystem>(
+      //                   title: Text(entry.value),
+      //                   value: entry.key,
+      //                   groupValue: viewModel.selectedAuthSystem,
+      //                   onChanged: (AuthSystem? value) {
+      //                     if (value != null) {
+      //                       viewModel.setAuthSystem(value);
+      //                     }
+      //                   },
+      //                 );
+      //               }),
+      //             ],
+      //           ),
+      //         ),
+      //       ),
+
+      //       const SizedBox(height: 24),
+      //       _buildSectionTitle(context, localizations.helpAndInfo),
+      //       Card(
+      //         shape: RoundedRectangleBorder(
+      //           borderRadius: BorderRadius.circular(8.0),
+      //         ),
+      //         child: Padding(
+      //           padding: const EdgeInsets.all(16.0),
+      //           child: Column(
+      //             crossAxisAlignment: CrossAxisAlignment.start,
+      //             children: [
+      //               ListTile(
+      //                 leading: Icon(
+      //                   Icons.info_outline,
+      //                   color: Theme.of(context).colorScheme.primary,
+      //                 ),
+      //                 title: Text(localizations.authSystemHelp1),
+      //               ),
+      //               const Divider(),
+      //               ListTile(
+      //                 leading: Icon(
+      //                   Icons.security,
+      //                   color: Theme.of(context).colorScheme.primary,
+      //                 ),
+      //                 title: Text(localizations.authSystemHelp2),
+      //               ),
+      //               const Divider(),
+      //               ListTile(
+      //                 leading: Icon(
+      //                   Icons.code,
+      //                   color: Theme.of(context).colorScheme.primary,
+      //                 ),
+      //                 title: Text(localizations.authSystemHelp3),
+      //               ),
+      //             ],
+      //           ),
+      //         ),
+      //       ),
+      //     ],
+      //   ),
+      // ),
     );
   }
 

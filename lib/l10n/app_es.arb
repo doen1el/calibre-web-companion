@@ -280,5 +280,15 @@
   "webViewHelp1": "La autenticación basada en navegador es útil para SSO y sistemas de autenticación complejos.",
   "webViewHelp2": "La sesión se guarda y se utiliza para solicitudes futuras.",
   "webViewHelp3": "Las sesiones pueden expirar después de un tiempo.",
-  "settingsSaved": "Ajustes guardados"
+  "settingsSaved": "Ajustes guardados",
+  "send2ereaderService": "Servicio Send2ereader",
+  "send2ereaderServiceUrl": "URL del servicio Send2ereader",
+  "enterUrlOfYourSend2ereaderService": "Introduce la URL de tu servicio Send2ereader",
+  "noFilesSelected": "No se seleccionaron archivos",
+  "preparingUpload": "Preparando carga",
+  "uploadFailed": "Error al cargar",
+  "uploadingBook": "Cargando libro",
+  "columnsCount": "Número de columnas",
+  "columns": "Columnas",
+  "uploadEbook": "Cargar libro electrónico"
 }

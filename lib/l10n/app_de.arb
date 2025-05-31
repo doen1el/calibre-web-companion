@@ -280,5 +280,15 @@
   "webViewHelp1": "Die Browser-Authentifizierung ist nützlich für SSO und komplexe Authentifizierungssysteme.",
   "webViewHelp2": "Die Sitzung wird gespeichert und für zukünftige Anfragen verwendet.",
   "webViewHelp3": "Sitzungen können nach einiger Zeit ablaufen.",
-  "settingsSaved": "Einstellungen gespeichert"
+  "settingsSaved": "Einstellungen gespeichert",
+  "send2ereaderService": "Send2ereader-Service",
+  "send2ereaderServiceUrl": "Send2ereader-Service-URL",
+  "enterUrlOfYourSend2ereaderService": "Gib die URL deines Send2ereader-Services ein",
+  "noFilesSelected": "Keine Dateien ausgewählt",
+  "preparingUpload": "Upload vorbereiten",
+  "uploadFailed": "Upload fehlgeschlagen",
+  "uploadingBook": "Buch hochladen",
+  "columnsCount": "Anzahl der Spalten",
+  "columns": "Spalten",
+  "uploadEbook": "E-Book hochladen"
 }

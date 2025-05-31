@@ -95,12 +95,33 @@ class DownloadToDeviceState extends State<DownloadToDevice> {
     BookItem book,
   ) {
     try {
-      if (book.formats.length == 1) {
-        // If only one format is available, download it directly
-        _downloadBook(context, localizations, viewModel, book, book.formats[0]);
+      logger.i("Book type: ${book.main_format}");
+      if (book.formats.isNotEmpty) {
+        logger.i(
+          'Available formats for ${book.title}: ${book.formats.join(', ')}',
+        );
+        _downloadBook(
+          context,
+          localizations,
+          viewModel,
+          book,
+          book.formats.first.toLowerCase(),
+        );
         return;
-      } else if (book.formats.isEmpty) {
-        // If no formats are available, try epub
+      } else if (book.main_format.keys.isNotEmpty) {
+        logger.i(
+          'Available main format for ${book.title}: ${book.main_format.keys.first}',
+        );
+        _downloadBook(
+          context,
+          localizations,
+          viewModel,
+          book,
+          book.main_format.keys.first.toLowerCase(),
+        );
+        return;
+      } else {
+        logger.w('No formats available for ${book.title}, defaulting to EPUB');
         _downloadBook(context, localizations, viewModel, book, 'epub');
         return;
       }

@@ -1,0 +1,5 @@
+- added ability to change column count on book list
+- added ability to upload books to calibre-web
+- added ability to add costum send2ereader instance
+- fixed bug that you could not open pdf in installed readers
+- fixed bug that not all books were listed when sorting by author
