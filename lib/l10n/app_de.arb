@@ -146,7 +146,7 @@
   "createShelf": "Regal erstellen",
   "shelfName": "Regalname",
   "shelfNameRequired": "Regalname ist erforderlich",
-  "shelfSuccessfullyCreated": "Regal {name} erfolgreich erstellt",
+  "shelfSuccessfullyCreated": "Regal erfolgreich erstellt",
   "errorCreatingShelf": "Fehler beim Erstellen des Regals {name}",
   "create": "Erstellen",
   "creating": "Erstellen...",
@@ -290,5 +290,7 @@
   "uploadingBook": "Buch hochladen",
   "columnsCount": "Anzahl der Spalten",
   "columns": "Spalten",
-  "uploadEbook": "E-Book hochladen"
+  "uploadEbook": "E-Book hochladen",
+  "logoutFailed": "Abmeldung fehlgeschlagen",
+  "shelfNotFound": "Regal nicht gefunden"
 }

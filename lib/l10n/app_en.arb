@@ -144,7 +144,7 @@
   "createShelf": "Create shelf",
   "shelfName": "Shelf name",
   "shelfNameRequired": "Shelf name is required",
-  "shelfSuccessfullyCreated": "Shelf {name} successfully created",
+  "shelfSuccessfullyCreated": "Shelf successfully created",
   "errorCreatingShelf": "Error creating shelf {name}",
   "create": "Create",
   "creating": "Creating",
@@ -290,5 +290,7 @@
   "uploadingBook": "Uploading book",
   "columnsCount": "Columns count",
   "columns": "Columns",
-  "uploadEbook": "Upload eBook"
+  "uploadEbook": "Upload eBook",
+  "logoutFailed": "Logout failed",
+  "shelfNotFound": "Shelf not found"
 }

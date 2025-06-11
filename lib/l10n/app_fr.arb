@@ -146,7 +146,7 @@
   "createShelf": "Créer une étagère",
   "shelfName": "Nom de l'étagère",
   "shelfNameRequired": "Le nom de l'étagère est requis",
-  "shelfSuccessfullyCreated": "Étagère {name} créée avec succès",
+  "shelfSuccessfullyCreated": "Étagère créée avec succès",
   "errorCreatingShelf": "Erreur lors de la création de l'étagère {name}",
   "create": "Créer",
   "creating": "Création",
@@ -290,5 +290,7 @@
   "uploadingBook": "Téléchargement du livre",
   "columnsCount": "Nombre de colonnes",
   "columns": "Colonnes",
-  "uploadEbook": "Télécharger un eBook"
+  "uploadEbook": "Télécharger un eBook",
+  "logoutFailed": "Échec de la déconnexion",
+  "shelfNotFound": "Étagère non trouvée"
 }
