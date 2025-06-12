@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -18,9 +20,11 @@ class BookCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          // Navigator.of(context).push(
-          //   AppTransitions.createSlideRoute(BookDetails(bookUuid: book.uuid)),
-          // );
+          Navigator.of(context).push(
+            AppTransitions.createSlideRoute(
+              BookDetailsPage(bookListModel: book, bookUuid: book.uuid),
+            ),
+          );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

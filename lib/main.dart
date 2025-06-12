@@ -1,4 +1,5 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
@@ -69,6 +70,7 @@ void main() async {
           create: (_) => getIt<DownloadServiceBloc>(),
         ),
         BlocProvider<HomePageBloc>(create: (_) => getIt<HomePageBloc>()),
+        BlocProvider<BookDetailsBloc>(create: (_) => getIt<BookDetailsBloc>()),
       ],
       child: MyApp(savedThemeMode: savedThemeMode),
     ),

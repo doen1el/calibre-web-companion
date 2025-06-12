@@ -17,7 +17,7 @@ class BookViewModel extends Equatable {
   final String path;
   final String pubdate;
   final String publishers;
-  final String ratings;
+  final double ratings;
   final bool readStatus; // "true" or "false"
   final String registry;
   final String series;
@@ -48,7 +48,7 @@ class BookViewModel extends Equatable {
     this.path = '',
     this.pubdate = '',
     this.publishers = '',
-    this.ratings = '',
+    this.ratings = 0.0,
     this.readStatus = false,
     this.registry = '',
     this.series = '',

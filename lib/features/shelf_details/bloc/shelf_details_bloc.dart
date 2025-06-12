@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_event.dart';
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_state.dart';
-import 'package:path/path.dart';
 
 class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
   final ShelfDetailsRepository repository;

@@ -28,7 +28,7 @@ class BookDetailsModel extends BookViewModel {
     super.path = '',
     super.pubdate = '',
     super.publishers = '',
-    super.ratings = '',
+    super.ratings = 0.0,
     super.readStatus = false,
     super.registry = '',
     super.series = '',

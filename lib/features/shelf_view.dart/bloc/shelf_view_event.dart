@@ -38,3 +38,32 @@ class EditShelfState extends ShelfViewEvent {
   @override
   List<Object?> get props => [shelfId, newShelfName];
 }
+
+class FindShelvesContainingBook extends ShelfViewEvent {
+  final String bookId;
+
+  const FindShelvesContainingBook(this.bookId);
+
+  @override
+  List<Object> get props => [bookId];
+}
+
+class AddBookToShelf extends ShelfViewEvent {
+  final String bookId;
+  final String shelfId;
+
+  const AddBookToShelf({required this.bookId, required this.shelfId});
+
+  @override
+  List<Object> get props => [bookId, shelfId];
+}
+
+class RemoveBookFromShelf extends ShelfViewEvent {
+  final String bookId;
+  final String shelfId;
+
+  const RemoveBookFromShelf({required this.bookId, required this.shelfId});
+
+  @override
+  List<Object> get props => [bookId, shelfId];
+}

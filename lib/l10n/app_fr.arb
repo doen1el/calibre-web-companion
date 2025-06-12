@@ -294,5 +294,7 @@
   "logoutFailed": "Échec de la déconnexion",
   "shelfNotFound": "Étagère non trouvée",
    "titleIsRequired": "Le titre est requis",
-  "descriptionIsRequired": "La description est requise"
+  "descriptionIsRequired": "La description est requise",
+  "downloadCancelled": "Téléchargement annulé",
+  "transferCancelled": "Transfert annulé"
 }

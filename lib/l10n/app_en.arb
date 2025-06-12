@@ -294,5 +294,7 @@
   "logoutFailed": "Logout failed",
   "shelfNotFound": "Shelf not found",
    "titleIsRequired": "Title is required",
-  "descriptionIsRequired": "Description is required"
+  "descriptionIsRequired": "Description is required",
+  "downloadCancelled": "Download cancelled",
+  "transferCancelled": "Transfer cancelled"
 }

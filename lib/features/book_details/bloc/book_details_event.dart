@@ -50,19 +50,40 @@ class ToggleArchiveStatus extends BookDetailsEvent {
 }
 
 class DownloadBook extends BookDetailsEvent {
-  final String selectedDirectory;
-  final DownloadSchema schema;
+  final String bookId;
   final String format;
+  final String title;
+  final String author;
+  final String series;
+  final double seriesIndex;
+  final String directory;
+  final DownloadSchema schema;
 
   const DownloadBook({
-    required this.selectedDirectory,
+    required this.bookId,
+    required this.format,
+    required this.title,
+    required this.author,
+    required this.series,
+    required this.seriesIndex,
+    required this.directory,
     required this.schema,
-    this.format = 'epub',
   });
 
   @override
-  List<Object?> get props => [selectedDirectory, schema, format];
+  List<Object?> get props => [
+    bookId,
+    format,
+    title,
+    author,
+    series,
+    seriesIndex,
+    directory,
+    schema,
+  ];
 }
+
+class CancelDownload extends BookDetailsEvent {}
 
 class SendBookByEmail extends BookDetailsEvent {
   final String bookId;
@@ -104,3 +125,51 @@ class UpdateDownloadProgress extends BookDetailsEvent {
   @override
   List<Object?> get props => [progress];
 }
+
+class UpdateBookMetadata extends BookDetailsEvent {
+  final String bookId;
+  final String title;
+  final String authors;
+  final String comments;
+  final String tags;
+
+  const UpdateBookMetadata({
+    required this.bookId,
+    required this.title,
+    required this.authors,
+    required this.comments,
+    required this.tags,
+  });
+
+  @override
+  List<Object?> get props => [bookId, title, authors, comments, tags];
+}
+
+class SendToEReaderViaBrowser extends BookDetailsEvent {
+  final String bookId;
+  final String code;
+  final bool isKindle;
+  final String title;
+
+  const SendToEReaderViaBrowser({
+    required this.bookId,
+    required this.code,
+    required this.isKindle,
+    required this.title,
+  });
+
+  @override
+  List<Object?> get props => [bookId, code, isKindle, title];
+}
+
+class SendToEReaderByEmail extends BookDetailsEvent {
+  final String bookId;
+  final String format;
+
+  const SendToEReaderByEmail({required this.bookId, required this.format});
+
+  @override
+  List<Object?> get props => [bookId, format];
+}
+
+class CancelSendToEReader extends BookDetailsEvent {}

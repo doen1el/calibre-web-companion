@@ -1,3 +1,6 @@
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
+import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_datasource.dart';
+import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
@@ -226,4 +229,23 @@ Future<void> init() async {
   //? Home Feature
   // BLoCs
   getIt.registerFactory<HomePageBloc>(() => HomePageBloc());
+
+  //? Book Details Feature
+  // BLoCs
+  getIt.registerFactory<BookDetailsBloc>(
+    () => BookDetailsBloc(
+      repository: getIt<BookDetailsRepository>(),
+      logger: logger,
+    ),
+  );
+
+  // DataSources
+  getIt.registerLazySingleton<BookDetailsDatasource>(
+    () => BookDetailsDatasource(apiService: getIt<ApiService>()),
+  );
+
+  // Repositories
+  getIt.registerLazySingleton<BookDetailsRepository>(
+    () => BookDetailsRepository(datasource: getIt<BookDetailsDatasource>()),
+  );
 }

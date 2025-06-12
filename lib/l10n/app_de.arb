@@ -294,5 +294,7 @@
   "logoutFailed": "Abmeldung fehlgeschlagen",
   "shelfNotFound": "Regal nicht gefunden",
   "titleIsRequired": "Titel ist erforderlich",
-  "descriptionIsRequired": "Beschreibung ist erforderlich"
+  "descriptionIsRequired": "Beschreibung ist erforderlich",
+  "downloadCancelled": "Download abgebrochen",
+  "transferCancelled": "Transfer abgebrochen"
 }

@@ -14,6 +14,9 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
     on<CreateShelf>(_onCreateShelf);
     on<RemoveShelfFromState>(_onRemoveShelfFromState);
     on<EditShelfState>(_onEditShelfState);
+    on<FindShelvesContainingBook>(_onFindShelvesContainingBook);
+    on<AddBookToShelf>(_onAddBookToShelf);
+    on<RemoveBookFromShelf>(_onRemoveBookFromShelf);
   }
 
   Future<void> _onLoadShelves(
@@ -109,5 +112,86 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
         actionMessage: 'Shelf updated successfully',
       ),
     );
+  }
+
+  Future<void> _onFindShelvesContainingBook(
+    FindShelvesContainingBook event,
+    Emitter<ShelfViewState> emit,
+  ) async {
+    try {
+      emit(state.copyWith(bookIdBeingChecked: event.bookId));
+
+      final containingShelves = await repository.findShelvesContainingBook(
+        event.bookId,
+      );
+
+      emit(state.copyWith(bookInShelves: containingShelves));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: ShelfViewStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onAddBookToShelf(
+    AddBookToShelf event,
+    Emitter<ShelfViewState> emit,
+  ) async {
+    try {
+      await repository.addBookToShelf(
+        shelfId: event.shelfId,
+        bookId: event.bookId,
+      );
+
+      // Aktualisiere die Liste der Regale, die das Buch enthalten
+      if (state.bookIdBeingChecked == event.bookId) {
+        final shelf = state.shelves.firstWhere((s) => s.id == event.shelfId);
+        final updatedShelves = List<ShelfViewModel>.from(state.bookInShelves);
+        if (!updatedShelves.any((s) => s.id == shelf.id)) {
+          updatedShelves.add(shelf);
+        }
+
+        emit(state.copyWith(bookInShelves: updatedShelves));
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: ShelfViewStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onRemoveBookFromShelf(
+    RemoveBookFromShelf event,
+    Emitter<ShelfViewState> emit,
+  ) async {
+    try {
+      await repository.removeBookFromShelf(
+        shelfId: event.shelfId,
+        bookId: event.bookId,
+      );
+
+      // Aktualisiere die Liste der Regale, die das Buch enthalten
+      if (state.bookIdBeingChecked == event.bookId) {
+        final updatedShelves =
+            state.bookInShelves
+                .where((shelf) => shelf.id != event.shelfId)
+                .toList();
+
+        emit(state.copyWith(bookInShelves: updatedShelves));
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: ShelfViewStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
   }
 }

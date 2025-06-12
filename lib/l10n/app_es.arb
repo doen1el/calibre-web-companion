@@ -294,5 +294,7 @@
   "logoutFailed": "Error al cerrar sesión",
   "shelfNotFound": "Estante no encontrado",
    "titleIsRequired": "El título es obligatorio",
-  "descriptionIsRequired": "La descripción es obligatoria"
+  "descriptionIsRequired": "La descripción es obligatoria",
+  "downloadCancelled": "Descarga cancelada",
+  "transferCancelled": "Transferencia cancelada"
 }

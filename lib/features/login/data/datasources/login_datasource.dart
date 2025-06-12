@@ -71,6 +71,7 @@ class LoginDataSource {
 
   /// Checks if there are stored credentials and if they are valid by making a test request
   Future<bool> hasStoredCredentials() async {
+    /// TODO: BEtter idea: Check / and look for the test "login"
     _logger.i('Checking stored credentials...');
     final prefs = await SharedPreferences.getInstance();
     final baseUrl = prefs.getString('base_url');

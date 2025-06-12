@@ -11,12 +11,16 @@ class ShelfViewState extends Equatable {
   final CreateShelfStatus createShelfStatus;
   final List<ShelfViewModel> shelves;
   final String? errorMessage;
+  final List<ShelfViewModel> bookInShelves;
+  final String? bookIdBeingChecked;
 
   const ShelfViewState({
     this.status = ShelfViewStatus.initial,
     this.createShelfStatus = CreateShelfStatus.initial,
     this.shelves = const [],
     this.errorMessage,
+    this.bookInShelves = const [],
+    this.bookIdBeingChecked,
   });
 
   ShelfViewState copyWith({
@@ -25,15 +29,26 @@ class ShelfViewState extends Equatable {
     List<ShelfViewModel>? shelves,
     String? errorMessage,
     String? actionMessage,
+    List<ShelfViewModel>? bookInShelves,
+    String? bookIdBeingChecked,
   }) {
     return ShelfViewState(
       status: status ?? this.status,
       createShelfStatus: createShelfStatus ?? this.createShelfStatus,
       shelves: shelves ?? this.shelves,
       errorMessage: errorMessage,
+      bookInShelves: bookInShelves ?? this.bookInShelves,
+      bookIdBeingChecked: bookIdBeingChecked,
     );
   }
 
   @override
-  List<Object?> get props => [status, shelves, errorMessage, createShelfStatus];
+  List<Object?> get props => [
+    status,
+    shelves,
+    errorMessage,
+    createShelfStatus,
+    bookInShelves,
+    bookIdBeingChecked,
+  ];
 }
