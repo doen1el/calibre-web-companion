@@ -14,7 +14,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     : _repository = repository,
       _logger = logger ?? Logger(),
       super(const BookViewState()) {
-    on<LoadSettings>(_onLoadSettings);
+    on<LoadViewSettings>(_onLoadSettings);
     on<LoadBooks>(_onLoadBooks);
     on<LoadMoreBooks>(_onLoadMoreBooks);
     on<RefreshBooks>(_onRefreshBooks);
@@ -26,7 +26,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
   }
 
   Future<void> _onLoadSettings(
-    LoadSettings event,
+    LoadViewSettings event,
     Emitter<BookViewState> emit,
   ) async {
     try {

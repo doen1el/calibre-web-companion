@@ -9,12 +9,10 @@ import 'package:calibre_web_companion/features/login_settings/data/repositories/
 
 class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
   final Logger _logger = Logger();
-  final LoginSettingsRepository _loginSettingsRepository;
+  final LoginSettingsRepository loginSettingsRepository;
 
-  LoginSettingsBloc({LoginSettingsRepository? loginSettingsRepository})
-    : _loginSettingsRepository =
-          loginSettingsRepository ?? LoginSettingsRepository(),
-      super(const LoginSettingsState()) {
+  LoginSettingsBloc({required this.loginSettingsRepository})
+    : super(const LoginSettingsState()) {
     on<LoadLoginSettings>(_onLoadSettings);
     on<AddCustomHeader>(_onAddCustomHeader);
     on<DeleteCustomHeader>(_onDeleteCustomHeader);
@@ -30,7 +28,7 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
     emit(state.copyWith(isLoading: true, isSaved: false));
 
     try {
-      final headers = await _loginSettingsRepository.getCustomHeaders();
+      final headers = await loginSettingsRepository.getCustomHeaders();
       emit(state.copyWith(customHeaders: headers, isLoading: false));
     } catch (e) {
       _logger.e('Error loading login settings: $e');
@@ -103,7 +101,7 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
     emit(state.copyWith(isLoading: true, isSaved: false));
 
     try {
-      await _loginSettingsRepository.saveCustomHeaders(state.customHeaders);
+      await loginSettingsRepository.saveCustomHeaders(state.customHeaders);
       emit(state.copyWith(isLoading: false, isSaved: true));
     } catch (e) {
       _logger.e('Error saving settings: $e');

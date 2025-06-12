@@ -292,5 +292,7 @@
   "columns": "Columnas",
   "uploadEbook": "Cargar libro electrónico",
   "logoutFailed": "Error al cerrar sesión",
-  "shelfNotFound": "Estante no encontrado"
+  "shelfNotFound": "Estante no encontrado",
+   "titleIsRequired": "El título es obligatorio",
+  "descriptionIsRequired": "La descripción es obligatoria"
 }

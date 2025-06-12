@@ -292,5 +292,7 @@
   "columns": "Columns",
   "uploadEbook": "Upload eBook",
   "logoutFailed": "Logout failed",
-  "shelfNotFound": "Shelf not found"
+  "shelfNotFound": "Shelf not found",
+   "titleIsRequired": "Title is required",
+  "descriptionIsRequired": "Description is required"
 }

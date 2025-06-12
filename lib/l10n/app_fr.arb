@@ -292,5 +292,7 @@
   "columns": "Colonnes",
   "uploadEbook": "Télécharger un eBook",
   "logoutFailed": "Échec de la déconnexion",
-  "shelfNotFound": "Étagère non trouvée"
+  "shelfNotFound": "Étagère non trouvée",
+   "titleIsRequired": "Le titre est requis",
+  "descriptionIsRequired": "La description est requise"
 }

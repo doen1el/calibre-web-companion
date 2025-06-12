@@ -1,11 +1,10 @@
 import 'dart:typed_data';
+import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_datasource.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
-
-enum DownloadSchema { flat, authorOnly, authorBook, authorSeriesBook }
 
 class BookDetailsRepository {
   final BookDetailsDatasource _datasource;

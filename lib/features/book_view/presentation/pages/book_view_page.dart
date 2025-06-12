@@ -30,7 +30,7 @@ class _BookViewPageState extends State<BookViewPage> {
 
     // Load settings and initial books
     context.read<BookViewBloc>()
-      ..add(const LoadSettings())
+      ..add(const LoadViewSettings())
       ..add(const LoadBooks());
   }
 

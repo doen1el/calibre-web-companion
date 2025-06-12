@@ -58,8 +58,8 @@ class ChangeColumnCount extends BookViewEvent {
   List<Object?> get props => [count];
 }
 
-class LoadSettings extends BookViewEvent {
-  const LoadSettings();
+class LoadViewSettings extends BookViewEvent {
+  const LoadViewSettings();
 }
 
 class UploadCancel extends BookViewEvent {

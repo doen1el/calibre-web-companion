@@ -1,23 +1,17 @@
 import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/features/login_settings/data/datasources/login_settings_datasource.dart';
 import 'package:calibre_web_companion/features/login_settings/data/models/custom_header.dart';
 
 class LoginSettingsRepository {
-  final LoginSettingsDatasource _loginSettingsDatasource;
+  final LoginSettingsDatasource loginSettingsDatasource;
   final Logger _logger = Logger();
 
-  LoginSettingsRepository({LoginSettingsDatasource? loginSettingsDatasource})
-    : _loginSettingsDatasource =
-          loginSettingsDatasource ??
-          LoginSettingsDatasource(
-            preferences: SharedPreferences.getInstance() as SharedPreferences,
-          );
+  LoginSettingsRepository({required this.loginSettingsDatasource});
 
   Future<List<CustomHeaderModel>> getCustomHeaders() async {
     try {
-      final headers = await _loginSettingsDatasource.getCustomHeaders();
+      final headers = await loginSettingsDatasource.getCustomHeaders();
       return headers;
     } catch (e) {
       _logger.e('Error getting custom headers: $e');
@@ -35,7 +29,7 @@ class LoginSettingsRepository {
               )
               .toList();
 
-      await _loginSettingsDatasource.saveCustomHeaders(headerModels);
+      await loginSettingsDatasource.saveCustomHeaders(headerModels);
     } catch (e) {
       _logger.e('Error saving custom headers: $e');
       throw Exception('Failed to save custom headers: $e');

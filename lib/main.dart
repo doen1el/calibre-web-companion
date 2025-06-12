@@ -12,16 +12,22 @@ import 'package:calibre_web_companion/features/me/bloc/me_bloc.dart';
 import 'package:calibre_web_companion/features/me/data/datasources/me_datasource.dart';
 import 'package:calibre_web_companion/features/me/data/repositories/me_repositorie.dart';
 import 'package:calibre_web_companion/features/me/presentation/pages/me_page.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
+import 'package:calibre_web_companion/features/settings/data/datasources/settings_local_datasource.dart';
+import 'package:calibre_web_companion/features/settings/data/repositories/settings_repositorie.dart';
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/datasources/shelf_details_datasource.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/repositories/shelf_details_repositorie.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/datasources/shelf_view_datasource.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repositorie.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -64,7 +70,21 @@ void main() async {
               (_) => getIt<LoginSettingsBloc>()..add(const LoadLoginSettings()),
         ),
         BlocProvider<BookViewBloc>(
-          create: (_) => getIt<BookViewBloc>()..add(const LoadSettings()),
+          create: (_) => getIt<BookViewBloc>()..add(const LoadViewSettings()),
+        ),
+        BlocProvider<MeBloc>(create: (_) => getIt<MeBloc>()),
+        BlocProvider<DiscoverBloc>(create: (_) => getIt<DiscoverBloc>()),
+        BlocProvider<DiscoverDetailsBloc>(
+          create: (_) => getIt<DiscoverDetailsBloc>(),
+        ),
+        BlocProvider<ShelfViewBloc>(
+          create: (_) => getIt<ShelfViewBloc>()..add(const LoadShelves()),
+        ),
+        BlocProvider<ShelfDetailsBloc>(
+          create: (_) => getIt<ShelfDetailsBloc>(),
+        ),
+        BlocProvider<SettingsBloc>(
+          create: (_) => getIt<SettingsBloc>()..add(LoadSettings()),
         ),
       ],
       child: MyApp(savedThemeMode: savedThemeMode),
@@ -75,6 +95,7 @@ void main() async {
 // Setup dependency injection
 Future<void> setupDependencies() async {
   final sharedPreferences = await SharedPreferences.getInstance();
+  final logger = Logger();
 
   // Register SharedPreferences
   getIt.registerSingleton<SharedPreferences>(sharedPreferences);
@@ -97,10 +118,16 @@ Future<void> setupDependencies() async {
   );
 
   getIt.registerLazySingleton<LoginSettingsRepository>(
-    () => LoginSettingsRepository(),
+    () => LoginSettingsRepository(
+      loginSettingsDatasource: getIt<LoginSettingsDatasource>(),
+    ),
   );
 
-  getIt.registerFactory<LoginSettingsBloc>(() => LoginSettingsBloc());
+  getIt.registerFactory<LoginSettingsBloc>(
+    () => LoginSettingsBloc(
+      loginSettingsRepository: getIt<LoginSettingsRepository>(),
+    ),
+  );
 
   // Book List Feature Dependencies
   getIt.registerLazySingleton<BookViewDatasource>(
@@ -174,6 +201,22 @@ Future<void> setupDependencies() async {
       repository: getIt<ShelfDetailsRepository>(),
       shelfViewBloc: getIt<ShelfViewBloc>(),
     ),
+  );
+
+  // Settings Feature
+  getIt.registerLazySingleton<SettingsLocalDataSource>(
+    () => SettingsLocalDataSource(
+      logger: logger,
+      sharedPreferences: sharedPreferences,
+    ),
+  );
+
+  getIt.registerLazySingleton<SettingsRepositorie>(
+    () => SettingsRepositorie(dataSource: getIt<SettingsLocalDataSource>()),
+  );
+
+  getIt.registerFactory<SettingsBloc>(
+    () => SettingsBloc(repository: getIt<SettingsRepositorie>()),
   );
 }
 

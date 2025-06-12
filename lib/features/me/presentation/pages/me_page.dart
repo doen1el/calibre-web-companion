@@ -1,3 +1,5 @@
+import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
+import 'package:calibre_web_companion/features/settings/presentation/pages/settings_page.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/presentation/pages/shelf_view_page.dart';
 import 'package:calibre_web_companion/main.dart';
 import 'package:flutter/material.dart';
@@ -80,13 +82,10 @@ class MePage extends StatelessWidget {
                     LongButton(
                       text: localizations.settings,
                       icon: Icons.settings_rounded,
-                      onPressed: () {},
-                      // TODO: Implement settings navigation
-                      // () => Navigator.of(context).push(
-                      //   AppTransitions.createSlideRoute(
-                      //     const SettingsPage(),
-                      //   ),
-                      // ),
+                      onPressed:
+                          () => Navigator.of(context).push(
+                            AppTransitions.createSlideRoute(SettingsPage()),
+                          ),
                     ),
                     LongButton(
                       text: localizations.shelfs,

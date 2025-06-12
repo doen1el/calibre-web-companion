@@ -1,0 +1,1 @@
+enum ThemeSource { system, custom }

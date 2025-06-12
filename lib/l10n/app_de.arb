@@ -292,5 +292,7 @@
   "columns": "Spalten",
   "uploadEbook": "E-Book hochladen",
   "logoutFailed": "Abmeldung fehlgeschlagen",
-  "shelfNotFound": "Regal nicht gefunden"
+  "shelfNotFound": "Regal nicht gefunden",
+  "titleIsRequired": "Titel ist erforderlich",
+  "descriptionIsRequired": "Beschreibung ist erforderlich"
 }
