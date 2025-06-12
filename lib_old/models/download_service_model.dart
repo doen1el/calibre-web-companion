@@ -1,4 +1,4 @@
-enum DownloadServiceStatus {
+enum DownloaderStatus {
   available,
   downloading,
   done,
@@ -17,7 +17,7 @@ class Book {
   final String publisher;
   final int year;
   final String language;
-  final DownloadServiceStatus status;
+  final DownloaderStatus status;
   final List<String> downloadUrls;
   final String? errorMessage;
 
@@ -31,7 +31,7 @@ class Book {
     required this.publisher,
     required this.year,
     required this.language,
-    this.status = DownloadServiceStatus.notDownloaded,
+    this.status = DownloaderStatus.notDownloaded,
     this.downloadUrls = const [],
     this.errorMessage,
   });
@@ -82,7 +82,7 @@ class Book {
     String? publisher,
     int? year,
     String? language,
-    DownloadServiceStatus? status,
+    DownloaderStatus? status,
     List<String>? downloadUrls,
     String? errorMessage,
   }) {
@@ -145,46 +145,36 @@ class DownloadStatusResponse {
     // Process books in 'available' status
     available.forEach((id, bookData) {
       allBooks.add(
-        _createBookFromData(id, bookData, DownloadServiceStatus.available),
+        _createBookFromData(id, bookData, DownloaderStatus.available),
       );
     });
 
     // Process books in 'done' status
     done.forEach((id, bookData) {
-      allBooks.add(
-        _createBookFromData(id, bookData, DownloadServiceStatus.done),
-      );
+      allBooks.add(_createBookFromData(id, bookData, DownloaderStatus.done));
     });
 
     // Process books in 'downloading' status
     downloading.forEach((id, bookData) {
       allBooks.add(
-        _createBookFromData(id, bookData, DownloadServiceStatus.downloading),
+        _createBookFromData(id, bookData, DownloaderStatus.downloading),
       );
     });
 
     // Process books in 'error' status
     error.forEach((id, bookData) {
-      allBooks.add(
-        _createBookFromData(id, bookData, DownloadServiceStatus.error),
-      );
+      allBooks.add(_createBookFromData(id, bookData, DownloaderStatus.error));
     });
 
     // Process books in 'queued' status
     queued.forEach((id, bookData) {
-      allBooks.add(
-        _createBookFromData(id, bookData, DownloadServiceStatus.queued),
-      );
+      allBooks.add(_createBookFromData(id, bookData, DownloaderStatus.queued));
     });
 
     return allBooks;
   }
 
-  Book _createBookFromData(
-    String id,
-    dynamic data,
-    DownloadServiceStatus status,
-  ) {
+  Book _createBookFromData(String id, dynamic data, DownloaderStatus status) {
     // Handle both string and map types for data
     if (data is! Map<String, dynamic>) {
       return Book(
@@ -220,7 +210,7 @@ class DownloadStatusResponse {
               ? List<String>.from(data['download_urls'])
               : [],
       errorMessage:
-          status == DownloadServiceStatus.error
+          status == DownloaderStatus.error
               ? data['error_message']?.toString()
               : null,
     );

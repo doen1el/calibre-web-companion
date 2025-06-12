@@ -23,6 +23,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<EnterFeedbackTitle>(_onEnterFeedbackTitle);
     on<EnterFeedbackDescription>(_onEnterFeedbackDescription);
     on<SubmitFeedback>(_onSubmitFeedback);
+    on<SetLanguage>(_onSetLanguage);
   }
 
   Future<void> _onLoadSettings(
@@ -244,6 +245,23 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       emit(
         state.copyWith(
           feedbackStatus: SettingsFeedbackStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetLanguage(
+    SetLanguage event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      await repository.setLanguage(event.languageCode);
+      emit(state.copyWith(languageCode: event.languageCode));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
           errorMessage: e.toString(),
         ),
       );

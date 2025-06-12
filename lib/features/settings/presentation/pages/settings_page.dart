@@ -47,6 +47,10 @@ class SettingsPage extends StatelessWidget {
                         _buildLoginSettingsCard(context, localizations),
 
                         const SizedBox(height: 24),
+                        _buildSectionTitle(context, localizations.language),
+                        _buildLanguageSelector(context, state, localizations),
+
+                        const SizedBox(height: 24),
                         _buildSectionTitle(context, "Download Options"),
                         const DownloadOptionsWidget(),
 
@@ -349,6 +353,73 @@ class SettingsPage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLanguageSelector(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.language,
+                  size: 28,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    localizations.language,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8.0,
+              children: [
+                _buildLanguageOption(context, 'en', 'English', state),
+                _buildLanguageOption(context, 'de', 'Deutsch', state),
+                _buildLanguageOption(context, 'fr', 'Français', state),
+                _buildLanguageOption(context, 'es', 'Español', state),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageOption(
+    BuildContext context,
+    String code,
+    String name,
+    SettingsState state,
+  ) {
+    final isSelected = state.languageCode == code;
+
+    return ChoiceChip(
+      label: Text(name),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) {
+          context.read<SettingsBloc>().add(SetLanguage(code));
+        }
+      },
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      selectedColor: Theme.of(context).colorScheme.primaryContainer,
     );
   }
 }

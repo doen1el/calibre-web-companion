@@ -26,6 +26,7 @@ class SettingsState extends Equatable {
   final String? buildNumber;
   final String? feedbackTitle;
   final String? feedbackDescription;
+  final String? languageCode;
 
   const SettingsState({
     this.status = SettingsStatus.initial,
@@ -44,6 +45,7 @@ class SettingsState extends Equatable {
     this.buildNumber,
     this.feedbackTitle,
     this.feedbackDescription,
+    this.languageCode,
   });
 
   MaterialColor get selectedColor =>
@@ -66,6 +68,7 @@ class SettingsState extends Equatable {
     String? buildNumber,
     String? feedbackTitle,
     String? feedbackDescription,
+    String? languageCode,
   }) {
     return SettingsState(
       status: status ?? this.status,
@@ -85,6 +88,7 @@ class SettingsState extends Equatable {
       buildNumber: buildNumber ?? this.buildNumber,
       feedbackTitle: feedbackTitle ?? this.feedbackTitle,
       feedbackDescription: feedbackDescription ?? this.feedbackDescription,
+      languageCode: languageCode ?? this.languageCode,
     );
   }
 
@@ -106,5 +110,6 @@ class SettingsState extends Equatable {
     buildNumber,
     feedbackTitle,
     feedbackDescription,
+    languageCode,
   ];
 }

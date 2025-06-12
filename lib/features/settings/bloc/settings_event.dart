@@ -3,7 +3,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
-import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 
 abstract class SettingsEvent extends Equatable {
   const SettingsEvent();
@@ -118,4 +117,13 @@ class SubmitFeedback extends SettingsEvent {
 
   @override
   List<Object?> get props => [];
+}
+
+class SetLanguage extends SettingsEvent {
+  final String languageCode;
+
+  const SetLanguage(this.languageCode);
+
+  @override
+  List<Object?> get props => [languageCode];
 }

@@ -97,4 +97,12 @@ class SettingsRepositorie {
       rethrow;
     }
   }
+
+  Future<void> setLanguage(String language) async {
+    try {
+      await dataSource.saveLanguage(language);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

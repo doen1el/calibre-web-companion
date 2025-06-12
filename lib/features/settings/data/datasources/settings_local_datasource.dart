@@ -35,6 +35,7 @@ class SettingsLocalDataSource {
         'default_download_path':
             sharedPreferences.getString('default_download_path') ?? '',
         'download_schema': sharedPreferences.getInt('download_schema') ?? 0,
+        'language_code': sharedPreferences.getString('language_code') ?? 'en',
       });
     } catch (e) {
       logger.e('Error getting settings: $e');
@@ -145,6 +146,15 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error submitting feedback: $e');
       throw Exception('Failed to submit feedback: $e');
+    }
+  }
+
+  Future<void> saveLanguage(String language) async {
+    try {
+      await sharedPreferences.setString('language_code', language);
+    } catch (e) {
+      logger.e('Error saving language: $e');
+      throw Exception('Failed to save language: $e');
     }
   }
 }
