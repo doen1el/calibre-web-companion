@@ -13,6 +13,7 @@ class SettingsModel extends Equatable {
   final String send2ereaderUrl;
   final String defaultDownloadPath;
   final DownloadSchema downloadSchema;
+  final String languageCode;
 
   const SettingsModel({
     required this.themeMode,
@@ -24,6 +25,7 @@ class SettingsModel extends Equatable {
     required this.send2ereaderUrl,
     required this.defaultDownloadPath,
     required this.downloadSchema,
+    required this.languageCode,
   });
 
   factory SettingsModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +39,7 @@ class SettingsModel extends Equatable {
       send2ereaderUrl: json['send2ereader_url'] ?? 'https://send.djazz.se/',
       defaultDownloadPath: json['default_download_path'] ?? '',
       downloadSchema: DownloadSchema.values[json['download_schema'] ?? 0],
+      languageCode: json['language_code'] ?? 'en',
     );
   }
 
@@ -51,5 +54,6 @@ class SettingsModel extends Equatable {
     send2ereaderUrl,
     defaultDownloadPath,
     downloadSchema,
+    languageCode,
   ];
 }

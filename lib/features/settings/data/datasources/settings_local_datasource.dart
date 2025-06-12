@@ -157,4 +157,13 @@ class SettingsLocalDataSource {
       throw Exception('Failed to save language: $e');
     }
   }
+
+  Future<String> getLanguage() async {
+    try {
+      return sharedPreferences.getString('language_code') ?? 'en';
+    } catch (e) {
+      logger.e('Error getting language: $e');
+      throw Exception('Failed to get language: $e');
+    }
+  }
 }

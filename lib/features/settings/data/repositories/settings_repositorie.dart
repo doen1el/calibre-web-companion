@@ -105,4 +105,8 @@ class SettingsRepositorie {
       rethrow;
     }
   }
+
+  Future<String> getLanguage() async {
+    return await dataSource.getLanguage();
+  }
 }

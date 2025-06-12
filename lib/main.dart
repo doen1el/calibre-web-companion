@@ -104,7 +104,9 @@ class _MyAppState extends State<MyApp> {
           (previous, current) =>
               previous.themeMode != current.themeMode ||
               previous.themeSource != current.themeSource ||
-              previous.selectedColorKey != current.selectedColorKey,
+              previous.selectedColorKey != current.selectedColorKey ||
+              previous.languageCode != current.languageCode,
+
       builder: (context, settingsState) {
         return DynamicColorBuilder(
           builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {

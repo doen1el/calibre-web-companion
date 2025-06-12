@@ -45,7 +45,7 @@ class SettingsState extends Equatable {
     this.buildNumber,
     this.feedbackTitle,
     this.feedbackDescription,
-    this.languageCode,
+    this.languageCode = 'en',
   });
 
   MaterialColor get selectedColor =>

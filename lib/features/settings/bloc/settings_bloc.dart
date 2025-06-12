@@ -50,6 +50,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           downloadSchema: settings.downloadSchema,
           appVersion: packageInfo.version,
           buildNumber: packageInfo.buildNumber,
+          languageCode: settings.languageCode,
         ),
       );
     } catch (e) {
