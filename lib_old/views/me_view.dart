@@ -97,7 +97,7 @@ class MeViewState extends State<MeView> {
                       AppTransitions.createSlideRoute(
                         BookList(
                           title: localizations.readBooks,
-                          bookListType: BookListType.readbooks,
+                          discoverType: discoverType.readbooks,
                         ),
                       ),
                     ),
@@ -110,7 +110,7 @@ class MeViewState extends State<MeView> {
                       AppTransitions.createSlideRoute(
                         BookList(
                           title: localizations.unreadBooks,
-                          bookListType: BookListType.unreadbooks,
+                          discoverType: discoverType.unreadbooks,
                         ),
                       ),
                     ),

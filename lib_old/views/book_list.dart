@@ -12,7 +12,7 @@ import '../main.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class BookList extends StatefulWidget {
-  final BookListType? bookListType;
+  final discoverType? discoverType;
   final CategoryType? categoryType;
   final String? subPath;
   final String? fullPath;
@@ -20,14 +20,14 @@ class BookList extends StatefulWidget {
 
   const BookList({
     super.key,
-    this.bookListType,
+    this.discoverType,
     this.categoryType,
     this.subPath,
     this.fullPath,
     required this.title,
   }) : assert(
-         bookListType != null || categoryType != null || fullPath != null,
-         'Either bookListType, categoryType, or fullPath must be provided',
+         discoverType != null || categoryType != null || fullPath != null,
+         'Either discoverType, categoryType, or fullPath must be provided',
        );
 
   @override
@@ -65,7 +65,7 @@ class BookListState extends State<BookList> with RouteAware {
   @override
   void didUpdateWidget(BookList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.bookListType != widget.bookListType ||
+    if (oldWidget.discoverType != widget.discoverType ||
         oldWidget.categoryType != widget.categoryType ||
         oldWidget.subPath != widget.subPath) {
       _loadData();
@@ -78,8 +78,8 @@ class BookListState extends State<BookList> with RouteAware {
 
     if (widget.fullPath != null) {
       viewModel.loadBooksFromPath(widget.fullPath!);
-    } else if (widget.bookListType != null) {
-      viewModel.loadBooks(widget.bookListType!, subPath: widget.subPath);
+    } else if (widget.discoverType != null) {
+      viewModel.loadBooks(widget.discoverType!, subPath: widget.subPath);
     } else if (widget.categoryType != null) {
       viewModel.loadCategories(widget.categoryType!, subPath: widget.subPath);
     }
@@ -95,8 +95,8 @@ class BookListState extends State<BookList> with RouteAware {
       viewModel.loadBooksFromPath(widget.fullPath!);
     }
     // Otherwise, load books based on the type
-    else if (widget.bookListType != null) {
-      viewModel.loadBooks(widget.bookListType!, subPath: widget.subPath);
+    else if (widget.discoverType != null) {
+      viewModel.loadBooks(widget.discoverType!, subPath: widget.subPath);
     } else if (widget.categoryType != null) {
       viewModel.loadCategories(widget.categoryType!, subPath: widget.subPath);
     }
@@ -118,7 +118,7 @@ class BookListState extends State<BookList> with RouteAware {
           builder: (context, viewModel, _) {
             if (viewModel.isLoading) {
               // If we're loading categories, show category skeletons
-              if (widget.categoryType != null && widget.bookListType == null) {
+              if (widget.categoryType != null && widget.discoverType == null) {
                 return _buildCategoryListSkeletons();
               }
 
@@ -451,10 +451,10 @@ class BookListState extends State<BookList> with RouteAware {
       'language': CategoryType.language,
       'formats': CategoryType.formats,
       'ratings': CategoryType.ratings,
-      'hot': BookListType.hot,
-      'new': BookListType.newlyAdded,
-      'rated': BookListType.rated,
-      'discover': BookListType.discover,
+      'hot': discoverType.hot,
+      'new': discoverType.newlyAdded,
+      'rated': discoverType.rated,
+      'discover': discoverType.discover,
     };
 
     final type = categoryTypeMap[pathParts[1]];
@@ -470,11 +470,11 @@ class BookListState extends State<BookList> with RouteAware {
         context,
         BookList(title: category.title, categoryType: type, subPath: subPath),
       );
-    } else if (type is BookListType) {
-      // If a BookListType is recognized, use this
+    } else if (type is discoverType) {
+      // If a discoverType is recognized, use this
       _navigateToPage(
         context,
-        BookList(title: category.title, bookListType: type),
+        BookList(title: category.title, discoverType: type),
       );
     } else {
       // If no type is recognized, navigate to the generic category

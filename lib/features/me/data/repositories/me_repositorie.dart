@@ -1,8 +1,8 @@
-import 'package:calibre_web_companion/features/me/data/datasources/me_datasource.dart';
+import 'package:calibre_web_companion/features/me/data/datasources/me_remote_datasource.dart';
 import 'package:calibre_web_companion/features/me/data/models/stats_model.dart';
 
 class MeRepository {
-  final MeDataSource dataSource;
+  final MeRemoteDataSource dataSource;
 
   MeRepository({required this.dataSource});
 

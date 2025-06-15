@@ -27,11 +27,6 @@ class _BookViewPageState extends State<BookViewPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
-
-    // Load settings and initial books
-    context.read<BookViewBloc>()
-      ..add(const LoadViewSettings())
-      ..add(const LoadBooks());
   }
 
   @override

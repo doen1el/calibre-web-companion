@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_details_model.dart';
@@ -35,10 +36,10 @@ class BookCard extends StatelessWidget {
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(12),
                           ),
-                          child: Image.network(
-                            book.coverUrl!,
+                          child: CachedNetworkImage(
+                            imageUrl: book.coverUrl!,
                             fit: BoxFit.cover,
-                            errorBuilder:
+                            errorWidget:
                                 (context, error, stackTrace) =>
                                     _buildPlaceholder(context),
                           ),

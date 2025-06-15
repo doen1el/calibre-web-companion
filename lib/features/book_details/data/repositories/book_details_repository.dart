@@ -3,73 +3,69 @@ import 'package:calibre_web_companion/features/settings/data/models/download_sch
 import 'package:http/http.dart';
 import 'package:logger/logger.dart';
 
-import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_datasource.dart';
+import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
 class BookDetailsRepository {
-  final BookDetailsDatasource _datasource;
-  final Logger _logger;
+  final BookDetailsRemoteDatasource datasource;
+  final Logger logger;
 
-  BookDetailsRepository({
-    required BookDetailsDatasource datasource,
-    Logger? logger,
-  }) : _datasource = datasource,
-       _logger = logger ?? Logger();
+  BookDetailsRepository({required this.datasource, required this.logger});
 
   Future<BookDetailsModel> getBookDetails(
     BookViewModel bookListModel,
     String bookUuid,
   ) async {
     try {
-      return await _datasource.fetchBookDetails(bookListModel, bookUuid);
+      return await datasource.fetchBookDetails(bookListModel, bookUuid);
     } catch (e) {
-      _logger.e('Error fetching book details: $e');
+      logger.e('Error fetching book details: $e');
       throw Exception('Failed to load book details');
     }
   }
 
   Future<bool> toggleReadStatus(int bookId) async {
     try {
-      return await _datasource.toggleReadStatus(bookId);
+      return await datasource.toggleReadStatus(bookId);
     } catch (e) {
-      _logger.e('Error toggling read status: $e');
+      logger.e('Error toggling read status: $e');
       throw Exception('Failed to toggle read status');
     }
   }
 
   Future<bool> toggleArchiveStatus(int bookId) async {
     try {
-      return await _datasource.toggleArchiveStatus(bookId);
+      return await datasource.toggleArchiveStatus(bookId);
     } catch (e) {
-      _logger.e('Error toggling archive status: $e');
+      logger.e('Error toggling archive status: $e');
       throw Exception('Failed to toggle archive status');
     }
   }
 
   Future<bool> checkIfBookIsRead(int bookId) async {
     try {
-      return await _datasource.checkIfBookIsRead(bookId);
+      return await datasource.checkIfBookIsRead(bookId);
     } catch (e) {
-      _logger.e('Error checking read status: $e');
+      logger.e('Error checking read status: $e');
       return false;
     }
   }
 
   Future<bool> checkIfBookIsArchived(int bookId) async {
     try {
-      return await _datasource.checkIfBookIsArchived(bookId);
+      return await datasource.checkIfBookIsArchived(bookId);
     } catch (e) {
-      _logger.e('Error checking archive status: $e');
+      logger.e('Error checking archive status: $e');
       return false;
     }
   }
 
   Future<Uint8List?> downloadBookBytes(String bookId, String format) async {
     try {
-      return await _datasource.downloadBookBytes(bookId, format);
+      return await datasource.downloadBookBytes(bookId, format);
     } catch (e) {
-      _logger.e('Error downloading book bytes: $e');
+      logger.e('Error downloading book bytes: $e');
       throw Exception('Failed to download book');
     }
   }
@@ -82,7 +78,7 @@ class BookDetailsRepository {
     Function(int)? progressCallback,
   }) async {
     try {
-      return await _datasource.downloadBook(
+      return await datasource.downloadBook(
         book,
         selectedDirectory,
         schema,
@@ -90,7 +86,7 @@ class BookDetailsRepository {
         progressCallback: progressCallback,
       );
     } catch (e) {
-      _logger.e('Error downloading book: $e');
+      logger.e('Error downloading book: $e');
       throw Exception('Failed to download book');
     }
   }
@@ -101,9 +97,9 @@ class BookDetailsRepository {
     int conversion,
   ) async {
     try {
-      return await _datasource.sendViaEmail(bookId, format, conversion);
+      return await datasource.sendViaEmail(bookId, format, conversion);
     } catch (e) {
-      _logger.e('Error sending book via email: $e');
+      logger.e('Error sending book via email: $e');
       throw Exception('Failed to send book via email');
     }
   }
@@ -114,18 +110,18 @@ class BookDetailsRepository {
     DownloadSchema schema,
   ) async {
     try {
-      return await _datasource.openInReader(book, selectedDirectory, schema);
+      return await datasource.openInReader(book, selectedDirectory, schema);
     } catch (e) {
-      _logger.e('Error opening book in reader: $e');
+      logger.e('Error opening book in reader: $e');
       throw Exception('Failed to open book in reader');
     }
   }
 
   Future<void> openInBrowser(BookDetailsModel book) async {
     try {
-      await _datasource.openInBrowser(book);
+      await datasource.openInBrowser(book);
     } catch (e) {
-      _logger.e('Error opening book in browser: $e');
+      logger.e('Error opening book in browser: $e');
       throw Exception('Failed to open book in browser');
     }
   }
@@ -134,7 +130,7 @@ class BookDetailsRepository {
     String bookId,
     String format,
   ) async {
-    return await _datasource.getDownloadStream(bookId, format);
+    return await datasource.getDownloadStream(bookId, format);
   }
 
   Future<bool> updateBookMetadata(
@@ -144,7 +140,7 @@ class BookDetailsRepository {
     required String comments,
     required String tags,
   }) async {
-    return await _datasource.updateBookMetadata(
+    return await datasource.updateBookMetadata(
       bookId,
       title: title,
       authors: authors,
@@ -158,7 +154,7 @@ class BookDetailsRepository {
     String format,
     int conversion,
   ) async {
-    return await _datasource.sendBookViaEmail(bookId, format, conversion);
+    return await datasource.sendBookViaEmail(bookId, format, conversion);
   }
 
   Future<bool> uploadToSend2Ereader(
@@ -168,7 +164,7 @@ class BookDetailsRepository {
     Uint8List fileBytes, {
     bool isKindle = false,
   }) async {
-    return await _datasource.uploadToSend2Ereader(
+    return await datasource.uploadToSend2Ereader(
       url,
       code,
       filename,

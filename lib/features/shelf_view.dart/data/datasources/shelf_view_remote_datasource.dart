@@ -4,21 +4,21 @@ import 'package:logger/logger.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_list_view_model.dart';
 
-class ShelfViewDataSource {
+class ShelfViewRemoteDataSource {
   final ApiService apiService;
-  final Logger _logger = Logger();
+  final Logger logger;
 
-  ShelfViewDataSource({required this.apiService});
+  ShelfViewRemoteDataSource({required this.apiService, required this.logger});
 
   Future<ShelfListViewModel> loadShelves() async {
     try {
       final res = await apiService.getXmlAsJson(
-        '/opds/shelfindex',
-        AuthMethod.basic,
+        endpoint: '/opds/shelfindex',
+        authMethod: AuthMethod.basic,
       );
       return ShelfListViewModel.fromFeedJson(res);
     } catch (e) {
-      _logger.e("Error loading shelves: $e");
+      logger.e("Error loading shelves: $e");
       throw Exception('Failed to load shelves: $e');
     }
   }
@@ -26,16 +26,15 @@ class ShelfViewDataSource {
   Future<String> createShelf(String shelfName) async {
     try {
       final response = await apiService.post(
-        '/shelf/create',
-        {},
-        {'title': shelfName},
-        AuthMethod.cookie,
+        endpoint: '/shelf/create',
+        authMethod: AuthMethod.cookie,
+        body: {'title': shelfName},
         useCsrf: true,
         contentType: 'application/x-www-form-urlencoded',
       );
 
       if (response.statusCode != 302) {
-        _logger.e('Failed to create shelf: ${response.body}');
+        logger.e('Failed to create shelf: ${response.body}');
         throw Exception('Failed to create shelf: ${response.body}');
       }
 
@@ -43,7 +42,7 @@ class ShelfViewDataSource {
 
       return shelfId;
     } catch (e) {
-      _logger.e('Error creating shelf: $e');
+      logger.e('Error creating shelf: $e');
       throw Exception('Failed to create shelf: $e');
     }
   }
@@ -54,19 +53,17 @@ class ShelfViewDataSource {
   }) async {
     try {
       final response = await apiService.post(
-        '/shelf/remove/$shelfId/$bookId',
-        {},
-        {},
-        AuthMethod.cookie,
+        endpoint: '/shelf/remove/$shelfId/$bookId',
+        authMethod: AuthMethod.cookie,
         useCsrf: true,
       );
 
       if (response.statusCode != 200) {
-        _logger.e('Failed to remove book from shelf: ${response.body}');
+        logger.e('Failed to remove book from shelf: ${response.body}');
         throw Exception('Failed to remove book from shelf: ${response.body}');
       }
     } catch (e) {
-      _logger.e('Error removing book from shelf: $e');
+      logger.e('Error removing book from shelf: $e');
       throw Exception('Failed to remove book from shelf: $e');
     }
   }
@@ -77,19 +74,17 @@ class ShelfViewDataSource {
   }) async {
     try {
       final response = await apiService.post(
-        '/shelf/add/$shelfId/$bookId',
-        {},
-        {},
-        AuthMethod.cookie,
+        endpoint: '/shelf/add/$shelfId/$bookId',
+        authMethod: AuthMethod.cookie,
         useCsrf: true,
       );
 
       if (response.statusCode != 200) {
-        _logger.e('Failed to add book to shelf: ${response.body}');
+        logger.e('Failed to add book to shelf: ${response.body}');
         throw Exception('Failed to add book to shelf: ${response.body}');
       }
     } catch (e) {
-      _logger.e('Error adding book to shelf: $e');
+      logger.e('Error adding book to shelf: $e');
       throw Exception('Failed to add book to shelf: $e');
     }
   }
@@ -107,7 +102,7 @@ class ShelfViewDataSource {
 
       return shelves;
     } catch (e) {
-      _logger.e('Error finding shelves containing book: $e');
+      logger.e('Error finding shelves containing book: $e');
       throw Exception('Failed to find shelves containing book: $e');
     }
   }

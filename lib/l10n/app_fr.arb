@@ -296,5 +296,6 @@
    "titleIsRequired": "Le titre est requis",
   "descriptionIsRequired": "La description est requise",
   "downloadCancelled": "Téléchargement annulé",
-  "transferCancelled": "Transfert annulé"
+  "transferCancelled": "Transfert annulé",
+  "logoutConfirmation": "Êtes-vous sûr de vouloir vous déconnecter ?"
 }

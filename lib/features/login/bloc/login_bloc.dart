@@ -8,12 +8,11 @@ import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
 import 'package:calibre_web_companion/features/login/data/repositories/login_repository.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  final LoginRepository _loginRepository;
-  final Logger _logger = Logger();
+  final LoginRepository loginRepository;
+  final Logger logger;
 
-  LoginBloc({LoginRepository? loginRepository})
-    : _loginRepository = loginRepository ?? LoginRepository(),
-      super(const LoginState()) {
+  LoginBloc({required this.loginRepository, required this.logger})
+    : super(const LoginState()) {
     on<EnterUrl>(_onEnterUrl);
     on<EnterUsername>(_onEnterUsername);
     on<EnterPassword>(_onEnterPassword);
@@ -46,19 +45,19 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     );
 
     try {
-      final success = await _loginRepository.login(
+      final success = await loginRepository.login(
         state.username,
         state.password,
         state.url,
       );
 
       if (success) {
-        _logger.i('Login successful');
+        logger.i('Login successful');
         emit(
           state.copyWith(isLoading: false, isSuccess: true, isFailure: false),
         );
       } else {
-        _logger.w('Login failed');
+        logger.w('Login failed');
 
         emit(
           state.copyWith(

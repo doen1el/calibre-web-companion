@@ -3,7 +3,7 @@ import '../utils/opds_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
-enum BookListType {
+enum discoverType {
   bookmarked,
   unreadbooks,
   readbooks,
@@ -53,7 +53,7 @@ class BookListViewModel extends ChangeNotifier {
   ///
   /// - `type`: The type of books to load
   /// - `subPath`: The subpath to load books from
-  Future<void> loadBooks(BookListType type, {String? subPath}) async {
+  Future<void> loadBooks(discoverType type, {String? subPath}) async {
     // Get the cache key
     final cacheKey = _getCacheKey(type, subPath: subPath);
 

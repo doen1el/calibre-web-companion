@@ -7,13 +7,11 @@ import 'package:calibre_web_companion/features/book_view/bloc/book_view_state.da
 import 'package:calibre_web_companion/features/book_view/data/repositories/book_view_repository.dart';
 
 class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
-  final BookViewRepository _repository;
-  final Logger _logger;
+  final BookViewRepository repository;
+  final Logger logger;
 
-  BookViewBloc({required BookViewRepository repository, Logger? logger})
-    : _repository = repository,
-      _logger = logger ?? Logger(),
-      super(const BookViewState()) {
+  BookViewBloc({required this.repository, required this.logger})
+    : super(const BookViewState()) {
     on<LoadViewSettings>(_onLoadSettings);
     on<LoadBooks>(_onLoadBooks);
     on<LoadMoreBooks>(_onLoadMoreBooks);
@@ -30,10 +28,10 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     Emitter<BookViewState> emit,
   ) async {
     try {
-      final columnCount = await _repository.getColumnCount();
+      final columnCount = await repository.getColumnCount();
       emit(state.copyWith(columnCount: columnCount));
     } catch (e) {
-      _logger.e('Error loading settings: $e');
+      logger.e('Error loading settings: $e');
     }
   }
 
@@ -46,7 +44,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     emit(state.copyWith(isLoading: true, hasError: false, errorMessage: ''));
 
     try {
-      final books = await _repository.fetchBooks(
+      final books = await repository.fetchBooks(
         offset: state.offset,
         limit: state.limit,
         searchQuery: state.searchQuery,
@@ -68,7 +66,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
         ),
       );
     } catch (e) {
-      _logger.e('Error loading books: $e');
+      logger.e('Error loading books: $e');
       emit(
         state.copyWith(
           isLoading: false,
@@ -88,7 +86,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     emit(state.copyWith(isLoading: true));
 
     try {
-      final moreBooks = await _repository.fetchBooks(
+      final moreBooks = await repository.fetchBooks(
         offset: state.offset,
         limit: state.limit,
         searchQuery: state.searchQuery,
@@ -111,7 +109,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
         ),
       );
     } catch (e) {
-      _logger.e('Error loading more books: $e');
+      logger.e('Error loading more books: $e');
       emit(
         state.copyWith(
           isLoading: false,
@@ -144,7 +142,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     ChangeSort event,
     Emitter<BookViewState> emit,
   ) async {
-    _logger.i('Sorting by ${event.sortBy} ${event.sortOrder}');
+    logger.i('Sorting by ${event.sortBy} ${event.sortOrder}');
 
     emit(
       state.copyWith(
@@ -190,7 +188,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     try {
       emit(state.copyWith(uploadStatus: UploadStatus.uploading));
 
-      final result = await _repository.uploadEbook(event.book);
+      final result = await repository.uploadEbook(event.book);
 
       emit(
         state.copyWith(
@@ -202,7 +200,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
         add(const RefreshBooks());
       }
     } catch (e) {
-      _logger.e('Error uploading book: $e');
+      logger.e('Error uploading book: $e');
       emit(
         state.copyWith(
           uploadStatus: UploadStatus.failed,
@@ -218,10 +216,10 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     Emitter<BookViewState> emit,
   ) async {
     try {
-      await _repository.setColumnCount(event.count);
+      await repository.setColumnCount(event.count);
       emit(state.copyWith(columnCount: event.count));
     } catch (e) {
-      _logger.e('Error changing column count: $e');
+      logger.e('Error changing column count: $e');
     }
   }
 

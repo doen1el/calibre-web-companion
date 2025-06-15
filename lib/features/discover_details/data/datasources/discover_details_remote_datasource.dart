@@ -6,11 +6,14 @@ import 'package:calibre_web_companion/features/discover_details/data/models/disc
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_feed_model.dart';
 import 'package:logger/logger.dart';
 
-class DiscoverDetailsDatasource {
+class DiscoverDetailsRemoteDatasource {
   final ApiService apiService;
-  final Logger _logger = Logger();
+  final Logger logger;
 
-  DiscoverDetailsDatasource({required this.apiService});
+  DiscoverDetailsRemoteDatasource({
+    required this.apiService,
+    required this.logger,
+  });
 
   Future<DiscoverFeedModel> loadBooks(
     DiscoverType type, {
@@ -18,17 +21,29 @@ class DiscoverDetailsDatasource {
   }) async {
     try {
       final String path = _getBookListPath(type, subPath);
-      final jsonData = await apiService.getXmlAsJson(path, AuthMethod.basic);
+      final jsonData = await apiService.getXmlAsJson(
+        endpoint: path,
+        authMethod: AuthMethod.basic,
+      );
 
-      final List<dynamic> items = jsonData['items']['entry'] ?? [];
+      final dynamic entryData = jsonData['feed']["entry"];
+      final List<dynamic> items = entryData is List ? entryData : [entryData];
       final books =
-          items.map((item) => DiscoverDetailsModel.fromJson(item)).toList();
+          items
+              .map(
+                (item) => DiscoverDetailsModel.fromJson(
+                  item,
+                  apiService.getBaseUrl(),
+                ),
+              )
+              .toList();
 
       return DiscoverFeedModel(
         books: books,
         nextPageUrl: jsonData['nextPageUrl'],
       );
     } catch (e) {
+      logger.e('Error loading books: $e');
       throw Exception('Failed to load books: $e');
     }
   }
@@ -39,11 +54,13 @@ class DiscoverDetailsDatasource {
   }) async {
     try {
       final String path = _getCategoryPath(type, subPath);
-      final jsonData = await apiService.getXmlAsJson(path, AuthMethod.basic);
+      final jsonData = await apiService.getXmlAsJson(
+        endpoint: path,
+        authMethod: AuthMethod.basic,
+      );
 
-      _logger.d(jsonData);
-
-      final List<dynamic> items = jsonData['feed']["entry"] ?? [];
+      final dynamic entryData = jsonData['feed']["entry"];
+      final List<dynamic> items = entryData is List ? entryData : [entryData];
       final categories =
           items.map((item) => CategoryModel.fromJson(item)).toList();
 
@@ -57,24 +74,36 @@ class DiscoverDetailsDatasource {
   }
 
   Future<DiscoverFeedModel> loadBooksFromPath(String fullPath) async {
-    _logger.d('Loading books from path: $fullPath');
+    logger.d('Loading books from path: $fullPath');
     try {
       final jsonData = await apiService.getXmlAsJson(
-        fullPath,
-        AuthMethod.basic,
+        endpoint: fullPath,
+        authMethod: AuthMethod.basic,
       );
 
-      _logger.d(jsonData);
+      final dynamic entryData = jsonData['feed']["entry"];
+      final List<dynamic> items = entryData is List ? entryData : [entryData];
 
-      final List<dynamic> items = jsonData['feed']['entry'] ?? [];
       final books =
-          items.map((item) => DiscoverDetailsModel.fromJson(item)).toList();
+          items
+              .map(
+                (item) => DiscoverDetailsModel.fromJson(
+                  item,
+                  apiService.getBaseUrl(),
+                ),
+              )
+              .toList();
+
+      for (final book in books) {
+        logger.d(book.coverUrl);
+      }
 
       return DiscoverFeedModel(
         books: books,
         nextPageUrl: jsonData['nextPageUrl'],
       );
     } catch (e) {
+      logger.e('Error loading books from path: $e');
       throw Exception('Failed to load books from path: $e');
     }
   }

@@ -55,7 +55,7 @@ class DiscoverView extends StatelessWidget {
                 AppTransitions.createSlideRoute(
                   BookList(
                     title: localizations.discoverBooks,
-                    bookListType: BookListType.discover,
+                    discoverType: discoverType.discover,
                   ),
                 ),
               ),
@@ -68,7 +68,7 @@ class DiscoverView extends StatelessWidget {
                 AppTransitions.createSlideRoute(
                   BookList(
                     title: localizations.hotBooks,
-                    bookListType: BookListType.hot,
+                    discoverType: discoverType.hot,
                   ),
                 ),
               ),
@@ -81,7 +81,7 @@ class DiscoverView extends StatelessWidget {
                 AppTransitions.createSlideRoute(
                   BookList(
                     title: localizations.newBooks,
-                    bookListType: BookListType.newlyAdded,
+                    discoverType: discoverType.newlyAdded,
                   ),
                 ),
               ),
@@ -94,7 +94,7 @@ class DiscoverView extends StatelessWidget {
                 AppTransitions.createSlideRoute(
                   BookList(
                     title: localizations.ratedBooks,
-                    bookListType: BookListType.rated,
+                    discoverType: discoverType.rated,
                   ),
                 ),
               ),

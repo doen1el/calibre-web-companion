@@ -1,8 +1,8 @@
-import 'package:calibre_web_companion/features/shelf_details/data/datasources/shelf_details_datasource.dart';
+import 'package:calibre_web_companion/features/shelf_details/data/datasources/shelf_details_remote_datasource.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
 
 class ShelfDetailsRepository {
-  final ShelfDetailsDataSource dataSource;
+  final ShelfDetailsRemoteDataSource dataSource;
 
   ShelfDetailsRepository({required this.dataSource});
 

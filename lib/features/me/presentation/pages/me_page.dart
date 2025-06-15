@@ -1,11 +1,9 @@
-import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
-import 'package:calibre_web_companion/features/settings/presentation/pages/settings_page.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/presentation/pages/shelf_view_page.dart';
+import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
+import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
 import 'package:calibre_web_companion/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/features/me/bloc/me_bloc.dart';
 import 'package:calibre_web_companion/features/me/bloc/me_event.dart';
@@ -17,6 +15,8 @@ import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/me/presentation/widgets/stats_card_widget.dart';
 import 'package:calibre_web_companion/shared/widgets/long_button_widget.dart';
 import 'package:calibre_web_companion/features/login/presentation/pages/login_page.dart';
+import 'package:calibre_web_companion/features/settings/presentation/pages/settings_page.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/presentation/pages/shelf_view_page.dart';
 
 class MePage extends StatelessWidget {
   const MePage({super.key});
@@ -38,7 +38,12 @@ class MePage extends StatelessWidget {
           }
 
           if (state.logoutStatus == LogoutStatus.success) {
-            _handleLogout(context);
+            Navigator.of(
+              // ignore: use_build_context_synchronously
+              context,
+            ).pushReplacement(
+              AppTransitions.createSlideRoute(const LoginPage()),
+            );
           } else if (state.logoutStatus == LogoutStatus.error) {
             context.showSnackBar(
               "${localizations.logoutFailed}: ${state.errorMessage}",
@@ -53,7 +58,7 @@ class MePage extends StatelessWidget {
               actions: [
                 IconButton(
                   onPressed: () {
-                    context.read<MeBloc>().add(const LogOut());
+                    _showLogOutDialog(context, localizations);
                   },
                   icon: const Icon(Icons.logout),
                   tooltip: localizations.logout,
@@ -98,32 +103,30 @@ class MePage extends StatelessWidget {
                     LongButton(
                       text: localizations.showReadBooks,
                       icon: Icons.my_library_books_rounded,
-                      onPressed: () {},
-                      // TODO: Implement read books navigation
-                      // () => Navigator.of(context).push(
-                      //   AppTransitions.createSlideRoute(
-                      //     BookListPage(
-                      //       title: localizations.readBooks,
-                      //       categoryType: CategoryType.readBooks,
-                      //       fullPath: "/opds/readbooks",
-                      //     ),
-                      //   ),
-                      // ),
+                      onPressed:
+                          () => Navigator.of(context).push(
+                            AppTransitions.createSlideRoute(
+                              DiscoverDetailsPage(
+                                title: localizations.readBooks,
+                                discoverType: DiscoverType.readbooks,
+                                fullPath: "/opds/readbooks",
+                              ),
+                            ),
+                          ),
                     ),
                     LongButton(
                       text: localizations.showUnReadBooks,
                       icon: Icons.read_more_rounded,
-                      onPressed: () {},
-                      // TODO : Implement unread books navigation
-                      // () => Navigator.of(context).push(
-                      //   AppTransitions.createSlideRoute(
-                      //     BookListPage(
-                      //       title: localizations.unreadBooks,
-                      //       categoryType: CategoryType.unreadBooks,
-                      //       fullPath: "/opds/unreadbooks",
-                      //     ),
-                      //   ),
-                      // ),
+                      onPressed:
+                          () => Navigator.of(context).push(
+                            AppTransitions.createSlideRoute(
+                              DiscoverDetailsPage(
+                                title: localizations.unreadBooks,
+                                discoverType: DiscoverType.unreadbooks,
+                                fullPath: "/opds/unreadbooks",
+                              ),
+                            ),
+                          ),
                     ),
                   ],
                 ),
@@ -135,14 +138,27 @@ class MePage extends StatelessWidget {
     );
   }
 
-  Future<void> _handleLogout(BuildContext context) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.remove("calibre_web_session");
-
-    // ignore: use_build_context_synchronously
-    Navigator.of(
-      // ignore: use_build_context_synchronously
-      context,
-    ).pushReplacement(AppTransitions.createSlideRoute(const LoginPage()));
+  void _showLogOutDialog(BuildContext context, AppLocalizations localizations) {
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: Text(localizations.logout),
+            content: Text(localizations.logoutConfirmation),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(localizations.cancel),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  context.read<MeBloc>().add(const LogOut());
+                },
+                child: Text(localizations.logout),
+              ),
+            ],
+          ),
+    );
   }
 }

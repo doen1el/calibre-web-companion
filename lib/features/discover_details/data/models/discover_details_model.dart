@@ -13,12 +13,32 @@ class DiscoverDetailsModel extends Equatable {
     this.coverUrl,
   });
 
-  factory DiscoverDetailsModel.fromJson(Map<String, dynamic> json) {
+  factory DiscoverDetailsModel.fromJson(
+    Map<String, dynamic> json,
+    String baseUrl,
+  ) {
     return DiscoverDetailsModel(
-      id: json['id'] ?? '',
+      id: (json['id'] ?? '').toString().replaceFirst('urn:uuid:', ''),
       title: json['title'] ?? '',
-      author: json['author']["name"] ?? '',
-      coverUrl: '',
+      author:
+          json['author'] is List
+              ? (json['author'] as List)
+                  .where((a) => a is Map && a['name'] != null)
+                  .map((a) => a['name'].toString())
+                  .join(', ')
+              : (json['author'] is Map && json['author']['name'] != null)
+              ? json['author']['name'].toString()
+              : '',
+      coverUrl:
+          (json['link'] as List?)
+                      ?.cast<Map<String, dynamic>>()
+                      .where(
+                        (link) => link['_rel'] == 'http://opds-spec.org/image',
+                      )
+                      .firstOrNull?['_href'] !=
+                  null
+              ? '$baseUrl${(json['link'] as List?)?.cast<Map<String, dynamic>>().where((link) => link['_rel'] == 'http://opds-spec.org/image').firstOrNull?['_href']}'
+              : null,
     );
   }
 

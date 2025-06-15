@@ -1,25 +1,23 @@
 import 'dart:io';
-import 'package:calibre_web_companion/core/exceptions/cancellation_exception.dart';
-import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
-import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:get_it/get_it.dart';
 import 'package:path/path.dart' as path;
-
-import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
 
-import 'book_details_event.dart';
-import 'book_details_state.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
+
+import 'package:calibre_web_companion/core/exceptions/cancellation_exception.dart';
+import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 
 class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
-  final BookDetailsRepository _repository;
-  final Logger _logger;
+  final BookDetailsRepository repository;
+  final Logger logger;
 
-  BookDetailsBloc({required BookDetailsRepository repository, Logger? logger})
-    : _repository = repository,
-      _logger = logger ?? Logger(),
-      super(const BookDetailsState()) {
+  BookDetailsBloc({required this.repository, required this.logger})
+    : super(const BookDetailsState()) {
     on<LoadBookDetails>(_onLoadBookDetails);
     on<ReloadBookDetails>(_onReloadBookDetails);
     on<ToggleReadStatus>(_onToggleReadStatus);
@@ -44,34 +42,26 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     Emitter<BookDetailsState> emit,
   ) async {
     try {
-      _logger.i('Loading book details: ${event.bookUuid}');
+      logger.i('Loading book details: ${event.bookUuid}');
       emit(
         state.copyWith(status: BookDetailsStatus.loading, errorMessage: null),
       );
 
-      final bookDetails = await _repository.getBookDetails(
+      final bookDetails = await repository.getBookDetails(
         event.bookListModel,
         event.bookUuid,
-      );
-
-      // Check read status
-      final isRead = await _repository.checkIfBookIsRead(bookDetails.id);
-
-      // Check archive status
-      final isArchived = await _repository.checkIfBookIsArchived(
-        bookDetails.id,
       );
 
       emit(
         state.copyWith(
           status: BookDetailsStatus.loaded,
+          isBookRead: event.bookListModel.readStatus,
+          isBookArchived: event.bookListModel.isArchived,
           bookDetails: bookDetails,
-          isBookRead: isRead,
-          isBookArchived: isArchived,
         ),
       );
     } catch (e) {
-      _logger.e('Error loading book details: $e');
+      logger.e('Error loading book details: $e');
       emit(
         state.copyWith(
           status: BookDetailsStatus.error,
@@ -86,23 +76,21 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     Emitter<BookDetailsState> emit,
   ) async {
     try {
-      _logger.i('Reloading book details: ${event.bookUuid}');
+      logger.i('Reloading book details: ${event.bookUuid}');
       emit(
         state.copyWith(status: BookDetailsStatus.loading, errorMessage: null),
       );
 
-      final bookDetails = await _repository.getBookDetails(
+      final bookDetails = await repository.getBookDetails(
         event.bookListModel,
         event.bookUuid,
       );
 
       // Check read status
-      final isRead = await _repository.checkIfBookIsRead(bookDetails.id);
+      final isRead = await repository.checkIfBookIsRead(bookDetails.id);
 
       // Check archive status
-      final isArchived = await _repository.checkIfBookIsArchived(
-        bookDetails.id,
-      );
+      final isArchived = await repository.checkIfBookIsArchived(bookDetails.id);
 
       emit(
         state.copyWith(
@@ -113,7 +101,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         ),
       );
     } catch (e) {
-      _logger.e('Error reloading book details: $e');
+      logger.e('Error reloading book details: $e');
       emit(
         state.copyWith(
           status: BookDetailsStatus.error,
@@ -128,10 +116,10 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     Emitter<BookDetailsState> emit,
   ) async {
     try {
-      _logger.i('Toggling read status: ${event.bookId}');
+      logger.i('Toggling read status: ${event.bookId}');
       emit(state.copyWith(readStatusState: ReadStatusState.loading));
 
-      final success = await _repository.toggleReadStatus(event.bookId);
+      final success = await repository.toggleReadStatus(event.bookId);
 
       if (success) {
         emit(
@@ -149,7 +137,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         );
       }
     } catch (e) {
-      _logger.e('Error toggling read status: $e');
+      logger.e('Error toggling read status: $e');
       emit(
         state.copyWith(
           readStatusState: ReadStatusState.error,
@@ -164,10 +152,10 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     Emitter<BookDetailsState> emit,
   ) async {
     try {
-      _logger.i('Toggling archive status: ${event.bookId}');
+      logger.i('Toggling archive status: ${event.bookId}');
       emit(state.copyWith(archiveStatusState: ArchiveStatusState.loading));
 
-      final success = await _repository.toggleArchiveStatus(event.bookId);
+      final success = await repository.toggleArchiveStatus(event.bookId);
 
       if (success) {
         emit(
@@ -185,7 +173,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         );
       }
     } catch (e) {
-      _logger.e('Error toggling archive status: $e');
+      logger.e('Error toggling archive status: $e');
       emit(
         state.copyWith(
           archiveStatusState: ArchiveStatusState.error,
@@ -243,7 +231,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       final tempFile = File(tempFilePath);
 
       // Get download stream from repository
-      final response = await _repository.getDownloadStream(
+      final response = await repository.getDownloadStream(
         event.bookId,
         event.format,
       );
@@ -401,10 +389,10 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     Emitter<BookDetailsState> emit,
   ) async {
     try {
-      _logger.i('Sending book via email: ${event.bookId}');
+      logger.i('Sending book via email: ${event.bookId}');
       emit(state.copyWith(emailState: EmailState.sending));
 
-      final success = await _repository.sendViaEmail(
+      final success = await repository.sendViaEmail(
         event.bookId,
         event.format,
         event.conversion,
@@ -421,7 +409,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         );
       }
     } catch (e) {
-      _logger.e('Error sending book via email: $e');
+      logger.e('Error sending book via email: $e');
       emit(
         state.copyWith(
           emailState: EmailState.error,
@@ -446,10 +434,10 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     }
 
     try {
-      _logger.i('Opening book in reader: ${state.bookDetails!.title}');
+      logger.i('Opening book in reader: ${state.bookDetails!.title}');
       emit(state.copyWith(openInReaderState: OpenInReaderState.loading));
 
-      final success = await _repository.openInReader(
+      final success = await repository.openInReader(
         state.bookDetails!,
         event.selectedDirectory,
         event.schema,
@@ -466,7 +454,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         );
       }
     } catch (e) {
-      _logger.e('Error opening book in reader: $e');
+      logger.e('Error opening book in reader: $e');
       emit(
         state.copyWith(
           openInReaderState: OpenInReaderState.error,
@@ -485,10 +473,10 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     }
 
     try {
-      _logger.i('Opening book in browser: ${state.bookDetails!.title}');
-      await _repository.openInBrowser(state.bookDetails!);
+      logger.i('Opening book in browser: ${state.bookDetails!.title}');
+      await repository.openInBrowser(state.bookDetails!);
     } catch (e) {
-      _logger.e('Error opening book in browser: $e');
+      logger.e('Error opening book in browser: $e');
       // We don't update state for browser opening
     }
   }
@@ -500,7 +488,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     emit(state.copyWith(metadataUpdateState: MetadataUpdateState.loading));
 
     try {
-      final result = await _repository.updateBookMetadata(
+      final result = await repository.updateBookMetadata(
         event.bookId,
         title: event.title,
         authors: event.authors,
@@ -545,7 +533,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       // Download book bytes
       emit(state.copyWith(sendToEReaderState: SendToEReaderState.downloading));
 
-      final bookBytes = await _repository.downloadBookBytes(
+      final bookBytes = await repository.downloadBookBytes(
         event.bookId,
         'epub',
       );
@@ -563,7 +551,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       emit(state.copyWith(sendToEReaderState: SendToEReaderState.uploading));
 
       final settingsState = GetIt.instance<SettingsBloc>().state;
-      final success = await _repository.uploadToSend2Ereader(
+      final success = await repository.uploadToSend2Ereader(
         settingsState.send2ereaderUrl,
         event.code,
         '${event.title}.epub',
@@ -610,7 +598,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     try {
       emit(state.copyWith(sendToEReaderState: SendToEReaderState.uploading));
 
-      final success = await _repository.sendBookViaEmail(
+      final success = await repository.sendBookViaEmail(
         event.bookId,
         event.format,
         0, // conversion type

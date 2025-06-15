@@ -9,6 +9,7 @@ class BookDetailsModel extends BookViewModel {
   final Map<String, String> mainFormat;
   final Map<String, String> otherFormats;
   final String titleSort;
+  final double rating;
 
   const BookDetailsModel({
     required super.id,
@@ -28,7 +29,6 @@ class BookDetailsModel extends BookViewModel {
     super.path = '',
     super.pubdate = '',
     super.publishers = '',
-    super.ratings = 0.0,
     super.readStatus = false,
     super.registry = '',
     super.series = '',
@@ -43,6 +43,7 @@ class BookDetailsModel extends BookViewModel {
     this.otherFormats = const {},
     this.thumbnail = '',
     this.titleSort = '',
+    this.rating = 0.0,
   });
 
   @override
@@ -55,6 +56,7 @@ class BookDetailsModel extends BookViewModel {
     otherFormats,
     thumbnail,
     titleSort,
+    rating,
   ];
 
   factory BookDetailsModel.fromBookListModel(
@@ -79,7 +81,6 @@ class BookDetailsModel extends BookViewModel {
       path: bookListModel.path,
       pubdate: bookListModel.pubdate,
       publishers: bookListModel.publishers,
-      ratings: bookListModel.ratings,
       readStatus: bookListModel.readStatus,
       registry: bookListModel.registry,
       series: bookListModel.series,
@@ -103,6 +104,23 @@ class BookDetailsModel extends BookViewModel {
       ),
       thumbnail: additionalData['thumbnail'] ?? '',
       titleSort: additionalData['title_sort'] ?? '',
+      rating: double.tryParse(additionalData['rating'].toString()) ?? 0.0,
     );
+  }
+
+  /// Converts the BookDetailsModel to a JSON map
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      ...super.toJson(),
+      'formats': formats,
+      'cover': cover,
+      'format_metadata': formatMetadata.toJson(),
+      'main_format': mainFormat,
+      'other_formats': otherFormats,
+      'thumbnail': thumbnail,
+      'title_sort': titleSort,
+      'rating': rating,
+    };
   }
 }

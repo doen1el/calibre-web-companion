@@ -296,5 +296,6 @@
    "titleIsRequired": "Title is required",
   "descriptionIsRequired": "Description is required",
   "downloadCancelled": "Download cancelled",
-  "transferCancelled": "Transfer cancelled"
+  "transferCancelled": "Transfer cancelled",
+  "logoutConfirmation": "Are you sure you want to logout?"
 }

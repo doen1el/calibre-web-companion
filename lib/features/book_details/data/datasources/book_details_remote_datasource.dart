@@ -1,9 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:calibre_web_companion/features/book_details/data/models/form_metadata_model.dart';
-import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
-import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
 import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
@@ -12,34 +9,28 @@ import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
-import 'package:calibre_web_companion/core/services/json_service.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/form_metadata_model.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
-class BookDetailsDatasource {
-  final ApiService _apiService;
-  // final JsonService _jsonService;
-  final Logger _logger;
+class BookDetailsRemoteDatasource {
+  final ApiService apiService;
+  final Logger logger;
 
-  BookDetailsDatasource({
-    ApiService? apiService,
-    JsonService? jsonService,
-    Logger? logger,
-  }) : _apiService = apiService ?? ApiService(),
-       //  _jsonService = jsonService ?? JsonService(),
-       _logger = logger ?? Logger();
+  BookDetailsRemoteDatasource({required this.apiService, required this.logger});
 
   Future<BookDetailsModel> fetchBookDetails(
     BookViewModel bookListModel,
     String bookUuid,
   ) async {
     try {
-      final response = await _apiService.get(
-        '/ajax/book/$bookUuid',
-        AuthMethod.basic,
+      final response = await apiService.get(
+        endpoint: '/ajax/book/$bookUuid',
+        authMethod: AuthMethod.basic,
       );
 
-      _logger.d(response.body);
+      logger.d(response.body);
 
       if (response.statusCode == 200) {
         try {
@@ -49,144 +40,142 @@ class BookDetailsDatasource {
             bookListModel,
             bookJson,
           );
-          _logger.i("Fetched book details: ${book.title}");
+          logger.i("Fetched book details: ${book.title}");
+
+          logger.d(book.toJson());
 
           return book;
         } catch (jsonError) {
-          _logger.w('JSON parsing failed: $jsonError.');
+          logger.w('JSON parsing failed: $jsonError.');
           throw Exception('Failed to parse book details JSON: $jsonError');
         }
       } else {
         throw Exception('Server error: ${response.statusCode}');
       }
     } catch (e) {
-      _logger.e("Error fetching book details: $e");
+      logger.e("Error fetching book details: $e");
       throw Exception("Failed to fetch book details: $e");
     }
   }
 
   Future<bool> toggleReadStatus(int bookId) async {
     try {
-      _logger.i('Toggling read status for book: $bookId');
+      logger.i('Toggling read status for book: $bookId');
 
-      final response = await _apiService.post(
-        '/ajax/toggleread/$bookId',
-        null,
-        {},
-        AuthMethod.cookie,
+      final response = await apiService.post(
+        endpoint: '/ajax/toggleread/$bookId',
+        authMethod: AuthMethod.cookie,
         useCsrf: true,
         contentType: 'application/x-www-form-urlencoded',
       );
 
       if (response.statusCode == 200) {
-        _logger.i('Successfully toggled read status');
+        logger.i('Successfully toggled read status');
         return true;
       } else {
-        _logger.e('Failed to toggle read status: ${response.statusCode}');
+        logger.e('Failed to toggle read status: ${response.statusCode}');
         throw Exception(
           'Failed to toggle read status (${response.statusCode})',
         );
       }
     } catch (e) {
-      _logger.e('Error toggling read status: $e');
+      logger.e('Error toggling read status: $e');
       throw Exception('Error toggling read status: $e');
     }
   }
 
   Future<bool> toggleArchiveStatus(int bookId) async {
     try {
-      _logger.i('Toggling archive status for book: $bookId');
+      logger.i('Toggling archive status for book: $bookId');
 
-      final response = await _apiService.post(
-        '/ajax/togglearchived/$bookId',
-        null,
-        {},
-        AuthMethod.cookie,
+      final response = await apiService.post(
+        endpoint: '/ajax/togglearchived/$bookId',
+        authMethod: AuthMethod.cookie,
         useCsrf: true,
         contentType: 'application/x-www-form-urlencoded',
       );
 
       if (response.statusCode == 200) {
-        _logger.i('Successfully toggled archive status');
+        logger.i('Successfully toggled archive status');
         return true;
       } else {
-        _logger.e('Failed to toggle archive status: ${response.statusCode}');
+        logger.e('Failed to toggle archive status: ${response.statusCode}');
         throw Exception(
           'Failed to toggle archive status (${response.statusCode})',
         );
       }
     } catch (e) {
-      _logger.e('Error toggling archive status: $e');
+      logger.e('Error toggling archive status: $e');
       throw Exception('Error toggling archive status: $e');
     }
   }
 
   Future<bool> checkIfBookIsRead(int bookId) async {
     try {
-      _logger.i('Checking if book is read: $bookId');
+      logger.i('Checking if book is read: $bookId');
 
-      final response = await _apiService.get(
-        '/read/stored/',
-        AuthMethod.cookie,
+      final response = await apiService.get(
+        endpoint: '/read/stored/',
+        authMethod: AuthMethod.cookie,
       );
 
       if (response.statusCode == 200) {
         final pattern = 'href="/book/$bookId"';
         final isRead = response.body.contains(pattern);
-        _logger.i("Book $bookId read status: $isRead");
+        logger.i("Book $bookId read status: $isRead");
         return isRead;
       } else {
-        _logger.w("Failed to check read status: ${response.statusCode}");
+        logger.w("Failed to check read status: ${response.statusCode}");
         return false;
       }
     } catch (e) {
-      _logger.e('Error checking if book is read: $e');
+      logger.e('Error checking if book is read: $e');
       return false;
     }
   }
 
   Future<bool> checkIfBookIsArchived(int bookId) async {
     try {
-      _logger.i('Checking if book is archived: $bookId');
+      logger.i('Checking if book is archived: $bookId');
 
-      final response = await _apiService.get(
-        '/archived/stored/',
-        AuthMethod.cookie,
+      final response = await apiService.get(
+        endpoint: '/archived/stored/',
+        authMethod: AuthMethod.cookie,
       );
 
       if (response.statusCode == 200) {
         final pattern = 'href="/book/$bookId"';
         final isArchived = response.body.contains(pattern);
-        _logger.i("Book $bookId archived status: $isArchived");
+        logger.i("Book $bookId archived status: $isArchived");
         return isArchived;
       } else {
-        _logger.w("Failed to check archived status: ${response.statusCode}");
+        logger.w("Failed to check archived status: ${response.statusCode}");
         return false;
       }
     } catch (e) {
-      _logger.e('Error checking if book is archived: $e');
+      logger.e('Error checking if book is archived: $e');
       return false;
     }
   }
 
   Future<Uint8List?> downloadBookBytes(String bookId, String format) async {
     try {
-      _logger.i('Downloading book bytes - BookId: $bookId, Format: $format');
+      logger.i('Downloading book bytes - BookId: $bookId, Format: $format');
 
-      final response = await _apiService.getStream(
-        '/download/$bookId/$format/$bookId.$format',
-        AuthMethod.cookie,
+      final response = await apiService.getStream(
+        endpoint: '/download/$bookId/$format/$bookId.$format',
+        authMethod: AuthMethod.cookie,
       );
 
       if (response.statusCode == 200) {
-        _logger.i('Successfully downloaded book bytes');
+        logger.i('Successfully downloaded book bytes');
         return await response.stream.toBytes();
       } else {
-        _logger.e('Error downloading book bytes: HTTP ${response.statusCode}');
+        logger.e('Error downloading book bytes: HTTP ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      _logger.e('Exception downloading book bytes: $e');
+      logger.e('Exception downloading book bytes: $e');
       throw Exception('Failed to download book bytes: $e');
     }
   }
@@ -208,7 +197,7 @@ class BookDetailsDatasource {
 
       final file = File(filePath);
       if (await file.exists()) {
-        _logger.i('File already exists: $filePath');
+        logger.i('File already exists: $filePath');
         return filePath;
       }
 
@@ -217,13 +206,13 @@ class BookDetailsDatasource {
       final tempFilePath = '$filePath.downloading';
       final tempFile = File(tempFilePath);
 
-      final response = await _apiService.getStream(
-        '/download/${book.id}/$format/${book.id}.$format',
-        AuthMethod.cookie,
+      final response = await apiService.getStream(
+        endpoint: '/download/${book.id}/$format/${book.id}.$format',
+        authMethod: AuthMethod.cookie,
       );
 
       final contentLength = response.contentLength ?? -1;
-      _logger.i(
+      logger.i(
         'Download response status: ${response.statusCode}, Content length: $contentLength',
       );
 
@@ -238,7 +227,7 @@ class BookDetailsDatasource {
           if (contentLength > 0 && progressCallback != null) {
             final progress = (receivedBytes / contentLength * 100).round();
             progressCallback(progress);
-            _logger.d(
+            logger.d(
               'Download progress: $progress%, $receivedBytes/$contentLength bytes',
             );
           }
@@ -253,10 +242,10 @@ class BookDetailsDatasource {
           throw Exception('Temporary file was not created correctly');
         }
 
-        _logger.i('Download complete: $filePath with $receivedBytes bytes');
+        logger.i('Download complete: $filePath with $receivedBytes bytes');
         return filePath;
       } catch (e) {
-        _logger.e('Error during download: $e');
+        logger.e('Error during download: $e');
 
         await sink.close();
 
@@ -267,7 +256,7 @@ class BookDetailsDatasource {
         rethrow;
       }
     } catch (e) {
-      _logger.e('Exception while downloading book: $e');
+      logger.e('Exception while downloading book: $e');
       throw Exception('Error downloading book: $e');
     }
   }
@@ -330,7 +319,7 @@ class BookDetailsDatasource {
         break;
     }
 
-    _logger.d('Created path based on schema $schema: $filePath');
+    logger.d('Created path based on schema $schema: $filePath');
     return filePath;
   }
 
@@ -340,27 +329,25 @@ class BookDetailsDatasource {
     int conversion,
   ) async {
     try {
-      _logger.i(
+      logger.i(
         'Sending book via email - BookId: $bookId, Format: $format, Conversion: $conversion',
       );
 
-      final response = await _apiService.post(
-        '/send/$bookId/$format/$conversion',
-        null,
-        {},
-        AuthMethod.cookie,
+      final response = await apiService.post(
+        endpoint: '/send/$bookId/$format/$conversion',
+        authMethod: AuthMethod.cookie,
         useCsrf: true,
       );
 
       if (response.statusCode == 200) {
-        _logger.i('Successfully sent book via email');
+        logger.i('Successfully sent book via email');
         return true;
       } else {
-        _logger.e('Failed to send book via email: ${response.statusCode}');
+        logger.e('Failed to send book via email: ${response.statusCode}');
         throw Exception('Failed to send email (${response.statusCode})');
       }
     } catch (e) {
-      _logger.e('Error sending book via email: $e');
+      logger.e('Error sending book via email: $e');
       throw Exception('Error sending book via email: $e');
     }
   }
@@ -371,7 +358,7 @@ class BookDetailsDatasource {
     DownloadSchema schema,
   ) async {
     try {
-      _logger.i('Opening book in reader: ${book.title}');
+      logger.i('Opening book in reader: ${book.title}');
 
       String format = 'epub';
       if (book.formats.isNotEmpty) {
@@ -386,31 +373,31 @@ class BookDetailsDatasource {
       );
 
       if (filePath.isEmpty) {
-        _logger.e('Error downloading file for reader');
+        logger.e('Error downloading file for reader');
         throw Exception('Error downloading file');
       }
 
       final result = await OpenFile.open(filePath);
 
       if (result.type != ResultType.done) {
-        _logger.e('Error while opening the file: ${result.message}');
+        logger.e('Error while opening the file: ${result.message}');
         throw Exception('Error while opening: ${result.message}');
       }
 
-      _logger.i('Opened book successfully');
+      logger.i('Opened book successfully');
       return true;
     } catch (e) {
-      _logger.e('Error opening book in reader: $e');
+      logger.e('Error opening book in reader: $e');
       throw Exception('Error opening book in reader: $e');
     }
   }
 
   Future<void> openInBrowser(BookDetailsModel book) async {
     try {
-      final baseUrl = _apiService.getBaseUrl();
+      final baseUrl = apiService.getBaseUrl();
 
       if (baseUrl.isEmpty) {
-        _logger.w('No server URL found');
+        logger.w('No server URL found');
         throw Exception('Server URL missing');
       }
 
@@ -420,9 +407,9 @@ class BookDetailsDatasource {
         throw Exception('Could not launch $url');
       }
 
-      _logger.i('Opened book in browser: $url');
+      logger.i('Opened book in browser: $url');
     } catch (e) {
-      _logger.e('Error opening book in browser: $e');
+      logger.e('Error opening book in browser: $e');
       throw Exception('Error opening book in browser: $e');
     }
   }
@@ -432,24 +419,24 @@ class BookDetailsDatasource {
     String format,
   ) async {
     try {
-      _logger.i('Getting download stream for book: $bookId, Format: $format');
+      logger.i('Getting download stream for book: $bookId, Format: $format');
 
-      final response = await _apiService.getStream(
-        '/download/$bookId/$format/$bookId.$format',
-        AuthMethod.cookie,
+      final response = await apiService.getStream(
+        endpoint: '/download/$bookId/$format/$bookId.$format',
+        authMethod: AuthMethod.cookie,
       );
 
       if (response.statusCode == 200) {
-        _logger.i('Successfully got download stream');
+        logger.i('Successfully got download stream');
         return response;
       } else {
-        _logger.e('Failed to get download stream: ${response.statusCode}');
+        logger.e('Failed to get download stream: ${response.statusCode}');
         throw Exception(
           'Failed to get download stream (${response.statusCode})',
         );
       }
     } catch (e) {
-      _logger.e('Error getting download stream: $e');
+      logger.e('Error getting download stream: $e');
       throw Exception('Error getting download stream: $e');
     }
   }
@@ -462,28 +449,27 @@ class BookDetailsDatasource {
     required String tags,
   }) async {
     try {
-      final response = await _apiService.post(
-        '/admin/book/$bookId',
-        null,
-        {
+      final response = await apiService.post(
+        endpoint: '/admin/book/$bookId',
+        body: {
           'title': title,
           'authors': authors,
           'description': comments,
           'tags': tags,
         },
-        AuthMethod.cookie,
+        authMethod: AuthMethod.cookie,
         useCsrf: true,
       );
 
       if (response.statusCode == 200) {
-        _logger.i('Successfully updated book metadata');
+        logger.i('Successfully updated book metadata');
         return true;
       } else {
-        _logger.e('Failed to update book metadata: ${response.statusCode}');
+        logger.e('Failed to update book metadata: ${response.statusCode}');
         return false;
       }
     } catch (e) {
-      _logger.e('Error updating book metadata: $e');
+      logger.e('Error updating book metadata: $e');
       throw Exception('Failed to update book metadata: $e');
     }
   }
@@ -499,7 +485,7 @@ class BookDetailsDatasource {
     bool isKindle = false,
   }) async {
     try {
-      _logger.i(
+      logger.i(
         'Uploading to send2ereader - URL: $url, Code: $code, Kindle: $isKindle',
       );
 
@@ -525,15 +511,15 @@ class BookDetailsDatasource {
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
-        _logger.i('Successfully uploaded to send2ereader');
+        logger.i('Successfully uploaded to send2ereader');
         return true;
       } else {
-        _logger.e('Failed to upload to send2ereader: ${response.statusCode}');
-        _logger.e('Response body: ${response.body}');
+        logger.e('Failed to upload to send2ereader: ${response.statusCode}');
+        logger.e('Response body: ${response.body}');
         return false;
       }
     } catch (e) {
-      _logger.e('Error uploading to send2ereader: $e');
+      logger.e('Error uploading to send2ereader: $e');
       return false;
     }
   }
@@ -545,27 +531,25 @@ class BookDetailsDatasource {
     int conversion,
   ) async {
     try {
-      _logger.i(
+      logger.i(
         'Sending book via email - BookId: $bookId, Format: $format, Conversion: $conversion',
       );
 
-      final response = await _apiService.post(
-        '/send/$bookId/$format/$conversion',
-        null,
-        {},
-        AuthMethod.cookie,
+      final response = await apiService.post(
+        endpoint: '/send/$bookId/$format/$conversion',
+        authMethod: AuthMethod.cookie,
         useCsrf: true,
       );
 
       if (response.statusCode == 200) {
-        _logger.i('Successfully sent book via email');
+        logger.i('Successfully sent book via email');
         return true;
       } else {
-        _logger.e('Failed to send book via email: ${response.statusCode}');
+        logger.e('Failed to send book via email: ${response.statusCode}');
         throw Exception('Failed to send email (${response.statusCode})');
       }
     } catch (e) {
-      _logger.e('Error sending book via email: $e');
+      logger.e('Error sending book via email: $e');
       throw Exception('Error sending book via email: $e');
     }
   }
@@ -577,12 +561,12 @@ class BookDetailsDatasource {
     DownloadSchema schema,
   ) async {
     try {
-      _logger.i('Opening book in reader - BookId: $bookId');
+      logger.i('Opening book in reader - BookId: $bookId');
 
       // First, get book details to determine available formats
-      final bookDetailsResponse = await _apiService.get(
-        '/ajax/book/$bookId',
-        AuthMethod.basic,
+      final bookDetailsResponse = await apiService.get(
+        endpoint: '/ajax/book/$bookId',
+        authMethod: AuthMethod.basic,
       );
 
       if (bookDetailsResponse.statusCode != 200) {
@@ -597,7 +581,7 @@ class BookDetailsDatasource {
         format = formats.first.toLowerCase();
       }
 
-      _logger.i('Using format for reader: $format');
+      logger.i('Using format for reader: $format');
 
       // Create a simplified book model for path creation
       final bookForPath = BookDetailsModel(
@@ -610,7 +594,7 @@ class BookDetailsDatasource {
         tags: List<String>.from(bookJson['tags'] ?? []),
         series: bookJson['series'] ?? '',
         seriesIndex: (bookJson['series_index'] ?? 0.0).toDouble(),
-        ratings: (bookJson['ratings'] ?? 0.0).toDouble(),
+        rating: (bookJson['rating'] ?? 0.0).toDouble(),
         formats: formats,
         uuid: bookJson['uuid'] ?? '',
         thumbnail: bookJson['thumbnail'] ?? '',
@@ -641,10 +625,10 @@ class BookDetailsDatasource {
         throw Exception('Failed to open file: ${result.message}');
       }
 
-      _logger.i('Successfully opened book in reader');
+      logger.i('Successfully opened book in reader');
       return true;
     } catch (e) {
-      _logger.e('Error opening book in reader: $e');
+      logger.e('Error opening book in reader: $e');
       throw Exception('Error opening book in reader: $e');
     }
   }
@@ -652,7 +636,7 @@ class BookDetailsDatasource {
   /// Open book in web browser
   Future<bool> openBookInBrowser(String bookId) async {
     try {
-      final baseUrl = _apiService.getBaseUrl();
+      final baseUrl = apiService.getBaseUrl();
 
       if (baseUrl.isEmpty) {
         throw Exception('Server URL not configured');
@@ -664,10 +648,10 @@ class BookDetailsDatasource {
         throw Exception('Could not launch browser with URL: $url');
       }
 
-      _logger.i('Successfully opened book in browser: $url');
+      logger.i('Successfully opened book in browser: $url');
       return true;
     } catch (e) {
-      _logger.e('Error opening book in browser: $e');
+      logger.e('Error opening book in browser: $e');
       throw Exception('Error opening book in browser: $e');
     }
   }
@@ -675,25 +659,23 @@ class BookDetailsDatasource {
   /// Add book to a specific shelf
   Future<bool> addBookToShelf(String shelfId, String bookId) async {
     try {
-      _logger.i('Adding book $bookId to shelf $shelfId');
+      logger.i('Adding book $bookId to shelf $shelfId');
 
-      final response = await _apiService.post(
-        '/shelf/add/$shelfId/$bookId',
-        null,
-        {},
-        AuthMethod.cookie,
+      final response = await apiService.post(
+        endpoint: '/shelf/add/$shelfId/$bookId',
+        authMethod: AuthMethod.cookie,
         useCsrf: true,
       );
 
       if (response.statusCode == 200) {
-        _logger.i('Successfully added book to shelf');
+        logger.i('Successfully added book to shelf');
         return true;
       } else {
-        _logger.e('Failed to add book to shelf: ${response.statusCode}');
+        logger.e('Failed to add book to shelf: ${response.statusCode}');
         throw Exception('Failed to add book to shelf (${response.statusCode})');
       }
     } catch (e) {
-      _logger.e('Error adding book to shelf: $e');
+      logger.e('Error adding book to shelf: $e');
       throw Exception('Error adding book to shelf: $e');
     }
   }
@@ -701,27 +683,25 @@ class BookDetailsDatasource {
   /// Remove book from a specific shelf
   Future<bool> removeBookFromShelf(String shelfId, String bookId) async {
     try {
-      _logger.i('Removing book $bookId from shelf $shelfId');
+      logger.i('Removing book $bookId from shelf $shelfId');
 
-      final response = await _apiService.post(
-        '/shelf/remove/$shelfId/$bookId',
-        null,
-        {},
-        AuthMethod.cookie,
+      final response = await apiService.post(
+        endpoint: '/shelf/remove/$shelfId/$bookId',
+        authMethod: AuthMethod.cookie,
         useCsrf: true,
       );
 
       if (response.statusCode == 200) {
-        _logger.i('Successfully removed book from shelf');
+        logger.i('Successfully removed book from shelf');
         return true;
       } else {
-        _logger.e('Failed to remove book from shelf: ${response.statusCode}');
+        logger.e('Failed to remove book from shelf: ${response.statusCode}');
         throw Exception(
           'Failed to remove book from shelf (${response.statusCode})',
         );
       }
     } catch (e) {
-      _logger.e('Error removing book from shelf: $e');
+      logger.e('Error removing book from shelf: $e');
       throw Exception('Error removing book from shelf: $e');
     }
   }
@@ -732,26 +712,26 @@ class BookDetailsDatasource {
     String format,
   ) async {
     try {
-      _logger.i(
+      logger.i(
         'Getting download stream with progress - BookId: $bookId, Format: $format',
       );
 
-      final response = await _apiService.getStream(
-        '/download/$bookId/$format/$bookId.$format',
-        AuthMethod.cookie,
+      final response = await apiService.getStream(
+        endpoint: '/download/$bookId/$format/$bookId.$format',
+        authMethod: AuthMethod.cookie,
       );
 
       if (response.statusCode == 200) {
-        _logger.i('Successfully got download stream with progress tracking');
+        logger.i('Successfully got download stream with progress tracking');
         return response;
       } else {
-        _logger.e('Failed to get download stream: ${response.statusCode}');
+        logger.e('Failed to get download stream: ${response.statusCode}');
         throw Exception(
           'Failed to get download stream (${response.statusCode})',
         );
       }
     } catch (e) {
-      _logger.e('Error getting download stream with progress: $e');
+      logger.e('Error getting download stream with progress: $e');
       throw Exception('Error getting download stream: $e');
     }
   }
@@ -776,11 +756,11 @@ class BookDetailsDatasource {
   /// Validate if a book format is available for download
   Future<bool> isFormatAvailable(String bookId, String format) async {
     try {
-      _logger.i('Checking if format $format is available for book $bookId');
+      logger.i('Checking if format $format is available for book $bookId');
 
-      final response = await _apiService.get(
-        '/ajax/book/$bookId',
-        AuthMethod.basic,
+      final response = await apiService.get(
+        endpoint: '/ajax/book/$bookId',
+        authMethod: AuthMethod.basic,
       );
 
       if (response.statusCode == 200) {
@@ -791,16 +771,14 @@ class BookDetailsDatasource {
           (f) => f.toLowerCase() == format.toLowerCase(),
         );
 
-        _logger.i('Format $format availability for book $bookId: $isAvailable');
+        logger.i('Format $format availability for book $bookId: $isAvailable');
         return isAvailable;
       } else {
-        _logger.e(
-          'Failed to check format availability: ${response.statusCode}',
-        );
+        logger.e('Failed to check format availability: ${response.statusCode}');
         return false;
       }
     } catch (e) {
-      _logger.e('Error checking format availability: $e');
+      logger.e('Error checking format availability: $e');
       return false;
     }
   }
@@ -808,11 +786,11 @@ class BookDetailsDatasource {
   /// Get book file size for a specific format
   Future<int?> getBookFileSize(String bookId, String format) async {
     try {
-      _logger.i('Getting file size for book $bookId, format $format');
+      logger.i('Getting file size for book $bookId, format $format');
 
-      final response = await _apiService.get(
-        '/ajax/book/$bookId',
-        AuthMethod.basic,
+      final response = await apiService.get(
+        endpoint: '/ajax/book/$bookId',
+        authMethod: AuthMethod.basic,
       );
 
       if (response.statusCode == 200) {
@@ -823,14 +801,14 @@ class BookDetailsDatasource {
 
         final size = formatSizes[format.toUpperCase()];
 
-        _logger.i('File size for book $bookId ($format): ${size ?? 'unknown'}');
+        logger.i('File size for book $bookId ($format): ${size ?? 'unknown'}');
         return size;
       } else {
-        _logger.e('Failed to get file size: ${response.statusCode}');
+        logger.e('Failed to get file size: ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      _logger.e('Error getting file size: $e');
+      logger.e('Error getting file size: $e');
       return null;
     }
   }

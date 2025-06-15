@@ -26,6 +26,15 @@ class FormatMetadataModel extends Equatable {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'format': format,
+      'size': size?.toString(),
+      'mtime': mtime,
+      'path': path,
+    };
+  }
+
   @override
   List<Object?> get props => [format, size, mtime, path];
 }
@@ -57,6 +66,16 @@ class FormatMetadata extends Equatable {
     }
 
     return FormatMetadata(formats: formats);
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> json = {'format_metadata': {}};
+
+    formats.forEach((format, metadata) {
+      json['format_metadata'][format] = metadata.toJson();
+    });
+
+    return json;
   }
 
   @override

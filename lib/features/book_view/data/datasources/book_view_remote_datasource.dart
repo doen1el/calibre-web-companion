@@ -14,12 +14,12 @@ class CancellationToken {
   bool get isCancelled => _isCancelled;
 }
 
-class BookViewDatasource {
+class BookViewRemoteDatasource {
   final ApiService _apiService;
   final Logger _logger;
   final SharedPreferences _preferences;
 
-  BookViewDatasource({
+  BookViewRemoteDatasource({
     required SharedPreferences preferences,
     JsonService? jsonService,
     ApiService? apiService,
@@ -50,12 +50,10 @@ class BookViewDatasource {
       }
 
       final response = await _apiService.getJson(
-        '/ajax/listbooks',
-        AuthMethod.cookie,
+        endpoint: '/ajax/listbooks',
+        authMethod: AuthMethod.cookie,
         queryParams: queryParams,
       );
-
-      _logger.i(response);
 
       if (response.containsKey('rows') && response['rows'] is List) {
         final List<dynamic> rows = response['rows'];
@@ -68,8 +66,6 @@ class BookViewDatasource {
             final book = BookViewModel.fromJson(bookData);
 
             books.add(book);
-
-            _logger.i(book.toJson());
           } catch (e) {
             _logger.e('Error parsing book: $e');
           }
@@ -87,8 +83,8 @@ class BookViewDatasource {
   Future<bool> uploadEbook(File book, CancellationToken cancelToken) async {
     try {
       final result = await _apiService.uploadFile(
-        book,
-        '/upload',
+        file: book,
+        endpoint: '/upload',
         cancelToken: cancelToken,
         timeoutSeconds: 60,
       );

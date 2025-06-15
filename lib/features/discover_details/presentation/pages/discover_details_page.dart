@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/features/discover_details/data/models/discover_details_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -8,18 +9,19 @@ import 'package:calibre_web_companion/features/discover_details/bloc/discover_de
 
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/features/book_view/presentation/widgets/book_skeleton.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_feed_model.dart';
+import 'package:calibre_web_companion/features/discover_details/presentation/widgets/book_card_skeleton_widget.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/widgets/book_card_widget.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/widgets/category_list_item_skeleton_widget.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/widgets/category_list_item_widget.dart';
 import 'package:calibre_web_companion/main.dart';
 
 class DiscoverDetailsPage extends StatelessWidget {
-  final DiscoverType? bookListType;
+  final DiscoverType? discoverType;
   final CategoryType? categoryType;
   final String? subPath;
   final String? fullPath;
@@ -27,14 +29,14 @@ class DiscoverDetailsPage extends StatelessWidget {
 
   const DiscoverDetailsPage({
     super.key,
-    this.bookListType,
+    this.discoverType,
     this.categoryType,
     this.subPath,
     this.fullPath,
     required this.title,
   }) : assert(
-         bookListType != null || categoryType != null || fullPath != null,
-         'Either bookListType, categoryType, or fullPath must be provided',
+         discoverType != null || categoryType != null || fullPath != null,
+         'Either discoverType, categoryType, or fullPath must be provided',
        );
 
   @override
@@ -48,8 +50,8 @@ class DiscoverDetailsPage extends StatelessWidget {
         // Load initial data based on provided parameters
         if (fullPath != null) {
           bloc.add(LoadBooksFromPath(fullPath!));
-        } else if (bookListType != null) {
-          bloc.add(LoadBooks(bookListType!, subPath: subPath));
+        } else if (discoverType != null) {
+          bloc.add(LoadBooks(discoverType!, subPath: subPath));
         } else if (categoryType != null) {
           bloc.add(LoadCategories(categoryType!, subPath: subPath));
         }
@@ -182,13 +184,7 @@ class DiscoverDetailsPage extends StatelessWidget {
         final book = feed.books[index];
         return BookCard(
           book: book,
-          onTap: () {},
-          // TODO: Implement navigation to book details page
-          // () => Navigator.of(context).push(
-          //   AppTransitions.createSlideRoute(
-          //     BookDetailsPage(bookListModel: book, bookUuid: book.id),
-          //   ),
-          // ),
+          onTap: () => _navigateToBookDetails(context, book),
         );
       },
     );
@@ -202,7 +198,7 @@ class DiscoverDetailsPage extends StatelessWidget {
         return CategoryListItem(
           category: category,
           type: categoryType ?? CategoryType.category,
-          onTap: () => _navigateToCategory(context, category),
+          onTap: () => _navigateToCategoryOrBooks(context, category),
         );
       },
     );
@@ -280,13 +276,158 @@ class DiscoverDetailsPage extends StatelessWidget {
     );
   }
 
-  void _navigateToCategory(BuildContext context, CategoryModel category) {
-    // Navigation logic for categories would go here
-    // This would need to analyze the category's navigationUrl and navigate accordingly
-    Navigator.of(context).push(
-      AppTransitions.createSlideRoute(
+  // Navigation-Logik (von book_list.dart übertragen)
+
+  /// Navigate to book details page
+  void _navigateToBookDetails(BuildContext context, DiscoverDetailsModel book) {
+    // TODO: Implement book details navigation logic
+    // Navigator.of(context).push(
+    //   AppTransitions.createSlideRoute(
+    //     BookDetailsPage(bookListModel: book, bookUuid: book.id),
+    //   ),
+    // );
+  }
+
+  /// Navigate to the category or books based on the category item
+  void _navigateToCategoryOrBooks(
+    BuildContext context,
+    CategoryModel category,
+  ) {
+    final String url = category.id; // Annahme: id enthält die URL
+    if (url.isEmpty) return;
+
+    // Split the URL into parts
+    final pathParts = url.split('/').where((p) => p.isNotEmpty).toList();
+
+    // Check the URL for specific patterns
+    if (url.contains('/letter/')) {
+      _navigateToLetterCategory(context, category, pathParts);
+    } else if (_isNumericEndpoint(pathParts)) {
+      _navigateToBookList(context, category);
+    } else if (url.startsWith('/opds/')) {
+      _navigateToGenericCategory(context, category, pathParts);
+    } else {
+      // Fallback: use fullPath navigation
+      _navigateToPage(
+        context,
         DiscoverDetailsPage(title: category.title, fullPath: category.id),
+      );
+    }
+  }
+
+  /// Check if the URL endpoint is numeric
+  bool _isNumericEndpoint(List<String> pathParts) {
+    if (pathParts.isEmpty) return false;
+    return int.tryParse(pathParts.last) != null;
+  }
+
+  /// Navigation for letter categories
+  void _navigateToLetterCategory(
+    BuildContext context,
+    CategoryModel category,
+    List<String> pathParts,
+  ) {
+    if (pathParts.length < 2) return;
+
+    final categoryTypeMap = {
+      'author': CategoryType.author,
+      'series': CategoryType.series,
+      'category': CategoryType.category,
+      'publisher': CategoryType.publisher,
+      'language': CategoryType.language,
+      'formats': CategoryType.formats,
+      'ratings': CategoryType.ratings,
+    };
+
+    final categoryType = categoryTypeMap[pathParts[1]];
+    if (categoryType == null) return;
+
+    // Extract the subpath
+    final pathPrefix = '/${pathParts[1]}/';
+    final subPathIndex = category.id.indexOf(pathPrefix) + pathPrefix.length;
+    final subPath = category.id.substring(subPathIndex);
+
+    _navigateToPage(
+      context,
+      DiscoverDetailsPage(
+        title: category.title,
+        categoryType: categoryType,
+        subPath: subPath,
       ),
     );
+  }
+
+  /// Navigation for numeric endpoints (direct book lists)
+  void _navigateToBookList(BuildContext context, CategoryModel category) {
+    _navigateToPage(
+      context,
+      DiscoverDetailsPage(title: category.title, fullPath: category.id),
+    );
+  }
+
+  /// Navigation for generic categories
+  void _navigateToGenericCategory(
+    BuildContext context,
+    CategoryModel category,
+    List<String> pathParts,
+  ) {
+    if (pathParts.length < 2) return;
+
+    // Map category types to their respective enum values
+    final categoryTypeMap = {
+      'author': CategoryType.author,
+      'series': CategoryType.series,
+      'category': CategoryType.category,
+      'publisher': CategoryType.publisher,
+      'language': CategoryType.language,
+      'formats': CategoryType.formats,
+      'ratings': CategoryType.ratings,
+    };
+
+    final discoverTypeMap = {
+      'hot': DiscoverType.hot,
+      'new': DiscoverType.newlyAdded,
+      'rated': DiscoverType.rated,
+      'discover': DiscoverType.discover,
+      'readbooks': DiscoverType.readbooks,
+      'unreadbooks': DiscoverType.unreadbooks,
+    };
+
+    final categoryType = categoryTypeMap[pathParts[1]];
+    final discoverType = discoverTypeMap[pathParts[1]];
+
+    if (categoryType != null) {
+      // If a CategoryType is recognized, use this
+      final subPath =
+          pathParts.length > 2
+              ? category.id.split('/${pathParts[1]}/').last
+              : null;
+
+      _navigateToPage(
+        context,
+        DiscoverDetailsPage(
+          title: category.title,
+          categoryType: categoryType,
+          subPath: subPath,
+        ),
+      );
+    } else if (discoverType != null) {
+      // If a DiscoverType is recognized, use this
+      _navigateToPage(
+        context,
+        DiscoverDetailsPage(title: category.title, discoverType: discoverType),
+      );
+    } else {
+      // If no type is recognized, navigate to the generic category
+      _navigateToPage(
+        context,
+        DiscoverDetailsPage(title: category.title, fullPath: category.id),
+      );
+    }
+  }
+
+  /// Navigate to a page
+  void _navigateToPage(BuildContext context, Widget page) {
+    Navigator.push(context, AppTransitions.createSlideRoute(page));
   }
 }

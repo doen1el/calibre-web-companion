@@ -4,25 +4,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/features/login_settings/data/models/custom_header.dart';
 
-class LoginSettingsDatasource {
-  final SharedPreferences _preferences;
-  final Logger _logger = Logger();
+class LoginSettingsLocalDataSource {
+  final SharedPreferences preferences;
+  final Logger logger;
 
-  LoginSettingsDatasource({required SharedPreferences preferences})
-    : _preferences = preferences;
+  LoginSettingsLocalDataSource({
+    required this.preferences,
+    required this.logger,
+  });
 
   static const String _customHeadersKey = 'custom_login_headers';
 
   Future<List<CustomHeaderModel>> getCustomHeaders() async {
     try {
       final String jsonString =
-          _preferences.getString(_customHeadersKey) ?? '[]';
+          preferences.getString(_customHeadersKey) ?? '[]';
       final List<dynamic> jsonList = json.decode(jsonString);
 
-      _logger.i('Loaded headers: $jsonList');
+      logger.i('Loaded headers: $jsonList');
       return CustomHeaderModel.fromJsonList(jsonList);
     } catch (e) {
-      _logger.e('Error loading headers: $e');
+      logger.e('Error loading headers: $e');
       return [];
     }
   }
@@ -33,11 +35,11 @@ class LoginSettingsDatasource {
           headers.map((header) => {header.key: header.value}).toList();
 
       final String jsonString = json.encode(jsonList);
-      await _preferences.setString(_customHeadersKey, jsonString);
+      await preferences.setString(_customHeadersKey, jsonString);
 
-      _logger.i('Saved headers: $jsonList');
+      logger.i('Saved headers: $jsonList');
     } catch (e) {
-      _logger.e('Error saving headers: $e');
+      logger.e('Error saving headers: $e');
       throw Exception('Failed to save headers: $e');
     }
   }

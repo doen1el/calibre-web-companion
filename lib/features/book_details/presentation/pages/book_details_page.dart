@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
@@ -16,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:logger/web.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
@@ -41,7 +43,7 @@ class BookDetailsPage extends StatelessWidget {
     return BlocProvider(
       create:
           (context) =>
-              BookDetailsBloc(repository: context.read<BookDetailsRepository>())
+              getIt<BookDetailsBloc>()
                 ..add(LoadBookDetails(bookListModel, bookUuid)),
       child: BlocConsumer<BookDetailsBloc, BookDetailsState>(
         listener: (context, state) {
@@ -269,14 +271,14 @@ class BookDetailsPage extends StatelessWidget {
           ),
 
           // Rating section
-          if (book.ratings > 0)
+          if (book.rating > 0)
             _buildCard(
               context,
               Icons.star_rate_rounded,
               localizations.rating,
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: _buildRating(book.ratings),
+                child: _buildRating(book.rating),
               ),
             ),
 
@@ -317,15 +319,6 @@ class BookDetailsPage extends StatelessWidget {
             Icons.info_outline_rounded,
             localizations.publicationInfo,
             [
-              // if (book.published != null)
-              //   _buildInfoRow(
-              //     context,
-              //     localizations.published,
-              //     intl.DateFormat.yMMMMd(
-              //       localizations.localeName,
-              //     ).format(book.published!),
-              //     Icons.calendar_today_rounded,
-              //   ),
               if (book.pubdate != "")
                 _buildInfoRow(
                   context,

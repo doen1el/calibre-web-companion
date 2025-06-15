@@ -2,8 +2,6 @@ import 'package:calibre_web_companion/features/book_view/data/models/book_view_m
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:equatable/equatable.dart';
 
-import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
-
 abstract class BookDetailsEvent extends Equatable {
   const BookDetailsEvent();
 

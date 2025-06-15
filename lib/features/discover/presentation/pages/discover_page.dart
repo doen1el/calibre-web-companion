@@ -21,15 +21,17 @@ class DiscoverPage extends StatelessWidget {
       create: (context) => DiscoverBloc(),
       child: BlocBuilder<DiscoverBloc, DiscoverState>(
         builder: (context, state) {
-          return Scaffold(
-            body: SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildSectionHeader(context, localizations.discover),
-                  _buildDiscoverWidget(context, localizations),
-                  _buildSectionHeader(context, localizations.categories),
-                  _buildCategoryWidget(context, localizations),
-                ],
+          return SafeArea(
+            child: Scaffold(
+              body: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildSectionHeader(context, localizations.discover),
+                    _buildDiscoverWidget(context, localizations),
+                    _buildSectionHeader(context, localizations.categories),
+                    _buildCategoryWidget(context, localizations),
+                  ],
+                ),
               ),
             ),
           );
@@ -68,7 +70,7 @@ class DiscoverPage extends StatelessWidget {
               AppTransitions.createSlideRoute(
                 DiscoverDetailsPage(
                   title: localizations.discoverBooks,
-                  bookListType: DiscoverType.discover,
+                  discoverType: DiscoverType.discover,
                 ),
               ),
             );
@@ -88,7 +90,7 @@ class DiscoverPage extends StatelessWidget {
               AppTransitions.createSlideRoute(
                 DiscoverDetailsPage(
                   title: localizations.hotBooks,
-                  bookListType: DiscoverType.hot,
+                  discoverType: DiscoverType.hot,
                 ),
               ),
             );
@@ -108,7 +110,7 @@ class DiscoverPage extends StatelessWidget {
               AppTransitions.createSlideRoute(
                 DiscoverDetailsPage(
                   title: localizations.newBooks,
-                  bookListType: DiscoverType.newlyAdded,
+                  discoverType: DiscoverType.newlyAdded,
                 ),
               ),
             );
@@ -128,7 +130,7 @@ class DiscoverPage extends StatelessWidget {
               AppTransitions.createSlideRoute(
                 DiscoverDetailsPage(
                   title: localizations.ratedBooks,
-                  bookListType: DiscoverType.rated,
+                  discoverType: DiscoverType.rated,
                 ),
               ),
             );

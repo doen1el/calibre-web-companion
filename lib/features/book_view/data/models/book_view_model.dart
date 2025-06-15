@@ -10,14 +10,13 @@ class BookViewModel extends Equatable {
   final bool hasCover; // 1 = true, 0 = false
   final int id;
   final String identifiers;
-  final bool isArchived; // 1 = true, 0 = false
+  final bool isArchived; // true or false
   final String isbn;
   final String languages;
   final String lastModified;
   final String path;
   final String pubdate;
   final String publishers;
-  final double ratings;
   final bool readStatus; // "true" or "false"
   final String registry;
   final String series;
@@ -48,7 +47,6 @@ class BookViewModel extends Equatable {
     this.path = '',
     this.pubdate = '',
     this.publishers = '',
-    this.ratings = 0.0,
     this.readStatus = false,
     this.registry = '',
     this.series = '',
@@ -77,7 +75,6 @@ class BookViewModel extends Equatable {
     path,
     pubdate,
     publishers,
-    ratings,
     readStatus,
     registry,
     series,
@@ -95,19 +92,18 @@ class BookViewModel extends Equatable {
       'title': title,
       'authors': authors,
       'author_sort': authorSort,
-      'description': comments,
+      'comments': comments,
       'data': data,
       'flags': flags,
       'has_cover': hasCover,
       'identifiers': identifiers,
-      'archived': isArchived,
+      'is_archived': isArchived,
       'isbn': isbn,
       'languages': languages,
       'last_modified': lastModified,
       'path': path,
       'pubdate': pubdate,
       'publisher_name': publishers,
-      'ratings': ratings,
       'read_status': readStatus,
       'registry': registry,
       'series': series,
@@ -132,15 +128,14 @@ class BookViewModel extends Equatable {
         flags: json['flags'] == 1,
         hasCover: json['has_cover'] == 1,
         identifiers: json['identifiers'],
-        isArchived: json['archived'] == 1,
+        isArchived: json['is_archived'] == true,
         isbn: json['isbn'],
         languages: json['languages'],
         lastModified: json['last_modified'],
         path: json['path'],
         pubdate: json['pubdate'],
         publishers: json['publishers'],
-        ratings: json['ratings'],
-        readStatus: json['read_status'] == 'true',
+        readStatus: json['read_status'] == true,
         registry: json['registry'],
         series: json['series'],
         seriesIndex: json['series_index'],

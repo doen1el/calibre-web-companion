@@ -1,5 +1,6 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
+import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,8 @@ import 'package:calibre_web_companion/features/login/data/repositories/login_rep
 import 'package:calibre_web_companion/features/login/bloc/login_bloc.dart';
 import 'package:calibre_web_companion/features/login/presentation/pages/login_page.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_bloc.dart';
+import 'package:http/http.dart';
+import 'package:logger/web.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 final GetIt getIt = GetIt.instance;
@@ -70,7 +73,16 @@ void main() async {
           create: (_) => getIt<DownloadServiceBloc>(),
         ),
         BlocProvider<HomePageBloc>(create: (_) => getIt<HomePageBloc>()),
-        BlocProvider<BookDetailsBloc>(create: (_) => getIt<BookDetailsBloc>()),
+        BlocProvider<BookDetailsBloc>(
+          create: (_) => di.getIt<BookDetailsBloc>(),
+        ),
+        BlocProvider<BookViewBloc>(
+          create:
+              (_) =>
+                  getIt<BookViewBloc>()
+                    ..add(const LoadViewSettings())
+                    ..add(const LoadBooks()),
+        ),
       ],
       child: MyApp(savedThemeMode: savedThemeMode),
     ),
@@ -96,7 +108,10 @@ class _MyAppState extends State<MyApp> {
 
   // Check if the user is logged in by looking for a session cookie
   Future<bool> _isLoggedIn() async {
-    return await LoginRepository().isLoggedIn();
+    return await LoginRepository(
+      dataSource: getIt<LoginRemoteDataSource>(),
+      logger: getIt<Logger>(),
+    ).isLoggedIn();
   }
 
   @override

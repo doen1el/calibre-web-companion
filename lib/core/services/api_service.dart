@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_datasource.dart';
+import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -88,25 +88,50 @@ class ApiService {
   /// - `endpoint`: The API endpoint to request
   /// - `authMethod`: The authentication method to use
   /// - `queryParams`: Optional query parameters
-  Future<Map<String, dynamic>> getJson(
-    String endpoint,
-    AuthMethod authMethod, {
-    Map<String, String>? queryParams,
+  Future<Map<String, dynamic>> getJson({
+    String endpoint = '',
+    AuthMethod authMethod = AuthMethod.basic,
+    Map<String, String>? queryParams = const {},
   }) async {
-    final response = await get(endpoint, authMethod, queryParams: queryParams);
+    final response = await get(
+      endpoint: endpoint,
+      authMethod: authMethod,
+      queryParams: queryParams,
+    );
     try {
       if (response.body.length > 50) {
         _logger.d('Response body: ${response.body.substring(0, 50)}...');
       } else {
         _logger.d('Response body: ${response.body}');
       }
-      return json.decode(response.body) as Map<String, dynamic>;
+
+      String fixedJsonString = _fixMalformedJson(response.body);
+
+      final Map<String, dynamic> json = jsonDecode(fixedJsonString);
+
+      return json;
     } catch (e) {
       _logger.e('Failed to parse JSON response: $e');
 
       _logger.d('Response body: ${response.body}...');
       throw FormatException('Invalid JSON response: $e');
     }
+  }
+
+  String _fixMalformedJson(String jsonString) {
+    // Find the comments field and fix unescaped quotes within it
+    return jsonString.replaceAllMapped(
+      RegExp(r'"comments":\s*"(.*?)"(?=\s*,|\s*})', dotAll: true),
+      (match) {
+        String comments = match.group(1)!;
+
+        // Escape unescaped quotes (but don't double-escape already escaped ones)
+        // This regex looks for quotes that aren't preceded by a backslash
+        String fixedComments = comments.replaceAll(RegExp(r'(?<!\\)"'), '\\"');
+
+        return '"comments": "$fixedComments"';
+      },
+    );
   }
 
   /// Makes an authenticated GET request and converts XML response to JSON using Parker format
@@ -117,14 +142,18 @@ class ApiService {
   /// - `endpoint`: The API endpoint to request
   /// - `authMethod`: The authentication method to use
   /// - `queryParams`: Optional query parameters
-  Future<Map<String, dynamic>> getXmlAsJson(
-    String endpoint,
-    AuthMethod authMethod, {
-    Map<String, String>? queryParams,
+  Future<Map<String, dynamic>> getXmlAsJson({
+    String endpoint = '',
+    AuthMethod authMethod = AuthMethod.basic,
+    Map<String, String>? queryParams = const {},
   }) async {
     final transformer = Xml2Json();
 
-    final response = await get(endpoint, authMethod, queryParams: queryParams);
+    final response = await get(
+      endpoint: endpoint,
+      authMethod: authMethod,
+      queryParams: queryParams,
+    );
     try {
       if (response.body.length > 50) {
         _logger.d('Response body: ${response.body.substring(0, 50)}...');
@@ -153,14 +182,14 @@ class ApiService {
   /// - `endpoint`: The API endpoint to request
   /// - `authMethod`: The authentication method to use
   /// - `queryParams`: Optional query parameters
-  Future<http.Response> get(
-    String endpoint,
-    AuthMethod authMethod, {
-    Map<String, String>? queryParams,
+  Future<http.Response> get({
+    String endpoint = '',
+    AuthMethod authMethod = AuthMethod.basic,
+    Map<String, String>? queryParams = const {},
   }) async {
     await _ensureInitialized();
-    final uri = _buildUri(endpoint, queryParams);
-    final headers = _getAuthHeaders(authMethod);
+    final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
+    final headers = _getAuthHeaders(authMethod: authMethod);
 
     // Add processed custom headers for auth system
     final customHeaders = await _processCustomHeaders();
@@ -175,7 +204,7 @@ class ApiService {
     try {
       final response = await _client.get(uri, headers: headers);
       _logger.i('Response status: ${response.statusCode}');
-      _checkResponseStatus(response.statusCode);
+      _checkResponseStatus(statusCode: response.statusCode);
       return response;
     } catch (e) {
       _logger.e('Request failed: $e');
@@ -205,17 +234,17 @@ class ApiService {
   /// - `contentType`: The content type of the request
   /// - `useCsrf`: Whether to fetch and include CSRF token
   /// - `csrfSelector`: CSS selector for the CSRF token input field
-  Future<http.Response> post(
-    String endpoint,
-    Map<String, String>? queryParams,
+  Future<http.Response> post({
+    String endpoint = '',
+    AuthMethod authMethod = AuthMethod.basic,
+    Map<String, String> queryParams = const {},
     dynamic body,
-    AuthMethod authMethod, {
     String contentType = 'application/json',
     bool useCsrf = false,
     String csrfSelector = 'input[name="csrf_token"]',
   }) async {
     await _ensureInitialized();
-    final uri = _buildUri(endpoint, queryParams);
+    final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
 
     // Add processed custom headers for auth system
     final customHeaders = await _processCustomHeaders();
@@ -225,7 +254,7 @@ class ApiService {
       _logger.i('Making CSRF-protected POST request to: $uri');
 
       // STEP 1: Make initial GET request to fetch CSRF token
-      final getHeaders = _getAuthHeaders(authMethod);
+      final getHeaders = _getAuthHeaders(authMethod: authMethod);
       getHeaders.addAll(customHeaders);
       getHeaders['Accept'] = 'text/html,application/xhtml+xml,application/xml';
 
@@ -292,7 +321,10 @@ class ApiService {
         finalBody = {'csrf_token': csrfToken};
       }
 
-      final encodedBody = _encodeBody(finalBody, contentType);
+      final encodedBody = _encodeBody(
+        body: finalBody,
+        contentType: contentType,
+      );
 
       _logger.d('CSRF-protected POST headers: $postHeaders');
       _logger.d('CSRF-protected POST body: $encodedBody');
@@ -306,7 +338,7 @@ class ApiService {
         _logger.i(
           'CSRF-protected POST response status: ${response.statusCode}',
         );
-        _checkResponseStatus(response.statusCode);
+        _checkResponseStatus(statusCode: response.statusCode);
         return response;
       } catch (e) {
         _logger.e('CSRF-protected POST request failed: $e');
@@ -314,7 +346,7 @@ class ApiService {
       }
     } else {
       // Standard POST request without CSRF protection
-      final headers = _getAuthHeaders(authMethod);
+      final headers = _getAuthHeaders(authMethod: authMethod);
       headers['Content-Type'] = contentType;
       headers.addAll(customHeaders);
 
@@ -324,7 +356,7 @@ class ApiService {
       );
       _logger.d('Headers: $headers');
 
-      final encodedBody = _encodeBody(body, contentType);
+      final encodedBody = _encodeBody(body: body, contentType: contentType);
 
       try {
         final response = await _client.post(
@@ -333,7 +365,7 @@ class ApiService {
           body: encodedBody ?? "",
         );
         _logger.i('POST response status: ${response.statusCode}');
-        _checkResponseStatus(response.statusCode);
+        _checkResponseStatus(statusCode: response.statusCode);
         return response;
       } catch (e) {
         _logger.e('POST request failed: $e');
@@ -349,10 +381,10 @@ class ApiService {
   ///
   /// - `endpoint`: The API endpoint to request
   /// - `authMethod`: The authentication method to use
-  Future<http.StreamedResponse> getStream(
-    String endpoint,
-    AuthMethod authMethod,
-  ) async {
+  Future<http.StreamedResponse> getStream({
+    String endpoint = '',
+    AuthMethod authMethod = AuthMethod.basic,
+  }) async {
     await _ensureInitialized();
 
     // Ensure URL is complete with base path
@@ -369,7 +401,7 @@ class ApiService {
     final fullUrl =
         endpoint.startsWith('http') ? endpoint : '$_baseUrl$fullPath';
 
-    final headers = _getAuthHeaders(authMethod);
+    final headers = _getAuthHeaders(authMethod: authMethod);
 
     // Add processed custom headers for auth system
     final customHeaders = await _processCustomHeaders();
@@ -387,7 +419,7 @@ class ApiService {
     try {
       final response = await _client.send(request);
       _logger.i('Stream response status: ${response.statusCode}');
-      _checkResponseStatus(response.statusCode);
+      _checkResponseStatus(statusCode: response.statusCode);
       return response;
     } catch (e) {
       _logger.e('Stream request failed: $e');
@@ -402,13 +434,13 @@ class ApiService {
   /// - `endpoint`: The endpoint to fetch the token from
   /// - `authMethod`: The authentication method to use
   /// - `selector`: CSS selector for the CSRF token input
-  Future<Map<String, String?>> fetchCsrfToken(
-    String endpoint,
-    AuthMethod authMethod,
-    String selector,
-  ) async {
+  Future<Map<String, String?>> fetchCsrfToken({
+    String endpoint = '',
+    AuthMethod authMethod = AuthMethod.basic,
+    String selector = 'input[name="csrf_token"]',
+  }) async {
     _logger.d('Fetching CSRF token from: $endpoint');
-    final response = await get(endpoint, authMethod);
+    final response = await get(endpoint: endpoint, authMethod: authMethod);
 
     final document = parser.parse(response.body);
     final csrfElement = document.querySelector(selector);
@@ -443,7 +475,10 @@ class ApiService {
   /// Parameters:
   ///
   /// - `endpoint`: The API endpoint to request
-  Uri _buildUri(String endpoint, Map<String, String>? queryParams) {
+  Uri _buildUri({
+    String endpoint = '',
+    Map<String, String>? queryParams = const {},
+  }) {
     // Handle base path if set
     String fullPath = endpoint;
     if (_basePath != null && _basePath!.isNotEmpty) {
@@ -493,7 +528,9 @@ class ApiService {
   /// Parameters:
   ///
   /// - `authMethod`: The authentication method to use
-  Map<String, String> _getAuthHeaders(AuthMethod authMethod) {
+  Map<String, String> _getAuthHeaders({
+    AuthMethod authMethod = AuthMethod.basic,
+  }) {
     Map<String, String> headers = {};
 
     if (authMethod == AuthMethod.cookie && _cookie != null) {
@@ -512,7 +549,7 @@ class ApiService {
   ///
   /// - `body`: The request body to encode
   /// - `contentType`: The content type of the request
-  dynamic _encodeBody(dynamic body, String contentType) {
+  dynamic _encodeBody({dynamic body, String contentType = 'application/json'}) {
     if (body is Map) {
       if (contentType == 'application/json') {
         return json.encode(body);
@@ -534,7 +571,7 @@ class ApiService {
   /// Parameters:
   ///
   /// - `statusCode`: The status code to check
-  void _checkResponseStatus(int statusCode) {
+  void _checkResponseStatus({int statusCode = 200}) {
     if (statusCode == 401) {
       throw Exception('Authentication failed. Please log in again.');
     } else if (statusCode >= 500) {
@@ -555,9 +592,9 @@ class ApiService {
   /// - `timeoutSeconds`: Timeout in seconds
   ///
   /// Returns a map with upload result information
-  Future<Map<String, dynamic>> uploadFile(
-    File file,
-    String endpoint, {
+  Future<Map<String, dynamic>> uploadFile({
+    File? file,
+    String endpoint = '',
     CancellationToken? cancelToken,
     String formFieldName = 'btn-upload',
     Map<String, String> additionalFields = const {'btn-upload2': ''},
@@ -565,6 +602,11 @@ class ApiService {
     AuthMethod authMethod = AuthMethod.cookie,
   }) async {
     await _ensureInitialized();
+
+    if (file == null) {
+      throw ArgumentError('File parameter is required');
+    }
+
     _logger.i('Starting upload of file: ${file.path.split('/').last}');
 
     // Check for cancellation before starting
@@ -575,9 +617,9 @@ class ApiService {
 
     // Get CSRF token
     final csrfResult = await fetchCsrfToken(
-      '/',
-      authMethod,
-      'input[name="csrf_token"]',
+      endpoint: '/',
+      authMethod: authMethod,
+      selector: 'input[name="csrf_token"]',
     );
 
     // Check for cancellation after token fetch
@@ -592,7 +634,7 @@ class ApiService {
     }
 
     // Prepare upload request
-    final uri = _buildUri(endpoint, null);
+    final uri = _buildUri(endpoint: endpoint);
     final request = http.MultipartRequest('POST', uri);
 
     // Add authentication cookies

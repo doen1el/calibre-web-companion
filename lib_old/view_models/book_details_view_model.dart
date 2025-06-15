@@ -491,7 +491,7 @@ class BookDetailsViewModel extends ChangeNotifier {
   Future<void> checkIfBookIsRead(String bookId) async {
     try {
       BookListViewModel bookListViewModel = BookListViewModel();
-      await bookListViewModel.loadBooks(BookListType.readbooks);
+      await bookListViewModel.loadBooks(discoverType.readbooks);
 
       _isBookRead = false;
 

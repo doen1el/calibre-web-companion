@@ -1,15 +1,14 @@
 import 'package:calibre_web_companion/core/exceptions/auth_exception.dart';
 import 'package:logger/logger.dart';
 
-import 'package:calibre_web_companion/features/login/data/datasources/login_datasource.dart';
+import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
 import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
 
 class LoginRepository {
-  final LoginDataSource _dataSource;
-  final Logger _logger = Logger();
+  final LoginRemoteDataSource dataSource;
+  final Logger logger;
 
-  LoginRepository({LoginDataSource? dataSource})
-    : _dataSource = dataSource ?? LoginDataSource();
+  LoginRepository({required this.dataSource, required this.logger});
 
   Future<bool> login(String username, String password, String baseUrl) async {
     try {
@@ -19,9 +18,9 @@ class LoginRepository {
         baseUrl: baseUrl,
       );
 
-      return await _dataSource.login(credentials);
+      return await dataSource.login(credentials);
     } catch (e) {
-      _logger.e('Login error: $e');
+      logger.e('Login error: $e');
       if (e is AuthException) {
         rethrow;
       }
@@ -30,10 +29,6 @@ class LoginRepository {
   }
 
   Future<bool> isLoggedIn() async {
-    return _dataSource.hasStoredCredentials();
-  }
-
-  Future<void> logout() async {
-    return _dataSource.clearCredentials();
+    return dataSource.canAccessWebsite();
   }
 }

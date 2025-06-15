@@ -8,13 +8,13 @@ class OpdsService {
   Logger logger = Logger();
 
   Future<OpdsFeed<BookItem>> getBookFeed(
-    BookListType type, {
+    discoverType type, {
     String? subPath,
   }) async {
     final endpoint =
         subPath != null
-            ? '${_getEndpointForBookListType(type)}/$subPath'
-            : _getEndpointForBookListType(type);
+            ? '${_getEndpointFordiscoverType(type)}/$subPath'
+            : _getEndpointFordiscoverType(type);
 
     final xmlAsJson = await _apiService.getXmlAsJson(
       endpoint,
@@ -164,21 +164,21 @@ class OpdsService {
     }
   }
 
-  String _getEndpointForBookListType(BookListType type) {
+  String _getEndpointFordiscoverType(discoverType type) {
     switch (type) {
-      case BookListType.readbooks:
+      case discoverType.readbooks:
         return '/opds/readbooks';
-      case BookListType.unreadbooks:
+      case discoverType.unreadbooks:
         return '/opds/unreadbooks';
-      case BookListType.hot:
+      case discoverType.hot:
         return '/opds/hot';
-      case BookListType.newlyAdded:
+      case discoverType.newlyAdded:
         return '/opds/new';
-      case BookListType.rated:
+      case discoverType.rated:
         return '/opds/rated';
-      case BookListType.bookmarked:
+      case discoverType.bookmarked:
         return '/opds/bookmarks';
-      case BookListType.discover:
+      case discoverType.discover:
         return '/opds/discover';
     }
   }

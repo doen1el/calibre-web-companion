@@ -49,7 +49,7 @@ class BookRecommendationsViewModel extends ChangeNotifier {
     try {
       BookListViewModel bookListViewModel = BookListViewModel();
 
-      await bookListViewModel.loadBooks(BookListType.readbooks);
+      await bookListViewModel.loadBooks(discoverType.readbooks);
 
       _userBooks = bookListViewModel.bookFeed?.items ?? [];
       _userBooks.sort((a, b) => a.title.compareTo(b.title));
