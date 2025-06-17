@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/tag_model.dart';
+import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
@@ -31,23 +33,20 @@ class BookDetailsRemoteDatasource {
     String bookUuid,
   ) async {
     try {
+      if (!tagService.isInitialized) {
+        await tagService.initialize();
+      }
+
       final response = await apiService.getJson(
         endpoint: '/ajax/book/$bookUuid',
         authMethod: AuthMethod.basic,
       );
 
-      final book = BookDetailsModel.fromBookListModel(bookListModel, response);
-      logger.i("Fetched book details: ${book.title}");
-
-      final tagModels = tagService.convertTagsToModels(book.tags);
-
-      tagModels.forEach((tag) {
-        print('Tag: ${tag.name}, ID: ${tag.id}');
-      });
-
-      logger.d(book.toJson());
-
-      return book;
+      return BookDetailsModel.fromBookListModel(
+        bookListModel,
+        response,
+        tagService,
+      );
     } catch (e) {
       logger.e("Error fetching book details: $e");
       throw Exception("Failed to fetch book details: $e");

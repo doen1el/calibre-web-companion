@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/form_metadata_model.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/tag_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
@@ -68,10 +69,18 @@ class BookDetailsModel extends BookViewModel {
   ];
 
   factory BookDetailsModel.fromBookListModel(
-    BookViewModel bookListModel, [
-    Map<String, dynamic> additionalData = const {},
-    List<TagModel>? tagModels,
-  ]) {
+    BookViewModel bookListModel,
+    Map<String, dynamic> additionalData,
+    TagService tagService,
+  ) {
+    final List<String> tagNames =
+        (additionalData['tags'] as List?)
+            ?.map((tag) => tag.toString())
+            .toList() ??
+        const [];
+
+    final List<TagModel> tagModels = tagService.convertTagsToModels(tagNames);
+
     return BookDetailsModel(
       id: bookListModel.id,
       uuid: bookListModel.uuid,
@@ -118,7 +127,7 @@ class BookDetailsModel extends BookViewModel {
               ?.map((tag) => tag.toString())
               .toList() ??
           const [],
-      tagModels: tagModels ?? [],
+      tagModels: tagModels,
     );
   }
 

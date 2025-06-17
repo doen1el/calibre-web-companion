@@ -4,6 +4,7 @@ import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/tag_model.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/widgets/add_to_shelf_widget.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/widgets/download_to_device_widget.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/widgets/edit_book_metadata_widget.dart';
@@ -376,10 +377,10 @@ class BookDetailsPage extends StatelessWidget {
             _buildCard(
               context,
               Icons.local_offer_rounded,
-              localizations.categories,
+              localizations.tags,
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: _buildTags(context, book.tags),
+                child: _buildTags(context, book.tags, book.tagModels),
               ),
             ),
           // Description section
@@ -731,7 +732,11 @@ class BookDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTags(BuildContext context, List<String> tags) {
+  Widget _buildTags(
+    BuildContext context,
+    List<String> tags,
+    List<TagModel> tagModels,
+  ) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -742,16 +747,19 @@ class BookDetailsPage extends StatelessWidget {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(8.0),
                   onTap: () {
-                    // TODO: implement tag navigation
-                    // Navigator.of(context).push(
-                    //   AppTransitions.createSlideRoute(
-                    //     BookListPage(
-                    //       title: tag,
-                    //       categoryType: CategoryType.category,
-                    //       fullPath: "/opds/category/$categoryId",
-                    //     ),
-                    //   ),
-                    // );
+                    TagModel? tagModel = tagModels.firstWhere(
+                      (tm) => tm.name == tag,
+                      orElse: () => TagModel(id: 0, name: tag),
+                    );
+                    Navigator.of(context).push(
+                      AppTransitions.createSlideRoute(
+                        DiscoverDetailsPage(
+                          title: tag,
+                          categoryType: CategoryType.category,
+                          fullPath: "/opds/category/${tagModel.id}",
+                        ),
+                      ),
+                    );
                   },
                   child: Chip(
                     label: Text(tag),

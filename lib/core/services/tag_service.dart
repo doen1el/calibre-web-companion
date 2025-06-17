@@ -1,82 +1,87 @@
 import 'package:logger/logger.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/tag_model.dart';
-import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
 
 class TagService {
-  final ApiService apiService;
+  final ApiService _apiService;
   final Logger logger;
 
-  // Cache für Tag-Namen zu IDs
-  final Map<String, int> _tagNameToIdMap = {};
+  Map<String, int> _tagNameToIdMap = {};
   bool _isInitialized = false;
 
-  TagService({required this.apiService, required this.logger});
+  TagService({required ApiService apiService, required this.logger})
+    : _apiService = apiService;
 
-  /// Lädt alle verfügbaren Tags mit ihren IDs
+  bool get isInitialized => _isInitialized;
+
   Future<void> initialize() async {
     if (_isInitialized) return;
 
+    _tagNameToIdMap = await fetchCategoryMappings();
+    _isInitialized = true;
+  }
+
+  Future<Map<String, int>> fetchCategoryMappings() async {
+    logger.i('Fetching category mappings');
+    final categoriesMap = <String, int>{};
+
     try {
-      logger.i('Lade alle Tag-Kategorien');
+      final response = await _apiService.get(
+        endpoint: '/category',
+        authMethod: AuthMethod.cookie,
+      );
 
-      // Alle Kategorieseiten durchlaufen
-      String? nextPageUrl = '/opds/category/letter/00';
+      if (response.statusCode == 200) {
+        final html = response.body;
 
-      while (nextPageUrl != null) {
-        final jsonData = await apiService.getXmlAsJson(
-          endpoint: nextPageUrl,
-          authMethod: AuthMethod.basic,
+        final RegExp categoryRegex = RegExp(
+          r'''<a\s+id="list_\d+"\s+href="/category/stored/(\d+)">\s*(\w[^<]+)''',
+          caseSensitive: false,
+          multiLine: true,
+          dotAll: true,
         );
 
-        // Extrahiere Einträge
-        final dynamic entryData = jsonData['feed']["entry"];
-        final List<dynamic> items = entryData is List ? entryData : [entryData];
+        final matches = categoryRegex.allMatches(html);
+        for (var match in matches) {
+          if (match.groupCount >= 2) {
+            final categoryId = int.tryParse(match.group(1)!) ?? 0;
+            final categoryName = match.group(2)!.trim();
 
-        // Verarbeite jeden Eintrag
-        for (var item in items) {
-          final categoryModel = CategoryModel.fromJson(item);
-
-          // Extrahiere ID aus dem Link (z.B. "/opds/category/19" -> "19")
-          final String idStr = categoryModel.id.split('/').last;
-          final int? id = int.tryParse(idStr);
-
-          if (id != null) {
-            _tagNameToIdMap[categoryModel.title] = id;
-            logger.d('Tag geladen: ${categoryModel.title} (ID: $id)');
+            if (categoryId > 0 && categoryName.isNotEmpty) {
+              categoriesMap[categoryName] = categoryId;
+            }
           }
         }
 
-        // Prüfe, ob es eine weitere Seite gibt
-        nextPageUrl =
-            jsonData['feed']?['link']?.firstWhere(
-              (link) => link['@rel'] == 'next',
-              orElse: () => null,
-            )?['@href'];
+        logger.i('Found ${categoriesMap.length} categories with IDs');
+      } else {
+        logger.w('Failed to fetch category page: ${response.statusCode}');
       }
-
-      logger.i('${_tagNameToIdMap.length} Tags geladen');
-      _isInitialized = true;
     } catch (e) {
-      logger.e('Fehler beim Laden der Tags: $e');
-      // Fehler nicht weiterleiten, um die App nicht zu blockieren
+      logger.e('Error fetching category mappings: $e');
     }
+
+    return categoriesMap;
   }
 
-  /// Konvertiert eine Liste von Tag-Namen in TagModel-Objekte mit IDs
   List<TagModel> convertTagsToModels(List<String> tagNames) {
     return tagNames.map((name) {
-      // ID aus dem Cache holen oder 0 als Fallback
       final id = _tagNameToIdMap[name] ?? 0;
       return TagModel(id: id, name: name);
     }).toList();
   }
 
-  /// Gibt die ID für einen Tag-Namen zurück
   int? getTagId(String tagName) {
     return _tagNameToIdMap[tagName];
   }
 
-  /// Prüft ob der Service initialisiert wurde
-  bool get isInitialized => _isInitialized;
+  void addTagMapping(String tagName, int tagId) {
+    _tagNameToIdMap[tagName] = tagId;
+  }
+
+  void removeTagMapping(String tagName) {
+    _tagNameToIdMap.remove(tagName);
+  }
+
+  Map<String, int> get allTags => Map.unmodifiable(_tagNameToIdMap);
 }
