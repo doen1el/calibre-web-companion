@@ -11,7 +11,7 @@ class ShelfDetailsRepository {
       final shelfDetails = await dataSource.getShelfDetails(shelfId);
       return shelfDetails;
     } catch (e) {
-      throw Exception('Failed to fetch shelf details: $e');
+      rethrow;
     }
   }
 
@@ -20,7 +20,7 @@ class ShelfDetailsRepository {
       final result = await dataSource.removeFromShelf(shelfId, bookId);
       return result;
     } catch (e) {
-      throw Exception('Failed to remove book from shelf: $e');
+      rethrow;
     }
   }
 
@@ -29,7 +29,7 @@ class ShelfDetailsRepository {
       final result = await dataSource.editShelf(shelfId, newShelfName);
       return result;
     } catch (e) {
-      throw Exception('Failed to edit shelf: $e');
+      rethrow;
     }
   }
 
@@ -38,7 +38,7 @@ class ShelfDetailsRepository {
       final result = await dataSource.deleteShelf(shelfId);
       return result;
     } catch (e) {
-      throw Exception('Failed to delete shelf: $e');
+      rethrow;
     }
   }
 }

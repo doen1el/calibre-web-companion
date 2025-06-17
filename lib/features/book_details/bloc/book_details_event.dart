@@ -53,7 +53,7 @@ class DownloadBook extends BookDetailsEvent {
   final String title;
   final String author;
   final String series;
-  final double seriesIndex;
+  final int seriesIndex;
   final String directory;
   final DownloadSchema schema;
 

@@ -86,18 +86,12 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         event.bookUuid,
       );
 
-      // Check read status
-      final isRead = await repository.checkIfBookIsRead(bookDetails.id);
-
-      // Check archive status
-      final isArchived = await repository.checkIfBookIsArchived(bookDetails.id);
-
       emit(
         state.copyWith(
           status: BookDetailsStatus.loaded,
           bookDetails: bookDetails,
-          isBookRead: isRead,
-          isBookArchived: isArchived,
+          isBookRead: event.bookListModel.readStatus,
+          isBookArchived: event.bookListModel.isArchived,
         ),
       );
     } catch (e) {
@@ -325,7 +319,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     String title,
     String author,
     String series,
-    double seriesIndex,
+    int seriesIndex,
     String format,
     DownloadSchema schema,
   ) async {

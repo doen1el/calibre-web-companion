@@ -20,11 +20,7 @@ class LoginRepository {
 
       return await dataSource.login(credentials);
     } catch (e) {
-      logger.e('Login error: $e');
-      if (e is AuthException) {
-        rethrow;
-      }
-      throw Exception('Login failed: $e');
+      rethrow;
     }
   }
 

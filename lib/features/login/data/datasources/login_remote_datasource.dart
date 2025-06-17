@@ -88,7 +88,7 @@ class LoginRemoteDataSource {
 
       return !response.body.contains('Login');
     } catch (e) {
-      logger.w('Credential validation failed: $e');
+      logger.e('Credential validation failed: $e');
       return false;
     }
   }

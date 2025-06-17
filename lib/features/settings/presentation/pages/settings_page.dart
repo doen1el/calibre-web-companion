@@ -71,6 +71,7 @@ class SettingsPage extends StatelessWidget {
 
                         const SizedBox(height: 24),
                         _buildSectionTitle(context, localizations.about),
+                        _buyMeACoffeeButton(context, "Buy Me a Coffee"),
                         _buildVersionCard(context, state, localizations),
 
                         const SizedBox(height: 24),
@@ -420,6 +421,36 @@ class SettingsPage extends StatelessWidget {
       },
       backgroundColor: Theme.of(context).colorScheme.surface,
       selectedColor: Theme.of(context).colorScheme.primaryContainer,
+    );
+  }
+
+  Widget _buyMeACoffeeButton(BuildContext context, String title) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8.0),
+        onTap: () {
+          context.read<SettingsBloc>().add(BuyMeACoffee());
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(
+                Icons.coffee,
+                size: 28,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+              const SizedBox(width: 16),
+
+              Text(title, style: Theme.of(context).textTheme.titleMedium),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

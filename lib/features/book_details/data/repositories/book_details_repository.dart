@@ -20,8 +20,7 @@ class BookDetailsRepository {
     try {
       return await datasource.fetchBookDetails(bookListModel, bookUuid);
     } catch (e) {
-      logger.e('Error fetching book details: $e');
-      throw Exception('Failed to load book details');
+      rethrow;
     }
   }
 
@@ -29,8 +28,7 @@ class BookDetailsRepository {
     try {
       return await datasource.toggleReadStatus(bookId);
     } catch (e) {
-      logger.e('Error toggling read status: $e');
-      throw Exception('Failed to toggle read status');
+      rethrow;
     }
   }
 
@@ -38,26 +36,7 @@ class BookDetailsRepository {
     try {
       return await datasource.toggleArchiveStatus(bookId);
     } catch (e) {
-      logger.e('Error toggling archive status: $e');
-      throw Exception('Failed to toggle archive status');
-    }
-  }
-
-  Future<bool> checkIfBookIsRead(int bookId) async {
-    try {
-      return await datasource.checkIfBookIsRead(bookId);
-    } catch (e) {
-      logger.e('Error checking read status: $e');
-      return false;
-    }
-  }
-
-  Future<bool> checkIfBookIsArchived(int bookId) async {
-    try {
-      return await datasource.checkIfBookIsArchived(bookId);
-    } catch (e) {
-      logger.e('Error checking archive status: $e');
-      return false;
+      rethrow;
     }
   }
 
@@ -65,8 +44,7 @@ class BookDetailsRepository {
     try {
       return await datasource.downloadBookBytes(bookId, format);
     } catch (e) {
-      logger.e('Error downloading book bytes: $e');
-      throw Exception('Failed to download book');
+      rethrow;
     }
   }
 
@@ -86,8 +64,7 @@ class BookDetailsRepository {
         progressCallback: progressCallback,
       );
     } catch (e) {
-      logger.e('Error downloading book: $e');
-      throw Exception('Failed to download book');
+      rethrow;
     }
   }
 
@@ -99,8 +76,7 @@ class BookDetailsRepository {
     try {
       return await datasource.sendViaEmail(bookId, format, conversion);
     } catch (e) {
-      logger.e('Error sending book via email: $e');
-      throw Exception('Failed to send book via email');
+      rethrow;
     }
   }
 
@@ -112,8 +88,7 @@ class BookDetailsRepository {
     try {
       return await datasource.openInReader(book, selectedDirectory, schema);
     } catch (e) {
-      logger.e('Error opening book in reader: $e');
-      throw Exception('Failed to open book in reader');
+      rethrow;
     }
   }
 
@@ -121,8 +96,7 @@ class BookDetailsRepository {
     try {
       await datasource.openInBrowser(book);
     } catch (e) {
-      logger.e('Error opening book in browser: $e');
-      throw Exception('Failed to open book in browser');
+      rethrow;
     }
   }
 

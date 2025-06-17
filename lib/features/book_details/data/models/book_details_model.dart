@@ -1,4 +1,5 @@
 import 'package:calibre_web_companion/features/book_details/data/models/form_metadata_model.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/tag_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
 class BookDetailsModel extends BookViewModel {
@@ -10,6 +11,9 @@ class BookDetailsModel extends BookViewModel {
   final Map<String, String> otherFormats;
   final String titleSort;
   final double rating;
+  final String comments;
+  final List<String> tags;
+  final List<TagModel> tagModels;
 
   const BookDetailsModel({
     required super.id,
@@ -17,7 +21,6 @@ class BookDetailsModel extends BookViewModel {
     required super.title,
     required super.authors,
     super.authorSort = '',
-    super.comments = '',
     super.data = '',
     super.flags = false,
     super.hasCover = false,
@@ -32,9 +35,8 @@ class BookDetailsModel extends BookViewModel {
     super.readStatus = false,
     super.registry = '',
     super.series = '',
-    super.seriesIndex = 0.0,
+    super.seriesIndex = 0,
     super.sort = '',
-    super.tags = const [],
     super.timestamp = '',
     this.formats = const [],
     this.cover = '',
@@ -44,6 +46,9 @@ class BookDetailsModel extends BookViewModel {
     this.thumbnail = '',
     this.titleSort = '',
     this.rating = 0.0,
+    this.comments = '',
+    this.tags = const [],
+    this.tagModels = const [],
   });
 
   @override
@@ -57,11 +62,15 @@ class BookDetailsModel extends BookViewModel {
     thumbnail,
     titleSort,
     rating,
+    comments,
+    tags,
+    tagModels,
   ];
 
   factory BookDetailsModel.fromBookListModel(
     BookViewModel bookListModel, [
     Map<String, dynamic> additionalData = const {},
+    List<TagModel>? tagModels,
   ]) {
     return BookDetailsModel(
       id: bookListModel.id,
@@ -69,7 +78,6 @@ class BookDetailsModel extends BookViewModel {
       title: bookListModel.title,
       authors: bookListModel.authors,
       authorSort: bookListModel.authorSort,
-      comments: bookListModel.comments,
       data: bookListModel.data,
       flags: bookListModel.flags,
       hasCover: bookListModel.hasCover,
@@ -86,7 +94,6 @@ class BookDetailsModel extends BookViewModel {
       series: bookListModel.series,
       seriesIndex: bookListModel.seriesIndex,
       sort: bookListModel.sort,
-      tags: bookListModel.tags,
       timestamp: bookListModel.timestamp,
       formats:
           (additionalData['formats'] as List).map((f) => f.toString()).toList(),
@@ -105,6 +112,13 @@ class BookDetailsModel extends BookViewModel {
       thumbnail: additionalData['thumbnail'] ?? '',
       titleSort: additionalData['title_sort'] ?? '',
       rating: double.tryParse(additionalData['rating'].toString()) ?? 0.0,
+      comments: additionalData['comments'] ?? '',
+      tags:
+          (additionalData['tags'] as List?)
+              ?.map((tag) => tag.toString())
+              .toList() ??
+          const [],
+      tagModels: tagModels ?? [],
     );
   }
 
@@ -121,6 +135,8 @@ class BookDetailsModel extends BookViewModel {
       'thumbnail': thumbnail,
       'title_sort': titleSort,
       'rating': rating,
+      'comments': comments,
+      'tags': tags,
     };
   }
 }

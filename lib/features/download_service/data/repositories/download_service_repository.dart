@@ -17,7 +17,6 @@ class DownloadServiceRepository {
     try {
       return await remoteDataSource.searchBooks(query);
     } catch (e) {
-      logger.e('Repository error searching books: $e');
       rethrow;
     }
   }
@@ -26,7 +25,6 @@ class DownloadServiceRepository {
     try {
       return await remoteDataSource.downloadBook(bookId);
     } catch (e) {
-      logger.e('Repository error downloading book: $e');
       rethrow;
     }
   }
@@ -35,7 +33,6 @@ class DownloadServiceRepository {
     try {
       return await remoteDataSource.getDownloadStatus();
     } catch (e) {
-      logger.e('Repository error getting download status: $e');
       rethrow;
     }
   }

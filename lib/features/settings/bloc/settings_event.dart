@@ -127,3 +127,10 @@ class SetLanguage extends SettingsEvent {
   @override
   List<Object?> get props => [languageCode];
 }
+
+class BuyMeACoffee extends SettingsEvent {
+  const BuyMeACoffee();
+
+  @override
+  List<Object?> get props => [];
+}

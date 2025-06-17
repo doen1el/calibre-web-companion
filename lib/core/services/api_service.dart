@@ -105,11 +105,7 @@ class ApiService {
         _logger.d('Response body: ${response.body}');
       }
 
-      String fixedJsonString = _fixMalformedJson(response.body);
-
-      final Map<String, dynamic> json = jsonDecode(fixedJsonString);
-
-      return json;
+      return _sanitizeJsonResponse(response.body);
     } catch (e) {
       _logger.e('Failed to parse JSON response: $e');
 
@@ -118,20 +114,82 @@ class ApiService {
     }
   }
 
-  String _fixMalformedJson(String jsonString) {
-    // Find the comments field and fix unescaped quotes within it
-    return jsonString.replaceAllMapped(
-      RegExp(r'"comments":\s*"(.*?)"(?=\s*,|\s*})', dotAll: true),
-      (match) {
-        String comments = match.group(1)!;
+  /// Sanitizes JSON response that contains HTML in the comments field
+  /// Sanitizes JSON response that contains HTML in the comments field
+  Map<String, dynamic> _sanitizeJsonResponse(String responseBody) {
+    try {
+      // First attempt to parse normally
+      return json.decode(responseBody) as Map<String, dynamic>;
+    } catch (e) {
+      _logger.w('Failed to parse JSON response: $e');
 
-        // Escape unescaped quotes (but don't double-escape already escaped ones)
-        // This regex looks for quotes that aren't preceded by a backslash
-        String fixedComments = comments.replaceAll(RegExp(r'(?<!\\)"'), '\\"');
+      // Try a more aggressive approach - completely replace the comments field
+      String sanitized = responseBody;
 
-        return '"comments": "$fixedComments"';
-      },
-    );
+      // Step 1: Find the comments field
+      int commentsPos = sanitized.indexOf('"comments"');
+      if (commentsPos >= 0) {
+        // Step 2: Find where the value starts (after the colon and opening quote)
+        int valueStart = sanitized.indexOf(':', commentsPos);
+        if (valueStart >= 0) {
+          valueStart = sanitized.indexOf('"', valueStart);
+          if (valueStart >= 0) {
+            // Step 3: Find where the next field starts (after closing quote and comma)
+            int nextFieldPos = -1;
+            bool inQuotes = true;
+            bool escaped = false;
+
+            // Walk through the string to find the end of the value
+            for (int i = valueStart + 1; i < sanitized.length; i++) {
+              if (escaped) {
+                escaped = false;
+                continue;
+              }
+
+              if (sanitized[i] == '\\') {
+                escaped = true;
+                continue;
+              }
+
+              if (sanitized[i] == '"' && !escaped) {
+                inQuotes = false;
+                nextFieldPos = i + 1;
+                break;
+              }
+            }
+
+            if (nextFieldPos > 0) {
+              // Step 4: Replace the comments content with empty value
+              sanitized =
+                  sanitized.substring(0, valueStart) +
+                  '""' +
+                  sanitized.substring(nextFieldPos);
+
+              try {
+                return json.decode(sanitized) as Map<String, dynamic>;
+              } catch (e2) {
+                _logger.e('Still failed after sanitizing comments: $e2');
+              }
+            }
+          }
+        }
+      }
+
+      // If we couldn't fix it with the above approach, try a simpler regex replacement
+      try {
+        final simpleReplacement = responseBody.replaceAll(
+          RegExp(r'"comments"\s*:\s*".*?"', dotAll: true),
+          '"comments":""',
+        );
+        return json.decode(simpleReplacement) as Map<String, dynamic>;
+      } catch (e3) {
+        _logger.e('Failed with regex replacement: $e3');
+      }
+
+      // Last resort - create a dummy response
+      _logger.e('Could not sanitize JSON, returning dummy response');
+      return {'error': 'Failed to parse JSON', 'comments': '', 'formats': []};
+    }
   }
 
   /// Makes an authenticated GET request and converts XML response to JSON using Parker format

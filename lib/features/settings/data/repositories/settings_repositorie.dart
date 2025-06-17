@@ -61,6 +61,9 @@ class SettingsRepositorie {
   Future<void> setSend2ereaderEnabled(bool enabled) async {
     try {
       await dataSource.saveSend2ereaderEnabled(enabled);
+      if (!enabled) {
+        await dataSource.saveSend2ereaderUrl('https://send.djazz.se/');
+      }
     } catch (e) {
       rethrow;
     }
@@ -108,5 +111,13 @@ class SettingsRepositorie {
 
   Future<String> getLanguage() async {
     return await dataSource.getLanguage();
+  }
+
+  Future<void> buyMeACoffee() async {
+    try {
+      return await dataSource.buyMeACoffe();
+    } catch (e) {
+      rethrow;
+    }
   }
 }

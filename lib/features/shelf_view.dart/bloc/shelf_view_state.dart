@@ -6,13 +6,15 @@ enum ShelfViewStatus { initial, loading, loaded, error }
 
 enum CreateShelfStatus { initial, loading, success, error }
 
+enum CheckBookInShelfStatus { initial, loading, success, error }
+
 class ShelfViewState extends Equatable {
   final ShelfViewStatus status;
   final CreateShelfStatus createShelfStatus;
   final List<ShelfViewModel> shelves;
   final String? errorMessage;
   final List<ShelfViewModel> bookInShelves;
-  final String? bookIdBeingChecked;
+  final CheckBookInShelfStatus checkBookInShelfStatus;
 
   const ShelfViewState({
     this.status = ShelfViewStatus.initial,
@@ -20,7 +22,7 @@ class ShelfViewState extends Equatable {
     this.shelves = const [],
     this.errorMessage,
     this.bookInShelves = const [],
-    this.bookIdBeingChecked,
+    this.checkBookInShelfStatus = CheckBookInShelfStatus.initial,
   });
 
   ShelfViewState copyWith({
@@ -30,7 +32,7 @@ class ShelfViewState extends Equatable {
     String? errorMessage,
     String? actionMessage,
     List<ShelfViewModel>? bookInShelves,
-    String? bookIdBeingChecked,
+    CheckBookInShelfStatus? checkBookInShelfStatus,
   }) {
     return ShelfViewState(
       status: status ?? this.status,
@@ -38,7 +40,8 @@ class ShelfViewState extends Equatable {
       shelves: shelves ?? this.shelves,
       errorMessage: errorMessage,
       bookInShelves: bookInShelves ?? this.bookInShelves,
-      bookIdBeingChecked: bookIdBeingChecked,
+      checkBookInShelfStatus:
+          checkBookInShelfStatus ?? this.checkBookInShelfStatus,
     );
   }
 
@@ -49,6 +52,6 @@ class ShelfViewState extends Equatable {
     errorMessage,
     createShelfStatus,
     bookInShelves,
-    bookIdBeingChecked,
+    checkBookInShelfStatus,
   ];
 }

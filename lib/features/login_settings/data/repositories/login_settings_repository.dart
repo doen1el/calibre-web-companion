@@ -18,7 +18,6 @@ class LoginSettingsRepository {
       final headers = await loginSettingsLocalDataSource.getCustomHeaders();
       return headers;
     } catch (e) {
-      logger.e('Error getting custom headers: $e');
       return [];
     }
   }
@@ -35,8 +34,7 @@ class LoginSettingsRepository {
 
       await loginSettingsLocalDataSource.saveCustomHeaders(headerModels);
     } catch (e) {
-      logger.e('Error saving custom headers: $e');
-      throw Exception('Failed to save custom headers: $e');
+      rethrow;
     }
   }
 }

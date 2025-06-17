@@ -119,17 +119,24 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
     Emitter<ShelfViewState> emit,
   ) async {
     try {
-      emit(state.copyWith(bookIdBeingChecked: event.bookId));
+      emit(
+        state.copyWith(checkBookInShelfStatus: CheckBookInShelfStatus.loading),
+      );
 
       final containingShelves = await repository.findShelvesContainingBook(
         event.bookId,
       );
 
-      emit(state.copyWith(bookInShelves: containingShelves));
+      emit(
+        state.copyWith(
+          bookInShelves: containingShelves,
+          checkBookInShelfStatus: CheckBookInShelfStatus.success,
+        ),
+      );
     } catch (e) {
       emit(
         state.copyWith(
-          status: ShelfViewStatus.error,
+          checkBookInShelfStatus: CheckBookInShelfStatus.error,
           errorMessage: e.toString(),
         ),
       );
@@ -147,15 +154,13 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
       );
 
       // Aktualisiere die Liste der Regale, die das Buch enthalten
-      if (state.bookIdBeingChecked == event.bookId) {
-        final shelf = state.shelves.firstWhere((s) => s.id == event.shelfId);
-        final updatedShelves = List<ShelfViewModel>.from(state.bookInShelves);
-        if (!updatedShelves.any((s) => s.id == shelf.id)) {
-          updatedShelves.add(shelf);
-        }
-
-        emit(state.copyWith(bookInShelves: updatedShelves));
+      final shelf = state.shelves.firstWhere((s) => s.id == event.shelfId);
+      final updatedShelves = List<ShelfViewModel>.from(state.bookInShelves);
+      if (!updatedShelves.any((s) => s.id == shelf.id)) {
+        updatedShelves.add(shelf);
       }
+
+      emit(state.copyWith(bookInShelves: updatedShelves));
     } catch (e) {
       emit(
         state.copyWith(
@@ -176,15 +181,12 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
         bookId: event.bookId,
       );
 
-      // Aktualisiere die Liste der Regale, die das Buch enthalten
-      if (state.bookIdBeingChecked == event.bookId) {
-        final updatedShelves =
-            state.bookInShelves
-                .where((shelf) => shelf.id != event.shelfId)
-                .toList();
+      final updatedShelves =
+          state.bookInShelves
+              .where((shelf) => shelf.id != event.shelfId)
+              .toList();
 
-        emit(state.copyWith(bookInShelves: updatedShelves));
-      }
+      emit(state.copyWith(bookInShelves: updatedShelves));
     } catch (e) {
       emit(
         state.copyWith(

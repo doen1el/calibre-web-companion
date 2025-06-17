@@ -53,6 +53,10 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
   void _loadShelvesAndCheckContaining() {
     if (!mounted) return;
 
+    if (widget.book.id == 0) {
+      return;
+    }
+
     // Load shelves if not already loaded
     final shelfBloc = context.read<ShelfViewBloc>();
     if (shelfBloc.state.shelves.isEmpty &&
@@ -60,7 +64,6 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
       shelfBloc.add(const LoadShelves());
     }
 
-    // Check which shelves contain the book
     shelfBloc.add(FindShelvesContainingBook(widget.book.id.toString()));
 
     setState(() {
@@ -75,17 +78,22 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
     return BlocConsumer<ShelfViewBloc, ShelfViewState>(
       listenWhen:
           (previous, current) =>
-              previous.bookInShelves != current.bookInShelves,
+              previous.bookInShelves != current.bookInShelves ||
+              previous.checkBookInShelfStatus != current.checkBookInShelfStatus,
       listener: (context, state) {
-        if (state.bookIdBeingChecked == widget.book.id.toString()) {
-          setState(() {
-            _containingShelves = state.bookInShelves;
-          });
-        }
+        setState(() {
+          _containingShelves = state.bookInShelves;
+        });
       },
       builder: (context, state) {
         Widget icon;
-        if (_containingShelves.isNotEmpty) {
+        if (state.checkBookInShelfStatus == CheckBookInShelfStatus.loading) {
+          icon = const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          );
+        } else if (_containingShelves.isNotEmpty) {
           icon = Badge(
             backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
             label: Text(

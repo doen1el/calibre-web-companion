@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
@@ -53,6 +54,9 @@ Future<void> init() async {
 
   // Services
   getIt.registerLazySingleton<ApiService>(() => ApiService());
+  getIt.registerLazySingleton<TagService>(
+    () => TagService(apiService: getIt<ApiService>(), logger: logger),
+  );
 
   //! Features
 
@@ -177,6 +181,7 @@ Future<void> init() async {
     () => ShelfViewRemoteDataSource(
       apiService: getIt<ApiService>(),
       logger: getIt<Logger>(),
+      shelfDetailsRemoteDataSource: getIt<ShelfDetailsRemoteDataSource>(),
     ),
   );
 
@@ -270,6 +275,7 @@ Future<void> init() async {
     () => BookDetailsRemoteDatasource(
       apiService: getIt<ApiService>(),
       logger: getIt<Logger>(),
+      tagService: getIt<TagService>(),
     ),
   );
 

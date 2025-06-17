@@ -1,3 +1,5 @@
+import 'package:calibre_web_companion/features/shelf_details/data/datasources/shelf_details_remote_datasource.dart';
+import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
 import 'package:logger/logger.dart';
 
@@ -7,8 +9,13 @@ import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf
 class ShelfViewRemoteDataSource {
   final ApiService apiService;
   final Logger logger;
+  final ShelfDetailsRemoteDataSource shelfDetailsRemoteDataSource;
 
-  ShelfViewRemoteDataSource({required this.apiService, required this.logger});
+  ShelfViewRemoteDataSource({
+    required this.apiService,
+    required this.logger,
+    required this.shelfDetailsRemoteDataSource,
+  });
 
   Future<ShelfListViewModel> loadShelves() async {
     try {
@@ -58,7 +65,7 @@ class ShelfViewRemoteDataSource {
         useCsrf: true,
       );
 
-      if (response.statusCode != 200) {
+      if (response.statusCode != 204) {
         logger.e('Failed to remove book from shelf: ${response.body}');
         throw Exception('Failed to remove book from shelf: ${response.body}');
       }
@@ -79,7 +86,7 @@ class ShelfViewRemoteDataSource {
         useCsrf: true,
       );
 
-      if (response.statusCode != 200) {
+      if (response.statusCode != 204) {
         logger.e('Failed to add book to shelf: ${response.body}');
         throw Exception('Failed to add book to shelf: ${response.body}');
       }
@@ -95,8 +102,15 @@ class ShelfViewRemoteDataSource {
       ShelfListViewModel shelf = await loadShelves();
 
       for (var s in shelf.shelves) {
-        if (s.id == bookId) {
-          shelves.add(s);
+        final ShelfDetailsModel shelfDetails =
+            await shelfDetailsRemoteDataSource.getShelfDetails(s.id);
+
+        for (var book in shelfDetails.books) {
+          if (book.id == bookId) {
+            logger.d('Found book in shelf: ${s.title}');
+            // Add shelf to the list if it contains the book
+            shelves.add(ShelfViewModel(id: s.id, title: s.title));
+          }
         }
       }
 

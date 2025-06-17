@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
@@ -17,41 +18,36 @@ import 'package:calibre_web_companion/features/book_view/data/models/book_view_m
 class BookDetailsRemoteDatasource {
   final ApiService apiService;
   final Logger logger;
+  final TagService tagService;
 
-  BookDetailsRemoteDatasource({required this.apiService, required this.logger});
+  BookDetailsRemoteDatasource({
+    required this.apiService,
+    required this.logger,
+    required this.tagService,
+  });
 
   Future<BookDetailsModel> fetchBookDetails(
     BookViewModel bookListModel,
     String bookUuid,
   ) async {
     try {
-      final response = await apiService.get(
+      final response = await apiService.getJson(
         endpoint: '/ajax/book/$bookUuid',
         authMethod: AuthMethod.basic,
       );
 
-      logger.d(response.body);
+      final book = BookDetailsModel.fromBookListModel(bookListModel, response);
+      logger.i("Fetched book details: ${book.title}");
 
-      if (response.statusCode == 200) {
-        try {
-          // Try parsing the JSON response
-          final bookJson = json.decode(response.body);
-          final book = BookDetailsModel.fromBookListModel(
-            bookListModel,
-            bookJson,
-          );
-          logger.i("Fetched book details: ${book.title}");
+      final tagModels = tagService.convertTagsToModels(book.tags);
 
-          logger.d(book.toJson());
+      tagModels.forEach((tag) {
+        print('Tag: ${tag.name}, ID: ${tag.id}');
+      });
 
-          return book;
-        } catch (jsonError) {
-          logger.w('JSON parsing failed: $jsonError.');
-          throw Exception('Failed to parse book details JSON: $jsonError');
-        }
-      } else {
-        throw Exception('Server error: ${response.statusCode}');
-      }
+      logger.d(book.toJson());
+
+      return book;
     } catch (e) {
       logger.e("Error fetching book details: $e");
       throw Exception("Failed to fetch book details: $e");
@@ -107,54 +103,6 @@ class BookDetailsRemoteDatasource {
     } catch (e) {
       logger.e('Error toggling archive status: $e');
       throw Exception('Error toggling archive status: $e');
-    }
-  }
-
-  Future<bool> checkIfBookIsRead(int bookId) async {
-    try {
-      logger.i('Checking if book is read: $bookId');
-
-      final response = await apiService.get(
-        endpoint: '/read/stored/',
-        authMethod: AuthMethod.cookie,
-      );
-
-      if (response.statusCode == 200) {
-        final pattern = 'href="/book/$bookId"';
-        final isRead = response.body.contains(pattern);
-        logger.i("Book $bookId read status: $isRead");
-        return isRead;
-      } else {
-        logger.w("Failed to check read status: ${response.statusCode}");
-        return false;
-      }
-    } catch (e) {
-      logger.e('Error checking if book is read: $e');
-      return false;
-    }
-  }
-
-  Future<bool> checkIfBookIsArchived(int bookId) async {
-    try {
-      logger.i('Checking if book is archived: $bookId');
-
-      final response = await apiService.get(
-        endpoint: '/archived/stored/',
-        authMethod: AuthMethod.cookie,
-      );
-
-      if (response.statusCode == 200) {
-        final pattern = 'href="/book/$bookId"';
-        final isArchived = response.body.contains(pattern);
-        logger.i("Book $bookId archived status: $isArchived");
-        return isArchived;
-      } else {
-        logger.w("Failed to check archived status: ${response.statusCode}");
-        return false;
-      }
-    } catch (e) {
-      logger.e('Error checking if book is archived: $e');
-      return false;
     }
   }
 
@@ -473,8 +421,6 @@ class BookDetailsRemoteDatasource {
       throw Exception('Failed to update book metadata: $e');
     }
   }
-
-  // ...existing code...
 
   /// Upload book to send2ereader service via browser method
   Future<bool> uploadToSend2Ereader(

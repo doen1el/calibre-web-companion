@@ -373,29 +373,29 @@ class BookDetailsPage extends StatelessWidget {
 
           // Tags section
           if (book.tags.isNotEmpty)
-            // _buildCard(
-            //   context,
-            //   Icons.local_offer_rounded,
-            //   localizations.categories,
-            //   Padding(
-            //     padding: const EdgeInsets.symmetric(vertical: 8.0),
-            //     child: _buildTags(context, book.tags, book.tags),
-            //   ),
-            // ),
-            // Description section
-            if (book.comments.isNotEmpty)
-              _buildCard(
-                context,
-                Icons.article_rounded,
-                localizations.description,
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Text(
-                    book.comments,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+            _buildCard(
+              context,
+              Icons.local_offer_rounded,
+              localizations.categories,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: _buildTags(context, book.tags),
+              ),
+            ),
+          // Description section
+          if (book.comments.isNotEmpty)
+            _buildCard(
+              context,
+              Icons.article_rounded,
+              localizations.description,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  book.comments,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
+            ),
 
           // Bottom padding
           const SizedBox(height: 16),
@@ -731,17 +731,12 @@ class BookDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTags(
-    BuildContext context,
-    List<String> tags,
-    Map<String, dynamic> tagsMap,
-  ) {
+  Widget _buildTags(BuildContext context, List<String> tags) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children:
             tags.map((tag) {
-              final categoryId = tagsMap[tag];
               return Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: InkWell(

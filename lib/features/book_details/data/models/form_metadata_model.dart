@@ -48,24 +48,31 @@ class FormatMetadata extends Equatable {
 
   /// Parse the entire format_metadata structure from a JSON response
   factory FormatMetadata.fromJson(Map<String, dynamic> json) {
-    final Map<String, FormatMetadataModel> formats = {};
-
     try {
-      final formatMetadataJson = json['format_metadata'] as Map;
+      Map<String, FormatMetadataModel> formats = {};
 
-      formatMetadataJson.forEach((format, metadata) {
-        if (metadata is Map<String, dynamic>) {
-          formats[format.toLowerCase()] = FormatMetadataModel.fromJson(
-            format,
-            metadata,
-          );
-        }
-      });
+      // Extract format metadata if available
+      if (json.containsKey('format_metadata') &&
+          json['format_metadata'] != null) {
+        final formatData = json['format_metadata'] as Map<String, dynamic>;
+
+        formatData.forEach((format, metadata) {
+          if (metadata is Map) {
+            // Convert metadata to FormatMetadataModel
+            final formatModel = FormatMetadataModel.fromJson(
+              format,
+              Map<String, dynamic>.from(metadata),
+            );
+            formats[format] = formatModel;
+          }
+        });
+      }
+
+      return FormatMetadata(formats: formats);
     } catch (e) {
-      _logger.e('Error parsing format metadata: $e');
+      print('Error parsing format metadata: $e');
+      return FormatMetadata(formats: {});
     }
-
-    return FormatMetadata(formats: formats);
   }
 
   Map<String, dynamic> toJson() {

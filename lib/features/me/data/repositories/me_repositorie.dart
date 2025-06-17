@@ -11,7 +11,7 @@ class MeRepository {
       final stats = await dataSource.getStats();
       return stats;
     } catch (e) {
-      throw Exception('Failed to load stats: $e');
+      rethrow;
     }
   }
 
@@ -19,7 +19,7 @@ class MeRepository {
     try {
       await dataSource.logOut();
     } catch (e) {
-      throw Exception('Failed to logout: $e');
+      rethrow;
     }
   }
 }

@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/settings_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsLocalDataSource {
   final SharedPreferences sharedPreferences;
@@ -164,6 +165,21 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error getting language: $e');
       throw Exception('Failed to get language: $e');
+    }
+  }
+
+  Future<void> buyMeACoffe() async {
+    try {
+      final Uri url = Uri.parse('https://buymeacoffee.com/doen1el');
+
+      if (!await launchUrl(url)) {
+        throw Exception('Could not launch $url');
+      }
+
+      logger.i('Opened in browser: $url');
+    } catch (e) {
+      logger.e('Error opening buy me a coffe page: $e');
+      throw Exception('Error opening buy me a coffe page: $e');
     }
   }
 }
