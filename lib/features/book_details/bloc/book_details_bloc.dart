@@ -181,6 +181,10 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     DownloadBook event,
     Emitter<BookDetailsState> emit,
   ) async {
+    logger.i(
+      'Starting download for book ${event.bookId}, format: ${event.format}',
+    );
+
     emit(
       state.copyWith(
         downloadState: DownloadState.downloading,
@@ -193,7 +197,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     _downloadCancelled = false;
 
     try {
-      // Dateiname und Pfad generieren
+      logger.d('Generating file path based on schema');
       final String filePath = await _createPathBasedOnSchema(
         event.directory,
         event.title,
@@ -203,10 +207,11 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         event.format,
         event.schema,
       );
+      logger.d('File path generated: $filePath');
 
-      // Check if file already exists
       final file = File(filePath);
       if (await file.exists()) {
+        logger.i('File already exists, skipping download');
         emit(
           state.copyWith(
             downloadState: DownloadState.success,
@@ -218,45 +223,61 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       }
 
       // Ensure directory exists
+      logger.d('Creating directory: ${path.dirname(filePath)}');
       await Directory(path.dirname(filePath)).create(recursive: true);
 
       // Create temporary file
       final tempFilePath = '$filePath.downloading';
+      logger.d('Creating temporary file: $tempFilePath');
       final tempFile = File(tempFilePath);
 
       // Get download stream from repository
+      logger.i('Getting download stream from repository');
       final response = await repository.getDownloadStream(
         event.bookId,
         event.format,
       );
+      logger.d('Got download stream response');
 
       final contentLength = response.contentLength ?? -1;
+      logger.d('Content length: $contentLength bytes');
+
+      logger.d('Opening file for writing');
       final sink = tempFile.openWrite();
       int receivedBytes = 0;
 
       try {
+        logger.i('Starting to read stream');
         await for (final chunk in response.stream) {
           if (_downloadCancelled) {
+            logger.w('Download cancelled by user');
             throw const CancellationException('Download cancelled by user');
           }
 
           receivedBytes += chunk.length;
           sink.add(chunk);
+          logger.i(
+            'Received chunk: ${chunk.length} bytes, total: $receivedBytes bytes',
+          );
 
           // Calculate progress and emit updated state
           if (contentLength > 0) {
             final progress = (receivedBytes / contentLength * 100).round();
+            logger.d('Download progress: $progress%');
             emit(state.copyWith(downloadProgress: progress));
           }
         }
 
+        logger.d('Stream completed, flushing and closing sink');
         await sink.flush();
         await sink.close();
 
         // Rename temp file to final file
         if (await tempFile.exists()) {
+          logger.d('Renaming temp file to final file');
           await tempFile.rename(filePath);
 
+          logger.i('Download completed successfully: $filePath');
           emit(
             state.copyWith(
               downloadState: DownloadState.success,
@@ -265,12 +286,15 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
             ),
           );
         } else {
+          logger.e('Temporary file does not exist after download');
           throw Exception('Temporary file was not created correctly');
         }
       } catch (e) {
+        logger.e('Error during download stream processing: $e');
         await sink.close();
 
         if (await tempFile.exists()) {
+          logger.d('Deleting temporary file after error');
           await tempFile.delete();
         }
 
@@ -291,6 +315,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         }
       }
     } catch (e) {
+      logger.e('Error in download process: $e');
       if (e is CancellationException) {
         emit(
           state.copyWith(
@@ -311,7 +336,8 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
 
   void _onCancelDownload(CancelDownload event, Emitter<BookDetailsState> emit) {
     _downloadCancelled = true;
-    // State wird durch _onDownloadBook aktualisiert, wenn die Abbruchbedingung erkannt wird
+
+    emit(state.copyWith(downloadState: DownloadState.canceled));
   }
 
   Future<String> _createPathBasedOnSchema(

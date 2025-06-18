@@ -28,15 +28,7 @@ class SendToEreaderWidget extends StatelessWidget {
     final localizations = AppLocalizations.of(context)!;
 
     return BlocBuilder<SettingsBloc, SettingsState>(
-      buildWhen:
-          (previous, current) =>
-              previous.isSend2ereaderEnabled != current.isSend2ereaderEnabled,
       builder: (context, settingsState) {
-        // Only show if send2ereader is enabled
-        if (!settingsState.isSend2ereaderEnabled) {
-          return const SizedBox.shrink();
-        }
-
         return FloatingActionButton.extended(
           onPressed:
               isLoading

@@ -13,8 +13,47 @@ import 'package:calibre_web_companion/features/settings/presentation/widgets/dow
 import 'package:calibre_web_companion/features/settings/presentation/widgets/feedback_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/theme_selector_widget.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  final TextEditingController _send2ereaderUrlController =
+      TextEditingController();
+  final TextEditingController _downloaderUrlController =
+      TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final settingsState = context.read<SettingsBloc>().state;
+    _send2ereaderUrlController.text = settingsState.send2ereaderUrl;
+    _downloaderUrlController.text = settingsState.downloaderUrl;
+  }
+
+  @override
+  void dispose() {
+    _send2ereaderUrlController.dispose();
+    _downloaderUrlController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final settingsState = context.read<SettingsBloc>().state;
+
+    if (_send2ereaderUrlController.text != settingsState.send2ereaderUrl) {
+      _send2ereaderUrlController.text = settingsState.send2ereaderUrl;
+    }
+
+    if (_downloaderUrlController.text != settingsState.downloaderUrl) {
+      _downloaderUrlController.text = settingsState.downloaderUrl;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,10 +198,6 @@ class SettingsPage extends StatelessWidget {
     SettingsState state,
     AppLocalizations localizations,
   ) {
-    final TextEditingController urlController = TextEditingController(
-      text: state.downloaderUrl,
-    );
-
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 3,
@@ -200,7 +235,7 @@ class SettingsPage extends StatelessWidget {
             if (state.isDownloaderEnabled) ...[
               const SizedBox(height: 16),
               TextField(
-                controller: urlController,
+                controller: _downloaderUrlController,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
@@ -240,10 +275,6 @@ class SettingsPage extends StatelessWidget {
     SettingsState state,
     AppLocalizations localizations,
   ) {
-    final TextEditingController urlController = TextEditingController(
-      text: state.send2ereaderUrl,
-    );
-
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 3,
@@ -281,7 +312,7 @@ class SettingsPage extends StatelessWidget {
             if (state.isSend2ereaderEnabled) ...[
               const SizedBox(height: 16),
               TextField(
-                controller: urlController,
+                controller: _send2ereaderUrlController,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
@@ -362,6 +393,14 @@ class SettingsPage extends StatelessWidget {
     SettingsState state,
     AppLocalizations localizations,
   ) {
+    // Definiere die verfügbaren Sprachen mit Code, Name und optionalem Flaggen-Emoji
+    final availableLanguages = [
+      {'code': 'en', 'name': 'English', 'flag': '🇬🇧'},
+      {'code': 'de', 'name': 'Deutsch', 'flag': '🇩🇪'},
+      {'code': 'fr', 'name': 'Français', 'flag': '🇫🇷'},
+      {'code': 'es', 'name': 'Español', 'flag': '🇪🇸'},
+    ];
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 3,
@@ -388,39 +427,54 @@ class SettingsPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8.0,
-              children: [
-                _buildLanguageOption(context, 'en', 'English', state),
-                _buildLanguageOption(context, 'de', 'Deutsch', state),
-                _buildLanguageOption(context, 'fr', 'Français', state),
-                _buildLanguageOption(context, 'es', 'Español', state),
-              ],
+            // Dropdown statt Wrap mit ChoiceChips
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+              ),
+              value: state.languageCode,
+              icon: const Icon(Icons.arrow_drop_down),
+              elevation: 16,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 16,
+              ),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  context.read<SettingsBloc>().add(SetLanguage(newValue));
+                }
+              },
+              items:
+                  availableLanguages.map<DropdownMenuItem<String>>((language) {
+                    return DropdownMenuItem<String>(
+                      value: language['code'],
+                      child: Row(
+                        children: [
+                          // Flaggen-Emoji anzeigen
+                          Text(
+                            language['flag'] ?? '',
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                          const SizedBox(width: 12),
+                          // Sprachname
+                          Text(language['name'] ?? ''),
+                        ],
+                      ),
+                    );
+                  }).toList(),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildLanguageOption(
-    BuildContext context,
-    String code,
-    String name,
-    SettingsState state,
-  ) {
-    final isSelected = state.languageCode == code;
-
-    return ChoiceChip(
-      label: Text(name),
-      selected: isSelected,
-      onSelected: (selected) {
-        if (selected) {
-          context.read<SettingsBloc>().add(SetLanguage(code));
-        }
-      },
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      selectedColor: Theme.of(context).colorScheme.primaryContainer,
     );
   }
 

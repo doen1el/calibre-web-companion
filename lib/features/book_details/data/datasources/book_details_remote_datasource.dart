@@ -401,18 +401,21 @@ class BookDetailsRemoteDatasource {
         body: {
           'title': title,
           'authors': authors,
-          'description': comments,
+          'comments': comments,
           'tags': tags,
         },
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        contentType: 'text/html; charset=utf-8',
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 302) {
         logger.i('Successfully updated book metadata');
         return true;
       } else {
-        logger.e('Failed to update book metadata: ${response.statusCode}');
+        logger.e(
+          'Failed to update book metadata: ${response.statusCode} - ${response.body}',
+        );
         return false;
       }
     } catch (e) {
