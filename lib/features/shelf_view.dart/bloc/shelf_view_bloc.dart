@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_state.dart';
 
-import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repositorie.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
 
 class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
   final ShelfViewRepository repository;

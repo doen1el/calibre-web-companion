@@ -4,10 +4,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 
-import 'package:calibre_web_companion/features/settings/data/repositories/settings_repositorie.dart';
+import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
-  final SettingsRepositorie repository;
+  final SettingsRepository repository;
 
   SettingsBloc({required this.repository}) : super(const SettingsState()) {
     on<LoadSettings>(_onLoadSettings);

@@ -1,4 +1,4 @@
-import 'package:calibre_web_companion/features/shelf_details/data/repositories/shelf_details_repositorie.dart';
+import 'package:calibre_web_companion/features/shelf_details/data/repositories/shelf_details_repository.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

@@ -5,10 +5,10 @@ import 'package:calibre_web_companion/features/settings/data/models/settings_mod
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 
-class SettingsRepositorie {
+class SettingsRepository {
   final SettingsLocalDataSource dataSource;
 
-  SettingsRepositorie({required this.dataSource});
+  SettingsRepository({required this.dataSource});
 
   Future<SettingsModel> getSettings() async {
     try {

@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:http/http.dart';
 import 'package:logger/logger.dart';
@@ -40,25 +39,19 @@ class BookDetailsRepository {
     }
   }
 
-  Future<bool> sendViaEmail(
-    String bookId,
-    String format,
-    int conversion,
-  ) async {
-    try {
-      return await datasource.sendViaEmail(bookId, format, conversion);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
   Future<bool> openInReader(
     BookDetailsModel book,
     String selectedDirectory,
-    DownloadSchema schema,
-  ) async {
+    DownloadSchema schema, {
+    Function(int)? progressCallback,
+  }) async {
     try {
-      return await datasource.openInReader(book, selectedDirectory, schema);
+      return await datasource.openInReader(
+        book,
+        selectedDirectory,
+        schema,
+        progressCallback: progressCallback,
+      );
     } catch (e) {
       rethrow;
     }
@@ -76,7 +69,11 @@ class BookDetailsRepository {
     String bookId,
     String format,
   ) async {
-    return await datasource.getDownloadStream(bookId, format);
+    try {
+      return await datasource.getDownloadStream(bookId, format);
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<bool> updateBookMetadata(
@@ -86,13 +83,17 @@ class BookDetailsRepository {
     required String comments,
     required String tags,
   }) async {
-    return await datasource.updateBookMetadata(
-      bookId,
-      title: title,
-      authors: authors,
-      comments: comments,
-      tags: tags,
-    );
+    try {
+      return await datasource.updateBookMetadata(
+        bookId,
+        title: title,
+        authors: authors,
+        comments: comments,
+        tags: tags,
+      );
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<bool> sendBookViaEmail(
@@ -100,7 +101,11 @@ class BookDetailsRepository {
     String format,
     int conversion,
   ) async {
-    return await datasource.sendBookViaEmail(bookId, format, conversion);
+    try {
+      return await datasource.sendBookViaEmail(bookId, format, conversion);
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<bool> uploadToSend2Ereader(
@@ -111,13 +116,17 @@ class BookDetailsRepository {
     bool isKindle = false,
     Function(int)? onProgressUpdate,
   }) async {
-    return datasource.uploadToSend2Ereader(
-      url,
-      code,
-      filename,
-      fileBytes,
-      isKindle: isKindle,
-      onProgressUpdate: onProgressUpdate,
-    );
+    try {
+      return datasource.uploadToSend2Ereader(
+        url,
+        code,
+        filename,
+        fileBytes,
+        isKindle: isKindle,
+        onProgressUpdate: onProgressUpdate,
+      );
+    } catch (e) {
+      rethrow;
+    }
   }
 }

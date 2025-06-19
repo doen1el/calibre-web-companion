@@ -24,7 +24,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     on<ToggleArchiveStatus>(_onToggleArchiveStatus);
     on<DownloadBook>(_onDownloadBook);
     on<CancelDownload>(_onCancelDownload);
-    on<SendBookByEmail>(_onSendBookByEmail);
     on<OpenBookInReader>(_onOpenBookInReader);
     on<OpenBookInBrowser>(_onOpenBookInBrowser);
     on<UpdateDownloadProgress>(_onUpdateDownloadProgress);
@@ -404,41 +403,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     emit(state.copyWith(downloadProgress: event.progress));
   }
 
-  Future<void> _onSendBookByEmail(
-    SendBookByEmail event,
-    Emitter<BookDetailsState> emit,
-  ) async {
-    try {
-      logger.i('Sending book via email: ${event.bookId}');
-      emit(state.copyWith(emailState: EmailState.sending));
-
-      final success = await repository.sendViaEmail(
-        event.bookId,
-        event.format,
-        event.conversion,
-      );
-
-      if (success) {
-        emit(state.copyWith(emailState: EmailState.success));
-      } else {
-        emit(
-          state.copyWith(
-            emailState: EmailState.error,
-            errorMessage: 'Failed to send book via email',
-          ),
-        );
-      }
-    } catch (e) {
-      logger.e('Error sending book via email: $e');
-      emit(
-        state.copyWith(
-          emailState: EmailState.error,
-          errorMessage: e.toString(),
-        ),
-      );
-    }
-  }
-
   Future<void> _onOpenBookInReader(
     OpenBookInReader event,
     Emitter<BookDetailsState> emit,
@@ -455,16 +419,30 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
 
     try {
       logger.i('Opening book in reader: ${state.bookDetails!.title}');
-      emit(state.copyWith(openInReaderState: OpenInReaderState.loading));
+      emit(
+        state.copyWith(
+          openInReaderState: OpenInReaderState.loading,
+          downloadProgress: 0, // Reset progress
+        ),
+      );
 
       final success = await repository.openInReader(
         state.bookDetails!,
         event.selectedDirectory,
         event.schema,
+        progressCallback: (progress) {
+          logger.d('Reader download progress: $progress%');
+          emit(state.copyWith(downloadProgress: progress));
+        },
       );
 
       if (success) {
-        emit(state.copyWith(openInReaderState: OpenInReaderState.success));
+        emit(
+          state.copyWith(
+            openInReaderState: OpenInReaderState.success,
+            downloadProgress: 100,
+          ),
+        );
       } else {
         emit(
           state.copyWith(
@@ -505,6 +483,16 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     UpdateBookMetadata event,
     Emitter<BookDetailsState> emit,
   ) async {
+    if (state.bookDetails == null) {
+      emit(
+        state.copyWith(
+          metadataUpdateState: MetadataUpdateState.error,
+          errorMessage: 'Cannot update metadata: Book details not available',
+        ),
+      );
+      return;
+    }
+
     emit(state.copyWith(metadataUpdateState: MetadataUpdateState.loading));
 
     try {
@@ -517,7 +505,17 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       );
 
       if (result) {
-        emit(state.copyWith(metadataUpdateState: MetadataUpdateState.success));
+        emit(
+          state.copyWith(
+            metadataUpdateState: MetadataUpdateState.success,
+            bookDetails: state.bookDetails?.copyWith(
+              title: event.title,
+              authors: event.authors,
+              comments: event.comments,
+              tags: event.tags.split(',').map((tag) => tag.trim()).toList(),
+            ),
+          ),
+        );
       } else {
         emit(
           state.copyWith(

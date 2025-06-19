@@ -27,16 +27,16 @@ import 'package:calibre_web_companion/features/login_settings/data/datasources/l
 import 'package:calibre_web_companion/features/login_settings/data/repositories/login_settings_repository.dart';
 import 'package:calibre_web_companion/features/me/bloc/me_bloc.dart';
 import 'package:calibre_web_companion/features/me/data/datasources/me_remote_datasource.dart';
-import 'package:calibre_web_companion/features/me/data/repositories/me_repositorie.dart';
+import 'package:calibre_web_companion/features/me/data/repositories/me_repository.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/data/datasources/settings_local_datasource.dart';
-import 'package:calibre_web_companion/features/settings/data/repositories/settings_repositorie.dart';
+import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/datasources/shelf_details_remote_datasource.dart';
-import 'package:calibre_web_companion/features/shelf_details/data/repositories/shelf_details_repositorie.dart';
+import 'package:calibre_web_companion/features/shelf_details/data/repositories/shelf_details_repository.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/datasources/shelf_view_remote_datasource.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repositorie.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -229,13 +229,13 @@ Future<void> init() async {
   );
 
   // Repositories
-  getIt.registerLazySingleton<SettingsRepositorie>(
-    () => SettingsRepositorie(dataSource: getIt<SettingsLocalDataSource>()),
+  getIt.registerLazySingleton<SettingsRepository>(
+    () => SettingsRepository(dataSource: getIt<SettingsLocalDataSource>()),
   );
 
   // BLoCs
   getIt.registerFactory<SettingsBloc>(
-    () => SettingsBloc(repository: getIt<SettingsRepositorie>()),
+    () => SettingsBloc(repository: getIt<SettingsRepository>()),
   );
 
   //? Download Service Feature

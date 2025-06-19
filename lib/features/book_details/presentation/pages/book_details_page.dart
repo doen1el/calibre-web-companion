@@ -47,6 +47,12 @@ class BookDetailsPage extends StatelessWidget {
               getIt<BookDetailsBloc>()
                 ..add(LoadBookDetails(bookListModel, bookUuid)),
       child: BlocConsumer<BookDetailsBloc, BookDetailsState>(
+        listenWhen:
+            (previous, current) =>
+                previous.readStatusState != current.readStatusState ||
+                previous.archiveStatusState != current.archiveStatusState ||
+                previous.openInReaderState != current.openInReaderState ||
+                previous.metadataUpdateState != current.metadataUpdateState,
         listener: (context, state) {
           // Handle state changes that require user feedback
           if (state.readStatusState == ReadStatusState.success) {
@@ -90,6 +96,11 @@ class BookDetailsPage extends StatelessWidget {
             );
           }
         },
+        buildWhen:
+            (previous, current) =>
+                previous.status != current.status ||
+                previous.bookDetails != current.bookDetails ||
+                previous.metadataUpdateState != current.metadataUpdateState,
         builder: (context, state) {
           final isLoading = state.status == BookDetailsStatus.loading;
           final hasError = state.status == BookDetailsStatus.error;
@@ -467,8 +478,8 @@ class BookDetailsPage extends StatelessWidget {
             tooltip: localizations.archiveUnarchive,
           ),
 
-          EditBookMetadataWidget(book: book, isLoading: isLoading),
-
+          // TODO: Fix Edit Metadata functionality
+          // EditBookMetadataWidget(book: book, isLoading: isLoading),
           AddToShelfWidget(book: book, isLoading: isLoading),
 
           DownloadToDeviceWidget(book: book, isLoading: isLoading),

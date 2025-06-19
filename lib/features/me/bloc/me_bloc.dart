@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:calibre_web_companion/features/me/bloc/me_event.dart';
 import 'package:calibre_web_companion/features/me/bloc/me_state.dart';
 
-import 'package:calibre_web_companion/features/me/data/repositories/me_repositorie.dart';
+import 'package:calibre_web_companion/features/me/data/repositories/me_repository.dart';
 
 class MeBloc extends Bloc<MeEvent, MeState> {
   final MeRepository repository;
