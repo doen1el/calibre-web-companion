@@ -228,7 +228,7 @@ class SettingsViewModel extends ChangeNotifier {
       _isCostumSend2ereaderEnabled =
           prefs.getBool('send2ereader_enabled') ?? false;
       _send2ereaderUrl =
-          prefs.getString('send2ereader_url') ?? 'https://send.djazz.se/';
+          prefs.getString('send2ereader_url') ?? 'https://send.djazz.se';
       send2ereaderUrlController.text = _send2ereaderUrl;
 
       notifyListeners();

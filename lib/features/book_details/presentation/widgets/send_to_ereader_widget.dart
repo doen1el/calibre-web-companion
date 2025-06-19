@@ -450,7 +450,7 @@ class SendToEreaderWidget extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Status icon
-                      _buildStatusIcon(state.sendToEReaderState),
+                      _buildStatusIcon(state.sendToEReaderState, context),
                       const SizedBox(height: 20),
 
                       // Status text
@@ -487,20 +487,41 @@ class SendToEreaderWidget extends StatelessWidget {
 
                       // Progress indicator for loading states
                       if (state.sendToEReaderState ==
-                              SendToEReaderState.loading ||
-                          state.sendToEReaderState ==
-                              SendToEReaderState.downloading ||
-                          state.sendToEReaderState ==
-                              SendToEReaderState.uploading)
+                          SendToEReaderState.loading)
                         LinearProgressIndicator(
                           backgroundColor: Colors.grey[200],
-                          value:
-                              state.sendToEReaderProgress > 0
-                                  ? state.sendToEReaderProgress / 100
-                                  : null,
                           valueColor: AlwaysStoppedAnimation<Color>(
                             Theme.of(context).primaryColor,
                           ),
+                        ),
+
+                      // Progress indicator with percentage for downloading/uploading
+                      if (state.sendToEReaderState ==
+                              SendToEReaderState.downloading ||
+                          state.sendToEReaderState ==
+                              SendToEReaderState.uploading)
+                        Column(
+                          children: [
+                            LinearProgressIndicator(
+                              backgroundColor: Colors.grey[200],
+                              value:
+                                  state.sendToEReaderProgress > 0
+                                      ? state.sendToEReaderProgress / 100
+                                      : null,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Theme.of(context).primaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${state.sendToEReaderProgress}%',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
                         ),
 
                       const SizedBox(height: 20),
@@ -586,7 +607,7 @@ class SendToEreaderWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusIcon(SendToEReaderState state) {
+  Widget _buildStatusIcon(SendToEReaderState state, BuildContext context) {
     switch (state) {
       case SendToEReaderState.initial:
       case SendToEReaderState.loading:
@@ -596,14 +617,22 @@ class SendToEreaderWidget extends StatelessWidget {
       case SendToEReaderState.uploading:
         return const Icon(Icons.upload_rounded, size: 48);
       case SendToEReaderState.success:
-        return const Icon(Icons.check_circle, size: 48, color: Colors.green);
+        return Icon(
+          Icons.check_circle,
+          size: 48,
+          color: Theme.of(context).colorScheme.primary,
+        );
       case SendToEReaderState.error:
-        return const Icon(Icons.error_outline, size: 48, color: Colors.red);
+        return Icon(
+          Icons.error_outline,
+          size: 48,
+          color: Theme.of(context).colorScheme.error,
+        );
       case SendToEReaderState.cancelled:
-        return const Icon(
+        return Icon(
           Icons.cancel_outlined,
           size: 48,
-          color: Colors.orange,
+          color: Theme.of(context).colorScheme.secondary,
         );
     }
   }

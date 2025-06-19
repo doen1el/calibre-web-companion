@@ -834,7 +834,7 @@ class SettingsView extends StatelessWidget {
                 controller: viewModel.send2ereaderUrlController,
                 labelText: localizations.send2ereaderServiceUrl,
                 prefixIcon: Icons.link,
-                hintText: "https://send.djazz.se/",
+                hintText: "https://send.djazz.se",
                 onChanged: (value) => viewModel.setSend2ereaderUrl(value),
               ),
               const SizedBox(height: 8),

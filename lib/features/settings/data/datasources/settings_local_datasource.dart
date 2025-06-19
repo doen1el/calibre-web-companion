@@ -32,7 +32,7 @@ class SettingsLocalDataSource {
             sharedPreferences.getBool('send2ereader_enabled') ?? false,
         'send2ereader_url':
             sharedPreferences.getString('send2ereader_url') ??
-            'https://send.djazz.se/',
+            'https://send.djazz.se',
         'default_download_path':
             sharedPreferences.getString('default_download_path') ?? '',
         'download_schema': sharedPreferences.getInt('download_schema') ?? 0,

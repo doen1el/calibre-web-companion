@@ -318,7 +318,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     borderRadius: BorderRadius.circular(12.0),
                   ),
                   labelText: localizations.send2ereaderServiceUrl,
-                  hintText: "https://send.djazz.se/",
+                  hintText: "https://send.djazz.se",
                   prefixIcon: const Icon(Icons.link),
                   filled: true,
                   fillColor: Theme.of(context).colorScheme.surface,

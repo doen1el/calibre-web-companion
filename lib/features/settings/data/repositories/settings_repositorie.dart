@@ -61,9 +61,6 @@ class SettingsRepositorie {
   Future<void> setSend2ereaderEnabled(bool enabled) async {
     try {
       await dataSource.saveSend2ereaderEnabled(enabled);
-      if (!enabled) {
-        await dataSource.saveSend2ereaderUrl('https://send.djazz.se/');
-      }
     } catch (e) {
       rethrow;
     }

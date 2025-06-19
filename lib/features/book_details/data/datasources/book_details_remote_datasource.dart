@@ -105,28 +105,6 @@ class BookDetailsRemoteDatasource {
     }
   }
 
-  Future<Uint8List?> downloadBookBytes(String bookId, String format) async {
-    try {
-      logger.i('Downloading book bytes - BookId: $bookId, Format: $format');
-
-      final response = await apiService.getStream(
-        endpoint: '/download/$bookId/$format/$bookId.$format',
-        authMethod: AuthMethod.cookie,
-      );
-
-      if (response.statusCode == 200) {
-        logger.i('Successfully downloaded book bytes');
-        return await response.stream.toBytes();
-      } else {
-        logger.e('Error downloading book bytes: HTTP ${response.statusCode}');
-        return null;
-      }
-    } catch (e) {
-      logger.e('Exception downloading book bytes: $e');
-      throw Exception('Failed to download book bytes: $e');
-    }
-  }
-
   Future<String> downloadBook(
     BookDetailsModel book,
     String selectedDirectory,
@@ -424,54 +402,6 @@ class BookDetailsRemoteDatasource {
     }
   }
 
-  /// Upload book to send2ereader service via browser method
-  Future<bool> uploadToSend2Ereader(
-    String url,
-    String code,
-    String filename,
-    Uint8List fileBytes, {
-    bool isKindle = false,
-  }) async {
-    try {
-      logger.i(
-        'Uploading to send2ereader - URL: $url, Code: $code, Kindle: $isKindle',
-      );
-
-      final uri = Uri.parse(url);
-      final request = http.MultipartRequest('POST', uri);
-
-      // Add form fields
-      request.fields['code'] = code;
-      if (isKindle) {
-        request.fields['kindle'] = 'true';
-      }
-
-      // Add file
-      final multipartFile = http.MultipartFile.fromBytes(
-        'file',
-        fileBytes,
-        filename: filename,
-      );
-      request.files.add(multipartFile);
-
-      // Send request
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-
-      if (response.statusCode == 200) {
-        logger.i('Successfully uploaded to send2ereader');
-        return true;
-      } else {
-        logger.e('Failed to upload to send2ereader: ${response.statusCode}');
-        logger.e('Response body: ${response.body}');
-        return false;
-      }
-    } catch (e) {
-      logger.e('Error uploading to send2ereader: $e');
-      return false;
-    }
-  }
-
   /// Send book via email using the Calibre-Web email functionality
   Future<bool> sendBookViaEmail(
     String bookId,
@@ -758,6 +688,74 @@ class BookDetailsRemoteDatasource {
     } catch (e) {
       logger.e('Error getting file size: $e');
       return null;
+    }
+  }
+
+  Future<bool> uploadToSend2Ereader(
+    String url,
+    String code,
+    String filename,
+    List<int> bookBytes, {
+    bool isKindle = false,
+    Function(int)? onProgressUpdate,
+  }) async {
+    try {
+      logger.i(
+        'Uploading to send2ereader - URL: $url, Code: $code, Kindle: $isKindle',
+      );
+
+      if (url.endsWith('/')) {
+        url = url.substring(0, url.length - 1);
+      }
+
+      final request = http.MultipartRequest('POST', Uri.parse("$url/upload"));
+
+      request.fields['key'] = code;
+      request.fields['kepubify'] = (!isKindle).toString();
+      request.fields['kindlegen'] = isKindle.toString();
+
+      final multipartFile = http.MultipartFile.fromBytes(
+        'file',
+        bookBytes,
+        filename: path.basename(filename),
+      );
+
+      request.files.add(multipartFile);
+
+      // Simulate progress before sending (since we can't track real upload progress)
+      if (onProgressUpdate != null) {
+        onProgressUpdate(20);
+        await Future.delayed(const Duration(milliseconds: 200));
+        onProgressUpdate(40);
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
+
+      final response = await request.send();
+
+      // Simulate progress after sending
+      if (onProgressUpdate != null) {
+        onProgressUpdate(70);
+        await Future.delayed(const Duration(milliseconds: 200));
+        onProgressUpdate(90);
+        await Future.delayed(const Duration(milliseconds: 200));
+        onProgressUpdate(100);
+      }
+
+      // Get response body for error reporting if needed
+      final responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        logger.i('Successfully uploaded to send2ereader');
+        return true;
+      } else {
+        logger.e(
+          'Failed to upload: ${response.statusCode}, Body: $responseBody',
+        );
+        return false;
+      }
+    } catch (e) {
+      logger.e('Error uploading to send2ereader: $e');
+      return false;
     }
   }
 }

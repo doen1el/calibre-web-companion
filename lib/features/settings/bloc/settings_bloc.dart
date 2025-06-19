@@ -156,6 +156,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setSend2ereaderEnabled(event.enabled);
       emit(state.copyWith(isSend2ereaderEnabled: event.enabled));
+      if (!event.enabled) {
+        await repository.setSend2ereaderUrl('https://send.djazz.se');
+        emit(state.copyWith(send2ereaderUrl: 'https://send.djazz.se'));
+      }
     } catch (e) {
       emit(
         state.copyWith(

@@ -550,33 +550,65 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     _sendToEReaderCancelled = false;
 
     try {
-      // Download book bytes
+      // Download book bytes with progress tracking
       emit(state.copyWith(sendToEReaderState: SendToEReaderState.downloading));
 
-      final bookBytes = await repository.downloadBookBytes(
-        event.bookId,
-        'epub',
-      );
+      final List<int> bookBytes = [];
+      final response = await repository.getDownloadStream(event.bookId, 'epub');
+
+      var contentLength = response.contentLength ?? -1;
+      int receivedBytes = 0;
+
+      await for (final chunk in response.stream) {
+        if (_sendToEReaderCancelled) {
+          emit(
+            state.copyWith(sendToEReaderState: SendToEReaderState.cancelled),
+          );
+          return;
+        }
+
+        receivedBytes += chunk.length;
+        bookBytes.addAll(chunk);
+
+        if (contentLength > 0) {
+          final progress = (receivedBytes / contentLength * 100).round();
+          logger.d('Download progress: $progress%');
+          emit(state.copyWith(sendToEReaderProgress: progress));
+        }
+      }
 
       if (_sendToEReaderCancelled) {
         emit(state.copyWith(sendToEReaderState: SendToEReaderState.cancelled));
         return;
       }
 
-      if (bookBytes == null) {
+      if (bookBytes.isEmpty) {
         throw Exception('Failed to download book');
       }
 
-      // Upload to send2ereader
-      emit(state.copyWith(sendToEReaderState: SendToEReaderState.uploading));
+      // Upload to send2ereader with progress tracking
+      emit(
+        state.copyWith(
+          sendToEReaderState: SendToEReaderState.uploading,
+          sendToEReaderProgress: 0, // Reset progress for upload phase
+        ),
+      );
 
       final settingsState = GetIt.instance<SettingsBloc>().state;
+
+      // Use a callback to update progress
       final success = await repository.uploadToSend2Ereader(
         settingsState.send2ereaderUrl,
         event.code,
         '${event.title}.epub',
         bookBytes,
         isKindle: event.isKindle,
+        onProgressUpdate: (progress) {
+          if (!_sendToEReaderCancelled) {
+            logger.d('Upload progress: $progress%');
+            emit(state.copyWith(sendToEReaderProgress: progress));
+          }
+        },
       );
 
       if (_sendToEReaderCancelled) {

@@ -40,34 +40,6 @@ class BookDetailsRepository {
     }
   }
 
-  Future<Uint8List?> downloadBookBytes(String bookId, String format) async {
-    try {
-      return await datasource.downloadBookBytes(bookId, format);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<String> downloadBook(
-    BookDetailsModel book,
-    String selectedDirectory,
-    DownloadSchema schema, {
-    String format = 'epub',
-    Function(int)? progressCallback,
-  }) async {
-    try {
-      return await datasource.downloadBook(
-        book,
-        selectedDirectory,
-        schema,
-        format: format,
-        progressCallback: progressCallback,
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
-
   Future<bool> sendViaEmail(
     String bookId,
     String format,
@@ -135,15 +107,17 @@ class BookDetailsRepository {
     String url,
     String code,
     String filename,
-    Uint8List fileBytes, {
+    List<int> fileBytes, {
     bool isKindle = false,
+    Function(int)? onProgressUpdate,
   }) async {
-    return await datasource.uploadToSend2Ereader(
+    return datasource.uploadToSend2Ereader(
       url,
       code,
       filename,
       fileBytes,
       isKindle: isKindle,
+      onProgressUpdate: onProgressUpdate,
     );
   }
 }

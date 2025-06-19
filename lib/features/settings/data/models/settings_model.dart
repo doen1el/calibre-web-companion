@@ -36,7 +36,7 @@ class SettingsModel extends Equatable {
       isDownloaderEnabled: json['downloader_enabled'] ?? false,
       downloaderUrl: json['downloader_url'] ?? '',
       isSend2ereaderEnabled: json['send2ereader_enabled'] ?? false,
-      send2ereaderUrl: json['send2ereader_url'] ?? 'https://send.djazz.se/',
+      send2ereaderUrl: json['send2ereader_url'] ?? 'https://send.djazz.se',
       defaultDownloadPath: json['default_download_path'] ?? '',
       downloadSchema: DownloadSchema.values[json['download_schema'] ?? 0],
       languageCode: json['language_code'] ?? 'en',

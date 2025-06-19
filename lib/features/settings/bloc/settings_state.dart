@@ -37,7 +37,7 @@ class SettingsState extends Equatable {
     this.isDownloaderEnabled = false,
     this.downloaderUrl = '',
     this.isSend2ereaderEnabled = false,
-    this.send2ereaderUrl = 'https://send.djazz.se/',
+    this.send2ereaderUrl = 'https://send.djazz.se',
     this.defaultDownloadPath = '',
     this.downloadSchema = DownloadSchema.flat,
     this.errorMessage,
