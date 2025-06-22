@@ -14,6 +14,7 @@ class LoginSettingsLocalDataSource {
   });
 
   static const String _customHeadersKey = 'custom_login_headers';
+  static const String _basePathKey = 'base_path';
 
   Future<List<CustomHeaderModel>> getCustomHeaders() async {
     try {
@@ -41,6 +42,27 @@ class LoginSettingsLocalDataSource {
     } catch (e) {
       logger.e('Error saving headers: $e');
       throw Exception('Failed to save headers: $e');
+    }
+  }
+
+  Future<String> getBasePath() async {
+    try {
+      final String basePath = preferences.getString(_basePathKey) ?? '';
+      logger.i('Loaded base path: $basePath');
+      return basePath;
+    } catch (e) {
+      logger.e('Error loading base path: $e');
+      return '';
+    }
+  }
+
+  Future<void> saveBasePath(String basePath) async {
+    try {
+      await preferences.setString(_basePathKey, basePath);
+      logger.i('Saved base path: $basePath');
+    } catch (e) {
+      logger.e('Error saving base path: $e');
+      throw Exception('Failed to save base path: $e');
     }
   }
 }

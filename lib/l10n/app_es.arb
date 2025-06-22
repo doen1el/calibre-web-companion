@@ -251,7 +251,6 @@
   "authSystems": "Sistemas de autenticación",
   "webViewAuth": "Autenticación WebView",
   "basePath": "Ruta base",
-  "basePathDescription": "Introduce la ruta base si tu instancia de Calibre Web se ejecuta bajo una subruta (por ejemplo, /calibre)",
   "authSystem": "Sistema de autenticación",
   "authSystemDescription": "Selecciona el sistema de autenticación detrás del cual se ejecuta tu instancia de Calibre Web",
   "webViewAuthentication": "Autenticación basada en navegador",
@@ -297,5 +296,9 @@
   "descriptionIsRequired": "La descripción es obligatoria",
   "downloadCancelled": "Descarga cancelada",
   "transferCancelled": "Transferencia cancelada",
-  "logoutConfirmation": "¿Estás seguro de que quieres cerrar sesión?"
+  "logoutConfirmation": "¿Estás seguro de que quieres cerrar sesión?",
+  "basePathTitle": "Ruta base de la API",
+  "basePathDescription": "Define una ruta base personalizada para las solicitudes de la API",
+  "basePathLabel": "Ruta base",
+  "basePathHint": "ej., /opds o /calibre"
 }

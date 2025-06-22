@@ -18,12 +18,6 @@ class LoginSettingsPage extends StatefulWidget {
 
 class _LoginSettingsPage extends State<LoginSettingsPage> {
   @override
-  void initState() {
-    super.initState();
-    context.read<LoginSettingsBloc>().add(const SaveLoginSettings());
-  }
-
-  @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
 
@@ -60,6 +54,13 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        _buildSectionTitle(
+                          context,
+                          localizations
+                              .basePathTitle, // Neuer Übersetzungsstring
+                        ),
+                        _buildBasePathSection(context, state, localizations),
+
                         _buildSectionTitle(
                           context,
                           localizations.costumHttpPHeader,
@@ -108,6 +109,76 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.secondary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBasePathSection(
+    BuildContext context,
+    LoginSettingsState state,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.link_rounded,
+                  size: 28,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        localizations.basePathTitle,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        localizations
+                            .basePathDescription, // Neuer Übersetzungsstring
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            TextFormField(
+              initialValue: state.basePath,
+              onChanged: (value) {
+                context.read<LoginSettingsBloc>().add(UpdateBasePath(value));
+              },
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                labelText: localizations.basePathLabel,
+                hintText: localizations.basePathHint,
+                prefixIcon: const Icon(Icons.folder_outlined),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surface,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 14.0,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

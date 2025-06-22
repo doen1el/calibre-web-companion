@@ -23,6 +23,8 @@ enum AuthSystem {
   custom,
 }
 
+// TODO: Add ability to change base path
+
 /// Service class to handle API requests with various authentication methods
 class ApiService {
   final Logger _logger = Logger();

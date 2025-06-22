@@ -47,3 +47,12 @@ class UpdateCustomHeaderValue extends LoginSettingsEvent {
 class SaveLoginSettings extends LoginSettingsEvent {
   const SaveLoginSettings();
 }
+
+class UpdateBasePath extends LoginSettingsEvent {
+  final String basePath;
+
+  const UpdateBasePath(this.basePath);
+
+  @override
+  List<Object?> get props => [basePath];
+}

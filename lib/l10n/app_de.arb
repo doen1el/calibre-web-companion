@@ -251,7 +251,6 @@
   "authSystems": "Authentifizierungssysteme",
   "webViewAuth": "WebView-Authentifizierung",
   "basePath": "Basis-Pfad",
-  "basePathDescription": "Geben Sie den Basis-Pfad ein, wenn Ihre Calibre-Web-Instanz unter einem Unterpfad läuft (z. B. /calibre)",
   "authSystem": "Authentifizierungssystem",
   "authSystemDescription": "Wählen Sie das Authentifizierungssystem aus, hinter dem Ihre Calibre-Web-Instanz läuft",
   "webViewAuthentication": "Browser-Authentifizierung",
@@ -297,5 +296,9 @@
   "descriptionIsRequired": "Beschreibung ist erforderlich",
   "downloadCancelled": "Download abgebrochen",
   "transferCancelled": "Transfer abgebrochen",
-  "logoutConfirmation": "Bist du sicher, dass du dich abmelden möchtest?"
+  "logoutConfirmation": "Bist du sicher, dass du dich abmelden möchtest?",
+  "basePathTitle": "API-Basis-Pfad",
+  "basePathDescription": "Definiere einen benutzerdefinierten Basis-Pfad für API-Anfragen",
+  "basePathLabel": "Basis-Pfad",
+  "basePathHint": "z.B. /opds oder /calibre"
 }

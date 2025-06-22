@@ -251,7 +251,6 @@
   "authSystems": "Systèmes d'authentification",
   "webViewAuth": "Authentification WebView",
   "basePath": "Chemin de base",
-  "basePathDescription": "Entrez le chemin de base si votre instance Calibre Web fonctionne sous un sous-chemin (par ex. /calibre)",
   "authSystem": "Système d'authentification",
   "authSystemDescription": "Sélectionnez le système d'authentification derrière lequel fonctionne votre instance Calibre Web",
   "webViewAuthentication": "Authentification via navigateur",
@@ -297,5 +296,9 @@
   "descriptionIsRequired": "La description est requise",
   "downloadCancelled": "Téléchargement annulé",
   "transferCancelled": "Transfert annulé",
-  "logoutConfirmation": "Êtes-vous sûr de vouloir vous déconnecter ?"
+  "logoutConfirmation": "Êtes-vous sûr de vouloir vous déconnecter ?",
+  "basePathTitle": "Chemin de base de l'API",
+  "basePathDescription": "Définir un chemin de base personnalisé pour les requêtes API",
+  "basePathLabel": "Chemin de base",
+  "basePathHint": "ex. /opds ou /calibre"
 }

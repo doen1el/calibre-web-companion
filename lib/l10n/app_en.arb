@@ -251,7 +251,6 @@
   "authSystems": "Authentication Systems",
   "webViewAuth": "WebView Authentication",
   "basePath": "Base Path",
-  "basePathDescription": "Enter the base path if your Calibre Web instance is hosted under a sub-path (e.g., /calibre)",
   "authSystem": "Authentication System",
   "authSystemDescription": "Choose the authentication system used by your Calibre Web instance",
   "webViewAuthentication": "Browser-Based Authentication",
@@ -297,5 +296,9 @@
   "descriptionIsRequired": "Description is required",
   "downloadCancelled": "Download cancelled",
   "transferCancelled": "Transfer cancelled",
-  "logoutConfirmation": "Are you sure you want to logout?"
+  "logoutConfirmation": "Are you sure you want to logout?",
+  "basePathTitle": "API Base Path",
+  "basePathLabel": "Base Path",
+  "basePathHint": "e.g., /opds or /calibre",
+  "basePathDescription": "Define a custom base path for API requests"
 }

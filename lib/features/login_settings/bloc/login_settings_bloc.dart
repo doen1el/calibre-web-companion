@@ -19,6 +19,7 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
     on<UpdateCustomHeaderKey>(_onUpdateCustomHeaderKey);
     on<UpdateCustomHeaderValue>(_onUpdateCustomHeaderValue);
     on<SaveLoginSettings>(_onSaveSettings);
+    on<UpdateBasePath>(_onUpdateBasePath);
   }
 
   Future<void> _onLoadSettings(
@@ -29,7 +30,16 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
 
     try {
       final headers = await loginSettingsRepository.getCustomHeaders();
-      emit(state.copyWith(customHeaders: headers, isLoading: false));
+      final basePath =
+          await loginSettingsRepository.getBasePath(); // Base Path laden
+
+      emit(
+        state.copyWith(
+          customHeaders: headers,
+          basePath: basePath,
+          isLoading: false,
+        ),
+      );
     } catch (e) {
       _logger.e('Error loading login settings: $e');
       emit(
@@ -102,6 +112,8 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
 
     try {
       await loginSettingsRepository.saveCustomHeaders(state.customHeaders);
+      await loginSettingsRepository.saveBasePath(state.basePath);
+
       emit(state.copyWith(isLoading: false, isSaved: true));
     } catch (e) {
       _logger.e('Error saving settings: $e');
@@ -113,5 +125,12 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
         ),
       );
     }
+  }
+
+  void _onUpdateBasePath(
+    UpdateBasePath event,
+    Emitter<LoginSettingsState> emit,
+  ) {
+    emit(state.copyWith(basePath: event.basePath, isSaved: false));
   }
 }

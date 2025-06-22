@@ -37,4 +37,20 @@ class LoginSettingsRepository {
       rethrow;
     }
   }
+
+  Future<String> getBasePath() async {
+    try {
+      return await loginSettingsLocalDataSource.getBasePath();
+    } catch (e) {
+      return '';
+    }
+  }
+
+  Future<void> saveBasePath(String basePath) async {
+    try {
+      await loginSettingsLocalDataSource.saveBasePath(basePath);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
