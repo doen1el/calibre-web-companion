@@ -1,3 +1,7 @@
+import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_event.dart';
@@ -14,6 +18,7 @@ class DiscoverDetailsBloc
     on<LoadCategories>(_onLoadCategories);
     on<LoadBooksFromPath>(_onLoadBooksFromPath);
     on<RefreshData>(_onRefreshData);
+    on<LoadDiscoverBookDetails>(_onLoadDiscoverBookDetails);
   }
 
   Future<void> _onLoadBooks(
@@ -128,6 +133,39 @@ class DiscoverDetailsBloc
     } else if (state.isShowingCategories && state.categoryFeed != null) {
       // Re-trigger the last categories load
       // This would need to be enhanced to store the last parameters
+    }
+  }
+
+  Future<void> _onLoadDiscoverBookDetails(
+    LoadDiscoverBookDetails event,
+    Emitter<DiscoverDetailsState> emit,
+  ) async {
+    emit(state.copyWith(loadingBookId: event.bookId));
+
+    try {
+      final bookDetails = await repository.loadBookDetails(event.bookId);
+
+      emit(state.copyWith(bookDetails: bookDetails, errorMessage: null));
+
+      // ignore: use_build_context_synchronously
+      await Navigator.of(event.context).push(
+        AppTransitions.createSlideRoute(
+          BookDetailsPage(
+            bookListModel: bookDetails,
+            bookUuid: bookDetails.uuid,
+          ),
+        ),
+      );
+
+      emit(state.copyWith(loadingBookId: ""));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: DiscoverDetailsStatus.error,
+          errorMessage: e.toString(),
+          loadingBookId: "",
+        ),
+      );
     }
   }
 }

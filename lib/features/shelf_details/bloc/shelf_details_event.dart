@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_book_item_model.dart';
+import 'package:flutter/material.dart';
 
 abstract class ShelfDetailsEvent extends Equatable {
   const ShelfDetailsEvent();
@@ -54,4 +55,14 @@ class NavigateToBook extends ShelfDetailsEvent {
 
   @override
   List<Object?> get props => [book];
+}
+
+class LoadShelfBookDetails extends ShelfDetailsEvent {
+  final String bookId;
+  final BuildContext context;
+
+  const LoadShelfBookDetails(this.bookId, this.context);
+
+  @override
+  List<Object?> get props => [bookId];
 }

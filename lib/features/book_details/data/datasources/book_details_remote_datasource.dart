@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:logger/logger.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
@@ -234,29 +236,70 @@ class BookDetailsRemoteDatasource {
     required String authors,
     required String comments,
     required String tags,
+    Uint8List? coverImageBytes,
+    String? coverFileName,
   }) async {
     try {
-      final response = await apiService.post(
-        endpoint: '/admin/book/$bookId',
-        body: {
-          'title': title,
-          'authors': authors,
-          'comments': comments,
-          'tags': tags,
-        },
-        authMethod: AuthMethod.cookie,
-        useCsrf: true,
-        contentType: 'application/x-www-form-urlencoded',
-      );
+      // Prepare the request body
+      final body = {
+        'title': title,
+        'authors': authors,
+        'comments': comments,
+        'tags': tags,
+        'detail_view': 'on',
+      };
 
-      if (response.statusCode == 200) {
-        logger.i('Successfully updated book metadata');
-        return true;
-      } else {
-        logger.e(
-          'Failed to update book metadata: ${response.statusCode} - ${response.body}',
+      // If there's a cover to upload, use multipart request
+      if (coverImageBytes != null && coverFileName != null) {
+        logger.i('Updating book metadata with cover for book: $bookId');
+
+        // Create the multipart file
+        final multipartFile = http.MultipartFile.fromBytes(
+          'btn-upload-cover',
+          coverImageBytes,
+          filename: coverFileName,
+          contentType: MediaType('image', 'jpeg'),
         );
-        return false;
+
+        // Use the post method with files parameter
+        final response = await apiService.post(
+          endpoint: '/admin/book/$bookId',
+          body: body,
+          files: [multipartFile],
+          authMethod: AuthMethod.cookie,
+          useCsrf: true,
+          contentType:
+              'multipart/form-data', // This will be set automatically by the MultipartRequest
+        );
+
+        if (response.statusCode == 200) {
+          logger.i('Successfully updated book metadata with cover');
+          return true;
+        } else {
+          logger.e(
+            'Failed to update book metadata with cover: ${response.statusCode}, ${response.body}',
+          );
+          return false;
+        }
+      } else {
+        // Standard request without cover
+        final response = await apiService.post(
+          endpoint: '/admin/book/$bookId',
+          body: body,
+          authMethod: AuthMethod.cookie,
+          useCsrf: true,
+          contentType: 'application/x-www-form-urlencoded',
+        );
+
+        if (response.statusCode == 200) {
+          logger.i('Successfully updated book metadata');
+          return true;
+        } else {
+          logger.e(
+            'Failed to update book metadata: ${response.statusCode} - ${response.body}',
+          );
+          return false;
+        }
       }
     } catch (e) {
       logger.e('Error updating book metadata: $e');

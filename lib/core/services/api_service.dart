@@ -294,6 +294,7 @@ class ApiService {
   /// - `contentType`: The content type of the request
   /// - `useCsrf`: Whether to fetch and include CSRF token
   /// - `csrfSelector`: CSS selector for the CSRF token input field
+  /// - `files`: Optional list of files to upload as multipart/form-data
   Future<http.Response> post({
     String endpoint = '',
     AuthMethod authMethod = AuthMethod.basic,
@@ -302,6 +303,7 @@ class ApiService {
     String contentType = 'application/json',
     bool useCsrf = false,
     String csrfSelector = 'input[name="csrf_token"]',
+    List<http.MultipartFile>? files, // New parameter for file uploads
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
@@ -354,82 +356,166 @@ class ApiService {
         }
       }
 
-      // STEP 2: Make POST request with extracted CSRF token
-      final postHeaders = {
-        'Content-Type': contentType,
-        'Cookie': sessionCookie,
-        'X-CSRFToken': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest',
-        'Referer': uri.toString(),
-        'Origin':
-            '${uri.scheme}://${uri.host}${uri.port != 80 && uri.port != 443 ? ":${uri.port}" : ""}',
-      };
-      postHeaders.addAll(customHeaders);
+      // Check if we need a multipart request (for file uploads)
+      if (files != null && files.isNotEmpty) {
+        // STEP 2: Make multipart POST request with extracted CSRF token
+        final request = http.MultipartRequest('POST', uri);
 
-      // Add CSRF token to body if it's a map
-      Map<String, dynamic> finalBody;
-      if (body is Map) {
-        if (body is Map<String, dynamic>) {
-          finalBody = Map<String, dynamic>.from(body);
-        } else {
-          finalBody = Map<String, dynamic>.from(
-            body.map((key, value) => MapEntry(key.toString(), value)),
-          );
+        // Add headers (omitting Content-Type as it will be set by MultipartRequest)
+        request.headers['Cookie'] = sessionCookie;
+        request.headers['X-CSRFToken'] = csrfToken;
+        request.headers['X-Requested-With'] = 'XMLHttpRequest';
+        request.headers['Referer'] = uri.toString();
+        request.headers['Origin'] =
+            '${uri.scheme}://${uri.host}${uri.port != 80 && uri.port != 443 ? ":${uri.port}" : ""}';
+
+        // Add custom headers
+        request.headers.addAll(customHeaders);
+
+        // Add fields from body
+        if (body is Map) {
+          final bodyMap = body as Map;
+          bodyMap.forEach((key, value) {
+            request.fields[key.toString()] = value.toString();
+          });
         }
-        finalBody['csrf_token'] = csrfToken;
+
+        // Add CSRF token as a field
+        request.fields['csrf_token'] = csrfToken;
+
+        // Add files
+        request.files.addAll(files);
+
+        _logger.d('Multipart POST request headers: ${request.headers}');
+        _logger.d('Multipart POST request fields: ${request.fields}');
+        _logger.d(
+          'Multipart POST request files: ${request.files.length} files',
+        );
+
+        try {
+          final streamedResponse = await request.send();
+          final response = await http.Response.fromStream(streamedResponse);
+          _logger.i('Multipart POST response status: ${response.statusCode}');
+          _checkResponseStatus(statusCode: response.statusCode);
+          return response;
+        } catch (e) {
+          _logger.e('Multipart POST request failed: $e');
+          rethrow;
+        }
       } else {
-        finalBody = {'csrf_token': csrfToken};
-      }
+        // Regular POST with CSRF token
+        final postHeaders = {
+          'Content-Type': contentType,
+          'Cookie': sessionCookie,
+          'X-CSRFToken': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+          'Referer': uri.toString(),
+          'Origin':
+              '${uri.scheme}://${uri.host}${uri.port != 80 && uri.port != 443 ? ":${uri.port}" : ""}',
+        };
+        postHeaders.addAll(customHeaders);
 
-      final encodedBody = _encodeBody(
-        body: finalBody,
-        contentType: contentType,
-      );
+        // Add CSRF token to body if it's a map
+        Map<String, dynamic> finalBody;
+        if (body is Map) {
+          if (body is Map<String, dynamic>) {
+            finalBody = Map<String, dynamic>.from(body);
+          } else {
+            finalBody = Map<String, dynamic>.from(
+              body.map((key, value) => MapEntry(key.toString(), value)),
+            );
+          }
+          finalBody['csrf_token'] = csrfToken;
+        } else {
+          finalBody = {'csrf_token': csrfToken};
+        }
 
-      _logger.d('CSRF-protected POST headers: $postHeaders');
-      _logger.d('CSRF-protected POST body: $encodedBody');
-
-      try {
-        final response = await _client.post(
-          uri,
-          headers: postHeaders,
-          body: encodedBody,
+        final encodedBody = _encodeBody(
+          body: finalBody,
+          contentType: contentType,
         );
-        _logger.i(
-          'CSRF-protected POST response status: ${response.statusCode}',
-        );
-        _checkResponseStatus(statusCode: response.statusCode);
-        return response;
-      } catch (e) {
-        _logger.e('CSRF-protected POST request failed: $e');
-        rethrow;
+
+        _logger.d('CSRF-protected POST headers: $postHeaders');
+        _logger.d('CSRF-protected POST body: $encodedBody');
+
+        try {
+          final response = await _client.post(
+            uri,
+            headers: postHeaders,
+            body: encodedBody,
+          );
+          _logger.i(
+            'CSRF-protected POST response status: ${response.statusCode}',
+          );
+          _checkResponseStatus(statusCode: response.statusCode);
+          return response;
+        } catch (e) {
+          _logger.e('CSRF-protected POST request failed: $e');
+          rethrow;
+        }
       }
     } else {
-      // Standard POST request without CSRF protection
-      final headers = _getAuthHeaders(authMethod: authMethod);
-      headers['Content-Type'] = contentType;
-      headers.addAll(customHeaders);
+      // Standard POST without CSRF protection
+      if (files != null && files.isNotEmpty) {
+        // Handle multipart request without CSRF
+        final request = http.MultipartRequest('POST', uri);
 
-      _logger.d('POST request to: $uri');
-      _logger.d(
-        'Using ${authMethod.name} authentication with ${_authSystem.name} proxy system',
-      );
-      _logger.d('Headers: $headers');
+        // Add auth headers
+        final headers = _getAuthHeaders(authMethod: authMethod);
+        headers.addAll(customHeaders);
+        request.headers.addAll(headers);
 
-      final encodedBody = _encodeBody(body: body, contentType: contentType);
+        // Add fields from body
+        if (body is Map) {
+          final bodyMap = body as Map;
+          bodyMap.forEach((key, value) {
+            request.fields[key.toString()] = value.toString();
+          });
+        }
 
-      try {
-        final response = await _client.post(
-          uri,
-          headers: headers,
-          body: encodedBody ?? "",
+        // Add files
+        request.files.addAll(files);
+
+        _logger.d('Multipart POST request to: $uri');
+        _logger.d('Multipart headers: ${request.headers}');
+
+        try {
+          final streamedResponse = await request.send();
+          final response = await http.Response.fromStream(streamedResponse);
+          _logger.i('Multipart POST response status: ${response.statusCode}');
+          _checkResponseStatus(statusCode: response.statusCode);
+          return response;
+        } catch (e) {
+          _logger.e('Multipart POST request failed: $e');
+          rethrow;
+        }
+      } else {
+        // Standard POST request without CSRF protection or files
+        final headers = _getAuthHeaders(authMethod: authMethod);
+        headers['Content-Type'] = contentType;
+        headers.addAll(customHeaders);
+
+        _logger.d('POST request to: $uri');
+        _logger.d(
+          'Using ${authMethod.name} authentication with ${_authSystem.name} proxy system',
         );
-        _logger.i('POST response status: ${response.statusCode}');
-        _checkResponseStatus(statusCode: response.statusCode);
-        return response;
-      } catch (e) {
-        _logger.e('POST request failed: $e');
-        rethrow;
+        _logger.d('Headers: $headers');
+
+        final encodedBody = _encodeBody(body: body, contentType: contentType);
+
+        try {
+          final response = await _client.post(
+            uri,
+            headers: headers,
+            body: encodedBody ?? "",
+          );
+          _logger.i('POST response status: ${response.statusCode}');
+          _checkResponseStatus(statusCode: response.statusCode);
+          return response;
+        } catch (e) {
+          _logger.e('POST request failed: $e');
+          rethrow;
+        }
       }
     }
   }

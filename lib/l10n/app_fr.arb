@@ -300,5 +300,10 @@
   "basePathTitle": "Chemin de base de l'API",
   "basePathDescription": "Définir un chemin de base personnalisé pour les requêtes API",
   "basePathLabel": "Chemin de base",
-  "basePathHint": "ex. /opds ou /calibre"
+  "basePathHint": "ex. /opds ou /calibre",
+  "bookCover": "Couverture de livre",
+  "currentCover": "Couverture actuelle",
+  "newCover": "Nouvelle couverture",
+  "selectCover": "Sélectionner une couverture",
+  "removeCover": "Supprimer la couverture"
 }

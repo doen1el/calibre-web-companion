@@ -479,7 +479,7 @@ class BookDetailsPage extends StatelessWidget {
           ),
 
           // TODO: Fix Edit Metadata functionality
-          // EditBookMetadataWidget(book: book, isLoading: isLoading),
+          EditBookMetadataWidget(book: book, isLoading: isLoading),
           AddToShelfWidget(book: book, isLoading: isLoading),
 
           DownloadToDeviceWidget(book: book, isLoading: isLoading),

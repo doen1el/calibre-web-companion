@@ -300,5 +300,10 @@
   "basePathTitle": "API Base Path",
   "basePathLabel": "Base Path",
   "basePathHint": "e.g., /opds or /calibre",
-  "basePathDescription": "Define a custom base path for API requests"
+  "basePathDescription": "Define a custom base path for API requests",
+  "bookCover": "Book cover",
+  "currentCover": "Current cover",
+  "newCover": "New cover",
+  "selectCover": "Select cover",
+  "removeCover": "Remove cover"
 }

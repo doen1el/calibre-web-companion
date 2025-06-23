@@ -300,5 +300,10 @@
   "basePathTitle": "API-Basis-Pfad",
   "basePathDescription": "Definiere einen benutzerdefinierten Basis-Pfad für API-Anfragen",
   "basePathLabel": "Basis-Pfad",
-  "basePathHint": "z.B. /opds oder /calibre"
+  "basePathHint": "z.B. /opds oder /calibre",
+  "bookCover": "Buchcover",
+  "currentCover": "Aktuelles Cover",
+  "newCover": "Neues Cover",
+  "selectCover": "Cover auswählen",
+  "removeCover": "Cover entfernen"
 }

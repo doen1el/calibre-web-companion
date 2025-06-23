@@ -502,6 +502,8 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         authors: event.authors,
         comments: event.comments,
         tags: event.tags,
+        coverImageBytes: event.coverImageBytes,
+        coverFileName: event.coverFileName,
       );
 
       if (result) {

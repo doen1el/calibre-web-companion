@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
@@ -12,6 +13,8 @@ class DiscoverDetailsState extends Equatable {
   final String? errorMessage;
   final bool isShowingBooks;
   final bool isShowingCategories;
+  final BookViewModel? bookDetails;
+  final String? loadingBookId;
 
   const DiscoverDetailsState({
     this.status = DiscoverDetailsStatus.initial,
@@ -20,6 +23,8 @@ class DiscoverDetailsState extends Equatable {
     this.errorMessage,
     this.isShowingBooks = false,
     this.isShowingCategories = false,
+    this.bookDetails,
+    this.loadingBookId,
   });
 
   DiscoverDetailsState copyWith({
@@ -29,6 +34,8 @@ class DiscoverDetailsState extends Equatable {
     String? errorMessage,
     bool? isShowingBooks,
     bool? isShowingCategories,
+    BookViewModel? bookDetails,
+    String? loadingBookId,
   }) {
     return DiscoverDetailsState(
       status: status ?? this.status,
@@ -37,6 +44,8 @@ class DiscoverDetailsState extends Equatable {
       errorMessage: errorMessage,
       isShowingBooks: isShowingBooks ?? this.isShowingBooks,
       isShowingCategories: isShowingCategories ?? this.isShowingCategories,
+      bookDetails: bookDetails ?? this.bookDetails,
+      loadingBookId: loadingBookId ?? this.loadingBookId,
     );
   }
 
@@ -48,5 +57,7 @@ class DiscoverDetailsState extends Equatable {
     errorMessage,
     isShowingBooks,
     isShowingCategories,
+    bookDetails,
+    loadingBookId,
   ];
 }

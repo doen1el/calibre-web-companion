@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:http/http.dart';
 import 'package:logger/logger.dart';
@@ -82,6 +84,8 @@ class BookDetailsRepository {
     required String authors,
     required String comments,
     required String tags,
+    Uint8List? coverImageBytes,
+    String? coverFileName,
   }) async {
     try {
       return await datasource.updateBookMetadata(
@@ -90,6 +94,8 @@ class BookDetailsRepository {
         authors: authors,
         comments: comments,
         tags: tags,
+        coverImageBytes: coverImageBytes,
+        coverFileName: coverFileName,
       );
     } catch (e) {
       rethrow;

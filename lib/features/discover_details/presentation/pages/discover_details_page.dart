@@ -171,20 +171,28 @@ class DiscoverDetailsPage extends StatelessWidget {
   }
 
   Widget _buildBookGrid(BuildContext context, DiscoverFeedModel feed) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16.0),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.7,
-        crossAxisSpacing: 16.0,
-        mainAxisSpacing: 16.0,
-      ),
-      itemCount: feed.books.length,
-      itemBuilder: (context, index) {
-        final book = feed.books[index];
-        return BookCard(
-          book: book,
-          onTap: () => _navigateToBookDetails(context, book),
+    return BlocBuilder<DiscoverDetailsBloc, DiscoverDetailsState>(
+      builder: (context, state) {
+        return GridView.builder(
+          padding: const EdgeInsets.all(16.0),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.7,
+            crossAxisSpacing: 16.0,
+            mainAxisSpacing: 16.0,
+          ),
+          itemCount: feed.books.length,
+          itemBuilder: (context, index) {
+            final book = feed.books[index];
+            return BookCard(
+              book: book,
+              isLoading: state.loadingBookId == book.id,
+              onTap:
+                  () => context.read<DiscoverDetailsBloc>().add(
+                    LoadDiscoverBookDetails(book.id, context),
+                  ),
+            );
+          },
         );
       },
     );
@@ -276,30 +284,15 @@ class DiscoverDetailsPage extends StatelessWidget {
     );
   }
 
-  // Navigation-Logik (von book_list.dart übertragen)
-
-  /// Navigate to book details page
-  void _navigateToBookDetails(BuildContext context, DiscoverDetailsModel book) {
-    // TODO: Implement book details navigation logic
-    // Navigator.of(context).push(
-    //   AppTransitions.createSlideRoute(
-    //     BookDetailsPage(bookListModel: book, bookUuid: book.id),
-    //   ),
-    // );
-  }
-
-  /// Navigate to the category or books based on the category item
   void _navigateToCategoryOrBooks(
     BuildContext context,
     CategoryModel category,
   ) {
-    final String url = category.id; // Annahme: id enthält die URL
+    final String url = category.id;
     if (url.isEmpty) return;
 
-    // Split the URL into parts
     final pathParts = url.split('/').where((p) => p.isNotEmpty).toList();
 
-    // Check the URL for specific patterns
     if (url.contains('/letter/')) {
       _navigateToLetterCategory(context, category, pathParts);
     } else if (_isNumericEndpoint(pathParts)) {
@@ -307,7 +300,6 @@ class DiscoverDetailsPage extends StatelessWidget {
     } else if (url.startsWith('/opds/')) {
       _navigateToGenericCategory(context, category, pathParts);
     } else {
-      // Fallback: use fullPath navigation
       _navigateToPage(
         context,
         DiscoverDetailsPage(title: category.title, fullPath: category.id),
@@ -315,7 +307,6 @@ class DiscoverDetailsPage extends StatelessWidget {
     }
   }
 
-  /// Check if the URL endpoint is numeric
   bool _isNumericEndpoint(List<String> pathParts) {
     if (pathParts.isEmpty) return false;
     return int.tryParse(pathParts.last) != null;

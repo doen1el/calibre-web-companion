@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/datasources/shelf_details_remote_datasource.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
 
@@ -37,6 +38,15 @@ class ShelfDetailsRepository {
     try {
       final result = await dataSource.deleteShelf(shelfId);
       return result;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<BookViewModel> loadBookDetails(String bookId) async {
+    try {
+      final bookDetails = await dataSource.loadBookDetails(bookId);
+      return bookDetails;
     } catch (e) {
       rethrow;
     }

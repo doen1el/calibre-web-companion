@@ -300,5 +300,10 @@
   "basePathTitle": "Ruta base de la API",
   "basePathDescription": "Define una ruta base personalizada para las solicitudes de la API",
   "basePathLabel": "Ruta base",
-  "basePathHint": "ej., /opds o /calibre"
+  "basePathHint": "ej., /opds o /calibre",
+  "bookCover": "Portada del libro",
+  "currentCover": "Portada actual",
+  "newCover": "Nueva portada",
+  "selectCover": "Seleccionar portada",
+  "removeCover": "Eliminar portada"
 }

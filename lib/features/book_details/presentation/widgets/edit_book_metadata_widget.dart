@@ -1,4 +1,9 @@
+import 'dart:convert';
+
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -7,6 +12,7 @@ import 'package:calibre_web_companion/features/book_details/bloc/book_details_bl
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditBookMetadataWidget extends StatefulWidget {
   final BookDetailsModel book;
@@ -27,6 +33,9 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
   late TextEditingController _authorsController;
   late TextEditingController _commentsController;
   late TextEditingController _tagsController;
+
+  Uint8List? _selectedCoverBytes;
+  String? _selectedCoverName;
 
   @override
   void initState() {
@@ -136,6 +145,8 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
                               authors: _authorsController.text,
                               comments: _commentsController.text,
                               tags: _tagsController.text,
+                              coverImageBytes: _selectedCoverBytes,
+                              coverFileName: _selectedCoverName ?? 'cover.jpg',
                             ),
                           );
                         },
@@ -197,8 +208,151 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
             enabled: !isLoading,
           ),
           const SizedBox(height: 16),
+          Text(
+            localizations.bookCover,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              if (_selectedCoverBytes == null)
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: _buildCoverImage(
+                          context,
+                          widget.book.id,
+                          localizations,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        localizations.currentCover,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+
+              if (_selectedCoverBytes != null)
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.memory(
+                          _selectedCoverBytes!,
+                          height: 150,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        localizations.newCover,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+
+              const SizedBox(width: 16),
+
+              // Cover-Upload-Buttons
+              Expanded(
+                flex: 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: isLoading ? null : _pickImage,
+                      icon: const Icon(Icons.add_photo_alternate),
+                      label: Text(localizations.selectCover),
+                    ),
+                    if (_selectedCoverBytes != null) ...[
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: isLoading ? null : _clearSelectedCover,
+                        icon: const Icon(Icons.close),
+                        label: Text(localizations.removeCover),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
+    );
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
+        setState(() {
+          _selectedCoverBytes = bytes;
+          _selectedCoverName = pickedFile.name;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
+      }
+    }
+  }
+
+  void _clearSelectedCover() {
+    setState(() {
+      _selectedCoverBytes = null;
+      _selectedCoverName = null;
+    });
+  }
+
+  Widget _buildCoverImage(
+    BuildContext context,
+    int bookId,
+    AppLocalizations localizations,
+  ) {
+    ApiService apiService = ApiService();
+    final baseUrl = apiService.getBaseUrl();
+    final username = apiService.getUsername();
+    final password = apiService.getPassword();
+
+    final authHeader =
+        'Basic ${base64.encode(utf8.encode('$username:$password'))}';
+    final coverUrl = '$baseUrl/opds/cover/$bookId';
+
+    return CachedNetworkImage(
+      imageUrl: coverUrl,
+      height: 150,
+      fit: BoxFit.contain,
+      httpHeaders: {'Authorization': authHeader},
+
+      placeholder:
+          (context, url) => Container(
+            height: 150,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+      errorWidget:
+          (context, url, error) => Container(
+            height: 150,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: const Icon(Icons.error),
+          ),
     );
   }
 }

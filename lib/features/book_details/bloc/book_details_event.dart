@@ -1,6 +1,7 @@
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 abstract class BookDetailsEvent extends Equatable {
   const BookDetailsEvent();
@@ -130,6 +131,8 @@ class UpdateBookMetadata extends BookDetailsEvent {
   final String authors;
   final String comments;
   final String tags;
+  final Uint8List? coverImageBytes;
+  final String? coverFileName;
 
   const UpdateBookMetadata({
     required this.bookId,
@@ -137,10 +140,20 @@ class UpdateBookMetadata extends BookDetailsEvent {
     required this.authors,
     required this.comments,
     required this.tags,
+    this.coverImageBytes,
+    this.coverFileName,
   });
 
   @override
-  List<Object?> get props => [bookId, title, authors, comments, tags];
+  List<Object?> get props => [
+    bookId,
+    title,
+    authors,
+    comments,
+    tags,
+    coverImageBytes,
+    coverFileName,
+  ];
 }
 
 class SendToEReaderViaBrowser extends BookDetailsEvent {
