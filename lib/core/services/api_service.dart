@@ -23,8 +23,6 @@ enum AuthSystem {
   custom,
 }
 
-// TODO: Add ability to change base path
-
 /// Service class to handle API requests with various authentication methods
 class ApiService {
   final Logger _logger = Logger();
@@ -42,8 +40,35 @@ class ApiService {
   ApiService._internal();
 
   /// Returns the base URL or an empty string
+  /// Returns the base URL with base path if available
   String getBaseUrl() {
-    return _baseUrl ?? '';
+    if (_basePath == null || _basePath!.isEmpty) {
+      // If no base path, return just the base URL
+      _logger.d('Base URL (no path): $_baseUrl');
+      return _baseUrl!;
+    } else {
+      // Normalize base path by removing leading/trailing slashes
+      final normalizedBasePath = _basePath!.trim();
+      String basePath = normalizedBasePath;
+
+      if (basePath.startsWith('/')) {
+        basePath = basePath.substring(1);
+      }
+      if (basePath.endsWith('/')) {
+        basePath = basePath.substring(0, basePath.length - 1);
+      }
+
+      // Combine base URL with normalized path
+      final fullUrl = basePath.isEmpty ? _baseUrl : '$_baseUrl/$basePath';
+
+      _logger.d('Base URL with path: $fullUrl');
+      return fullUrl!;
+    }
+  }
+
+  String getUrl(String endpoint) {
+    final uri = _buildUri(endpoint: endpoint);
+    return uri.toString();
   }
 
   /// Returns the username or an empty string
@@ -93,7 +118,7 @@ class ApiService {
   Future<Map<String, dynamic>> getJson({
     String endpoint = '',
     AuthMethod authMethod = AuthMethod.basic,
-    Map<String, String>? queryParams = const {},
+    Map<String, String> queryParams = const {},
   }) async {
     final response = await get(
       endpoint: endpoint,
@@ -138,7 +163,6 @@ class ApiService {
           if (valueStart >= 0) {
             // Step 3: Find where the next field starts (after closing quote and comma)
             int nextFieldPos = -1;
-            bool inQuotes = true;
             bool escaped = false;
 
             // Walk through the string to find the end of the value
@@ -154,7 +178,6 @@ class ApiService {
               }
 
               if (sanitized[i] == '"' && !escaped) {
-                inQuotes = false;
                 nextFieldPos = i + 1;
                 break;
               }
@@ -163,9 +186,7 @@ class ApiService {
             if (nextFieldPos > 0) {
               // Step 4: Replace the comments content with empty value
               sanitized =
-                  sanitized.substring(0, valueStart) +
-                  '""' +
-                  sanitized.substring(nextFieldPos);
+                  '${sanitized.substring(0, valueStart)}""${sanitized.substring(nextFieldPos)}';
 
               try {
                 return json.decode(sanitized) as Map<String, dynamic>;
@@ -205,7 +226,7 @@ class ApiService {
   Future<Map<String, dynamic>> getXmlAsJson({
     String endpoint = '',
     AuthMethod authMethod = AuthMethod.basic,
-    Map<String, String>? queryParams = const {},
+    Map<String, String> queryParams = const {},
   }) async {
     final transformer = Xml2Json();
 
@@ -245,7 +266,7 @@ class ApiService {
   Future<http.Response> get({
     String endpoint = '',
     AuthMethod authMethod = AuthMethod.basic,
-    Map<String, String>? queryParams = const {},
+    Map<String, String> queryParams = const {},
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
@@ -530,37 +551,26 @@ class ApiService {
   Future<http.StreamedResponse> getStream({
     String endpoint = '',
     AuthMethod authMethod = AuthMethod.basic,
+    Map<String, String> queryParams = const {},
   }) async {
     await _ensureInitialized();
+    final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
 
-    // Ensure URL is complete with base path
-    String fullPath = endpoint;
-    if (_basePath != null &&
-        _basePath!.isNotEmpty &&
-        !endpoint.startsWith('http')) {
-      if (endpoint.startsWith('/')) {
-        fullPath = '/$_basePath$endpoint';
-      } else {
-        fullPath = '/$_basePath/$endpoint';
-      }
-    }
-    final fullUrl =
-        endpoint.startsWith('http') ? endpoint : '$_baseUrl$fullPath';
-
+    // Create a request using the URI
+    final request = http.Request('GET', uri);
     final headers = _getAuthHeaders(authMethod: authMethod);
 
     // Add processed custom headers for auth system
     final customHeaders = await _processCustomHeaders();
     headers.addAll(customHeaders);
 
-    _logger.d('GET stream request to: $fullUrl');
+    request.headers.addAll(headers);
+
+    _logger.d('GET stream request to: ${uri.toString()}');
     _logger.d(
       'Using ${authMethod.name} authentication with ${_authSystem.name} proxy system',
     );
     _logger.d('Headers: $headers');
-
-    final request = http.Request('GET', Uri.parse(fullUrl));
-    request.headers.addAll(headers);
 
     try {
       final response = await _client.send(request);
@@ -616,26 +626,53 @@ class ApiService {
     }
   }
 
-  /// Builds a URI for API requests
+  /// Builds a URI for API requests with proper base path handling
   ///
   /// Parameters:
   ///
   /// - `endpoint`: The API endpoint to request
+  /// - `queryParams`: Optional query parameters
   Uri _buildUri({
-    String endpoint = '',
-    Map<String, String>? queryParams = const {},
+    required String endpoint,
+    Map<String, String> queryParams = const {},
   }) {
-    // Handle base path if set
-    String fullPath = endpoint;
-    if (_basePath != null && _basePath!.isNotEmpty) {
-      // Make sure we don't duplicate slashes
-      if (endpoint.startsWith('/')) {
-        fullPath = '/$_basePath$endpoint';
-      } else {
-        fullPath = '/$_basePath/$endpoint';
-      }
+    // Skip base path processing for absolute URLs
+    if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+      return Uri.parse(endpoint).replace(queryParameters: queryParams);
     }
 
+    // Process base path
+    String fullPath = endpoint;
+    if (_basePath != null && _basePath!.isNotEmpty) {
+      // Normalize paths by removing leading/trailing slashes for clean joining
+      final normalizedBasePath = _basePath!.trim();
+      final normalizedEndpoint = endpoint.trim();
+
+      String basePath = normalizedBasePath;
+      if (basePath.startsWith('/')) {
+        basePath = basePath.substring(1);
+      }
+      if (basePath.endsWith('/')) {
+        basePath = basePath.substring(0, basePath.length - 1);
+      }
+
+      String endpointPath = normalizedEndpoint;
+      if (endpointPath.startsWith('/')) {
+        endpointPath = endpointPath.substring(1);
+      }
+
+      // Join paths with a single slash
+      if (basePath.isEmpty) {
+        fullPath = '/$endpointPath';
+      } else {
+        fullPath = '/$basePath/$endpointPath';
+      }
+    } else if (!endpoint.startsWith('/')) {
+      // Ensure endpoint starts with slash if no base path
+      fullPath = '/$endpoint';
+    }
+
+    _logger.d('Built URL: $_baseUrl$fullPath');
     return Uri.parse(
       '$_baseUrl$fullPath',
     ).replace(queryParameters: queryParams);

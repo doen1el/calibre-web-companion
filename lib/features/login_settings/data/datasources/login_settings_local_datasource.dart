@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -7,10 +8,12 @@ import 'package:calibre_web_companion/features/login_settings/data/models/custom
 class LoginSettingsLocalDataSource {
   final SharedPreferences preferences;
   final Logger logger;
+  final ApiService apiService;
 
   LoginSettingsLocalDataSource({
     required this.preferences,
     required this.logger,
+    required this.apiService,
   });
 
   static const String _customHeadersKey = 'custom_login_headers';
@@ -32,13 +35,18 @@ class LoginSettingsLocalDataSource {
 
   Future<void> saveCustomHeaders(List<CustomHeaderModel> headers) async {
     try {
+      final validHeaders =
+          headers.where((header) => header.key.trim().isNotEmpty).toList();
+
       final List<Map<String, dynamic>> jsonList =
-          headers.map((header) => {header.key: header.value}).toList();
+          validHeaders.map((header) => header.toMap()).toList();
 
       final String jsonString = json.encode(jsonList);
       await preferences.setString(_customHeadersKey, jsonString);
 
-      logger.i('Saved headers: $jsonList');
+      await apiService.initialize();
+
+      logger.i('Saved ${validHeaders.length} headers');
     } catch (e) {
       logger.e('Error saving headers: $e');
       throw Exception('Failed to save headers: $e');
@@ -59,6 +67,7 @@ class LoginSettingsLocalDataSource {
   Future<void> saveBasePath(String basePath) async {
     try {
       await preferences.setString(_basePathKey, basePath);
+      await apiService.initialize();
       logger.i('Saved base path: $basePath');
     } catch (e) {
       logger.e('Error saving base path: $e');

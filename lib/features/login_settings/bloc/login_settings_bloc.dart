@@ -111,8 +111,18 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
     emit(state.copyWith(isLoading: true, isSaved: false));
 
     try {
-      await loginSettingsRepository.saveCustomHeaders(state.customHeaders);
-      await loginSettingsRepository.saveBasePath(state.basePath);
+      final validHeaders =
+          state.customHeaders
+              .where(
+                (header) =>
+                    header.key.trim().isNotEmpty &&
+                    header.value.trim().isNotEmpty,
+              )
+              .toList();
+
+      await loginSettingsRepository.saveCustomHeaders(validHeaders);
+
+      await loginSettingsRepository.saveBasePath(state.basePath.trim());
 
       emit(state.copyWith(isLoading: false, isSaved: true));
     } catch (e) {

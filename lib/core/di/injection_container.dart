@@ -91,6 +91,7 @@ Future<void> init() async {
     () => LoginSettingsLocalDataSource(
       preferences: getIt<SharedPreferences>(),
       logger: getIt<Logger>(),
+      apiService: getIt<ApiService>(),
     ),
   );
 
