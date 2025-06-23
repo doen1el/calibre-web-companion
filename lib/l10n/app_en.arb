@@ -305,5 +305,8 @@
   "currentCover": "Current cover",
   "newCover": "New cover",
   "selectCover": "Select cover",
-  "removeCover": "Remove cover"
+  "removeCover": "Remove cover",
+  "removeCoverConfirmation": "Are you sure you want to remove the cover?",
+  "remove": "Remove",
+  "noCover": "No cover"
 }

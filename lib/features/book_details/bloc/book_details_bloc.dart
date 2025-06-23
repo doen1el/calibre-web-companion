@@ -483,15 +483,9 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     UpdateBookMetadata event,
     Emitter<BookDetailsState> emit,
   ) async {
-    if (state.bookDetails == null) {
-      emit(
-        state.copyWith(
-          metadataUpdateState: MetadataUpdateState.error,
-          errorMessage: 'Cannot update metadata: Book details not available',
-        ),
-      );
-      return;
-    }
+    // if (state.bookDetails == null) {
+    //   return;
+    // }
 
     emit(state.copyWith(metadataUpdateState: MetadataUpdateState.loading));
 
@@ -507,17 +501,8 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       );
 
       if (result) {
-        emit(
-          state.copyWith(
-            metadataUpdateState: MetadataUpdateState.success,
-            bookDetails: state.bookDetails?.copyWith(
-              title: event.title,
-              authors: event.authors,
-              comments: event.comments,
-              tags: event.tags.split(',').map((tag) => tag.trim()).toList(),
-            ),
-          ),
-        );
+        emit(state.copyWith(metadataUpdateState: MetadataUpdateState.success));
+        // add(ReloadBookDetails(state.bookDetails!, state.bookDetails!.uuid));
       } else {
         emit(
           state.copyWith(

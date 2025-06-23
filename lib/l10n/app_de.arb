@@ -305,5 +305,8 @@
   "currentCover": "Aktuelles Cover",
   "newCover": "Neues Cover",
   "selectCover": "Cover auswählen",
-  "removeCover": "Cover entfernen"
+  "removeCover": "Cover entfernen",
+  "removeCoverConfirmation": "Bist du sicher, dass du das Cover entfernen möchtest?",
+  "remove": "Entfernen",
+  "noCover": "Kein Cover"
 }

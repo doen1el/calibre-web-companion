@@ -272,7 +272,7 @@ class BookDetailsRemoteDatasource {
               'multipart/form-data', // This will be set automatically by the MultipartRequest
         );
 
-        if (response.statusCode == 200) {
+        if (response.statusCode == 302) {
           logger.i('Successfully updated book metadata with cover');
           return true;
         } else {
@@ -291,7 +291,7 @@ class BookDetailsRemoteDatasource {
           contentType: 'application/x-www-form-urlencoded',
         );
 
-        if (response.statusCode == 200) {
+        if (response.statusCode == 302) {
           logger.i('Successfully updated book metadata');
           return true;
         } else {

@@ -305,5 +305,8 @@
   "currentCover": "Portada actual",
   "newCover": "Nueva portada",
   "selectCover": "Seleccionar portada",
-  "removeCover": "Eliminar portada"
+  "removeCover": "Eliminar portada",
+  "removeCoverConfirmation": "¿Estás seguro de que quieres eliminar la portada del libro?",
+  "remove": "Eliminar",
+  "noCover": "Sin portada"
 }

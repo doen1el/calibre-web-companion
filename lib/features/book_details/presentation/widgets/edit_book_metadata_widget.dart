@@ -171,11 +171,90 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
     bool isLoading,
     AppLocalizations localizations,
   ) {
+    final localizations = AppLocalizations.of(context)!;
+
     return Form(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Cover section at the top
+          Text(
+            localizations.bookCover,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+
+          // Cover image with overlay controls
+          Center(
+            child: Stack(
+              children: [
+                // Cover image or placeholder
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.6,
+                    height: 220,
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    child:
+                        _selectedCoverBytes != null
+                            ? Image.memory(
+                              _selectedCoverBytes!,
+                              fit: BoxFit.contain,
+                            )
+                            : _buildCoverImage(
+                              context,
+                              widget.book.id,
+                              localizations,
+                            ),
+                  ),
+                ),
+
+                // Edit button (bottom right)
+                Positioned(
+                  right: 8,
+                  bottom: 8,
+                  child: CircleAvatar(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                    radius: 20,
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.edit,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                      onPressed: isLoading ? null : _pickImage,
+                      tooltip: localizations.selectCover,
+                    ),
+                  ),
+                ),
+
+                // Remove button (bottom left) - only if there's a cover to remove
+                if (_selectedCoverBytes != null)
+                  Positioned(
+                    left: 8,
+                    bottom: 8,
+                    child: CircleAvatar(
+                      backgroundColor:
+                          Theme.of(context).colorScheme.errorContainer,
+                      radius: 20,
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.delete,
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
+                        onPressed: isLoading ? null : _confirmCoverRemoval,
+                        tooltip: localizations.removeCover,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Rest of the form fields
           TextFormField(
             controller: _titleController,
             decoration: InputDecoration(labelText: localizations.title),
@@ -207,88 +286,70 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
             ),
             enabled: !isLoading,
           ),
-          const SizedBox(height: 16),
-          Text(
-            localizations.bookCover,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              if (_selectedCoverBytes == null)
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: _buildCoverImage(
-                          context,
-                          widget.book.id,
-                          localizations,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        localizations.currentCover,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
+        ],
+      ),
+    );
+  }
 
-              if (_selectedCoverBytes != null)
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.memory(
-                          _selectedCoverBytes!,
-                          height: 150,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        localizations.newCover,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
+  // New method to show confirmation dialog for cover removal
+  Future<void> _confirmCoverRemoval() async {
+    final localizations = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(localizations.removeCover),
+            content: Text(localizations.removeCoverConfirmation),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(localizations.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
                 ),
-
-              const SizedBox(width: 16),
-
-              // Cover-Upload-Buttons
-              Expanded(
-                flex: 1,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: isLoading ? null : _pickImage,
-                      icon: const Icon(Icons.add_photo_alternate),
-                      label: Text(localizations.selectCover),
-                    ),
-                    if (_selectedCoverBytes != null) ...[
-                      const SizedBox(height: 8),
-                      TextButton.icon(
-                        onPressed: isLoading ? null : _clearSelectedCover,
-                        icon: const Icon(Icons.close),
-                        label: Text(localizations.removeCover),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+                child: Text(localizations.remove),
               ),
             ],
           ),
-        ],
+    );
+
+    if (confirmed == true) {
+      _clearSelectedCover();
+      // Set a flag to indicate cover should be removed on save
+      // You'll need to add this flag to your state and handle it in your API call
+      setState(() {
+        //  _shouldRemoveCover = true;
+      });
+    }
+  }
+
+  // Add a placeholder method
+  Widget _buildPlaceholder(BuildContext context) {
+    return Container(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.book,
+              size: 64,
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: .5),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppLocalizations.of(context)!.noCover,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
