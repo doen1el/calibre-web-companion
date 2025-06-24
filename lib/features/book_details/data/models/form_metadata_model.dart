@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:logger/logger.dart';
 
 class FormatMetadataModel extends Equatable {
   final String format;
@@ -42,11 +41,8 @@ class FormatMetadataModel extends Equatable {
 class FormatMetadata extends Equatable {
   final Map<String, FormatMetadataModel> formats;
 
-  static final Logger _logger = Logger();
-
   const FormatMetadata({required this.formats});
 
-  /// Parse the entire format_metadata structure from a JSON response
   factory FormatMetadata.fromJson(Map<String, dynamic> json) {
     try {
       Map<String, FormatMetadataModel> formats = {};
@@ -70,7 +66,6 @@ class FormatMetadata extends Equatable {
 
       return FormatMetadata(formats: formats);
     } catch (e) {
-      print('Error parsing format metadata: $e');
       return FormatMetadata(formats: {});
     }
   }

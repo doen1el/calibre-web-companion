@@ -1,6 +1,3 @@
-import 'package:calibre_web_companion/core/services/app_transition.dart';
-import 'package:calibre_web_companion/features/login/presentation/widgets/login_text_field.dart';
-import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -10,6 +7,9 @@ import 'package:calibre_web_companion/features/login/bloc/login_event.dart';
 import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/features/login/presentation/widgets/login_text_field.dart';
+import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -53,7 +53,6 @@ class _LoginFormState extends State<LoginForm> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // App logo or icon
                       Center(
                         child: Icon(
                           Icons.menu_book_rounded,
@@ -63,7 +62,6 @@ class _LoginFormState extends State<LoginForm> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Server URL field
                       LoginTextField(
                         controller: _urlController,
                         labelText: localizations.calibreWebUrl,
@@ -77,7 +75,6 @@ class _LoginFormState extends State<LoginForm> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Username field
                       LoginTextField(
                         controller: _usernameController,
                         labelText: localizations.username,
@@ -91,7 +88,6 @@ class _LoginFormState extends State<LoginForm> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Password field
                       LoginTextField(
                         controller: _passwordController,
                         labelText: localizations.password,
@@ -108,7 +104,6 @@ class _LoginFormState extends State<LoginForm> {
                             (_) => _handleLogin(context, localizations),
                       ),
 
-                      // Error message if any
                       if (state.errorMessage != null) ...[
                         const SizedBox(height: 16),
                         Text(
@@ -257,10 +252,8 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void _handleLogin(BuildContext context, AppLocalizations localizations) {
-    // Don't try to log in if already loading
     if (context.read<LoginBloc>().state.isLoading) return;
 
-    // Validate inputs
     if (_urlController.text.isEmpty ||
         _usernameController.text.isEmpty ||
         _passwordController.text.isEmpty) {
@@ -268,7 +261,6 @@ class _LoginFormState extends State<LoginForm> {
       return;
     }
 
-    // Fix URL if needed (add https:// if missing)
     String url = _urlController.text.trim();
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       context.showSnackBar(
@@ -278,7 +270,6 @@ class _LoginFormState extends State<LoginForm> {
       return;
     }
 
-    // Dispatch login event
     context.read<LoginBloc>().add(const SubmitLogin());
   }
 }

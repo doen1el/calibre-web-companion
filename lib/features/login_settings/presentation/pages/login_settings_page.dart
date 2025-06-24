@@ -56,8 +56,7 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
                       children: [
                         _buildSectionTitle(
                           context,
-                          localizations
-                              .basePathTitle, // Neuer Übersetzungsstring
+                          localizations.basePathTitle,
                         ),
                         _buildBasePathSection(context, state, localizations),
 
@@ -146,8 +145,7 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        localizations
-                            .basePathDescription, // Neuer Übersetzungsstring
+                        localizations.basePathDescription,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),

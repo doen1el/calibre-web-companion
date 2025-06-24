@@ -311,7 +311,6 @@ class BookCardWidget extends StatelessWidget {
     final state = context.watch<DownloadServiceBloc>().state;
 
     if (isSearchResult) {
-      // For search results, show download button
       final bool isLoadingThisBook = state.isBookDownloading(book.id);
 
       buttons.add(
@@ -363,7 +362,6 @@ class BookCardWidget extends StatelessWidget {
         ),
       );
     } else {
-      // For downloads, show status-specific buttons
       switch (book.status) {
         case DownloaderStatus.error:
           final bool isLoadingThisBook = state.isBookDownloading(book.id);

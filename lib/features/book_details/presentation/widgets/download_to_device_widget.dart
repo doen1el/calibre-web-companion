@@ -11,7 +11,6 @@ import 'package:calibre_web_companion/features/book_details/bloc/book_details_ev
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
-import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 
 class DownloadToDeviceWidget extends StatelessWidget {
   final BookDetailsModel book;
@@ -33,10 +32,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
               previous.downloadState != current.downloadState ||
               previous.downloadProgress != current.downloadProgress,
       builder: (context, state) {
-        print(
-          'Current download state: ${state.downloadState}, Progress: ${state.downloadProgress}',
-        );
-
         return IconButton(
           icon: CircleAvatar(
             backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
@@ -65,13 +60,11 @@ class DownloadToDeviceWidget extends StatelessWidget {
     );
   }
 
-  /// Shows download options for a book
   void _showDownloadOptions(
     BuildContext context,
     AppLocalizations localizations,
     BookDetailsModel book,
   ) {
-    // If only one format is available, start download directly
     if (book.formats.length == 1) {
       _downloadBook(
         context,
@@ -82,7 +75,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
       return;
     }
 
-    // Show modal bottom sheet with download options
     showModalBottomSheet(
       context: context,
       builder:
@@ -126,7 +118,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
     );
   }
 
-  /// Downloads a book to the device
   void _downloadBook(
     BuildContext context,
     AppLocalizations localizations,
@@ -136,7 +127,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
     final settingsState = context.read<SettingsBloc>().state;
     String? selectedDirectory;
 
-    // Check if we need to select a directory or use the default
     if (settingsState.defaultDownloadPath.isEmpty) {
       if (!await _checkAndRequestPermissions()) {
         // ignore: use_build_context_synchronously
@@ -147,7 +137,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
         return;
       }
 
-      // Show download status dialog with "selecting destination" state
       _showDownloadStatusSheet(
         // ignore: use_build_context_synchronously
         context,
@@ -156,22 +145,19 @@ class DownloadToDeviceWidget extends StatelessWidget {
         null,
         0,
         () {
-          // Cancel operation - just close the dialog
           Navigator.pop(context);
         },
       );
 
       selectedDirectory = await FilePicker.platform.getDirectoryPath();
       if (selectedDirectory == null) {
-        // User cancelled directory selection
         // ignore: use_build_context_synchronously
-        Navigator.pop(context); // Close the status dialog
+        Navigator.pop(context);
         return;
       }
     } else {
       selectedDirectory = settingsState.defaultDownloadPath;
 
-      // Show download status dialog immediately with "downloading" state
       _showDownloadStatusSheet(
         context,
         localizations,
@@ -179,14 +165,12 @@ class DownloadToDeviceWidget extends StatelessWidget {
         null,
         0,
         () {
-          // Cancel the download
           context.read<BookDetailsBloc>().add(CancelDownload());
           Navigator.pop(context);
         },
       );
     }
 
-    // Start the download process
     // ignore: use_build_context_synchronously
     context.read<BookDetailsBloc>().add(
       DownloadBook(
@@ -202,7 +186,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
     );
   }
 
-  /// Check and request storage permissions
   Future<bool> _checkAndRequestPermissions() async {
     if (Platform.isAndroid) {
       final status = await Permission.manageExternalStorage.status;
@@ -217,7 +200,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
     return true;
   }
 
-  /// Show the download status sheet
   void _showDownloadStatusSheet(
     BuildContext context,
     AppLocalizations localizations,
@@ -255,7 +237,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
                         current.downloadErrorMessage;
               },
               builder: (context, state) {
-                // Fallback to initial values if the state doesn't have updated values yet
                 final currentStatus =
                     state.downloadState != DownloadState.initial
                         ? state.downloadState
@@ -275,11 +256,9 @@ class DownloadToDeviceWidget extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Status icon
                         _buildStatusIcon(currentStatus, context),
                         const SizedBox(height: 20),
 
-                        // Status text
                         Text(
                           _getStatusMessage(currentStatus, localizations),
                           style: const TextStyle(
@@ -289,7 +268,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
                           textAlign: TextAlign.center,
                         ),
 
-                        // Error message if available
                         if (currentError != null &&
                             currentStatus == DownloadState.failed)
                           Padding(
@@ -308,7 +286,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
 
                         const SizedBox(height: 20),
 
-                        // Progress indicator for loading states
                         if (currentStatus == DownloadState.selectingDestination)
                           LinearProgressIndicator(
                             backgroundColor: Colors.grey[200],
@@ -317,7 +294,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
                             ),
                           ),
 
-                        // Progress indicator with percentage for downloading
                         if (currentStatus == DownloadState.downloading)
                           Column(
                             children: [
@@ -359,7 +335,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
                             child: InkWell(
                               borderRadius: BorderRadius.circular(12.0),
                               onTap: () {
-                                // If operation is in progress, call cancellation
                                 if (currentStatus == DownloadState.initial ||
                                     currentStatus ==
                                         DownloadState.selectingDestination ||
@@ -367,7 +342,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
                                         DownloadState.downloading) {
                                   if (onCancel != null) onCancel();
                                 } else {
-                                  // Just close the sheet
                                   Navigator.of(context).pop();
                                 }
                               },
@@ -426,7 +400,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
   }
 }
 
-/// Build the status icon based on the current status
 Widget _buildStatusIcon(DownloadState status, BuildContext context) {
   switch (status) {
     case DownloadState.initial:
@@ -456,7 +429,6 @@ Widget _buildStatusIcon(DownloadState status, BuildContext context) {
   }
 }
 
-/// Get the status message based on the current status
 String _getStatusMessage(DownloadState status, AppLocalizations localizations) {
   switch (status) {
     case DownloadState.initial:

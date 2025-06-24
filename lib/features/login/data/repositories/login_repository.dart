@@ -1,4 +1,3 @@
-import 'package:calibre_web_companion/core/exceptions/auth_exception.dart';
 import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';

@@ -49,7 +49,6 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
     }
   }
 
-  /// Loads the shelves and checks if the book is already in any of them.
   void _loadShelvesAndCheckContaining() {
     if (!mounted) return;
 
@@ -57,7 +56,6 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
       return;
     }
 
-    // Load shelves if not already loaded
     final shelfBloc = context.read<ShelfViewBloc>();
     if (shelfBloc.state.shelves.isEmpty &&
         shelfBloc.state.status != ShelfViewStatus.loading) {
@@ -127,7 +125,6 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
     );
   }
 
-  /// Shows a dialog with a list of shelves to add/remove the book from.
   void _showShelfDialog(BuildContext context, AppLocalizations localizations) {
     bool isDialogLoading = false;
 
@@ -292,7 +289,6 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
     );
   }
 
-  /// Handles adding or removing a book from a shelf with proper state updates
   Future<void> _handleShelfAction(
     BuildContext context,
     ShelfViewModel shelf,
@@ -305,10 +301,8 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
 
     try {
       if (isInShelf) {
-        // Remove book from shelf
         shelfBloc.add(RemoveBookFromShelf(bookId: bookId, shelfId: shelf.id));
 
-        // Update local state immediately for better UX
         setState(() {
           _containingShelves.removeWhere((s) => s.id == shelf.id);
         });
@@ -318,10 +312,8 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
           isError: false,
         );
       } else {
-        // Add book to shelf
         shelfBloc.add(AddBookToShelf(bookId: bookId, shelfId: shelf.id));
 
-        // Update local state immediately for better UX
         setState(() {
           _containingShelves.add(shelf);
         });

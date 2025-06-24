@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/features/login_settings/data/models/custom_header.dart';
+import 'package:calibre_web_companion/core/services/api_service.dart';
 
 class LoginSettingsLocalDataSource {
   final SharedPreferences preferences;

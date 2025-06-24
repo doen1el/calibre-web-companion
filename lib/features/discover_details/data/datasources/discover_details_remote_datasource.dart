@@ -163,7 +163,6 @@ class DiscoverDetailsRemoteDatasource {
           final List<dynamic> rows = response['rows'];
 
           if (rows.isEmpty) {
-            // No more books to load
             hasMoreBooks = false;
             logger.i('Received empty book list');
             break;

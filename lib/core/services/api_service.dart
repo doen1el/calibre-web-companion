@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,21 +8,11 @@ import 'package:xml2json/xml2json.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:http_parser/http_parser.dart' show MediaType;
 
+import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
+
 /// Authentication methods supported by the API
 enum AuthMethod { none, cookie, basic }
 
-/// Authentication systems for proxies
-enum AuthSystem {
-  none,
-  authelia,
-  cloudflareZeroTrust,
-  swag,
-  traefik,
-  nginxProxy,
-  custom,
-}
-
-/// Service class to handle API requests with various authentication methods
 class ApiService {
   final Logger _logger = Logger();
   final http.Client _client = http.Client();
@@ -32,22 +21,18 @@ class ApiService {
   String? _username;
   String? _password;
   String? _basePath;
-  AuthSystem _authSystem = AuthSystem.none;
 
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
 
   ApiService._internal();
 
-  /// Returns the base URL or an empty string
   /// Returns the base URL with base path if available
   String getBaseUrl() {
     if (_basePath == null || _basePath!.isEmpty) {
-      // If no base path, return just the base URL
       _logger.d('Base URL (no path): $_baseUrl');
       return _baseUrl!;
     } else {
-      // Normalize base path by removing leading/trailing slashes
       final normalizedBasePath = _basePath!.trim();
       String basePath = normalizedBasePath;
 
@@ -58,17 +43,11 @@ class ApiService {
         basePath = basePath.substring(0, basePath.length - 1);
       }
 
-      // Combine base URL with normalized path
       final fullUrl = basePath.isEmpty ? _baseUrl : '$_baseUrl/$basePath';
 
       _logger.d('Base URL with path: $fullUrl');
       return fullUrl!;
     }
-  }
-
-  String getUrl(String endpoint) {
-    final uri = _buildUri(endpoint: endpoint);
-    return uri.toString();
   }
 
   /// Returns the username or an empty string
@@ -89,18 +68,6 @@ class ApiService {
     _username = prefs.getString('username');
     _password = prefs.getString('password');
     _basePath = prefs.getString('base_path') ?? '';
-
-    final authSystemString = prefs.getString('auth_system') ?? 'none';
-    try {
-      _authSystem = AuthSystem.values.firstWhere(
-        (e) => e.toString().split('.').last == authSystemString,
-        orElse: () => AuthSystem.none,
-      );
-    } catch (e) {
-      _authSystem = AuthSystem.none;
-    }
-
-    _logger.i('Initialized API service with auth system: $_authSystem');
   }
 
   void dispose() {
@@ -142,30 +109,23 @@ class ApiService {
   }
 
   /// Sanitizes JSON response that contains HTML in the comments field
-  /// Sanitizes JSON response that contains HTML in the comments field
   Map<String, dynamic> _sanitizeJsonResponse(String responseBody) {
     try {
-      // First attempt to parse normally
       return json.decode(responseBody) as Map<String, dynamic>;
     } catch (e) {
       _logger.w('Failed to parse JSON response: $e');
 
-      // Try a more aggressive approach - completely replace the comments field
       String sanitized = responseBody;
 
-      // Step 1: Find the comments field
       int commentsPos = sanitized.indexOf('"comments"');
       if (commentsPos >= 0) {
-        // Step 2: Find where the value starts (after the colon and opening quote)
         int valueStart = sanitized.indexOf(':', commentsPos);
         if (valueStart >= 0) {
           valueStart = sanitized.indexOf('"', valueStart);
           if (valueStart >= 0) {
-            // Step 3: Find where the next field starts (after closing quote and comma)
             int nextFieldPos = -1;
             bool escaped = false;
 
-            // Walk through the string to find the end of the value
             for (int i = valueStart + 1; i < sanitized.length; i++) {
               if (escaped) {
                 escaped = false;
@@ -184,7 +144,6 @@ class ApiService {
             }
 
             if (nextFieldPos > 0) {
-              // Step 4: Replace the comments content with empty value
               sanitized =
                   '${sanitized.substring(0, valueStart)}""${sanitized.substring(nextFieldPos)}';
 
@@ -198,7 +157,6 @@ class ApiService {
         }
       }
 
-      // If we couldn't fix it with the above approach, try a simpler regex replacement
       try {
         final simpleReplacement = responseBody.replaceAll(
           RegExp(r'"comments"\s*:\s*".*?"', dotAll: true),
@@ -209,7 +167,6 @@ class ApiService {
         _logger.e('Failed with regex replacement: $e3');
       }
 
-      // Last resort - create a dummy response
       _logger.e('Could not sanitize JSON, returning dummy response');
       return {'error': 'Failed to parse JSON', 'comments': '', 'formats': []};
     }
@@ -272,14 +229,10 @@ class ApiService {
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
     final headers = _getAuthHeaders(authMethod: authMethod);
 
-    // Add processed custom headers for auth system
     final customHeaders = await _processCustomHeaders();
     headers.addAll(customHeaders);
 
     _logger.d('GET request to: $uri');
-    _logger.d(
-      'Using ${authMethod.name} authentication with ${_authSystem.name} proxy system',
-    );
     _logger.d('Headers: $headers');
 
     try {
@@ -293,19 +246,6 @@ class ApiService {
     }
   }
 
-  /// Makes an authenticated POST request with optional CSRF token
-  ///
-  /// Parameters:
-  ///
-  /// - `endpoint`: The API endpoint to request
-  /// - `queryParams`: Optional query parameters
-  /// - `body`: The request body
-  /// - `authMethod`: The authentication method to use
-  /// - `contentType`: The content type of the request
-  /// - `useCsrf`: Whether to fetch and include CSRF token
-  /// - `csrfSelector`: CSS selector for the CSRF token input field
-  /// Makes an authenticated POST request with optional CSRF token
-  ///
   /// Parameters:
   ///
   /// - `endpoint`: The API endpoint to request
@@ -324,19 +264,16 @@ class ApiService {
     String contentType = 'application/json',
     bool useCsrf = false,
     String csrfSelector = 'input[name="csrf_token"]',
-    List<http.MultipartFile>? files, // New parameter for file uploads
+    List<http.MultipartFile>? files,
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
 
-    // Add processed custom headers for auth system
     final customHeaders = await _processCustomHeaders();
 
-    // If we need to handle CSRF protection, use a two-step process
     if (useCsrf) {
       _logger.i('Making CSRF-protected POST request to: $uri');
 
-      // STEP 1: Make initial GET request to fetch CSRF token
       final getHeaders = _getAuthHeaders(authMethod: authMethod);
       getHeaders.addAll(customHeaders);
       getHeaders['Accept'] = 'text/html,application/xhtml+xml,application/xml';
@@ -355,7 +292,6 @@ class ApiService {
         );
       }
 
-      // Extract CSRF token from HTML
       final document = parser.parse(getResponse.body);
       final csrfElement = document.querySelector(csrfSelector);
       final csrfToken = csrfElement?.attributes['value'];
@@ -365,7 +301,6 @@ class ApiService {
         throw Exception('CSRF token not found');
       }
 
-      // Extract new session cookie if available
       String sessionCookie = _cookie ?? '';
       if (getResponse.headers.containsKey('set-cookie')) {
         final setCookieHeader = getResponse.headers['set-cookie']!;
@@ -377,12 +312,9 @@ class ApiService {
         }
       }
 
-      // Check if we need a multipart request (for file uploads)
       if (files != null && files.isNotEmpty) {
-        // STEP 2: Make multipart POST request with extracted CSRF token
         final request = http.MultipartRequest('POST', uri);
 
-        // Add headers (omitting Content-Type as it will be set by MultipartRequest)
         request.headers['Cookie'] = sessionCookie;
         request.headers['X-CSRFToken'] = csrfToken;
         request.headers['X-Requested-With'] = 'XMLHttpRequest';
@@ -390,21 +322,17 @@ class ApiService {
         request.headers['Origin'] =
             '${uri.scheme}://${uri.host}${uri.port != 80 && uri.port != 443 ? ":${uri.port}" : ""}';
 
-        // Add custom headers
         request.headers.addAll(customHeaders);
 
-        // Add fields from body
         if (body is Map) {
-          final bodyMap = body as Map;
+          final bodyMap = body;
           bodyMap.forEach((key, value) {
             request.fields[key.toString()] = value.toString();
           });
         }
 
-        // Add CSRF token as a field
         request.fields['csrf_token'] = csrfToken;
 
-        // Add files
         request.files.addAll(files);
 
         _logger.d('Multipart POST request headers: ${request.headers}');
@@ -424,7 +352,6 @@ class ApiService {
           rethrow;
         }
       } else {
-        // Regular POST with CSRF token
         final postHeaders = {
           'Content-Type': contentType,
           'Cookie': sessionCookie,
@@ -436,7 +363,6 @@ class ApiService {
         };
         postHeaders.addAll(customHeaders);
 
-        // Add CSRF token to body if it's a map
         Map<String, dynamic> finalBody;
         if (body is Map) {
           if (body is Map<String, dynamic>) {
@@ -476,25 +402,20 @@ class ApiService {
         }
       }
     } else {
-      // Standard POST without CSRF protection
       if (files != null && files.isNotEmpty) {
-        // Handle multipart request without CSRF
         final request = http.MultipartRequest('POST', uri);
 
-        // Add auth headers
         final headers = _getAuthHeaders(authMethod: authMethod);
         headers.addAll(customHeaders);
         request.headers.addAll(headers);
 
-        // Add fields from body
         if (body is Map) {
-          final bodyMap = body as Map;
+          final bodyMap = body;
           bodyMap.forEach((key, value) {
             request.fields[key.toString()] = value.toString();
           });
         }
 
-        // Add files
         request.files.addAll(files);
 
         _logger.d('Multipart POST request to: $uri');
@@ -511,15 +432,11 @@ class ApiService {
           rethrow;
         }
       } else {
-        // Standard POST request without CSRF protection or files
         final headers = _getAuthHeaders(authMethod: authMethod);
         headers['Content-Type'] = contentType;
         headers.addAll(customHeaders);
 
         _logger.d('POST request to: $uri');
-        _logger.d(
-          'Using ${authMethod.name} authentication with ${_authSystem.name} proxy system',
-        );
         _logger.d('Headers: $headers');
 
         final encodedBody = _encodeBody(body: body, contentType: contentType);
@@ -556,20 +473,15 @@ class ApiService {
     await _ensureInitialized();
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
 
-    // Create a request using the URI
     final request = http.Request('GET', uri);
     final headers = _getAuthHeaders(authMethod: authMethod);
 
-    // Add processed custom headers for auth system
     final customHeaders = await _processCustomHeaders();
     headers.addAll(customHeaders);
 
     request.headers.addAll(headers);
 
     _logger.d('GET stream request to: ${uri.toString()}');
-    _logger.d(
-      'Using ${authMethod.name} authentication with ${_authSystem.name} proxy system',
-    );
     _logger.d('Headers: $headers');
 
     try {
@@ -636,15 +548,12 @@ class ApiService {
     required String endpoint,
     Map<String, String> queryParams = const {},
   }) {
-    // Skip base path processing for absolute URLs
     if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
       return Uri.parse(endpoint).replace(queryParameters: queryParams);
     }
 
-    // Process base path
     String fullPath = endpoint;
     if (_basePath != null && _basePath!.isNotEmpty) {
-      // Normalize paths by removing leading/trailing slashes for clean joining
       final normalizedBasePath = _basePath!.trim();
       final normalizedEndpoint = endpoint.trim();
 
@@ -661,14 +570,12 @@ class ApiService {
         endpointPath = endpointPath.substring(1);
       }
 
-      // Join paths with a single slash
       if (basePath.isEmpty) {
         fullPath = '/$endpointPath';
       } else {
         fullPath = '/$basePath/$endpointPath';
       }
     } else if (!endpoint.startsWith('/')) {
-      // Ensure endpoint starts with slash if no base path
       fullPath = '/$endpoint';
     }
 
@@ -695,7 +602,6 @@ class ApiService {
       String key = header.keys.first;
       String value = header.values.first;
 
-      // Replace username placeholder if available
       if (value.contains('\${USERNAME}') && _username != null) {
         value = value.replaceAll('\${USERNAME}', _username!);
       }
@@ -737,7 +643,6 @@ class ApiService {
       if (contentType == 'application/json') {
         return json.encode(body);
       } else if (contentType == 'application/x-www-form-urlencoded') {
-        // Convert map to URL encoded string format key1=value1&key2=value2
         return body.entries
             .map(
               (e) =>
@@ -792,20 +697,17 @@ class ApiService {
 
     _logger.i('Starting upload of file: ${file.path.split('/').last}');
 
-    // Check for cancellation before starting
     if (cancelToken?.isCancelled == true) {
       _logger.i('Upload cancelled before starting');
       return {'success': false, 'cancelled': true};
     }
 
-    // Get CSRF token
     final csrfResult = await fetchCsrfToken(
       endpoint: '/',
       authMethod: authMethod,
       selector: 'input[name="csrf_token"]',
     );
 
-    // Check for cancellation after token fetch
     if (cancelToken?.isCancelled == true) {
       _logger.i('Upload cancelled after CSRF token fetch');
       return {'success': false, 'cancelled': true};
@@ -816,30 +718,23 @@ class ApiService {
       throw Exception('Failed to get CSRF token for upload');
     }
 
-    // Prepare upload request
     final uri = _buildUri(endpoint: endpoint);
     final request = http.MultipartRequest('POST', uri);
 
-    // Add authentication cookies
     request.headers['Cookie'] = csrfResult['cookies'] ?? '';
 
-    // Add CSRF token
     request.fields['csrf_token'] = csrfToken;
 
-    // Add any additional fields
     additionalFields.forEach((key, value) {
       request.fields[key] = value;
     });
 
-    // Add custom headers for auth system
     final customHeaders = await _processCustomHeaders();
     request.headers.addAll(customHeaders);
 
-    // Add the file
     final fileName = file.path.split('/').last;
     final fileExtension = fileName.split('.').last.toLowerCase();
 
-    // Determine content type based on file extension
     String contentType = 'application/octet-stream';
     if (fileExtension == 'epub') {
       contentType = 'application/epub+zip';
@@ -849,7 +744,6 @@ class ApiService {
       contentType = 'application/x-mobipocket-ebook';
     }
 
-    // Check for cancellation before file preparation
     if (cancelToken?.isCancelled == true) {
       _logger.i('Upload cancelled before file preparation');
       return {'success': false, 'cancelled': true};
@@ -864,23 +758,18 @@ class ApiService {
       ),
     );
 
-    // Send request
     final client = http.Client();
     try {
-      // Check for cancellation before sending request
       if (cancelToken?.isCancelled == true) {
         _logger.i('Upload cancelled before sending request');
         client.close();
         return {'success': false, 'cancelled': true};
       }
 
-      // Create completer to allow cancellation during request
       final completer = Completer<http.StreamedResponse>();
 
-      // Start the request
       final futureResponse = client.send(request);
 
-      // Complete with the response when it arrives
       futureResponse
           .then((value) {
             if (!completer.isCompleted) {
@@ -893,9 +782,7 @@ class ApiService {
             }
           });
 
-      // Set up a cancellation listener
       if (cancelToken != null) {
-        // Check periodically if cancellation is requested
         Timer.periodic(Duration(milliseconds: 100), (timer) {
           if (cancelToken.isCancelled && !completer.isCompleted) {
             timer.cancel();
@@ -903,14 +790,12 @@ class ApiService {
             client.close();
           }
 
-          // Stop timer if completer is already completed
           if (completer.isCompleted) {
             timer.cancel();
           }
         });
       }
 
-      // Wait for the response with timeout
       final streamedResponse = await completer.future.timeout(
         Duration(seconds: timeoutSeconds),
         onTimeout: () {
@@ -919,7 +804,6 @@ class ApiService {
         },
       );
 
-      // Check for cancellation after receiving response
       if (cancelToken?.isCancelled == true) {
         _logger.i('Upload cancelled after receiving response');
         return {'success': false, 'cancelled': true};

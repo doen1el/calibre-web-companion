@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_book_item_model.dart';
-import 'package:flutter/material.dart';
 
 abstract class ShelfDetailsEvent extends Equatable {
   const ShelfDetailsEvent();

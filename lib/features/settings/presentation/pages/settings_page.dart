@@ -122,7 +122,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // Login Settings Card
   Widget _buildLoginSettingsCard(
     BuildContext context,
     AppLocalizations localizations,
@@ -178,7 +177,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // Section Title
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -192,7 +190,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // Downloader Toggle
   Widget _buildDownloaderToggle(
     BuildContext context,
     SettingsState state,
@@ -231,7 +228,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
 
-            // Conditional text field
             if (state.isDownloaderEnabled) ...[
               const SizedBox(height: 16),
               TextField(
@@ -269,7 +265,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // Send2EReader Toggle
   Widget _buildSend2EreaderToggle(
     BuildContext context,
     SettingsState state,
@@ -308,7 +303,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
 
-            // Conditional text field
             if (state.isSend2ereaderEnabled) ...[
               const SizedBox(height: 16),
               TextField(
@@ -346,7 +340,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // Version Card
   Widget _buildVersionCard(
     BuildContext context,
     SettingsState state,
@@ -393,7 +386,6 @@ class _SettingsPageState extends State<SettingsPage> {
     SettingsState state,
     AppLocalizations localizations,
   ) {
-    // Definiere die verfügbaren Sprachen mit Code, Name und optionalem Flaggen-Emoji
     final availableLanguages = [
       {'code': 'en', 'name': 'English', 'flag': '🇬🇧'},
       {'code': 'de', 'name': 'Deutsch', 'flag': '🇩🇪'},
@@ -427,7 +419,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
             const SizedBox(height: 16),
-            // Dropdown statt Wrap mit ChoiceChips
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
                 border: OutlineInputBorder(
@@ -459,13 +450,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       value: language['code'],
                       child: Row(
                         children: [
-                          // Flaggen-Emoji anzeigen
                           Text(
                             language['flag'] ?? '',
                             style: const TextStyle(fontSize: 18),
                           ),
                           const SizedBox(width: 12),
-                          // Sprachname
                           Text(language['name'] ?? ''),
                         ],
                       ),

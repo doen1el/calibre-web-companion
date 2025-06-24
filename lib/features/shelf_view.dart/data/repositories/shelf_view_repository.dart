@@ -12,7 +12,7 @@ class ShelfViewRepository {
       final shelves = await dataSource.loadShelves();
       return shelves;
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
     }
   }
 
@@ -21,7 +21,7 @@ class ShelfViewRepository {
       final result = await dataSource.createShelf(shelfName);
       return result;
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
     }
   }
 
@@ -32,7 +32,7 @@ class ShelfViewRepository {
     try {
       await dataSource.removeBookFromShelf(bookId: bookId, shelfId: shelfId);
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
     }
   }
 
@@ -43,7 +43,7 @@ class ShelfViewRepository {
     try {
       await dataSource.addBookToShelf(bookId: bookId, shelfId: shelfId);
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
     }
   }
 
@@ -52,7 +52,7 @@ class ShelfViewRepository {
       final shelves = await dataSource.findShelvesContainingBook(bookId);
       return shelves;
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
     }
   }
 }

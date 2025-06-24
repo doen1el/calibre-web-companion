@@ -19,10 +19,10 @@ class BookCardSkeleton extends StatelessWidget {
     return Skeletonizer(
       enabled: true,
       effect: ShimmerEffect(
-        // ignore: deprecated_member_use
-        baseColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-        // ignore: deprecated_member_use
-        highlightColor: Theme.of(context).colorScheme.primary.withOpacity(0.4),
+        baseColor: Theme.of(context).colorScheme.primary.withValues(alpha: .2),
+        highlightColor: Theme.of(
+          context,
+        ).colorScheme.primary.withValues(alpha: .4),
       ),
       child: BookCard(book: dummyBook),
     );

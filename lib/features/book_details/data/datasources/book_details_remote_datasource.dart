@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart';
@@ -125,7 +124,6 @@ class BookDetailsRemoteDatasource {
     String format,
     DownloadSchema schema,
   ) async {
-    // Sanitize the file name to prevent invalid characters
     final safeTitle = book.title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
     final safeAuthor = book.authors.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
     final fileName = '$safeTitle.$format';
@@ -240,7 +238,6 @@ class BookDetailsRemoteDatasource {
     String? coverFileName,
   }) async {
     try {
-      // Prepare the request body
       final body = {
         'title': title,
         'authors': authors,
@@ -249,11 +246,9 @@ class BookDetailsRemoteDatasource {
         'detail_view': 'on',
       };
 
-      // If there's a cover to upload, use multipart request
       if (coverImageBytes != null && coverFileName != null) {
         logger.i('Updating book metadata with cover for book: $bookId');
 
-        // Create the multipart file
         final multipartFile = http.MultipartFile.fromBytes(
           'btn-upload-cover',
           coverImageBytes,
@@ -261,15 +256,13 @@ class BookDetailsRemoteDatasource {
           contentType: MediaType('image', 'jpeg'),
         );
 
-        // Use the post method with files parameter
         final response = await apiService.post(
           endpoint: '/admin/book/$bookId',
           body: body,
           files: [multipartFile],
           authMethod: AuthMethod.cookie,
           useCsrf: true,
-          contentType:
-              'multipart/form-data', // This will be set automatically by the MultipartRequest
+          contentType: 'multipart/form-data',
         );
 
         if (response.statusCode == 302) {
@@ -282,7 +275,6 @@ class BookDetailsRemoteDatasource {
           return false;
         }
       } else {
-        // Standard request without cover
         final response = await apiService.post(
           endpoint: '/admin/book/$bookId',
           body: body,
@@ -386,7 +378,6 @@ class BookDetailsRemoteDatasource {
     }
   }
 
-  /// Send book via email using the Calibre-Web email functionality
   Future<bool> sendBookViaEmail(
     String bookId,
     String format,
@@ -430,7 +421,6 @@ class BookDetailsRemoteDatasource {
         format = book.formats.first.toLowerCase();
       }
 
-      // Buch herunterladen, falls erforderlich
       final filePath = await downloadBookToPath(
         book: book,
         selectedDirectory: selectedDirectory,
@@ -439,7 +429,6 @@ class BookDetailsRemoteDatasource {
         progressCallback: progressCallback,
       );
 
-      // Datei mit Standardanwendung öffnen
       final result = await OpenFile.open(filePath);
 
       if (result.type != ResultType.done) {
@@ -455,7 +444,6 @@ class BookDetailsRemoteDatasource {
     }
   }
 
-  /// Add book to a specific shelf
   Future<bool> addBookToShelf(String shelfId, String bookId) async {
     try {
       logger.i('Adding book $bookId to shelf $shelfId');
@@ -479,7 +467,6 @@ class BookDetailsRemoteDatasource {
     }
   }
 
-  /// Remove book from a specific shelf
   Future<bool> removeBookFromShelf(String shelfId, String bookId) async {
     try {
       logger.i('Removing book $bookId from shelf $shelfId');
@@ -505,7 +492,6 @@ class BookDetailsRemoteDatasource {
     }
   }
 
-  /// Get download stream with progress tracking for large files
   Future<StreamedResponse> getDownloadStreamWithProgress(
     String bookId,
     String format,
@@ -535,7 +521,6 @@ class BookDetailsRemoteDatasource {
     }
   }
 
-  /// Download book and return the file path (used for "Open in Reader" functionality)
   Future<String> downloadBookForReader(
     BookDetailsModel book,
     String selectedDirectory,

@@ -26,35 +26,29 @@ class DownloadStatusResponse {
     );
   }
 
-  /// Converts the nested JSON structure into a flat list of book objects with their status
   List<DownloadServiceBookModel> getAllBooks() {
     final List<DownloadServiceBookModel> allBooks = [];
 
-    // Process books in 'available' status
     available.forEach((id, bookData) {
       allBooks.add(
         _createBookFromData(id, bookData, DownloaderStatus.available),
       );
     });
 
-    // Process books in 'done' status
     done.forEach((id, bookData) {
       allBooks.add(_createBookFromData(id, bookData, DownloaderStatus.done));
     });
 
-    // Process books in 'downloading' status
     downloading.forEach((id, bookData) {
       allBooks.add(
         _createBookFromData(id, bookData, DownloaderStatus.downloading),
       );
     });
 
-    // Process books in 'error' status
     error.forEach((id, bookData) {
       allBooks.add(_createBookFromData(id, bookData, DownloaderStatus.error));
     });
 
-    // Process books in 'queued' status
     queued.forEach((id, bookData) {
       allBooks.add(_createBookFromData(id, bookData, DownloaderStatus.queued));
     });

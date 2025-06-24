@@ -1,8 +1,8 @@
-import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 
 abstract class SettingsEvent extends Equatable {
   const SettingsEvent();

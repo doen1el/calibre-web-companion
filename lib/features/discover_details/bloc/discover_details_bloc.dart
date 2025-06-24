@@ -1,11 +1,11 @@
-import 'package:calibre_web_companion/core/services/app_transition.dart';
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
-import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_event.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_state.dart';
+
+import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
 import 'package:calibre_web_companion/features/discover_details/data/repositories/discover_details_repository.dart';
 
 class DiscoverDetailsBloc
@@ -122,18 +122,13 @@ class DiscoverDetailsBloc
     }
   }
 
+  // TODO: Implement refresh logic for books and categories
   Future<void> _onRefreshData(
     RefreshData event,
     Emitter<DiscoverDetailsState> emit,
   ) async {
-    // Reload the current data based on what was loaded last
     if (state.isShowingBooks && state.bookFeed != null) {
-      // Re-trigger the last books load
-      // This would need to be enhanced to store the last parameters
-    } else if (state.isShowingCategories && state.categoryFeed != null) {
-      // Re-trigger the last categories load
-      // This would need to be enhanced to store the last parameters
-    }
+    } else if (state.isShowingCategories && state.categoryFeed != null) {}
   }
 
   Future<void> _onLoadDiscoverBookDetails(

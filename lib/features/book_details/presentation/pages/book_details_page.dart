@@ -1,5 +1,16 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart' as intl;
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
+
 import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
@@ -13,19 +24,7 @@ import 'package:calibre_web_companion/features/book_view/data/models/book_view_m
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart' as intl;
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:logger/web.dart';
-import 'package:skeletonizer/skeletonizer.dart';
-
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
-import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 
 class BookDetailsPage extends StatelessWidget {
   final BookViewModel bookListModel;
@@ -54,7 +53,6 @@ class BookDetailsPage extends StatelessWidget {
                 previous.openInReaderState != current.openInReaderState ||
                 previous.metadataUpdateState != current.metadataUpdateState,
         listener: (context, state) {
-          // Handle state changes that require user feedback
           if (state.readStatusState == ReadStatusState.success) {
             context.showSnackBar(
               state.isBookRead
@@ -210,14 +208,11 @@ class BookDetailsPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cover image with gradient overlay
           Stack(
             alignment: Alignment.bottomLeft,
             children: [
-              // Cover image
               _buildCoverImage(context, book.id, localizations),
 
-              // Gradient overlay for better text visibility
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -234,7 +229,6 @@ class BookDetailsPage extends StatelessWidget {
                 width: double.infinity,
               ),
 
-              // Title and Author overlay
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -274,7 +268,6 @@ class BookDetailsPage extends StatelessWidget {
             ],
           ),
 
-          // Book Actions
           _buildCard(
             context,
             Icons.menu_book_rounded,
@@ -282,7 +275,6 @@ class BookDetailsPage extends StatelessWidget {
             _buildBookActions(context, localizations, state, book, isLoading),
           ),
 
-          // Rating section
           if (book.rating > 0)
             _buildCard(
               context,
@@ -294,7 +286,6 @@ class BookDetailsPage extends StatelessWidget {
               ),
             ),
 
-          // Series info if available
           if (book.series.isNotEmpty)
             _buildCard(
               context,
@@ -325,7 +316,6 @@ class BookDetailsPage extends StatelessWidget {
               ),
             ),
 
-          // Publication Info section
           _buildInfoCard(
             context,
             Icons.info_outline_rounded,
@@ -357,7 +347,6 @@ class BookDetailsPage extends StatelessWidget {
             ],
           ),
 
-          // File Info section
           _buildInfoCard(
             context,
             Icons.description_rounded,
@@ -383,7 +372,6 @@ class BookDetailsPage extends StatelessWidget {
             ],
           ),
 
-          // Tags section
           if (book.tags.isNotEmpty)
             _buildCard(
               context,
@@ -394,7 +382,6 @@ class BookDetailsPage extends StatelessWidget {
                 child: _buildTags(context, book.tags, book.tagModels),
               ),
             ),
-          // Description section
           if (book.comments.isNotEmpty)
             _buildCard(
               context,
@@ -409,7 +396,6 @@ class BookDetailsPage extends StatelessWidget {
               ),
             ),
 
-          // Bottom padding
           const SizedBox(height: 16),
         ],
       ),
@@ -428,7 +414,6 @@ class BookDetailsPage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Read/Unread toggle
           IconButton(
             icon: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
@@ -454,7 +439,6 @@ class BookDetailsPage extends StatelessWidget {
             tooltip: localizations.markAsReadUnread,
           ),
 
-          // Archive/Unarchive toggle
           IconButton(
             icon: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
@@ -484,7 +468,6 @@ class BookDetailsPage extends StatelessWidget {
 
           DownloadToDeviceWidget(book: book, isLoading: isLoading),
 
-          // Open in reader button
           IconButton(
             icon: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
@@ -525,7 +508,6 @@ class BookDetailsPage extends StatelessWidget {
             tooltip: localizations.openInReader,
           ),
 
-          // Open in browser button
           IconButton(
             icon: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
@@ -555,7 +537,6 @@ class BookDetailsPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Card header with icon and title
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Row(
@@ -576,10 +557,8 @@ class BookDetailsPage extends StatelessWidget {
             ),
           ),
 
-          // Divider
           const Divider(height: 4),
 
-          // Card content
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: child,

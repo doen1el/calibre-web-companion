@@ -3,14 +3,6 @@ import 'package:flutter/material.dart';
 class AppTransitions {
   AppTransitions._();
 
-  /// Slide transition
-  ///
-  /// Parameters:
-  ///
-  /// - `BuildContext context`
-  /// - `Animation<double> animation`
-  /// - `Animation<double> secondaryAnimation`
-  /// - `Widget child`
   static Widget slideTransition(
     BuildContext context,
     Animation<double> animation,
@@ -30,11 +22,6 @@ class AppTransitions {
     );
   }
 
-  /// Create slide route
-  ///
-  /// Parameters:
-  ///
-  /// - `Widget page`
   static PageRouteBuilder createSlideRoute(Widget page) {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => page,

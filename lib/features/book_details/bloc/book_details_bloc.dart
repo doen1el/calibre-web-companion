@@ -221,16 +221,13 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         return;
       }
 
-      // Ensure directory exists
       logger.d('Creating directory: ${path.dirname(filePath)}');
       await Directory(path.dirname(filePath)).create(recursive: true);
 
-      // Create temporary file
       final tempFilePath = '$filePath.downloading';
       logger.d('Creating temporary file: $tempFilePath');
       final tempFile = File(tempFilePath);
 
-      // Get download stream from repository
       logger.i('Getting download stream from repository');
       final response = await repository.getDownloadStream(
         event.bookId,
@@ -259,7 +256,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
             'Received chunk: ${chunk.length} bytes, total: $receivedBytes bytes',
           );
 
-          // Calculate progress and emit updated state
           if (contentLength > 0) {
             final progress = (receivedBytes / contentLength * 100).round();
             logger.d('Download progress: $progress%');
@@ -271,7 +267,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         await sink.flush();
         await sink.close();
 
-        // Rename temp file to final file
         if (await tempFile.exists()) {
           logger.d('Renaming temp file to final file');
           await tempFile.rename(filePath);
@@ -348,7 +343,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     String format,
     DownloadSchema schema,
   ) async {
-    // Sanitize the file name to prevent invalid characters
     final safeTitle = title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
     final safeAuthor = author.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
     final fileName = '$safeTitle.$format';
@@ -362,22 +356,18 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
 
     switch (schema) {
       case DownloadSchema.flat:
-        // Just return the base directory with the file
         filePath = path.join(baseDirectory, fileName);
         break;
 
       case DownloadSchema.authorOnly:
-        // Create author directory
         filePath = path.join(baseDirectory, safeAuthor, fileName);
         break;
 
       case DownloadSchema.authorBook:
-        // Create author/book directory
         filePath = path.join(baseDirectory, safeAuthor, safeTitle, fileName);
         break;
 
       case DownloadSchema.authorSeriesBook:
-        // Create author/series/book directory if series exists
         if (safeSeries != null) {
           filePath = path.join(
             baseDirectory,
@@ -387,7 +377,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
             fileName,
           );
         } else {
-          // If no series, fall back to author/book
           filePath = path.join(baseDirectory, safeAuthor, safeTitle, fileName);
         }
         break;
@@ -422,7 +411,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       emit(
         state.copyWith(
           openInReaderState: OpenInReaderState.loading,
-          downloadProgress: 0, // Reset progress
+          downloadProgress: 0,
         ),
       );
 
@@ -475,7 +464,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       await repository.openInBrowser(state.bookDetails!);
     } catch (e) {
       logger.e('Error opening book in browser: $e');
-      // We don't update state for browser opening
     }
   }
 
@@ -483,10 +471,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     UpdateBookMetadata event,
     Emitter<BookDetailsState> emit,
   ) async {
-    // if (state.bookDetails == null) {
-    //   return;
-    // }
-
     emit(state.copyWith(metadataUpdateState: MetadataUpdateState.loading));
 
     try {
@@ -502,6 +486,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
 
       if (result) {
         emit(state.copyWith(metadataUpdateState: MetadataUpdateState.success));
+        // TODO: Trigger a reload of book details
         // add(ReloadBookDetails(state.bookDetails!, state.bookDetails!.uuid));
       } else {
         emit(
@@ -535,7 +520,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     _sendToEReaderCancelled = false;
 
     try {
-      // Download book bytes with progress tracking
       emit(state.copyWith(sendToEReaderState: SendToEReaderState.downloading));
 
       final List<int> bookBytes = [];
@@ -571,17 +555,15 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         throw Exception('Failed to download book');
       }
 
-      // Upload to send2ereader with progress tracking
       emit(
         state.copyWith(
           sendToEReaderState: SendToEReaderState.uploading,
-          sendToEReaderProgress: 0, // Reset progress for upload phase
+          sendToEReaderProgress: 0,
         ),
       );
 
       final settingsState = GetIt.instance<SettingsBloc>().state;
 
-      // Use a callback to update progress
       final success = await repository.uploadToSend2Ereader(
         settingsState.send2ereaderUrl,
         event.code,
@@ -638,7 +620,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       final success = await repository.sendBookViaEmail(
         event.bookId,
         event.format,
-        0, // conversion type
+        0,
       );
 
       emit(

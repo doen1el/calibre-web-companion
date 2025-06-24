@@ -131,7 +131,6 @@ class BookDetailsModel extends BookViewModel {
     );
   }
 
-  /// Converts the BookDetailsModel to a JSON map
   @override
   Map<String, dynamic> toJson() {
     return {

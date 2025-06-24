@@ -25,14 +25,12 @@ class _DownloadServicePageState extends State<DownloadServicePage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
 
-    // Load download status when page opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DownloadServiceBloc>().add(GetDownloadStatus());
     });
 
     _tabController.addListener(() {
       if (_tabController.index == 1) {
-        // Refresh downloads tab when selected
         context.read<DownloadServiceBloc>().add(GetDownloadStatus());
       }
     });

@@ -96,7 +96,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
 
       final allBooks = [...state.books, ...moreBooks];
       final hasMoreBooks = moreBooks.length == state.limit;
-      // Special case for authors sorting
+      // Special case for authors sorting which has pagination issues
       final adjustedHasMoreBooks =
           state.sortBy == 'authors' ? true : hasMoreBooks;
 

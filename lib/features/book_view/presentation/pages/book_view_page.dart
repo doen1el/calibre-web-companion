@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +8,7 @@ import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dar
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_state.dart';
 
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_view/presentation/widgets/book_card.dart';
 import 'package:calibre_web_companion/features/book_view/presentation/widgets/book_skeleton.dart';
 import 'package:calibre_web_companion/features/book_view/presentation/widgets/search_dialog.dart';
@@ -314,11 +314,9 @@ class _BookViewPageState extends State<BookViewPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Status icon
                       _buildStatusIcon(state.uploadStatus),
                       const SizedBox(height: 20),
 
-                      // Status text
                       Text(
                         _getStatusMessage(state.uploadStatus, localizations),
                         style: const TextStyle(
@@ -328,7 +326,6 @@ class _BookViewPageState extends State<BookViewPage> {
                         textAlign: TextAlign.center,
                       ),
 
-                      // Error message if available
                       if (state.hasError &&
                           state.uploadStatus == UploadStatus.failed)
                         Padding(
@@ -347,7 +344,6 @@ class _BookViewPageState extends State<BookViewPage> {
 
                       const SizedBox(height: 20),
 
-                      // Progress indicator for loading states
                       if (state.uploadStatus == UploadStatus.loading ||
                           state.uploadStatus == UploadStatus.uploading)
                         LinearProgressIndicator(
@@ -359,7 +355,6 @@ class _BookViewPageState extends State<BookViewPage> {
 
                       const SizedBox(height: 20),
 
-                      // Close/Cancel button
                       Card(
                         elevation: 2,
                         shape: RoundedRectangleBorder(
@@ -372,7 +367,6 @@ class _BookViewPageState extends State<BookViewPage> {
                           child: InkWell(
                             borderRadius: BorderRadius.circular(12.0),
                             onTap: () {
-                              // If operation is in progress, call cancellation
                               if (state.uploadStatus == UploadStatus.loading ||
                                   state.uploadStatus ==
                                       UploadStatus.uploading) {
@@ -381,7 +375,6 @@ class _BookViewPageState extends State<BookViewPage> {
                                 );
                               }
 
-                              // Close the sheet
                               Navigator.of(context).pop();
                             },
                             child: Container(

@@ -1,7 +1,8 @@
-import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
-import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+
+import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
+import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
 
 class SettingsModel extends Equatable {
   final ThemeMode themeMode;

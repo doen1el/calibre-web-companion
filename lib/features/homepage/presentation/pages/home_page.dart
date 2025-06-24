@@ -1,10 +1,12 @@
-import 'package:calibre_web_companion/features/book_view/presentation/pages/book_view_page.dart';
-import 'package:calibre_web_companion/features/homepage/bloc/homepage_bloc.dart';
-import 'package:calibre_web_companion/features/homepage/bloc/homepage_event.dart';
-import 'package:calibre_web_companion/features/homepage/bloc/homepage_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+import 'package:calibre_web_companion/features/homepage/bloc/homepage_bloc.dart';
+import 'package:calibre_web_companion/features/homepage/bloc/homepage_event.dart';
+import 'package:calibre_web_companion/features/homepage/bloc/homepage_state.dart';
+
+import 'package:calibre_web_companion/features/book_view/presentation/pages/book_view_page.dart';
 
 import 'package:calibre_web_companion/features/discover/presentation/pages/discover_page.dart';
 import 'package:calibre_web_companion/features/me/presentation/pages/me_page.dart';
@@ -26,10 +28,8 @@ class HomePage extends StatelessWidget {
               (previous, current) =>
                   previous.isDownloaderEnabled != current.isDownloaderEnabled,
           builder: (context, settingsState) {
-            // Check if the downloader tab is enabled and the current index is 3
             if (!settingsState.isDownloaderEnabled &&
                 homeState.currentNavIndex == 3) {
-              // If the downloader tab is disabled, reset to the first tab
               context.read<HomePageBloc>().add(const ChangeNavIndex(0));
             }
 

@@ -1,4 +1,3 @@
-import 'package:calibre_web_companion/features/discover_details/data/models/discover_details_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -9,7 +8,6 @@ import 'package:calibre_web_companion/features/discover_details/bloc/discover_de
 
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
@@ -47,7 +45,6 @@ class DiscoverDetailsPage extends StatelessWidget {
       create: (context) {
         final bloc = getIt<DiscoverDetailsBloc>();
 
-        // Load initial data based on provided parameters
         if (fullPath != null) {
           bloc.add(LoadBooksFromPath(fullPath!));
         } else if (discoverType != null) {
@@ -312,7 +309,6 @@ class DiscoverDetailsPage extends StatelessWidget {
     return int.tryParse(pathParts.last) != null;
   }
 
-  /// Navigation for letter categories
   void _navigateToLetterCategory(
     BuildContext context,
     CategoryModel category,
@@ -333,7 +329,6 @@ class DiscoverDetailsPage extends StatelessWidget {
     final categoryType = categoryTypeMap[pathParts[1]];
     if (categoryType == null) return;
 
-    // Extract the subpath
     final pathPrefix = '/${pathParts[1]}/';
     final subPathIndex = category.id.indexOf(pathPrefix) + pathPrefix.length;
     final subPath = category.id.substring(subPathIndex);
@@ -348,7 +343,6 @@ class DiscoverDetailsPage extends StatelessWidget {
     );
   }
 
-  /// Navigation for numeric endpoints (direct book lists)
   void _navigateToBookList(BuildContext context, CategoryModel category) {
     _navigateToPage(
       context,
@@ -356,7 +350,6 @@ class DiscoverDetailsPage extends StatelessWidget {
     );
   }
 
-  /// Navigation for generic categories
   void _navigateToGenericCategory(
     BuildContext context,
     CategoryModel category,
@@ -364,7 +357,6 @@ class DiscoverDetailsPage extends StatelessWidget {
   ) {
     if (pathParts.length < 2) return;
 
-    // Map category types to their respective enum values
     final categoryTypeMap = {
       'author': CategoryType.author,
       'series': CategoryType.series,
@@ -388,7 +380,6 @@ class DiscoverDetailsPage extends StatelessWidget {
     final discoverType = discoverTypeMap[pathParts[1]];
 
     if (categoryType != null) {
-      // If a CategoryType is recognized, use this
       final subPath =
           pathParts.length > 2
               ? category.id.split('/${pathParts[1]}/').last
@@ -403,13 +394,11 @@ class DiscoverDetailsPage extends StatelessWidget {
         ),
       );
     } else if (discoverType != null) {
-      // If a DiscoverType is recognized, use this
       _navigateToPage(
         context,
         DiscoverDetailsPage(title: category.title, discoverType: discoverType),
       );
     } else {
-      // If no type is recognized, navigate to the generic category
       _navigateToPage(
         context,
         DiscoverDetailsPage(title: category.title, fullPath: category.id),
@@ -417,7 +406,6 @@ class DiscoverDetailsPage extends StatelessWidget {
     }
   }
 
-  /// Navigate to a page
   void _navigateToPage(BuildContext context, Widget page) {
     Navigator.push(context, AppTransitions.createSlideRoute(page));
   }

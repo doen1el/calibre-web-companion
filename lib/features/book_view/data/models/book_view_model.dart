@@ -78,7 +78,6 @@ class BookViewModel extends Equatable {
     timestamp,
   ];
 
-  /// Converts the BookItem to a JSON map
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -106,7 +105,6 @@ class BookViewModel extends Equatable {
     };
   }
 
-  /// Factory method to create a BookItem from JSON
   factory BookViewModel.fromJson(Map<String, dynamic> json) {
     try {
       return BookViewModel(

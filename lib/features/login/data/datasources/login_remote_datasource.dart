@@ -1,8 +1,8 @@
-import 'package:calibre_web_companion/core/exceptions/auth_exception.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../../core/services/api_service.dart';
-import '../models/login_credentials.dart';
+
+import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
 
 class LoginRemoteDataSource {
   final ApiService apiService;
@@ -10,19 +10,15 @@ class LoginRemoteDataSource {
 
   LoginRemoteDataSource({required this.apiService, required this.logger});
 
-  /// Attempts to login with the given credentials
   Future<bool> login(LoginCredentials credentials) async {
     try {
-      // Save base URL to shared preferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('base_url', credentials.baseUrl);
       await prefs.setString('username', credentials.username);
       await prefs.setString('password', credentials.password);
 
-      // Initialize API with new values
       await apiService.initialize();
 
-      // Perform login request
       final response = await apiService.post(
         endpoint: '/login',
         body: credentials.toFormData(),
@@ -47,23 +43,17 @@ class LoginRemoteDataSource {
           return true;
         } else {
           logger.w('Login failed - invalid credentials');
-          throw AuthException('Invalid username or password');
+          throw Exception('Invalid username or password');
         }
       }
 
       logger.e(
         'Login failed: ${response.reasonPhrase ?? response.body} ${response.statusCode}',
       );
-      throw AuthException(
-        response.reasonPhrase ?? response.body,
-        statusCode: response.statusCode,
-      );
+      throw Exception(response.reasonPhrase ?? response.body);
     } catch (e) {
       logger.e("Error during login: $e");
-      if (e is AuthException) {
-        rethrow;
-      }
-      throw AuthException('Connection error: ${e.toString().split(': ').last}');
+      throw Exception('Connection error: ${e.toString().split(': ').last}');
     }
   }
 

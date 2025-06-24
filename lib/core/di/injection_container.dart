@@ -1,13 +1,14 @@
-import 'package:calibre_web_companion/core/services/tag_service.dart';
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
-import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
-import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:calibre_web_companion/core/services/api_service.dart';
 
+import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/services/tag_service.dart';
+
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
+import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
+import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 import 'package:calibre_web_companion/features/book_view/data/repositories/book_view_repository.dart';
@@ -40,7 +41,6 @@ import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories
 
 final GetIt getIt = GetIt.instance;
 
-/// Initializes the dependency injection container.
 Future<void> init() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   final logger = Logger();

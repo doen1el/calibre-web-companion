@@ -4,7 +4,6 @@ import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
-import 'package:calibre_web_companion/core/services/json_service.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
 class CancellationToken {
@@ -21,7 +20,6 @@ class BookViewRemoteDatasource {
 
   BookViewRemoteDatasource({
     required SharedPreferences preferences,
-    JsonService? jsonService,
     ApiService? apiService,
     Logger? logger,
   }) : _preferences = preferences,
@@ -109,12 +107,10 @@ class BookViewRemoteDatasource {
     }
   }
 
-  // Column count preferences
   Future<int> getColumnCount() async {
     return _preferences.getInt('grid_column_count') ?? 2;
   }
 
-  /// Sets the number of columns for the book grid view.
   Future<void> setColumnCount(int count) async {
     if (count < 1) count = 1;
     if (count > 5) count = 5;

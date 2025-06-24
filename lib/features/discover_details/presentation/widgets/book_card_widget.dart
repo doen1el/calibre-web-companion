@@ -25,7 +25,6 @@ class BookCard extends StatelessWidget {
         onTap: isLoading ? null : onTap,
         child: Stack(
           children: [
-            // Book content
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

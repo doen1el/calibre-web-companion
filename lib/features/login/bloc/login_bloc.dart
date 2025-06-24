@@ -1,4 +1,3 @@
-import 'package:calibre_web_companion/core/exceptions/auth_exception.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
 
@@ -69,16 +68,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         );
       }
     } catch (e) {
-      String errorMessage =
-          e is AuthException
-              ? e.toString()
-              : e.toString().replaceAll(RegExp(r'^Exception: '), '');
       emit(
         state.copyWith(
           isLoading: false,
           isSuccess: false,
           isFailure: true,
-          errorMessage: errorMessage,
+          errorMessage: e.toString(),
         ),
       );
     }

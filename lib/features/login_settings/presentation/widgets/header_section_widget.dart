@@ -62,7 +62,6 @@ class HeadersSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Header List
                 if (state.customHeaders.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16.0),

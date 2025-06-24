@@ -1,10 +1,10 @@
-import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_state.dart';
 
 import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
 
 class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
   final ShelfViewRepository repository;
@@ -153,7 +153,6 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
         bookId: event.bookId,
       );
 
-      // Aktualisiere die Liste der Regale, die das Buch enthalten
       final shelf = state.shelves.firstWhere((s) => s.id == event.shelfId);
       final updatedShelves = List<ShelfViewModel>.from(state.bookInShelves);
       if (!updatedShelves.any((s) => s.id == shelf.id)) {

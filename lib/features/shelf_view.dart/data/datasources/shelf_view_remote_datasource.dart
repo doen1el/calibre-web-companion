@@ -1,10 +1,10 @@
-import 'package:calibre_web_companion/features/shelf_details/data/datasources/shelf_details_remote_datasource.dart';
-import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
 import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_list_view_model.dart';
+import 'package:calibre_web_companion/features/shelf_details/data/datasources/shelf_details_remote_datasource.dart';
+import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
 
 class ShelfViewRemoteDataSource {
   final ApiService apiService;
@@ -108,7 +108,6 @@ class ShelfViewRemoteDataSource {
         for (var book in shelfDetails.books) {
           if (book.id == bookId) {
             logger.d('Found book in shelf: ${s.title}');
-            // Add shelf to the list if it contains the book
             shelves.add(ShelfViewModel(id: s.id, title: s.title));
           }
         }

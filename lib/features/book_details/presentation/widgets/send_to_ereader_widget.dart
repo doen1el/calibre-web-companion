@@ -1,12 +1,12 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
+
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
@@ -41,7 +41,6 @@ class SendToEreaderWidget extends StatelessWidget {
     );
   }
 
-  /// Show the dialog to send the book to the e-reader
   void _showSendToReaderDialog(
     BuildContext context,
     AppLocalizations localizations,
@@ -61,7 +60,6 @@ class SendToEreaderWidget extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Send method toggle (Browser vs Email)
                         _buildSendMethodToggle(context, sendMethod, (method) {
                           setState(() => sendMethod = method);
                         }),
@@ -80,7 +78,6 @@ class SendToEreaderWidget extends StatelessWidget {
                           ),
                         ],
 
-                        // Email-specific options
                         if (sendMethod == SendMethod.email) ...[
                           _buildEmailInfo(context, localizations),
                         ],
@@ -121,7 +118,6 @@ class SendToEreaderWidget extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Browser option
           Expanded(
             child: GestureDetector(
               onTap: () => onChanged(SendMethod.browser),
@@ -148,7 +144,6 @@ class SendToEreaderWidget extends StatelessWidget {
               ),
             ),
           ),
-          // Email option
           Expanded(
             child: GestureDetector(
               onTap: () => onChanged(SendMethod.email),
@@ -192,7 +187,6 @@ class SendToEreaderWidget extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Kobo option
           Expanded(
             child: GestureDetector(
               onTap: () => onChanged(false),
@@ -219,7 +213,6 @@ class SendToEreaderWidget extends StatelessWidget {
               ),
             ),
           ),
-          // Kindle option
           Expanded(
             child: GestureDetector(
               onTap: () => onChanged(true),
@@ -342,7 +335,7 @@ class SendToEreaderWidget extends StatelessWidget {
               fontStyle: FontStyle.italic,
               color: Theme.of(
                 context,
-              ).colorScheme.onSurfaceVariant.withOpacity(0.8),
+              ).colorScheme.onSurfaceVariant.withValues(alpha: .8),
             ),
           ),
         ],
@@ -381,10 +374,8 @@ class SendToEreaderWidget extends StatelessWidget {
     String code,
     bool isKindle,
   ) {
-    // Show transfer status dialog
     _showTransferStatusDialog(context, localizations);
 
-    // Trigger the send event
     context.read<BookDetailsBloc>().add(
       SendToEReaderViaBrowser(
         bookId: book.id.toString(),
@@ -399,10 +390,8 @@ class SendToEreaderWidget extends StatelessWidget {
     BuildContext context,
     AppLocalizations localizations,
   ) {
-    // Show transfer status dialog
     _showTransferStatusDialog(context, localizations);
 
-    // Trigger the send event
     context.read<BookDetailsBloc>().add(
       SendToEReaderByEmail(bookId: book.id.toString(), format: 'epub'),
     );
@@ -449,11 +438,9 @@ class SendToEreaderWidget extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Status icon
                       _buildStatusIcon(state.sendToEReaderState, context),
                       const SizedBox(height: 20),
 
-                      // Status text
                       Text(
                         _getStatusMessage(
                           state.sendToEReaderState,
@@ -466,7 +453,6 @@ class SendToEreaderWidget extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
 
-                      // Error message if available
                       if (state.errorMessage != null &&
                           state.sendToEReaderState == SendToEReaderState.error)
                         Padding(
@@ -485,7 +471,6 @@ class SendToEreaderWidget extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // Progress indicator for loading states
                       if (state.sendToEReaderState ==
                           SendToEReaderState.loading)
                         LinearProgressIndicator(
@@ -495,7 +480,6 @@ class SendToEreaderWidget extends StatelessWidget {
                           ),
                         ),
 
-                      // Progress indicator with percentage for downloading/uploading
                       if (state.sendToEReaderState ==
                               SendToEReaderState.downloading ||
                           state.sendToEReaderState ==
@@ -526,7 +510,6 @@ class SendToEreaderWidget extends StatelessWidget {
 
                       const SizedBox(height: 20),
 
-                      // Close/Cancel button
                       Card(
                         elevation: 2,
                         shape: RoundedRectangleBorder(
@@ -539,7 +522,6 @@ class SendToEreaderWidget extends StatelessWidget {
                           child: InkWell(
                             borderRadius: BorderRadius.circular(12.0),
                             onTap: () {
-                              // Cancel if in progress
                               if (state.sendToEReaderState ==
                                       SendToEReaderState.loading ||
                                   state.sendToEReaderState ==

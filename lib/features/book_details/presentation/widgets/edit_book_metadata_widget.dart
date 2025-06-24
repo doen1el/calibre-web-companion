@@ -1,18 +1,18 @@
 import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
+
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:calibre_web_companion/core/services/api_service.dart';
 
 class EditBookMetadataWidget extends StatefulWidget {
   final BookDetailsModel book;
@@ -178,18 +178,15 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cover section at the top
           Text(
             localizations.bookCover,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
 
-          // Cover image with overlay controls
           Center(
             child: Stack(
               children: [
-                // Cover image or placeholder
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
@@ -211,7 +208,6 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
                   ),
                 ),
 
-                // Edit button (bottom right)
                 Positioned(
                   right: 8,
                   bottom: 8,
@@ -230,7 +226,6 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
                   ),
                 ),
 
-                // Remove button (bottom left) - only if there's a cover to remove
                 if (_selectedCoverBytes != null)
                   Positioned(
                     left: 8,
@@ -254,7 +249,6 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
           ),
           const SizedBox(height: 24),
 
-          // Rest of the form fields
           TextFormField(
             controller: _titleController,
             decoration: InputDecoration(labelText: localizations.title),
@@ -291,7 +285,6 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
     );
   }
 
-  // New method to show confirmation dialog for cover removal
   Future<void> _confirmCoverRemoval() async {
     final localizations = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
@@ -316,17 +309,15 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
           ),
     );
 
+    // TODO: Handle the case where the user deletes the cover image
     if (confirmed == true) {
       _clearSelectedCover();
-      // Set a flag to indicate cover should be removed on save
-      // You'll need to add this flag to your state and handle it in your API call
-      setState(() {
-        //  _shouldRemoveCover = true;
-      });
+
+      setState(() {});
     }
   }
 
-  // Add a placeholder method
+  // TODO: Implement a placeholder widget for when no cover is available
   Widget _buildPlaceholder(BuildContext context) {
     return Container(
       color: Theme.of(context).colorScheme.surfaceContainerHighest,

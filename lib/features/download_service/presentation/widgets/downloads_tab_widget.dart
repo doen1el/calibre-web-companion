@@ -91,7 +91,7 @@ class DownloadsTabWidget extends StatelessWidget {
                 ).colorScheme.primary.withValues(alpha: .4),
               ),
               child: Text(
-                "Loading books...",
+                "Loading books...", // TODO: Localize this string
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),

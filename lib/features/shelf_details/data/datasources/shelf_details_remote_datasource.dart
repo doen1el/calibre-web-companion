@@ -1,8 +1,8 @@
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
 class ShelfDetailsRemoteDataSource {
   final ApiService apiService;
@@ -125,7 +125,6 @@ class ShelfDetailsRemoteDataSource {
           final List<dynamic> rows = response['rows'];
 
           if (rows.isEmpty) {
-            // No more books to load
             hasMoreBooks = false;
             logger.i('Received empty book list');
             break;

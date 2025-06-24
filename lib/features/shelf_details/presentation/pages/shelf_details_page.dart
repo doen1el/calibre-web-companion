@@ -1,9 +1,6 @@
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:calibre_web_companion/core/services/api_service.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -19,6 +16,9 @@ import 'package:calibre_web_companion/features/shelf_details/data/models/book_au
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_book_item_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/presentation/widgets/edit_shelf_dialog_widget.dart';
+import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 
 class ShelfDetailsPage extends StatelessWidget {
   final String shelfId;
@@ -481,12 +481,6 @@ class ShelfDetailsPage extends StatelessWidget {
     );
   }
 
-  /// Build the cover image
-  ///
-  /// Parameters:
-  ///
-  /// - `context`: BuildContext
-  /// - `bookId`: String
   Widget _buildCoverImage(BuildContext context, String bookId) {
     ApiService apiService = ApiService();
     final baseUrl = apiService.getBaseUrl();
@@ -506,19 +500,16 @@ class ShelfDetailsPage extends StatelessWidget {
           (context, url) => Container(
             color: Theme.of(
               context,
-              // ignore: deprecated_member_use
-            ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
             child: Skeletonizer(
               enabled: true,
               effect: ShimmerEffect(
                 baseColor: Theme.of(
                   context,
-                  // ignore: deprecated_member_use
-                ).colorScheme.primary.withOpacity(0.2),
+                ).colorScheme.primary.withValues(alpha: .2),
                 highlightColor: Theme.of(
                   context,
-                  // ignore: deprecated_member_use
-                ).colorScheme.primary.withOpacity(0.4),
+                ).colorScheme.primary.withValues(alpha: .4),
               ),
               child: SizedBox(),
             ),

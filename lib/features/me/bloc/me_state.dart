@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import 'package:calibre_web_companion/features/me/data/models/stats_model.dart';
 
 enum MeStatus { initial, loading, loaded, error }

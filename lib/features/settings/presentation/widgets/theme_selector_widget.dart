@@ -5,6 +5,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
+
 import 'package:calibre_web_companion/features/settings/data/models/predefined_colors.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
 

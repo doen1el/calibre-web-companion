@@ -1,4 +1,3 @@
-import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -6,6 +5,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
+
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 
 class FeedbackWidget extends StatelessWidget {
   const FeedbackWidget({super.key});
@@ -80,18 +81,18 @@ class FeedbackWidget extends StatelessWidget {
     final titleController = TextEditingController();
     final descriptionController = TextEditingController(
       text: """
-## Description
+              ## Description
 
 
-## Expected Behavior
+              ## Expected Behavior
 
 
-## Current Behavior
+              ## Current Behavior
 
 
-## App Version
-${state.appVersion}
-""",
+              ## App Version ${state.appVersion}
+
+              """,
     );
 
     showDialog(

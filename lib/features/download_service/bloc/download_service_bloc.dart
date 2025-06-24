@@ -73,7 +73,6 @@ class DownloadServiceBloc
           ),
         );
 
-        // Reload status after download
         add(GetDownloadStatus());
       } else {
         emit(

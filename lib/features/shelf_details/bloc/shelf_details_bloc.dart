@@ -1,13 +1,13 @@
-import 'package:calibre_web_companion/core/services/app_transition.dart';
-import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
-import 'package:calibre_web_companion/features/shelf_details/data/repositories/shelf_details_repository.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_event.dart';
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_state.dart';
+import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/features/shelf_details/data/repositories/shelf_details_repository.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 
 class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
   final ShelfDetailsRepository repository;

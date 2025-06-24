@@ -18,7 +18,6 @@ class DownloadServiceRemoteDataSource {
     required this.logger,
   });
 
-  /// Get the base URL for the downloader
   Future<String> _getBaseUrl() async {
     return sharedPreferences.getString('downloader_url') ?? '';
   }
@@ -90,7 +89,6 @@ class DownloadServiceRemoteDataSource {
 
         logger.i('Found ${books.length} books with download status');
 
-        // Log book counts by status for debugging
         final availableCount =
             books.where((b) => b.status == DownloaderStatus.available).length;
         final downloadingCount =
