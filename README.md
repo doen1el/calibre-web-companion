@@ -4,6 +4,18 @@
     v1.6.5
 </p>
 
+<p align="center">
+    <a href="https://github.com/doen1el/calibre-web-companion/releases">
+        <img src="https://img.shields.io/github/downloads/doen1el/calibre-web-companion/total?color=green&label=github%20downloads" alt="GitHub all releases">
+    </a>
+    <a href="https://github.com/doen1el/calibre-web-companion/releases">
+        <img src="https://img.shields.io/github/v/release/doen1el/calibre-web-companion?color=green&label=download&sort=semver" alt="GitHub release (latest SemVer)">
+    </a>
+    <a href="https://github.com/doen1el/calibre-web-companion/actions?query=workflow%3ABuild+branch%3Adev">
+        <img src="https://img.shields.io/github/actions/workflow/status/doen1el/calibre-web-companion/main.yml?branch=dev" alt="GitHub Workflow Status">
+    </a>
+</p>
+
 # Calibre Web Companion
 
 This is an unofficial companion application for [Calibre Web](https://github.com/janeczku/calibre-web) (which also works for [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated)) that allows you to browse your book collection and download books directly to your device. You can also interact with your books by marking them as read, unread or bookmarked. It is also possible to send books directly to your e-reader (Kindle/Kobo) thanks to the great work of [send2ereader](https://github.com/daniel-j/send2ereader).
@@ -13,6 +25,9 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 ## 📦 Installation
 
 <p align="left">
+    <a href="https://f-droid.org/en/packages/de.doen1el.calibreWebCompanion/">
+        <img src="https://f-droid.org/badge/get-it-on.png" height="80">
+    </a>
     <a href="https://github.com/doen1el/calibre-web-companion/releases">
         <img src="docs/badges/badge_github.png" alt="Get it on GitHub" height="80">
     </a>
@@ -58,8 +73,11 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 - [x] Add bookmark function
 - [x] Calibre Web Automated Download integration
 - [x] Add and remove from shelfs
-- [ ] Code refactoring
-- [ ] Better error handling
+- [x] Code refactoring
+- [x] Better error handling
+- [ ] Integrate [Weblate](https://hosted.weblate.org/) for translations
+- [ ] Integrate a book recommendation system.
+- [ ] Add API and widget tests using [flutter_test](https://docs.flutter.dev/testing/overview)
 
 ## 📜 Credits
 

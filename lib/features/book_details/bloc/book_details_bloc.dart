@@ -47,16 +47,17 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       );
 
       final bookDetails = await repository.getBookDetails(
-        event.bookListModel,
+        event.bookViewModel,
         event.bookUuid,
       );
 
       emit(
         state.copyWith(
           status: BookDetailsStatus.loaded,
-          isBookRead: event.bookListModel.readStatus,
-          isBookArchived: event.bookListModel.isArchived,
+          isBookRead: event.bookViewModel.readStatus,
+          isBookArchived: event.bookViewModel.isArchived,
           bookDetails: bookDetails,
+          bookViewModel: event.bookViewModel,
         ),
       );
     } catch (e) {
@@ -81,7 +82,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       );
 
       final bookDetails = await repository.getBookDetails(
-        event.bookListModel,
+        event.bookViewModel,
         event.bookUuid,
       );
 
@@ -89,8 +90,8 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         state.copyWith(
           status: BookDetailsStatus.loaded,
           bookDetails: bookDetails,
-          isBookRead: event.bookListModel.readStatus,
-          isBookArchived: event.bookListModel.isArchived,
+          isBookRead: event.bookViewModel.readStatus,
+          isBookArchived: event.bookViewModel.isArchived,
         ),
       );
     } catch (e) {
@@ -471,6 +472,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     UpdateBookMetadata event,
     Emitter<BookDetailsState> emit,
   ) async {
+    // Use the bookDetails passed in the event instead of state.bookDetails
     emit(state.copyWith(metadataUpdateState: MetadataUpdateState.loading));
 
     try {
@@ -485,9 +487,25 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       );
 
       if (result) {
-        emit(state.copyWith(metadataUpdateState: MetadataUpdateState.success));
-        // TODO: Trigger a reload of book details
-        // add(ReloadBookDetails(state.bookDetails!, state.bookDetails!.uuid));
+        // Update the book details with the new values
+        final updatedBookDetails = event.bookDetails.copyWith(
+          title: event.title,
+          authors: event.authors,
+          comments: event.comments,
+          tags:
+              event.tags
+                  .split(',')
+                  .map((tag) => tag.trim())
+                  .where((tag) => tag.isNotEmpty)
+                  .toList(),
+        );
+
+        emit(
+          state.copyWith(
+            bookDetails: updatedBookDetails,
+            metadataUpdateState: MetadataUpdateState.success,
+          ),
+        );
       } else {
         emit(
           state.copyWith(

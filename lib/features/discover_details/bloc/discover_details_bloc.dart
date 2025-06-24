@@ -17,7 +17,6 @@ class DiscoverDetailsBloc
     on<LoadBooks>(_onLoadBooks);
     on<LoadCategories>(_onLoadCategories);
     on<LoadBooksFromPath>(_onLoadBooksFromPath);
-    on<RefreshData>(_onRefreshData);
     on<LoadDiscoverBookDetails>(_onLoadDiscoverBookDetails);
   }
 
@@ -122,15 +121,6 @@ class DiscoverDetailsBloc
     }
   }
 
-  // TODO: Implement refresh logic for books and categories
-  Future<void> _onRefreshData(
-    RefreshData event,
-    Emitter<DiscoverDetailsState> emit,
-  ) async {
-    if (state.isShowingBooks && state.bookFeed != null) {
-    } else if (state.isShowingCategories && state.categoryFeed != null) {}
-  }
-
   Future<void> _onLoadDiscoverBookDetails(
     LoadDiscoverBookDetails event,
     Emitter<DiscoverDetailsState> emit,
@@ -146,7 +136,7 @@ class DiscoverDetailsBloc
       await Navigator.of(event.context).push(
         AppTransitions.createSlideRoute(
           BookDetailsPage(
-            bookListModel: bookDetails,
+            bookViewModel: bookDetails,
             bookUuid: bookDetails.uuid,
           ),
         ),

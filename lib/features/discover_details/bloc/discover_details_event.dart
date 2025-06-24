@@ -41,10 +41,6 @@ class LoadBooksFromPath extends DiscoverDetailsEvent {
   List<Object?> get props => [fullPath];
 }
 
-class RefreshData extends DiscoverDetailsEvent {
-  const RefreshData();
-}
-
 class NavigateToBook extends DiscoverDetailsEvent {
   final DiscoverDetailsModel book;
 

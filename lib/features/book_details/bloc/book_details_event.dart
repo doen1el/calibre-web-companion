@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:equatable/equatable.dart';
@@ -11,20 +12,20 @@ abstract class BookDetailsEvent extends Equatable {
 }
 
 class LoadBookDetails extends BookDetailsEvent {
-  final BookViewModel bookListModel;
+  final BookViewModel bookViewModel;
   final String bookUuid;
 
-  const LoadBookDetails(this.bookListModel, this.bookUuid);
+  const LoadBookDetails(this.bookViewModel, this.bookUuid);
 
   @override
   List<Object?> get props => [bookUuid];
 }
 
 class ReloadBookDetails extends BookDetailsEvent {
-  final BookViewModel bookListModel;
+  final BookViewModel bookViewModel;
   final String bookUuid;
 
-  const ReloadBookDetails(this.bookListModel, this.bookUuid);
+  const ReloadBookDetails(this.bookViewModel, this.bookUuid);
 
   @override
   List<Object?> get props => [bookUuid];
@@ -133,6 +134,7 @@ class UpdateBookMetadata extends BookDetailsEvent {
   final String tags;
   final Uint8List? coverImageBytes;
   final String? coverFileName;
+  final BookDetailsModel bookDetails;
 
   const UpdateBookMetadata({
     required this.bookId,
@@ -142,6 +144,7 @@ class UpdateBookMetadata extends BookDetailsEvent {
     required this.tags,
     this.coverImageBytes,
     this.coverFileName,
+    required this.bookDetails,
   });
 
   @override
@@ -153,6 +156,7 @@ class UpdateBookMetadata extends BookDetailsEvent {
     tags,
     coverImageBytes,
     coverFileName,
+    bookDetails,
   ];
 }
 

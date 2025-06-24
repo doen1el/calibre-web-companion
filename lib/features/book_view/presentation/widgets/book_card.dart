@@ -22,7 +22,7 @@ class BookCard extends StatelessWidget {
         onTap: () {
           Navigator.of(context).push(
             AppTransitions.createSlideRoute(
-              BookDetailsPage(bookListModel: book, bookUuid: book.uuid),
+              BookDetailsPage(bookViewModel: book, bookUuid: book.uuid),
             ),
           );
         },

@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
@@ -51,6 +52,7 @@ class BookDetailsState extends Equatable {
   final MetadataUpdateState metadataUpdateState;
   final SendToEReaderState sendToEReaderState;
   final int sendToEReaderProgress;
+  final BookViewModel? bookViewModel;
 
   const BookDetailsState({
     this.status = BookDetailsStatus.initial,
@@ -70,6 +72,7 @@ class BookDetailsState extends Equatable {
     this.metadataUpdateState = MetadataUpdateState.initial,
     this.sendToEReaderState = SendToEReaderState.initial,
     this.sendToEReaderProgress = 0,
+    this.bookViewModel,
   });
 
   BookDetailsState copyWith({
@@ -90,11 +93,12 @@ class BookDetailsState extends Equatable {
     MetadataUpdateState? metadataUpdateState,
     SendToEReaderState? sendToEReaderState,
     int? sendToEReaderProgress,
+    BookViewModel? bookViewModel,
   }) {
     return BookDetailsState(
       status: status ?? this.status,
       bookDetails: bookDetails ?? this.bookDetails,
-      errorMessage: errorMessage,
+      errorMessage: errorMessage ?? this.errorMessage,
       isBookRead: isBookRead ?? this.isBookRead,
       readStatusState: readStatusState ?? this.readStatusState,
       isBookArchived: isBookArchived ?? this.isBookArchived,
@@ -104,12 +108,13 @@ class BookDetailsState extends Equatable {
       downloadedFilePath: downloadedFilePath ?? this.downloadedFilePath,
       emailState: emailState ?? this.emailState,
       openInReaderState: openInReaderState ?? this.openInReaderState,
-      downloadErrorMessage: downloadErrorMessage,
+      downloadErrorMessage: downloadErrorMessage ?? this.downloadErrorMessage,
       downloadFilePath: downloadFilePath ?? this.downloadFilePath,
       metadataUpdateState: metadataUpdateState ?? this.metadataUpdateState,
       sendToEReaderState: sendToEReaderState ?? this.sendToEReaderState,
       sendToEReaderProgress:
           sendToEReaderProgress ?? this.sendToEReaderProgress,
+      bookViewModel: bookViewModel ?? this.bookViewModel,
     );
   }
 
@@ -132,5 +137,6 @@ class BookDetailsState extends Equatable {
     metadataUpdateState,
     sendToEReaderState,
     sendToEReaderProgress,
+    bookViewModel,
   ];
 }

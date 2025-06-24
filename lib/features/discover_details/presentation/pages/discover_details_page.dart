@@ -69,12 +69,7 @@ class DiscoverDetailsPage extends StatelessWidget {
             appBar: AppBar(
               title: _buildAppBarTitle(context, title, categoryType),
             ),
-            body: RefreshIndicator(
-              onRefresh: () async {
-                context.read<DiscoverDetailsBloc>().add(const RefreshData());
-              },
-              child: _buildBody(context, state, localizations),
-            ),
+            body: _buildBody(context, state, localizations),
           );
         },
       ),
@@ -245,14 +240,6 @@ class DiscoverDetailsPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(state.errorMessage ?? localizations.unknownError),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed:
-                () => context.read<DiscoverDetailsBloc>().add(
-                  const RefreshData(),
-                ),
-            child: Text(localizations.tryAgain),
-          ),
         ],
       ),
     );

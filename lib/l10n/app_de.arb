@@ -308,5 +308,6 @@
   "removeCover": "Cover entfernen",
   "removeCoverConfirmation": "Bist du sicher, dass du das Cover entfernen möchtest?",
   "remove": "Entfernen",
-  "noCover": "Kein Cover"
+  "noCover": "Kein Cover",
+  "loadingBooks": "Bücher werden geladen..."
 }

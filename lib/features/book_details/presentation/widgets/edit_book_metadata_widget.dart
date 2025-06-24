@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,11 +18,13 @@ import 'package:calibre_web_companion/core/services/api_service.dart';
 class EditBookMetadataWidget extends StatefulWidget {
   final BookDetailsModel book;
   final bool isLoading;
+  final BookViewModel bookViewModel;
 
   const EditBookMetadataWidget({
     super.key,
     required this.book,
     required this.isLoading,
+    required this.bookViewModel,
   });
 
   @override
@@ -147,6 +150,7 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
                               tags: _tagsController.text,
                               coverImageBytes: _selectedCoverBytes,
                               coverFileName: _selectedCoverName ?? 'cover.jpg',
+                              bookDetails: widget.book,
                             ),
                           );
                         },

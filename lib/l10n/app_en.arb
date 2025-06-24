@@ -308,5 +308,6 @@
   "removeCover": "Remove cover",
   "removeCoverConfirmation": "Are you sure you want to remove the cover?",
   "remove": "Remove",
-  "noCover": "No cover"
+  "noCover": "No cover",
+  "loadingBooks": "Loading books..."
 }

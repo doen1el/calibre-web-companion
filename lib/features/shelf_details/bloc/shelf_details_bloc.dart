@@ -190,7 +190,7 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
       await Navigator.of(event.context).push(
         AppTransitions.createSlideRoute(
           BookDetailsPage(
-            bookListModel: bookDetails,
+            bookViewModel: bookDetails,
             bookUuid: bookDetails.uuid,
           ),
         ),

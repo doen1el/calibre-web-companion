@@ -84,8 +84,10 @@ class BookDetailsModel extends BookViewModel {
     return BookDetailsModel(
       id: bookListModel.id,
       uuid: bookListModel.uuid,
-      title: bookListModel.title,
-      authors: bookListModel.authors,
+      title: additionalData['title'] ?? '',
+      authors: (additionalData['authors'] as List)
+          .map((f) => f.toString())
+          .join(', '),
       authorSort: bookListModel.authorSort,
       data: bookListModel.data,
       flags: bookListModel.flags,
@@ -122,6 +124,7 @@ class BookDetailsModel extends BookViewModel {
       titleSort: additionalData['title_sort'] ?? '',
       rating: double.tryParse(additionalData['rating'].toString()) ?? 0.0,
       comments: additionalData['comments'] ?? '',
+      // TODO: Does not work when updating tags
       tags:
           (additionalData['tags'] as List?)
               ?.map((tag) => tag.toString())

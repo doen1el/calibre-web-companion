@@ -27,12 +27,12 @@ import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart'
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 
 class BookDetailsPage extends StatelessWidget {
-  final BookViewModel bookListModel;
+  final BookViewModel bookViewModel;
   final String bookUuid;
 
   const BookDetailsPage({
     super.key,
-    required this.bookListModel,
+    required this.bookViewModel,
     required this.bookUuid,
   });
 
@@ -44,14 +44,15 @@ class BookDetailsPage extends StatelessWidget {
       create:
           (context) =>
               getIt<BookDetailsBloc>()
-                ..add(LoadBookDetails(bookListModel, bookUuid)),
+                ..add(LoadBookDetails(bookViewModel, bookUuid)),
       child: BlocConsumer<BookDetailsBloc, BookDetailsState>(
         listenWhen:
             (previous, current) =>
                 previous.readStatusState != current.readStatusState ||
                 previous.archiveStatusState != current.archiveStatusState ||
                 previous.openInReaderState != current.openInReaderState ||
-                previous.metadataUpdateState != current.metadataUpdateState,
+                previous.metadataUpdateState != current.metadataUpdateState ||
+                previous.bookDetails != current.bookDetails,
         listener: (context, state) {
           if (state.readStatusState == ReadStatusState.success) {
             context.showSnackBar(
@@ -98,7 +99,9 @@ class BookDetailsPage extends StatelessWidget {
             (previous, current) =>
                 previous.status != current.status ||
                 previous.bookDetails != current.bookDetails ||
-                previous.metadataUpdateState != current.metadataUpdateState,
+                previous.metadataUpdateState != current.metadataUpdateState ||
+                (previous.metadataUpdateState == MetadataUpdateState.success &&
+                    current.metadataUpdateState == MetadataUpdateState.success),
         builder: (context, state) {
           final isLoading = state.status == BookDetailsStatus.loading;
           final hasError = state.status == BookDetailsStatus.error;
@@ -117,7 +120,7 @@ class BookDetailsPage extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         context.read<BookDetailsBloc>().add(
-                          ReloadBookDetails(bookListModel, bookUuid),
+                          ReloadBookDetails(bookViewModel, bookUuid),
                         );
                       },
                       child: Text(localizations.tryAgain),
@@ -160,22 +163,30 @@ class BookDetailsPage extends StatelessWidget {
                 icon: const Icon(Icons.arrow_back),
               ),
             ),
-            body: Skeletonizer(
-              enabled: isLoading,
-              effect: ShimmerEffect(
-                baseColor: Theme.of(
+            body: RefreshIndicator(
+              onRefresh: () async {
+                context.read<BookDetailsBloc>().add(
+                  ReloadBookDetails(bookViewModel, bookUuid),
+                );
+              },
+
+              child: Skeletonizer(
+                enabled: isLoading,
+                effect: ShimmerEffect(
+                  baseColor: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: .2),
+                  highlightColor: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: .4),
+                ),
+                child: _buildBookDetails(
                   context,
-                ).colorScheme.primary.withValues(alpha: .2),
-                highlightColor: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: .4),
-              ),
-              child: _buildBookDetails(
-                context,
-                localizations,
-                state,
-                book,
-                isLoading,
+                  localizations,
+                  state,
+                  book,
+                  isLoading,
+                ),
               ),
             ),
             floatingActionButton:
@@ -462,8 +473,11 @@ class BookDetailsPage extends StatelessWidget {
             tooltip: localizations.archiveUnarchive,
           ),
 
-          // TODO: Fix Edit Metadata functionality
-          EditBookMetadataWidget(book: book, isLoading: isLoading),
+          EditBookMetadataWidget(
+            book: book,
+            isLoading: isLoading,
+            bookViewModel: bookViewModel,
+          ),
           AddToShelfWidget(book: book, isLoading: isLoading),
 
           DownloadToDeviceWidget(book: book, isLoading: isLoading),

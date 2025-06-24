@@ -108,6 +108,8 @@ class SearchTabWidget extends StatelessWidget {
   }
 
   Widget _buildBookCardSkeletons(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
@@ -126,7 +128,7 @@ class SearchTabWidget extends StatelessWidget {
                 ).colorScheme.primary.withValues(alpha: .4),
               ),
               child: Text(
-                "Loading books...", // TODO: Localize this string
+                localizations.loadingBooks,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
