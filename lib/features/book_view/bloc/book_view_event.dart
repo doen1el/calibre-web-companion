@@ -65,3 +65,7 @@ class LoadViewSettings extends BookViewEvent {
 class UploadCancel extends BookViewEvent {
   const UploadCancel();
 }
+
+class ResetUploadStatus extends BookViewEvent {
+  const ResetUploadStatus();
+}

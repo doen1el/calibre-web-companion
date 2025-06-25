@@ -10,7 +10,7 @@ class DownloadServiceBookModel extends Equatable {
   final String size;
   final String preview;
   final String publisher;
-  final int year;
+  final String year;
   final String language;
   final DownloaderStatus status;
   final List<String> downloadUrls;
@@ -56,7 +56,7 @@ class DownloadServiceBookModel extends Equatable {
     String? size,
     String? preview,
     String? publisher,
-    int? year,
+    String? year,
     String? language,
     DownloaderStatus? status,
     List<String>? downloadUrls,

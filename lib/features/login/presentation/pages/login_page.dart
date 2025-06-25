@@ -21,9 +21,9 @@ class LoginPage extends StatelessWidget {
       body: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
           if (state.isSuccess) {
-            Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (context) => HomePage()));
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
           }
 
           if (state.isFailure && state.errorMessage != null) {

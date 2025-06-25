@@ -309,5 +309,6 @@
   "removeCoverConfirmation": "Êtes-vous sûr de vouloir supprimer la couverture actuelle ?",
   "remove": "Supprimer",
   "noCover": "Aucune couverture",
-  "loadingBooks": "Chargement des livres..."
+  "loadingBooks": "Chargement des livres...",
+  "sucessfullyUploadedBook": "Livre téléchargé avec succès"
 }

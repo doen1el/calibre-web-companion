@@ -21,6 +21,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     on<UploadBook>(_onUploadBook);
     on<ChangeColumnCount>(_onChangeColumnCount);
     on<UploadCancel>(_onUploadCancel);
+    on<ResetUploadStatus>(_onResetUploadStatus);
   }
 
   Future<void> _onLoadSettings(
@@ -224,6 +225,13 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
   }
 
   void _onUploadCancel(UploadCancel event, Emitter<BookViewState> emit) {
+    emit(state.copyWith(uploadStatus: UploadStatus.initial));
+  }
+
+  void _onResetUploadStatus(
+    ResetUploadStatus event,
+    Emitter<BookViewState> emit,
+  ) {
     emit(state.copyWith(uploadStatus: UploadStatus.initial));
   }
 }

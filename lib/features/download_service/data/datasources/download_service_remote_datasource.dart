@@ -31,6 +31,7 @@ class DownloadServiceRemoteDataSource {
 
       if (response.statusCode == 200) {
         final List<dynamic> results = json.decode(response.body);
+        logger.d(response.body);
         final books =
             results
                 .map(
@@ -84,6 +85,7 @@ class DownloadServiceRemoteDataSource {
 
       if (response.statusCode == 200) {
         final status = json.decode(response.body);
+        logger.d(response.body);
         final downloadStatus = DownloadStatusResponse.fromJson(status);
         final books = downloadStatus.getAllBooks();
 

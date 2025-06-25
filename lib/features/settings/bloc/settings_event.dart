@@ -94,26 +94,11 @@ class SetDownloaderUrl extends SettingsEvent {
   List<Object?> get props => [url];
 }
 
-class EnterFeedbackTitle extends SettingsEvent {
-  final String title;
-
-  const EnterFeedbackTitle(this.title);
-
-  @override
-  List<Object?> get props => [title];
-}
-
-class EnterFeedbackDescription extends SettingsEvent {
-  final String description;
-
-  const EnterFeedbackDescription(this.description);
-
-  @override
-  List<Object?> get props => [description];
-}
-
 class SubmitFeedback extends SettingsEvent {
-  const SubmitFeedback();
+  final String? title;
+  final String? description;
+
+  const SubmitFeedback(this.title, this.description);
 
   @override
   List<Object?> get props => [];

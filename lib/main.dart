@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/di/injection_container.dart' as di;
+import 'package:logger/web.dart';
 
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.dart';
@@ -28,8 +29,6 @@ import 'package:calibre_web_companion/features/login/data/repositories/login_rep
 import 'package:calibre_web_companion/features/login/bloc/login_bloc.dart';
 import 'package:calibre_web_companion/features/login/presentation/pages/login_page.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_bloc.dart';
-import 'package:http/http.dart';
-import 'package:logger/web.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 final GetIt getIt = GetIt.instance;

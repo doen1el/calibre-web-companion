@@ -31,6 +31,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     on<SendToEReaderViaBrowser>(_onSendToEReaderViaBrowser);
     on<SendToEReaderByEmail>(_onSendToEReaderByEmail);
     on<CancelSendToEReader>(_onCancelSendToEReader);
+    on<ClearSnackBarStates>(_onClearSnackBarStates);
   }
 
   bool _downloadCancelled = false;
@@ -69,6 +70,22 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         ),
       );
     }
+  }
+
+  void _onClearSnackBarStates(
+    ClearSnackBarStates event,
+    Emitter<BookDetailsState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        openInReaderState: OpenInReaderState.initial,
+        downloadState: DownloadState.initial,
+        sendToEReaderState: SendToEReaderState.initial,
+        metadataUpdateState: MetadataUpdateState.initial,
+        readStatusState: ReadStatusState.initial,
+        archiveStatusState: ArchiveStatusState.initial,
+      ),
+    );
   }
 
   Future<void> _onReloadBookDetails(

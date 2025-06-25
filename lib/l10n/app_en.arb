@@ -309,5 +309,6 @@
   "removeCoverConfirmation": "Are you sure you want to remove the cover?",
   "remove": "Remove",
   "noCover": "No cover",
-  "loadingBooks": "Loading books..."
+  "loadingBooks": "Loading books...",
+  "sucessfullyUploadedBook": "Successfully uploaded book"
 }

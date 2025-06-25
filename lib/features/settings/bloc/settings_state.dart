@@ -24,8 +24,6 @@ class SettingsState extends Equatable {
   final String? errorMessage;
   final String? appVersion;
   final String? buildNumber;
-  final String? feedbackTitle;
-  final String? feedbackDescription;
   final String? languageCode;
 
   const SettingsState({
@@ -43,8 +41,6 @@ class SettingsState extends Equatable {
     this.errorMessage,
     this.appVersion,
     this.buildNumber,
-    this.feedbackTitle,
-    this.feedbackDescription,
     this.languageCode = 'en',
   });
 
@@ -66,8 +62,6 @@ class SettingsState extends Equatable {
     String? errorMessage,
     String? appVersion,
     String? buildNumber,
-    String? feedbackTitle,
-    String? feedbackDescription,
     String? languageCode,
   }) {
     return SettingsState(
@@ -86,8 +80,6 @@ class SettingsState extends Equatable {
       errorMessage: errorMessage,
       appVersion: appVersion ?? this.appVersion,
       buildNumber: buildNumber ?? this.buildNumber,
-      feedbackTitle: feedbackTitle ?? this.feedbackTitle,
-      feedbackDescription: feedbackDescription ?? this.feedbackDescription,
       languageCode: languageCode ?? this.languageCode,
     );
   }
@@ -108,8 +100,6 @@ class SettingsState extends Equatable {
     errorMessage,
     appVersion,
     buildNumber,
-    feedbackTitle,
-    feedbackDescription,
     languageCode,
   ];
 }

@@ -20,8 +20,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SetCostumSend2EreaderUrl>(_onSetSend2EreaderUrl);
     on<SetDownloaderEnabled>(_onSetDownloaderEnabled);
     on<SetDownloaderUrl>(_onSetDownloaderUrl);
-    on<EnterFeedbackTitle>(_onEnterFeedbackTitle);
-    on<EnterFeedbackDescription>(_onEnterFeedbackDescription);
     on<SubmitFeedback>(_onSubmitFeedback);
     on<SetLanguage>(_onSetLanguage);
     on<BuyMeACoffee>(_onBuyMeACoffee);
@@ -221,20 +219,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     }
   }
 
-  Future<void> _onEnterFeedbackTitle(
-    EnterFeedbackTitle event,
-    Emitter<SettingsState> emit,
-  ) async {
-    emit(state.copyWith(feedbackTitle: event.title));
-  }
-
-  Future<void> _onEnterFeedbackDescription(
-    EnterFeedbackDescription event,
-    Emitter<SettingsState> emit,
-  ) async {
-    emit(state.copyWith(feedbackDescription: event.description));
-  }
-
   Future<void> _onSubmitFeedback(
     SubmitFeedback event,
     Emitter<SettingsState> emit,
@@ -243,8 +227,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
     try {
       await repository.submitFeedback(
-        state.feedbackTitle ?? '',
-        state.feedbackDescription ?? '',
+        event.title ?? '',
+        event.description ?? '',
       );
       emit(state.copyWith(status: SettingsStatus.loaded));
     } catch (e) {

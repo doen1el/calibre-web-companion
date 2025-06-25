@@ -309,5 +309,6 @@
   "removeCoverConfirmation": "¿Estás seguro de que quieres eliminar la portada del libro?",
   "remove": "Eliminar",
   "noCover": "Sin portada",
-  "loadingBooks": "Cargando libros..."
+  "loadingBooks": "Cargando libros...",
+  "sucessfullyUploadedBook": "Libro cargado con éxito"
 }

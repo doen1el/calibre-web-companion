@@ -67,7 +67,7 @@ class BookCardWidget extends StatelessWidget {
                           textStyle: Theme.of(context).textTheme.bodySmall,
                         ),
                         const SizedBox(height: 4),
-                        if (book.year > 0) ...[
+                        if (book.year != '') ...[
                           _buildInfoRow(
                             context,
                             Icons.calendar_today,

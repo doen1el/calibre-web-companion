@@ -1,7 +1,7 @@
 <p align="center">
     <img src="docs/icon/icon.png" alt="App Icon" width="100" />
     <br>
-    v1.6.5
+    v1.7.0
 </p>
 
 <p align="center">

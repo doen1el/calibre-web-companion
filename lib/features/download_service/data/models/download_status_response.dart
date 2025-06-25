@@ -71,7 +71,7 @@ class DownloadStatusResponse {
         size: 'Unknown',
         preview: '',
         publisher: 'Unknown',
-        year: 0,
+        year: '',
         language: 'Unknown',
         status: status,
       );
@@ -85,10 +85,7 @@ class DownloadStatusResponse {
       size: data['size'] ?? 'Unknown Size',
       preview: data['preview'] ?? '',
       publisher: data['publisher'] ?? 'Unknown Publisher',
-      year:
-          data['year'] is String
-              ? int.tryParse(data['year']) ?? 0
-              : data['year'] ?? 0,
+      year: data['year'] ?? 'Unknown Year',
       language: data['language'] ?? 'Unknown',
       status: status,
       downloadUrls:

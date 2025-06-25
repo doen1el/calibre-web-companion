@@ -188,3 +188,7 @@ class SendToEReaderByEmail extends BookDetailsEvent {
 }
 
 class CancelSendToEReader extends BookDetailsEvent {}
+
+class ClearSnackBarStates extends BookDetailsEvent {
+  const ClearSnackBarStates();
+}

@@ -275,7 +275,7 @@ class DownloadToDeviceWidget extends StatelessWidget {
                             child: Text(
                               currentError,
                               style: TextStyle(
-                                color: Colors.red[800],
+                                color: Theme.of(context).colorScheme.error,
                                 fontSize: 12,
                               ),
                               maxLines: 2,

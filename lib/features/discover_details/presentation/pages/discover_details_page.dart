@@ -366,7 +366,14 @@ class DiscoverDetailsPage extends StatelessWidget {
     final categoryType = categoryTypeMap[pathParts[1]];
     final discoverType = discoverTypeMap[pathParts[1]];
 
-    if (categoryType != null) {
+    // This handles the case where the category is a format and has a sub-path.
+    // Otherwise the books will be treated as a generic category.
+    if (categoryType == CategoryType.formats && pathParts.length > 2) {
+      _navigateToPage(
+        context,
+        DiscoverDetailsPage(title: category.title, fullPath: category.id),
+      );
+    } else if (categoryType != null) {
       final subPath =
           pathParts.length > 2
               ? category.id.split('/${pathParts[1]}/').last

@@ -127,23 +127,27 @@ class SettingsLocalDataSource {
 
   Future<void> submitFeedback(String title, String description) async {
     try {
-      final githubToken = const String.fromEnvironment(
-        'ISSUE_TOKEN',
-        defaultValue: '',
-      );
+      logger.i('Submitting feedback: $title');
 
       final owner = 'doen1el';
       final repo = 'calibre-web-companion';
+      final issueUrl = 'https://github.com/$owner/$repo/issues/new';
 
-      await http.post(
-        Uri.parse('https://api.github.com/repos/$owner/$repo/issues'),
-        headers: {
-          'Authorization': 'token $githubToken',
-          'Accept': 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({'title': title, 'body': description}),
-      );
+      final queryParams = {
+        'title': Uri.encodeComponent(title),
+        'body': Uri.encodeComponent(description),
+      };
+
+      final urlWithParams =
+          '$issueUrl?title=${queryParams['title']}&body=${queryParams['body']}';
+
+      final Uri url = Uri.parse(urlWithParams);
+
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        throw Exception('Could not launch GitHub issue form');
+      }
+
+      logger.i('Opened GitHub issue form in browser');
     } catch (e) {
       logger.e('Error submitting feedback: $e');
       throw Exception('Failed to submit feedback: $e');

@@ -22,6 +22,7 @@ class BookViewPage extends StatefulWidget {
 
 class _BookViewPageState extends State<BookViewPage> {
   final ScrollController _scrollController = ScrollController();
+  bool _isUploadSheetShown = false;
 
   @override
   void initState() {
@@ -294,6 +295,9 @@ class _BookViewPageState extends State<BookViewPage> {
     BuildContext context,
     AppLocalizations localizations,
   ) {
+    if (_isUploadSheetShown) return;
+    _isUploadSheetShown = true;
+
     showModalBottomSheet(
       context: context,
       isDismissible: false,
@@ -329,11 +333,11 @@ class _BookViewPageState extends State<BookViewPage> {
                       if (state.hasError &&
                           state.uploadStatus == UploadStatus.failed)
                         Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
+                          padding: EdgeInsets.only(top: 8.0),
                           child: Text(
                             state.errorMessage,
                             style: TextStyle(
-                              color: Colors.red[800],
+                              color: Theme.of(context).colorScheme.error,
                               fontSize: 12,
                             ),
                             maxLines: 2,
@@ -372,6 +376,12 @@ class _BookViewPageState extends State<BookViewPage> {
                                       UploadStatus.uploading) {
                                 context.read<BookViewBloc>().add(
                                   const UploadCancel(),
+                                );
+                              } else if (state.uploadStatus ==
+                                      UploadStatus.success ||
+                                  state.uploadStatus == UploadStatus.failed) {
+                                context.read<BookViewBloc>().add(
+                                  const ResetUploadStatus(),
                                 );
                               }
 
@@ -429,7 +439,9 @@ class _BookViewPageState extends State<BookViewPage> {
           ),
         );
       },
-    );
+    ).then((_) {
+      _isUploadSheetShown = false;
+    });
   }
 
   Widget _buildStatusIcon(UploadStatus status) {
@@ -465,7 +477,7 @@ class _BookViewPageState extends State<BookViewPage> {
       case UploadStatus.uploading:
         return localizations.uploadingBook;
       case UploadStatus.success:
-        return localizations.successfullySentToEReader;
+        return localizations.sucessfullyUploadedBook;
       case UploadStatus.failed:
         return localizations.uploadFailed;
       default:

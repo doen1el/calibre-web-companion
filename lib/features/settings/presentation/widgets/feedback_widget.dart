@@ -81,18 +81,18 @@ class FeedbackWidget extends StatelessWidget {
     final titleController = TextEditingController();
     final descriptionController = TextEditingController(
       text: """
-              ## Description
+## Description
 
 
-              ## Expected Behavior
+## Expected Behavior
 
 
-              ## Current Behavior
+## Current Behavior
 
 
-              ## App Version ${state.appVersion}
+## App Version ${state.appVersion}
 
-              """,
+""",
     );
 
     showDialog(
@@ -107,10 +107,6 @@ class FeedbackWidget extends StatelessWidget {
               children: [
                 TextField(
                   controller: titleController,
-                  onChanged:
-                      (value) => context.read<SettingsBloc>().add(
-                        EnterFeedbackTitle(value),
-                      ),
                   decoration: InputDecoration(
                     labelText: localizations.title,
                     border: OutlineInputBorder(
@@ -122,10 +118,6 @@ class FeedbackWidget extends StatelessWidget {
                 const SizedBox(height: 16),
                 TextField(
                   controller: descriptionController,
-                  onChanged:
-                      (value) => context.read<SettingsBloc>().add(
-                        EnterFeedbackDescription(value),
-                      ),
                   decoration: InputDecoration(
                     labelText: localizations.description,
                     alignLabelWithHint: true,
@@ -171,7 +163,12 @@ class FeedbackWidget extends StatelessWidget {
                               return;
                             }
 
-                            context.read<SettingsBloc>().add(SubmitFeedback());
+                            context.read<SettingsBloc>().add(
+                              SubmitFeedback(
+                                titleController.text.trim(),
+                                descriptionController.text.trim(),
+                              ),
+                            );
 
                             Navigator.pop(context);
                           },

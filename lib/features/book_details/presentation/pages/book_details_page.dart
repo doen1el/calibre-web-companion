@@ -60,6 +60,7 @@ class BookDetailsPage extends StatelessWidget {
                   ? localizations.markedAsReadSuccessfully
                   : localizations.markedAsUnreadSuccessfully,
             );
+            context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
           } else if (state.readStatusState == ReadStatusState.error) {
             context.showSnackBar(
               state.isBookRead
@@ -67,6 +68,7 @@ class BookDetailsPage extends StatelessWidget {
                   : localizations.markedAsUnreadFailed,
               isError: true,
             );
+            context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
           }
 
           if (state.archiveStatusState == ArchiveStatusState.success) {
@@ -75,6 +77,7 @@ class BookDetailsPage extends StatelessWidget {
                   ? localizations.archivedBookSuccessfully
                   : localizations.unarchivedBookSuccessfully,
             );
+            context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
           } else if (state.archiveStatusState == ArchiveStatusState.error) {
             context.showSnackBar(
               state.isBookArchived
@@ -82,23 +85,28 @@ class BookDetailsPage extends StatelessWidget {
                   : localizations.unarchivedBookFailed,
               isError: true,
             );
+            context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
           }
 
           if (state.openInReaderState == OpenInReaderState.success) {
             context.showSnackBar(
               localizations.bookOpenedExternallySuccessfully,
             );
+            context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
           } else if (state.openInReaderState == OpenInReaderState.error) {
             context.showSnackBar(
               localizations.openBookExternallyFailed,
               isError: true,
             );
+            context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
           }
         },
         buildWhen:
             (previous, current) =>
                 previous.status != current.status ||
                 previous.bookDetails != current.bookDetails ||
+                previous.isBookRead != current.isBookRead ||
+                previous.isBookArchived != current.isBookArchived ||
                 previous.metadataUpdateState != current.metadataUpdateState ||
                 (previous.metadataUpdateState == MetadataUpdateState.success &&
                     current.metadataUpdateState == MetadataUpdateState.success),
