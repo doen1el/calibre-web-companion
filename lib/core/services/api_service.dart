@@ -115,60 +115,19 @@ class ApiService {
     } catch (e) {
       _logger.w('Failed to parse JSON response: $e');
 
-      String sanitized = responseBody;
-
-      int commentsPos = sanitized.indexOf('"comments"');
-      if (commentsPos >= 0) {
-        int valueStart = sanitized.indexOf(':', commentsPos);
-        if (valueStart >= 0) {
-          valueStart = sanitized.indexOf('"', valueStart);
-          if (valueStart >= 0) {
-            int nextFieldPos = -1;
-            bool escaped = false;
-
-            for (int i = valueStart + 1; i < sanitized.length; i++) {
-              if (escaped) {
-                escaped = false;
-                continue;
-              }
-
-              if (sanitized[i] == '\\') {
-                escaped = true;
-                continue;
-              }
-
-              if (sanitized[i] == '"' && !escaped) {
-                nextFieldPos = i + 1;
-                break;
-              }
-            }
-
-            if (nextFieldPos > 0) {
-              sanitized =
-                  '${sanitized.substring(0, valueStart)}""${sanitized.substring(nextFieldPos)}';
-
-              try {
-                return json.decode(sanitized) as Map<String, dynamic>;
-              } catch (e2) {
-                _logger.e('Still failed after sanitizing comments: $e2');
-              }
-            }
-          }
-        }
-      }
-
       try {
-        final simpleReplacement = responseBody.replaceAll(
-          RegExp(r'"comments"\s*:\s*".*?"', dotAll: true),
-          '"comments":""',
-        );
-        return json.decode(simpleReplacement) as Map<String, dynamic>;
-      } catch (e3) {
-        _logger.e('Failed with regex replacement: $e3');
-      }
+        String sanitized = responseBody;
 
-      _logger.e('Could not sanitize JSON, returning dummy response');
-      return {'error': 'Failed to parse JSON', 'comments': '', 'formats': []};
+        sanitized = sanitized.replaceAllMapped(
+          RegExp(r'[\u0000-\u001F\u007F-\u009F]'),
+          (match) => '',
+        );
+
+        return json.decode(sanitized) as Map<String, dynamic>;
+      } catch (sanitizationError) {
+        _logger.e('Error during sanitization process: $sanitizationError');
+        return {'error': 'Sanitization failed', 'comments': '', 'formats': []};
+      }
     }
   }
 

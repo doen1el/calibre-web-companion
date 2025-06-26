@@ -310,5 +310,10 @@
   "remove": "Supprimer",
   "noCover": "Aucune couverture",
   "loadingBooks": "Chargement des livres...",
-  "sucessfullyUploadedBook": "Livre téléchargé avec succès"
+  "sucessfullyUploadedBook": "Livre téléchargé avec succès",
+  "sslSettings": "Paramètres SSL",
+  "sslCertificate": "Certificat SSL",
+  "settingsForSSL": "Paramètres pour le certificat SSL",
+  "allowSelfSignedCertificates": "Autoriser les certificats auto-signés",
+  "allowUnsafeConnections": "Autoriser les connexions non sécurisées"
 }

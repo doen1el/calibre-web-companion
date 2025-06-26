@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:calibre_web_companion/shared/widgets/coming_soon_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -107,6 +108,8 @@ class BookDetailsPage extends StatelessWidget {
                 previous.bookDetails != current.bookDetails ||
                 previous.isBookRead != current.isBookRead ||
                 previous.isBookArchived != current.isBookArchived ||
+                previous.readStatusState != current.readStatusState ||
+                previous.archiveStatusState != current.archiveStatusState ||
                 previous.metadataUpdateState != current.metadataUpdateState ||
                 (previous.metadataUpdateState == MetadataUpdateState.success &&
                     current.metadataUpdateState == MetadataUpdateState.success),
@@ -313,15 +316,20 @@ class BookDetailsPage extends StatelessWidget {
               InkWell(
                 borderRadius: BorderRadius.circular(8.0),
                 onTap: () {
-                  Navigator.of(context).push(
-                    AppTransitions.createSlideRoute(
-                      DiscoverDetailsPage(
-                        title: book.series,
-                        categoryType: CategoryType.series,
-                        fullPath: "/opds/series/${book.seriesIndex}",
-                      ),
-                    ),
+                  // TODO: The series_index is not the same index used in opds!
+                  showComingSoonDialog(
+                    context,
+                    "View series details feature is coming soon!",
                   );
+                  // Navigator.of(context).push(
+                  //   AppTransitions.createSlideRoute(
+                  //     DiscoverDetailsPage(
+                  //       title: book.series,
+                  //       categoryType: CategoryType.series,
+                  //       fullPath: "/opds/series/${book.seriesIndex}",
+                  //     ),
+                  //   ),
+                  // );
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -481,6 +489,7 @@ class BookDetailsPage extends StatelessWidget {
             tooltip: localizations.archiveUnarchive,
           ),
 
+          // TODO: edit metadata functionality needs to be fixed
           EditBookMetadataWidget(
             book: book,
             isLoading: isLoading,
@@ -506,26 +515,31 @@ class BookDetailsPage extends StatelessWidget {
                 isLoading
                     ? null
                     : () async {
-                      final settingsState = context.read<SettingsBloc>().state;
-                      final String? selectedDirectory;
-
-                      if (settingsState.defaultDownloadPath.isEmpty) {
-                        selectedDirectory =
-                            await FilePicker.platform.getDirectoryPath();
-                        if (selectedDirectory == null) {
-                          return;
-                        }
-                      } else {
-                        selectedDirectory = settingsState.defaultDownloadPath;
-                      }
-
-                      // ignore: use_build_context_synchronously
-                      context.read<BookDetailsBloc>().add(
-                        OpenBookInReader(
-                          selectedDirectory: selectedDirectory,
-                          schema: settingsState.downloadSchema,
-                        ),
+                      // TODO: fix the open in reader functionality with the media storage api
+                      showComingSoonDialog(
+                        context,
+                        "The open in reader feature is coming soon!",
                       );
+                      // final settingsState = context.read<SettingsBloc>().state;
+                      // final String? selectedDirectory;
+
+                      // if (settingsState.defaultDownloadPath.isEmpty) {
+                      //   selectedDirectory =
+                      //       await FilePicker.platform.getDirectoryPath();
+                      //   if (selectedDirectory == null) {
+                      //     return;
+                      //   }
+                      // } else {
+                      //   selectedDirectory = settingsState.defaultDownloadPath;
+                      // }
+
+                      // // ignore: use_build_context_synchronously
+                      // context.read<BookDetailsBloc>().add(
+                      //   OpenBookInReader(
+                      //     selectedDirectory: selectedDirectory,
+                      //     schema: settingsState.downloadSchema,
+                      //   ),
+                      // );
                     },
             tooltip: localizations.openInReader,
           ),

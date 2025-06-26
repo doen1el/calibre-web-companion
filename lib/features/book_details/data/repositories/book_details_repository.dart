@@ -135,4 +135,25 @@ class BookDetailsRepository {
       rethrow;
     }
   }
+
+  Future<String> downloadBook(
+    BookDetailsModel book,
+    String selectedDirectory,
+    DownloadSchema schema, {
+    String format = 'epub',
+    Function(int)? progressCallback,
+  }) async {
+    try {
+      return await datasource.downloadBook(
+        book,
+        selectedDirectory,
+        schema,
+        format: format,
+        progressCallback: progressCallback,
+      );
+    } catch (e) {
+      logger.e('Error downloading book: $e');
+      rethrow;
+    }
+  }
 }

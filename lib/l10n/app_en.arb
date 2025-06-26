@@ -310,5 +310,10 @@
   "remove": "Remove",
   "noCover": "No cover",
   "loadingBooks": "Loading books...",
-  "sucessfullyUploadedBook": "Successfully uploaded book"
+  "sucessfullyUploadedBook": "Successfully uploaded book",
+  "sslSettings": "SSL Settings",
+  "sslCertificate": "SSL Certificate",
+  "settingsForSSL": "Settings for SSL certificate",
+  "allowSelfSignedCertificates": "Allow self-signed certificates",
+  "allowUnsafeConnections": "Allow unsafe connections"
 }

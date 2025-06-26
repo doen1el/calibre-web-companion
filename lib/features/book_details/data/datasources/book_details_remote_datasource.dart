@@ -4,8 +4,11 @@ import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:logger/logger.dart';
+import 'package:media_store_plus/media_store_plus.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
@@ -24,6 +27,12 @@ class BookDetailsRemoteDatasource {
     required this.logger,
     required this.tagService,
   });
+
+  Future<void> initializeMediaStore() async {
+    if (Platform.isAndroid) {
+      await MediaStore.ensureInitialized();
+    }
+  }
 
   Future<BookDetailsModel> fetchBookDetails(
     BookViewModel bookListModel,
@@ -301,38 +310,71 @@ class BookDetailsRemoteDatasource {
 
   Future<String> downloadBookToPath({
     required BookDetailsModel book,
-    required String selectedDirectory,
+    required String selectedDirectory, // Format "downloads:subfolder"
     required DownloadSchema schema,
     String format = 'epub',
     Function(int)? progressCallback,
     bool deleteOnError = true,
   }) async {
     try {
-      String filePath = await _createPathBasedOnSchema(
-        selectedDirectory,
+      // Initialize MediaStore for Android
+      if (Platform.isAndroid) {
+        await MediaStore.ensureInitialized();
+        // Wichtig: Nicht "CalibreWebCompanion" als App-Ordner setzen,
+        // da das zu Verwirrung führt
+        MediaStore.appFolder = "CalibreBooks";
+
+        final mediaStorePlugin = MediaStore();
+        if ((await mediaStorePlugin.getPlatformSDKInt()) >= 33) {
+          await Permission.photos.request();
+          await Permission.audio.request();
+          await Permission.videos.request();
+        } else {
+          await Permission.storage.request();
+        }
+      }
+
+      // Download-Unterordner aus dem gespeicherten Pfad extrahieren
+      String subfolderName = 'CalibreBooks'; // Standardwert
+      if (selectedDirectory.startsWith('downloads:')) {
+        final parts = selectedDirectory.split(':');
+        if (parts.length > 1) {
+          final subfolder = parts[1];
+          // Bei "default" verwenden wir den Standardwert "CalibreBooks"
+          if (subfolder != 'default') {
+            subfolderName = subfolder;
+          }
+        }
+      }
+
+      // MediaStore-Pfadinformationen erstellen
+      final pathInfo = await _createMediaStorePathInfo(
         book,
         format,
         schema,
+        subfolderName,
       );
+      final fileName = pathInfo['fileName']!;
+      final relativePath = pathInfo['relativePath']!;
 
-      final file = File(filePath);
-      if (await file.exists()) {
-        logger.i('File already exists: $filePath');
-        return filePath;
-      }
+      logger.d('Using fileName: $fileName, relativePath: $relativePath');
 
-      await Directory(path.dirname(filePath)).create(recursive: true);
-
-      final tempFilePath = '$filePath.downloading';
+      // Temporäre Datei im App-Cache für den Download erstellen
+      final tempDir = await getTemporaryDirectory();
+      final tempFilePath = path.join(
+        tempDir.path,
+        '${book.title}_$format.downloading',
+      );
       final tempFile = File(tempFilePath);
 
+      // Download-Stream abrufen
       final response = await getDownloadStream(book.id.toString(), format);
-
       final contentLength = response.contentLength ?? -1;
       logger.i(
         'Download response status: ${response.statusCode}, Content length: $contentLength',
       );
 
+      // Datei herunterladen
       final sink = tempFile.openWrite();
       int receivedBytes = 0;
 
@@ -344,38 +386,97 @@ class BookDetailsRemoteDatasource {
           if (contentLength > 0 && progressCallback != null) {
             final progress = (receivedBytes / contentLength * 100).round();
             progressCallback(progress);
-            logger.d(
-              'Download progress: $progress%, $receivedBytes/$contentLength bytes',
-            );
+            // logger.d(
+            //   'Download progress: $progress%, $receivedBytes/$contentLength bytes',
+            // );
           }
         }
 
         await sink.flush();
         await sink.close();
 
-        if (await tempFile.exists()) {
-          await tempFile.rename(filePath);
-        } else {
+        if (!await tempFile.exists()) {
           throw Exception('Temporary file was not created correctly');
         }
 
-        logger.i('Download complete: $filePath with $receivedBytes bytes');
-        return filePath;
-      } catch (e) {
-        logger.e('Error during download: $e');
+        // Datei mit MediaStore in den Download-Ordner speichern
+        final mediaStorePlugin = MediaStore();
 
-        await sink.close();
+        // Hier die korrekten Parameter übergeben
+        final saveResult = await mediaStorePlugin.saveFile(
+          tempFilePath: tempFile.path,
+          dirType: DirType.download,
+          dirName: DirName.download, // DirName muss ein Enum sein, kein String!
+          relativePath:
+              relativePath, // Hier den vollständigen Unterpfad angeben
+        );
 
-        if (deleteOnError && await tempFile.exists()) {
+        // Temporäre Datei löschen
+        if (await tempFile.exists()) {
           await tempFile.delete();
         }
 
-        rethrow;
+        // Den zurückgegebenen URI von MediaStore in einen lesbaren Pfad umwandeln
+        SaveInfo displayPath = saveResult!;
+
+        logger.i('Download complete: $displayPath with $receivedBytes bytes');
+        return displayPath.uri.toString();
+      } catch (e) {
+        logger.e('Error during download: $e');
+        throw Exception('Download failed: $e');
       }
     } catch (e) {
-      logger.e('Exception while downloading book: $e');
-      throw Exception('Error downloading book: $e');
+      logger.e('Error downloading book: $e');
+      throw Exception('Failed to download book: $e');
     }
+  }
+
+  Future<Map<String, String>> _createMediaStorePathInfo(
+    BookDetailsModel book,
+    String format,
+    DownloadSchema schema,
+    String subfolderName,
+  ) async {
+    final safeTitle = book.title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    final safeAuthor = book.authors.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    final fileName = '$safeTitle.$format'; // Korrekter Dateiname
+    String? safeSeries;
+
+    if (book.series.isNotEmpty) {
+      safeSeries = book.series.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    }
+
+    // Basis-Ordner für alle Downloads mit dem angegebenen Unterordner
+    // WICHTIG: Beginne NICHT mit 'Download/', da MediaStore bereits im Download-Ordner speichert
+    String relativePath = subfolderName;
+
+    switch (schema) {
+      case DownloadSchema.flat:
+        // Keine zusätzlichen Unterordner
+        break;
+
+      case DownloadSchema.authorOnly:
+        relativePath = '$relativePath/$safeAuthor';
+        break;
+
+      case DownloadSchema.authorBook:
+        relativePath = '$relativePath/$safeAuthor/$safeTitle';
+        break;
+
+      case DownloadSchema.authorSeriesBook:
+        if (safeSeries != null && safeSeries.isNotEmpty) {
+          relativePath = '$relativePath/$safeAuthor/$safeSeries/$safeTitle';
+        } else {
+          relativePath = '$relativePath/$safeAuthor/$safeTitle';
+        }
+        break;
+    }
+
+    logger.d(
+      'Created MediaStore path info - relativePath: $relativePath, fileName: $fileName',
+    );
+
+    return {'relativePath': relativePath, 'fileName': fileName};
   }
 
   Future<bool> sendBookViaEmail(

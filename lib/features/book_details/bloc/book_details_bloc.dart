@@ -207,125 +207,41 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         downloadState: DownloadState.downloading,
         downloadProgress: 0,
         downloadErrorMessage: null,
-        downloadFilePath: null,
       ),
     );
 
     _downloadCancelled = false;
 
     try {
-      logger.d('Generating file path based on schema');
-      final String filePath = await _createPathBasedOnSchema(
-        event.directory,
-        event.title,
-        event.author,
-        event.series,
-        event.seriesIndex,
-        event.format,
-        event.schema,
-      );
-      logger.d('File path generated: $filePath');
-
-      final file = File(filePath);
-      if (await file.exists()) {
-        logger.i('File already exists, skipping download');
-        emit(
-          state.copyWith(
-            downloadState: DownloadState.success,
-            downloadProgress: 100,
-            downloadFilePath: filePath,
-          ),
-        );
-        return;
+      if (state.bookDetails == null) {
+        throw Exception('Book details not available');
       }
 
-      logger.d('Creating directory: ${path.dirname(filePath)}');
-      await Directory(path.dirname(filePath)).create(recursive: true);
+      final settingsState = GetIt.instance<SettingsBloc>().state;
+      final selectedDirectory = settingsState.defaultDownloadPath;
+      final schema = event.schema;
 
-      final tempFilePath = '$filePath.downloading';
-      logger.d('Creating temporary file: $tempFilePath');
-      final tempFile = File(tempFilePath);
-
-      logger.i('Getting download stream from repository');
-      final response = await repository.getDownloadStream(
-        event.bookId,
-        event.format,
-      );
-      logger.d('Got download stream response');
-
-      final contentLength = response.contentLength ?? -1;
-      logger.d('Content length: $contentLength bytes');
-
-      logger.d('Opening file for writing');
-      final sink = tempFile.openWrite();
-      int receivedBytes = 0;
-
-      try {
-        logger.i('Starting to read stream');
-        await for (final chunk in response.stream) {
+      final filePath = await repository.downloadBook(
+        state.bookDetails!,
+        selectedDirectory,
+        schema,
+        format: event.format,
+        progressCallback: (progress) {
           if (_downloadCancelled) {
-            logger.w('Download cancelled by user');
             throw const CancellationException('Download cancelled by user');
           }
+          emit(state.copyWith(downloadProgress: progress));
+        },
+      );
 
-          receivedBytes += chunk.length;
-          sink.add(chunk);
-          logger.i(
-            'Received chunk: ${chunk.length} bytes, total: $receivedBytes bytes',
-          );
-
-          if (contentLength > 0) {
-            final progress = (receivedBytes / contentLength * 100).round();
-            logger.d('Download progress: $progress%');
-            emit(state.copyWith(downloadProgress: progress));
-          }
-        }
-
-        logger.d('Stream completed, flushing and closing sink');
-        await sink.flush();
-        await sink.close();
-
-        if (await tempFile.exists()) {
-          logger.d('Renaming temp file to final file');
-          await tempFile.rename(filePath);
-
-          logger.i('Download completed successfully: $filePath');
-          emit(
-            state.copyWith(
-              downloadState: DownloadState.success,
-              downloadProgress: 100,
-              downloadFilePath: filePath,
-            ),
-          );
-        } else {
-          logger.e('Temporary file does not exist after download');
-          throw Exception('Temporary file was not created correctly');
-        }
-      } catch (e) {
-        logger.e('Error during download stream processing: $e');
-        await sink.close();
-
-        if (await tempFile.exists()) {
-          logger.d('Deleting temporary file after error');
-          await tempFile.delete();
-        }
-
-        if (e is CancellationException) {
-          emit(
-            state.copyWith(
-              downloadState: DownloadState.canceled,
-              downloadErrorMessage: e.message,
-            ),
-          );
-        } else {
-          emit(
-            state.copyWith(
-              downloadState: DownloadState.failed,
-              downloadErrorMessage: e.toString(),
-            ),
-          );
-        }
-      }
+      logger.i('Download completed successfully: $filePath');
+      emit(
+        state.copyWith(
+          downloadState: DownloadState.success,
+          downloadProgress: 100,
+          downloadFilePath: filePath,
+        ),
+      );
     } catch (e) {
       logger.e('Error in download process: $e');
       if (e is CancellationException) {
@@ -350,57 +266,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     _downloadCancelled = true;
 
     emit(state.copyWith(downloadState: DownloadState.canceled));
-  }
-
-  Future<String> _createPathBasedOnSchema(
-    String baseDirectory,
-    String title,
-    String author,
-    String series,
-    int seriesIndex,
-    String format,
-    DownloadSchema schema,
-  ) async {
-    final safeTitle = title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-    final safeAuthor = author.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-    final fileName = '$safeTitle.$format';
-    String? safeSeries;
-
-    if (series.isNotEmpty) {
-      safeSeries = series.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-    }
-
-    String filePath;
-
-    switch (schema) {
-      case DownloadSchema.flat:
-        filePath = path.join(baseDirectory, fileName);
-        break;
-
-      case DownloadSchema.authorOnly:
-        filePath = path.join(baseDirectory, safeAuthor, fileName);
-        break;
-
-      case DownloadSchema.authorBook:
-        filePath = path.join(baseDirectory, safeAuthor, safeTitle, fileName);
-        break;
-
-      case DownloadSchema.authorSeriesBook:
-        if (safeSeries != null) {
-          filePath = path.join(
-            baseDirectory,
-            safeAuthor,
-            safeSeries,
-            safeTitle,
-            fileName,
-          );
-        } else {
-          filePath = path.join(baseDirectory, safeAuthor, safeTitle, fileName);
-        }
-        break;
-    }
-
-    return filePath;
   }
 
   void _onUpdateDownloadProgress(
@@ -489,7 +354,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     UpdateBookMetadata event,
     Emitter<BookDetailsState> emit,
   ) async {
-    // Use the bookDetails passed in the event instead of state.bookDetails
     emit(state.copyWith(metadataUpdateState: MetadataUpdateState.loading));
 
     try {
@@ -504,25 +368,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       );
 
       if (result) {
-        // Update the book details with the new values
-        final updatedBookDetails = event.bookDetails.copyWith(
-          title: event.title,
-          authors: event.authors,
-          comments: event.comments,
-          tags:
-              event.tags
-                  .split(',')
-                  .map((tag) => tag.trim())
-                  .where((tag) => tag.isNotEmpty)
-                  .toList(),
-        );
-
-        emit(
-          state.copyWith(
-            bookDetails: updatedBookDetails,
-            metadataUpdateState: MetadataUpdateState.success,
-          ),
-        );
+        emit(state.copyWith(metadataUpdateState: MetadataUpdateState.success));
       } else {
         emit(
           state.copyWith(

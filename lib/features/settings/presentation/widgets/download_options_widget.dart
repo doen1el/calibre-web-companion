@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:media_store_plus/media_store_plus.dart';
 
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
@@ -12,8 +12,23 @@ import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 
-class DownloadOptionsWidget extends StatelessWidget {
+class DownloadOptionsWidget extends StatefulWidget {
   const DownloadOptionsWidget({super.key});
+
+  @override
+  State<DownloadOptionsWidget> createState() => _DownloadOptionsWidgetState();
+}
+
+class _DownloadOptionsWidgetState extends State<DownloadOptionsWidget> {
+  String? _customFolderName;
+  bool _showCustomFolderField = false;
+  final TextEditingController _customFolderController = TextEditingController();
+
+  @override
+  void dispose() {
+    _customFolderController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +48,32 @@ class DownloadOptionsWidget extends StatelessWidget {
           (previous, current) =>
               previous.defaultDownloadPath != current.defaultDownloadPath,
       builder: (context, state) {
+        final savedPath = state.defaultDownloadPath;
+        String displayPath = 'Downloads';
+        String subfolderValue = 'default';
+
+        if (savedPath.startsWith('downloads:')) {
+          final parts = savedPath.split(':');
+          if (parts.length > 1 && parts[1].isNotEmpty) {
+            subfolderValue = parts[1];
+
+            if (subfolderValue != 'default' &&
+                subfolderValue != 'calibre' &&
+                subfolderValue != 'books') {
+              subfolderValue = 'custom';
+              _customFolderName = parts[1];
+              _customFolderController.text = _customFolderName ?? '';
+              if (!_showCustomFolderField) {
+                setState(() {
+                  _showCustomFolderField = true;
+                });
+              }
+            }
+
+            displayPath = 'Downloads/${parts[1]}';
+          }
+        }
+
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           elevation: 3,
@@ -41,65 +82,137 @@ class DownloadOptionsWidget extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        localizations.downloadFolder,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        state.defaultDownloadPath.isNotEmpty
-                            ? state.defaultDownloadPath
-                            : localizations.noFolderSelected,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                Text(
+                  localizations.downloadFolder,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  displayPath,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (!await _checkAndRequestPermissions()) {
-                      // ignore: use_build_context_synchronously
-                      context.showSnackBar(
-                        localizations.storagePermissionRequiredToSelectAFolder,
-                        isError: true,
-                      );
-                      return;
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Unterordner auswählen',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                  ),
+                  value: subfolderValue,
+                  onChanged: (String? newValue) async {
+                    if (newValue != null) {
+                      if (!await _checkAndRequestPermissions()) {
+                        // ignore: use_build_context_synchronously
+                        context.showSnackBar(
+                          localizations
+                              .storagePermissionRequiredToSelectAFolder,
+                          isError: true,
+                        );
+                        return;
+                      }
+
+                      setState(() {
+                        _showCustomFolderField = newValue == 'custom';
+                        if (newValue != 'custom') {
+                          _saveSelectedSubfolder(context, newValue);
+                        }
+                      });
                     }
-
-                    String? selectedDirectory =
-                        await FilePicker.platform.getDirectoryPath();
-                    if (selectedDirectory == null) {
-                      // ignore: use_build_context_synchronously
-                      context.showSnackBar(
-                        localizations.noFolderWasSelected,
-                        isError: true,
-                      );
-                      return;
-                    }
-
-                    // ignore: use_build_context_synchronously
-                    context.read<SettingsBloc>().add(
-                      SetDownloadFolder(selectedDirectory),
-                    );
-
-                    // ignore: use_build_context_synchronously
-                    context.showSnackBar(
-                      localizations.folderSelectedSuccessfully,
-                      isError: false,
-                    );
                   },
-                  child: Text(localizations.select),
+                  items: <DropdownMenuItem<String>>[
+                    DropdownMenuItem(
+                      value: 'default',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.download,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          const Text('Downloads (Standard)'),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'calibre',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.book,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          const Text('Downloads/Calibre'),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'books',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.menu_book,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          const Text('Downloads/Books'),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'custom',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.create_new_folder,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          const Text('Benutzerdefinierter Ordner'),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
+                if (_showCustomFolderField) ...[
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _customFolderController,
+                    decoration: InputDecoration(
+                      labelText: 'Ordnername eingeben',
+                      hintText: 'z.B. MeineCalibreBücher',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      prefixText: 'Downloads/',
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.check),
+                        onPressed: () {
+                          final folderName =
+                              _customFolderController.text.trim();
+                          if (folderName.isNotEmpty) {
+                            _saveSelectedSubfolder(context, folderName);
+                          }
+                        },
+                      ),
+                    ),
+                    onSubmitted: (value) {
+                      if (value.trim().isNotEmpty) {
+                        _saveSelectedSubfolder(context, value.trim());
+                      }
+                    },
+                  ),
+                ],
               ],
             ),
           ),
@@ -108,16 +221,32 @@ class DownloadOptionsWidget extends StatelessWidget {
     );
   }
 
+  void _saveSelectedSubfolder(BuildContext context, String subfolder) {
+    final newPath = 'downloads:$subfolder';
+
+    context.read<SettingsBloc>().add(SetDownloadFolder(newPath));
+
+    context.showSnackBar(
+      AppLocalizations.of(context)!.folderSelectedSuccessfully,
+      isError: false,
+    );
+  }
+
   Future<bool> _checkAndRequestPermissions() async {
     if (Platform.isAndroid) {
-      final status = await Permission.manageExternalStorage.status;
-      if (!status.isGranted) {
-        final result = await Permission.manageExternalStorage.request();
-        return result.isGranted;
-      } else if (status.isPermanentlyDenied) {
-        await openAppSettings();
+      final mediaStorePlugin = MediaStore();
+      final sdkInt = await mediaStorePlugin.getPlatformSDKInt();
+
+      if (sdkInt >= 29) {
+        return true;
+      } else {
+        final status = await Permission.storage.status;
+        if (!status.isGranted) {
+          final result = await Permission.storage.request();
+          return result.isGranted;
+        }
+        return status.isGranted;
       }
-      return true;
     }
     return true;
   }

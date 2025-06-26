@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:calibre_web_companion/shared/widgets/coming_soon_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -83,17 +84,30 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
           widget.isLoading
               ? null
               : () async {
-                final result = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => _buildMetadataDialog(context),
+                showComingSoonDialog(
+                  context,
+                  "The edit book metadata feature is coming soon!",
                 );
+                // final result = await showDialog<bool>(
+                //   context: context,
+                //   builder: (context) => _buildMetadataDialog(context),
+                // );
 
-                if (result == true && context.mounted) {
-                  context.showSnackBar(
-                    localizations.metadataUpdateSuccessfully,
-                    isError: false,
-                  );
-                }
+                // if (result == true && context.mounted) {
+                //   context.showSnackBar(
+                //     localizations.metadataUpdateSuccessfully,
+                //     isError: false,
+                //   );
+
+                //   Navigator.of(context).pop();
+
+                //   context.read<BookDetailsBloc>().add(
+                //     ReloadBookDetails(
+                //       widget.bookViewModel,
+                //       widget.bookViewModel.uuid,
+                //     ),
+                //   );
+                // }
               },
       tooltip: localizations.editBookMetadata,
     );

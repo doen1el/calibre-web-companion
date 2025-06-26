@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/shared/widgets/coming_soon_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -60,6 +61,9 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
                         ),
                         _buildBasePathSection(context, state, localizations),
 
+                        _buildSectionTitle(context, localizations.sslSettings),
+                        _buildSSLSettingsSection(context, localizations),
+
                         _buildSectionTitle(
                           context,
                           localizations.costumHttpPHeader,
@@ -108,6 +112,74 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.secondary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSSLSettingsSection(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.security_rounded,
+                  size: 28,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        localizations.sslCertificate,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        localizations.settingsForSSL,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            SwitchListTile(
+              title: Text(localizations.allowSelfSignedCertificates),
+              value: false,
+              onChanged: (_) {
+                // TODO: Implement self-signed certificate handling
+                showComingSoonDialog(
+                  context,
+                  "The feature to allow self-signed certificates is coming soon!",
+                );
+              },
+              dense: false,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                  width: 1,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
