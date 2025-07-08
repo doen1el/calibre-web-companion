@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:get_it/get_it.dart';
-import 'package:path/path.dart' as path;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
 
@@ -10,7 +8,6 @@ import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart'
 
 import 'package:calibre_web_companion/core/exceptions/cancellation_exception.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
-import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 
 class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
   final BookDetailsRepository repository;

@@ -56,6 +56,7 @@ class DownloadBook extends BookDetailsEvent {
   final String author;
   final String series;
   final int seriesIndex;
+  final String directory;
   final DownloadSchema schema;
 
   const DownloadBook({
@@ -65,8 +66,21 @@ class DownloadBook extends BookDetailsEvent {
     required this.author,
     required this.series,
     required this.seriesIndex,
+    required this.directory,
     required this.schema,
   });
+
+  @override
+  List<Object?> get props => [
+    bookId,
+    format,
+    title,
+    author,
+    series,
+    seriesIndex,
+    directory,
+    schema,
+  ];
 }
 
 class CancelDownload extends BookDetailsEvent {}

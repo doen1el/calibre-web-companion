@@ -89,10 +89,10 @@ class _SettingsPageState extends State<SettingsPage> {
                         _buildSectionTitle(context, localizations.language),
                         _buildLanguageSelector(context, state, localizations),
 
-                        // TODO: Uncomment when download options are implemented
-                        // const SizedBox(height: 24),
-                        // _buildSectionTitle(context, "Download Options"),
-                        // const DownloadOptionsWidget(),
+                        const SizedBox(height: 24),
+                        _buildSectionTitle(context, "Download Options"),
+                        const DownloadOptionsWidget(),
+
                         const SizedBox(height: 24),
                         _buildSectionTitle(context, "Custom send2ereader"),
                         _buildSend2EreaderToggle(context, state, localizations),

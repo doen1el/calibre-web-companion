@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:calibre_web_companion/shared/widgets/coming_soon_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -66,59 +65,57 @@ class DownloadToDeviceWidget extends StatelessWidget {
     AppLocalizations localizations,
     BookDetailsModel book,
   ) {
-    // TODO: Implement the download feature with the media storage API
-    showComingSoonDialog(context, "The download feature is coming soon!");
-    // if (book.formats.length == 1) {
-    //   _downloadBook(
-    //     context,
-    //     localizations,
-    //     book,
-    //     book.formats.first.toLowerCase(),
-    //   );
-    //   return;
-    // }
+    if (book.formats.length == 1) {
+      _downloadBook(
+        context,
+        localizations,
+        book,
+        book.formats.first.toLowerCase(),
+      );
+      return;
+    }
 
-    // showModalBottomSheet(
-    //   context: context,
-    //   builder:
-    //       (context) => SafeArea(
-    //         child: Column(
-    //           mainAxisSize: MainAxisSize.min,
-    //           children: [
-    //             ListTile(
-    //               title: Text(localizations.downlaodFomat),
-    //               leading: const Icon(Icons.download),
-    //             ),
-    //             const Divider(),
-    //             ...book.formats.map((format) {
-    //               IconData icon;
-    //               switch (format.toLowerCase()) {
-    //                 case 'epub':
-    //                   icon = Icons.menu_book;
-    //                   break;
-    //                 case 'pdf':
-    //                   icon = Icons.picture_as_pdf;
-    //                   break;
-    //                 case 'mobi':
-    //                   icon = Icons.book_online;
-    //                   break;
-    //                 default:
-    //                   icon = Icons.file_present;
-    //               }
+    showModalBottomSheet(
+      context: context,
+      builder:
+          (context) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  title: Text(localizations.downlaodFomat),
+                  leading: const Icon(Icons.download),
+                ),
+                const Divider(),
+                ...book.formats.map((format) {
+                  IconData icon;
+                  switch (format.toLowerCase()) {
+                    case 'epub':
+                      icon = Icons.menu_book;
+                      break;
+                    case 'pdf':
+                      icon = Icons.picture_as_pdf;
+                      break;
+                    case 'mobi':
+                      icon = Icons.book_online;
+                      break;
+                    default:
+                      icon = Icons.file_present;
+                  }
 
-    //               return ListTile(
-    //                 leading: Icon(icon),
-    //                 title: Text(format.toUpperCase()),
-    //                 onTap: () {
-    //                   Navigator.pop(context);
-    //                   _downloadBook(context, localizations, book, format);
-    //                 },
-    //               );
-    //             }),
-    //           ],
-    //         ),
-    //       ),
-    // );
+                  return ListTile(
+                    leading: Icon(icon),
+                    title: Text(format.toUpperCase()),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _downloadBook(context, localizations, book, format);
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+    );
   }
 
   void _downloadBook(
@@ -127,21 +124,54 @@ class DownloadToDeviceWidget extends StatelessWidget {
     BookDetailsModel book,
     String format,
   ) async {
-    _showDownloadStatusSheet(
-      context,
-      localizations,
-      DownloadState.downloading,
-      null,
-      0,
-      () {
-        context.read<BookDetailsBloc>().add(CancelDownload());
-        Navigator.pop(context);
-      },
-    );
-
     final settingsState = context.read<SettingsBloc>().state;
-    final schema = settingsState.downloadSchema;
+    String? selectedDirectory;
 
+    if (settingsState.defaultDownloadPath.isEmpty) {
+      // if (!await _checkAndRequestPermissions()) {
+      //   // ignore: use_build_context_synchronously
+      //   context.showSnackBar(
+      //     localizations.storagePermissionRequiredToSelectAFolder,
+      //     isError: true,
+      //   );
+      //   return;
+      // }
+
+      _showDownloadStatusSheet(
+        // ignore: use_build_context_synchronously
+        context,
+        localizations,
+        DownloadState.selectingDestination,
+        null,
+        0,
+        () {
+          Navigator.pop(context);
+        },
+      );
+
+      selectedDirectory = await FilePicker.platform.getDirectoryPath();
+      if (selectedDirectory == null) {
+        // ignore: use_build_context_synchronously
+        Navigator.pop(context);
+        return;
+      }
+    } else {
+      selectedDirectory = settingsState.defaultDownloadPath;
+
+      _showDownloadStatusSheet(
+        context,
+        localizations,
+        DownloadState.downloading,
+        null,
+        0,
+        () {
+          context.read<BookDetailsBloc>().add(CancelDownload());
+          Navigator.pop(context);
+        },
+      );
+    }
+
+    // ignore: use_build_context_synchronously
     context.read<BookDetailsBloc>().add(
       DownloadBook(
         bookId: book.id.toString(),
@@ -150,9 +180,24 @@ class DownloadToDeviceWidget extends StatelessWidget {
         author: book.authors,
         series: book.series,
         seriesIndex: book.seriesIndex,
-        schema: schema,
+        directory: selectedDirectory,
+        schema: settingsState.downloadSchema,
       ),
     );
+  }
+
+  Future<bool> _checkAndRequestPermissions() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.manageExternalStorage.status;
+      if (!status.isGranted) {
+        final result = await Permission.manageExternalStorage.request();
+        return result.isGranted;
+      } else if (status.isPermanentlyDenied) {
+        await openAppSettings();
+      }
+      return true;
+    }
+    return true;
   }
 
   void _showDownloadStatusSheet(
