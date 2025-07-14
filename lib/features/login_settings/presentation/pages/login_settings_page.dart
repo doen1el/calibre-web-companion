@@ -1,7 +1,7 @@
 import 'package:calibre_web_companion/shared/widgets/coming_soon_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_bloc.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_event.dart';
