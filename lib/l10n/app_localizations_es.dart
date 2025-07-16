@@ -977,4 +977,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get allowUnsafeConnections => 'Permitir conexiones inseguras';
+
+  @override
+  String get ok => 'Ok';
+
+  @override
+  String get attentionSSLCertificate => 'Atención: Los certificados autofirmados pueden ser inseguros. Úsalos solo si entiendes los riesgos.';
 }

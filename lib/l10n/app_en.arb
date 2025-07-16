@@ -315,5 +315,7 @@
   "sslCertificate": "SSL Certificate",
   "settingsForSSL": "Settings for SSL certificate",
   "allowSelfSignedCertificates": "Allow self-signed certificates",
-  "allowUnsafeConnections": "Allow unsafe connections"
+  "allowUnsafeConnections": "Allow unsafe connections",
+  "ok": "Ok",
+  "attentionSSLCertificate": "Attention: Self-signed certificates can be insecure. Use them only if you understand the risks."
 }

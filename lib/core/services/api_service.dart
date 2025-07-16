@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xml2json/xml2json.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:http_parser/http_parser.dart' show MediaType;
+import 'package:http/io_client.dart';
 
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 
@@ -15,12 +16,15 @@ enum AuthMethod { none, cookie, basic }
 
 class ApiService {
   final Logger _logger = Logger();
-  final http.Client _client = http.Client();
+  HttpClient? _httpClient;
+  http.Client? _client;
   String? _baseUrl;
   String? _cookie;
   String? _username;
   String? _password;
   String? _basePath;
+
+  bool _allowSelfSigned = false;
 
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
@@ -68,10 +72,20 @@ class ApiService {
     _username = prefs.getString('username');
     _password = prefs.getString('password');
     _basePath = prefs.getString('base_path') ?? '';
+    _allowSelfSigned = prefs.getBool('allow_self_signed') ?? false;
+
+    _httpClient = HttpClient();
+    if (_allowSelfSigned) {
+      _logger.w('Allowing self-signed certificates.');
+      _httpClient!.badCertificateCallback = (cert, host, port) => true;
+    }
+    _client?.close();
+    _client = IOClient(_httpClient!);
   }
 
   void dispose() {
-    _client.close();
+    _client!.close();
+    _httpClient?.close(force: true);
   }
 
   /// Makes an authenticated GET request
@@ -195,7 +209,7 @@ class ApiService {
     _logger.d('Headers: $headers');
 
     try {
-      final response = await _client.get(uri, headers: headers);
+      final response = await _client!.get(uri, headers: headers);
       _logger.i('Response status: ${response.statusCode}');
       _checkResponseStatus(statusCode: response.statusCode);
       return response;
@@ -237,7 +251,7 @@ class ApiService {
       getHeaders.addAll(customHeaders);
       getHeaders['Accept'] = 'text/html,application/xhtml+xml,application/xml';
 
-      final getResponse = await _client.get(uri, headers: getHeaders);
+      final getResponse = await _client!.get(uri, headers: getHeaders);
       _logger.d(
         'GET response status for CSRF fetch: ${getResponse.statusCode}',
       );
@@ -345,7 +359,7 @@ class ApiService {
         _logger.d('CSRF-protected POST body: $encodedBody');
 
         try {
-          final response = await _client.post(
+          final response = await _client!.post(
             uri,
             headers: postHeaders,
             body: encodedBody,
@@ -401,7 +415,7 @@ class ApiService {
         final encodedBody = _encodeBody(body: body, contentType: contentType);
 
         try {
-          final response = await _client.post(
+          final response = await _client!.post(
             uri,
             headers: headers,
             body: encodedBody ?? "",
@@ -444,7 +458,7 @@ class ApiService {
     _logger.d('Headers: $headers');
 
     try {
-      final response = await _client.send(request);
+      final response = await _client!.send(request);
       _logger.i('Stream response status: ${response.statusCode}');
       _checkResponseStatus(statusCode: response.statusCode);
       return response;

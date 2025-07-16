@@ -20,6 +20,7 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
     on<UpdateCustomHeaderValue>(_onUpdateCustomHeaderValue);
     on<SaveLoginSettings>(_onSaveSettings);
     on<UpdateBasePath>(_onUpdateBasePath);
+    on<UpdateAllowSelfSigned>(_onUpdateAllowSelfSigned);
   }
 
   Future<void> _onLoadSettings(
@@ -124,6 +125,8 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
 
       await loginSettingsRepository.saveBasePath(state.basePath.trim());
 
+      await loginSettingsRepository.saveAllowSelfSigned(state.allowSelfSigned);
+
       emit(state.copyWith(isLoading: false, isSaved: true));
     } catch (e) {
       _logger.e('Error saving settings: $e');
@@ -142,5 +145,14 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
     Emitter<LoginSettingsState> emit,
   ) {
     emit(state.copyWith(basePath: event.basePath, isSaved: false));
+  }
+
+  void _onUpdateAllowSelfSigned(
+    UpdateAllowSelfSigned event,
+    Emitter<LoginSettingsState> emit,
+  ) {
+    emit(
+      state.copyWith(allowSelfSigned: event.allowSelfSigned, isSaved: false),
+    );
   }
 }

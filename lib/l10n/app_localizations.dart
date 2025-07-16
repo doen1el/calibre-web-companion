@@ -1994,6 +1994,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Allow unsafe connections'**
   String get allowUnsafeConnections;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'Ok'**
+  String get ok;
+
+  /// No description provided for @attentionSSLCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Attention: Self-signed certificates can be insecure. Use them only if you understand the risks.'**
+  String get attentionSSLCertificate;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

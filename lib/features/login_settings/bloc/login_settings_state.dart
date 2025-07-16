@@ -7,6 +7,7 @@ class LoginSettingsState extends Equatable {
   final String basePath;
   final bool isLoading;
   final bool isSaved;
+  final bool allowSelfSigned;
   final String? errorMessage;
 
   const LoginSettingsState({
@@ -14,6 +15,7 @@ class LoginSettingsState extends Equatable {
     this.basePath = '',
     this.isLoading = false,
     this.isSaved = false,
+    this.allowSelfSigned = false,
     this.errorMessage,
   });
 
@@ -22,6 +24,7 @@ class LoginSettingsState extends Equatable {
     String? basePath,
     bool? isLoading,
     bool? isSaved,
+    bool? allowSelfSigned,
     String? errorMessage,
   }) {
     return LoginSettingsState(
@@ -29,6 +32,7 @@ class LoginSettingsState extends Equatable {
       basePath: basePath ?? this.basePath,
       isLoading: isLoading ?? this.isLoading,
       isSaved: isSaved ?? this.isSaved,
+      allowSelfSigned: allowSelfSigned ?? this.allowSelfSigned,
       errorMessage: errorMessage,
     );
   }
@@ -39,6 +43,7 @@ class LoginSettingsState extends Equatable {
     basePath,
     isLoading,
     isSaved,
+    allowSelfSigned,
     errorMessage,
   ];
 }

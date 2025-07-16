@@ -315,5 +315,7 @@
   "sslCertificate": "Certificat SSL",
   "settingsForSSL": "Paramètres pour le certificat SSL",
   "allowSelfSignedCertificates": "Autoriser les certificats auto-signés",
-  "allowUnsafeConnections": "Autoriser les connexions non sécurisées"
+  "allowUnsafeConnections": "Autoriser les connexions non sécurisées",
+  "ok": "Ok",
+  "attentionSSLCertificate": "Attention : Les certificats auto-signés peuvent être non sécurisés. Utilisez-les uniquement si vous comprenez les risques."
 }

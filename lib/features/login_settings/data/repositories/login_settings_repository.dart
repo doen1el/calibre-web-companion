@@ -52,4 +52,20 @@ class LoginSettingsRepository {
       rethrow;
     }
   }
+
+  Future<bool> getAllowSelfSigned() async {
+    try {
+      return await loginSettingsLocalDataSource.getAllowSelfSigned();
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> saveAllowSelfSigned(bool allowSelfSigned) async {
+    try {
+      await loginSettingsLocalDataSource.saveAllowSelfSigned(allowSelfSigned);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

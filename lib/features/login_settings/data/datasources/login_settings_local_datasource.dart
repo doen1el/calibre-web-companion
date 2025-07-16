@@ -74,4 +74,27 @@ class LoginSettingsLocalDataSource {
       throw Exception('Failed to save base path: $e');
     }
   }
+
+  Future<bool> getAllowSelfSigned() async {
+    try {
+      final bool allowSelfSigned =
+          preferences.getBool('allow_self_signed') ?? false;
+      logger.i('Loaded allow self-signed: $allowSelfSigned');
+      return allowSelfSigned;
+    } catch (e) {
+      logger.e('Error loading allow self-signed: $e');
+      return false;
+    }
+  }
+
+  Future<void> saveAllowSelfSigned(bool allowSelfSigned) async {
+    try {
+      await preferences.setBool('allow_self_signed', allowSelfSigned);
+      await apiService.initialize();
+      logger.i('Saved allow self-signed: $allowSelfSigned');
+    } catch (e) {
+      logger.e('Error saving allow self-signed: $e');
+      throw Exception('Failed to save allow self-signed: $e');
+    }
+  }
 }

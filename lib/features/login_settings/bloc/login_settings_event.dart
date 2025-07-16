@@ -56,3 +56,12 @@ class UpdateBasePath extends LoginSettingsEvent {
   @override
   List<Object?> get props => [basePath];
 }
+
+class UpdateAllowSelfSigned extends LoginSettingsEvent {
+  final bool allowSelfSigned;
+
+  const UpdateAllowSelfSigned(this.allowSelfSigned);
+
+  @override
+  List<Object?> get props => [allowSelfSigned];
+}

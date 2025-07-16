@@ -1,4 +1,3 @@
-import 'package:calibre_web_companion/shared/widgets/coming_soon_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -62,7 +61,7 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
                         _buildBasePathSection(context, state, localizations),
 
                         _buildSectionTitle(context, localizations.sslSettings),
-                        _buildSSLSettingsSection(context, localizations),
+                        _buildSSLSettingsSection(context, localizations, state),
 
                         _buildSectionTitle(
                           context,
@@ -120,6 +119,7 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
   Widget _buildSSLSettingsSection(
     BuildContext context,
     AppLocalizations localizations,
+    LoginSettingsState state,
   ) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -161,12 +161,34 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
             const SizedBox(height: 24),
             SwitchListTile(
               title: Text(localizations.allowSelfSignedCertificates),
-              value: false,
-              onChanged: (_) {
-                // TODO: Implement self-signed certificate handling
-                showComingSoonDialog(
-                  context,
-                  "The feature to allow self-signed certificates is coming soon!",
+              value: state.allowSelfSigned,
+              onChanged: (value) async {
+                if (value) {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder:
+                        (ctx) => AlertDialog(
+                          title: Text(
+                            localizations.allowSelfSignedCertificates,
+                          ),
+                          content: Text(localizations.attentionSSLCertificate),
+                          actions: [
+                            TextButton(
+                              child: Text(localizations.cancel),
+                              onPressed: () => Navigator.of(ctx).pop(false),
+                            ),
+                            ElevatedButton(
+                              child: Text(localizations.ok),
+                              onPressed: () => Navigator.of(ctx).pop(true),
+                            ),
+                          ],
+                        ),
+                  );
+                  if (confirmed != true) return;
+                }
+                // ignore: use_build_context_synchronously
+                context.read<LoginSettingsBloc>().add(
+                  UpdateAllowSelfSigned(value),
                 );
               },
               dense: false,
