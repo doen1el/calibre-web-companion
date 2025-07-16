@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:docman/docman.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -508,25 +509,45 @@ class BookDetailsPage extends StatelessWidget {
                     ? null
                     : () async {
                       final settingsState = context.read<SettingsBloc>().state;
-                      final Directory? selectedDirectory;
+                      DocumentFile? selectedDirectory;
 
-                      // if (settingsState.defaultDownloadPath.isEmpty) {
-                      //   selectedDirectory =
-                      //       await FilePicker.platform.getDirectoryPath();
-                      //   if (selectedDirectory == null) {
-                      //     return;
-                      //   }
-                      // } else {
-                      //   selectedDirectory = settingsState.defaultDownloadPath;
-                      // }
+                      if (settingsState.defaultDownloadPath.isEmpty) {
+                        selectedDirectory = await DocMan.pick.directory();
+                        if (selectedDirectory == null) {
+                          // ignore: use_build_context_synchronously
+                          Navigator.pop(context);
+
+                          // ignore: use_build_context_synchronously
+                          context.showSnackBar(
+                            localizations.noFolderWasSelected,
+                            isError: true,
+                          );
+                          return;
+                        }
+                      } else {
+                        final uri = settingsState.defaultDownloadPath;
+                        selectedDirectory =
+                            uri.isNotEmpty
+                                ? await DocumentFile.fromUri(uri)
+                                : null;
+                        if (selectedDirectory == null ||
+                            !selectedDirectory.isDirectory) {
+                          // ignore: use_build_context_synchronously
+                          context.showSnackBar(
+                            localizations.noFolderWasSelected,
+                            isError: true,
+                          );
+                          return;
+                        }
+                      }
 
                       // ignore: use_build_context_synchronously
-                      // context.read<BookDetailsBloc>().add(
-                      //   OpenBookInReader(
-                      //     selectedDirectory: selectedDirectory!,
-                      //     schema: settingsState.downloadSchema,
-                      //   ),
-                      // );
+                      context.read<BookDetailsBloc>().add(
+                        OpenBookInReader(
+                          selectedDirectory: selectedDirectory,
+                          schema: settingsState.downloadSchema,
+                        ),
+                      );
                     },
             tooltip: localizations.openInReader,
           ),

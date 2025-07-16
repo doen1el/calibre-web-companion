@@ -310,11 +310,11 @@ class BookDetailsRemoteDatasource {
           break;
       }
 
-      final files = await targetDir.find(fileName.replaceAll(' ', '_'));
+      final existingFile = await targetDir.find(fileName.replaceAll(' ', '_'));
 
-      if (files != null && files.isFile) {
+      if (existingFile != null && existingFile.isFile) {
         logger.w('File already exists: $fileName');
-        return targetDir.uri.toString();
+        return existingFile.uri.toString();
       }
 
       // Get download stream
@@ -405,20 +405,34 @@ class BookDetailsRemoteDatasource {
         format = book.formats.first.toLowerCase();
       }
 
-      // final filePath = await downloadBookToPath(
-      //   book: book,
-      //   selectedDirectory: selectedDirectory,
-      //   schema: schema,
-      //   format: format,
-      //   progressCallback: progressCallback,
-      // );
+      final filePath = await downloadBookToPath(
+        book: book,
+        selectedDirectory: selectedDirectory,
+        schema: schema,
+        format: format,
+        progressCallback: progressCallback,
+      );
 
-      //final result = await OpenFile.open(filePath);
+      DocumentFile? file =
+          filePath.isNotEmpty ? await DocumentFile.fromUri(filePath) : null;
 
-      // if (result.type != ResultType.done) {
-      //   logger.e('Error while opening the file: ${result.message}');
-      //   throw Exception('Error while opening: ${result.message}');
-      // }
+      if (file == null || !file.isFile) {
+        logger.e('Downloaded file is not a valid file: $filePath');
+        return false;
+      }
+
+      final cachedFile = await file.cache();
+      if (cachedFile == null) {
+        logger.e('Could not cache file for opening');
+        return false;
+      }
+
+      final result = await OpenFile.open(cachedFile.path);
+
+      if (result.type != ResultType.done) {
+        logger.e('Error while opening the file: ${result.message}');
+        throw Exception('Error while opening: ${result.message}');
+      }
 
       logger.i('Opened book successfully');
       return true;
