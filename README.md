@@ -28,7 +28,7 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
     <a href="https://f-droid.org/en/packages/de.doen1el.calibreWebCompanion/">
         <img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="80">
     </a>
-    <a href="https://github.com/doen1el/calibre-web-companion/wiki/Installing-Calibre%E2%80%90Web%E2%80%90Companion-from-GitHub-using-Obtainium">
+    <a href="https://play.google.com/store/apps/details?id=de.doen1el.calibreWebCompanion">
         <img src="docs/badges/badge_play.png" alt="Get it on Google Play" height="80">
     </a>
     <a href="https://github.com/doen1el/calibre-web-companion/releases">
