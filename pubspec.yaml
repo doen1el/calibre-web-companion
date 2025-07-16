@@ -48,7 +48,6 @@ dependencies:
   skeletonizer: ^2.1.0+1 
   flutter_launcher_icons: 
   package_info_plus: 
-  permission_handler: 
   url_launcher: 
   dynamic_color: 
   open_file: 
@@ -58,9 +57,9 @@ dependencies:
   equatable: 
   get_it: 
   image_picker: 
-  flutter_media_store: 
   path_provider: 
   http_parser:
+  docman: 
 
 
   # The following adds the Cupertino Icons font to your application.

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:docman/docman.dart';
 import 'package:http/http.dart';
 import 'package:logger/logger.dart';
 
@@ -43,7 +44,7 @@ class BookDetailsRepository {
 
   Future<bool> openInReader(
     BookDetailsModel book,
-    String selectedDirectory,
+    DocumentFile selectedDirectory,
     DownloadSchema schema, {
     Function(int)? progressCallback,
   }) async {
@@ -138,7 +139,7 @@ class BookDetailsRepository {
 
   Future<String> downloadBook(
     BookDetailsModel book,
-    String selectedDirectory,
+    DocumentFile selectedDirectory,
     DownloadSchema schema, {
     String format = 'epub',
     Function(int)? progressCallback,

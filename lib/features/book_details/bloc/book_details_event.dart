@@ -1,6 +1,7 @@
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
+import 'package:docman/docman.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
@@ -56,7 +57,7 @@ class DownloadBook extends BookDetailsEvent {
   final String author;
   final String series;
   final int seriesIndex;
-  final String directory;
+  final DocumentFile directory;
   final DownloadSchema schema;
 
   const DownloadBook({
@@ -101,7 +102,7 @@ class SendBookByEmail extends BookDetailsEvent {
 }
 
 class OpenBookInReader extends BookDetailsEvent {
-  final String selectedDirectory;
+  final DocumentFile selectedDirectory;
   final DownloadSchema schema;
 
   const OpenBookInReader({

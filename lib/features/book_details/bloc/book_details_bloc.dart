@@ -1,10 +1,8 @@
-import 'package:get_it/get_it.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
-import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 
 import 'package:calibre_web_companion/core/exceptions/cancellation_exception.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
@@ -217,13 +215,11 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         throw Exception('Book details not available');
       }
 
-      final settingsState = GetIt.instance<SettingsBloc>().state;
-      final selectedDirectory = settingsState.defaultDownloadPath;
       final schema = event.schema;
 
       final filePath = await repository.downloadBook(
         state.bookDetails!,
-        selectedDirectory,
+        event.directory,
         schema,
         format: event.format,
         progressCallback: (progress) {

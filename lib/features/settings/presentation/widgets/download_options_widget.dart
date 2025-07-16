@@ -1,9 +1,7 @@
-import 'dart:io';
+import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
@@ -68,18 +66,8 @@ class DownloadOptionsWidget extends StatelessWidget {
                 const SizedBox(width: 16),
                 ElevatedButton(
                   onPressed: () async {
-                    // if (!await _checkAndRequestPermissions()) {
-                    //   // ignore: use_build_context_synchronously
-                    //   context.showSnackBar(
-                    //     localizations.storagePermissionRequiredToSelectAFolder,
-                    //     isError: true,
-                    //   );
-                    //   return;
-                    // }
-
-                    String? selectedDirectory =
-                        await FilePicker.platform.getDirectoryPath();
-
+                    DocumentFile? selectedDirectory =
+                        await DocMan.pick.directory();
                     if (selectedDirectory == null) {
                       // ignore: use_build_context_synchronously
                       context.showSnackBar(
@@ -92,12 +80,12 @@ class DownloadOptionsWidget extends StatelessWidget {
                     final prefs = await SharedPreferences.getInstance();
                     await prefs.setString(
                       'download_folder_path',
-                      selectedDirectory,
+                      selectedDirectory.uri,
                     );
 
                     // ignore: use_build_context_synchronously
                     context.read<SettingsBloc>().add(
-                      SetDownloadFolder(selectedDirectory),
+                      SetDownloadFolder(selectedDirectory.uri),
                     );
 
                     // ignore: use_build_context_synchronously
@@ -114,20 +102,6 @@ class DownloadOptionsWidget extends StatelessWidget {
         );
       },
     );
-  }
-
-  Future<bool> _checkAndRequestPermissions() async {
-    if (Platform.isAndroid) {
-      final status = await Permission.manageExternalStorage.status;
-      if (!status.isGranted) {
-        final result = await Permission.manageExternalStorage.request();
-        return result.isGranted;
-      } else if (status.isPermanentlyDenied) {
-        await openAppSettings();
-      }
-      return true;
-    }
-    return true;
   }
 
   Widget _buildSelectingDownloadSchema(BuildContext context) {

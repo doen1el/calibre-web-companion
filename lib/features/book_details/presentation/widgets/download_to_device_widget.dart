@@ -1,9 +1,10 @@
 import 'dart:io';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:docman/docman.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
@@ -124,18 +125,8 @@ class DownloadToDeviceWidget extends StatelessWidget {
     String format,
   ) async {
     final settingsState = context.read<SettingsBloc>().state;
-    String? selectedDirectory;
-
+    DocumentFile? selectedDirectory;
     if (settingsState.defaultDownloadPath.isEmpty) {
-      // if (!await _checkAndRequestPermissions()) {
-      //   // ignore: use_build_context_synchronously
-      //   context.showSnackBar(
-      //     localizations.storagePermissionRequiredToSelectAFolder,
-      //     isError: true,
-      //   );
-      //   return;
-      // }
-
       _showDownloadStatusSheet(
         // ignore: use_build_context_synchronously
         context,
@@ -148,16 +139,27 @@ class DownloadToDeviceWidget extends StatelessWidget {
         },
       );
 
-      selectedDirectory = await FilePicker.platform.getDirectoryPath();
+      selectedDirectory = await DocMan.pick.directory();
       if (selectedDirectory == null) {
         // ignore: use_build_context_synchronously
         Navigator.pop(context);
+
+        // ignore: use_build_context_synchronously
+        context.showSnackBar(localizations.noFolderWasSelected, isError: true);
         return;
       }
     } else {
-      selectedDirectory = settingsState.defaultDownloadPath;
+      final uri = settingsState.defaultDownloadPath;
+      selectedDirectory =
+          uri.isNotEmpty ? await DocumentFile.fromUri(uri) : null;
+      if (selectedDirectory == null || !selectedDirectory.isDirectory) {
+        // ignore: use_build_context_synchronously
+        context.showSnackBar(localizations.noFolderWasSelected, isError: true);
+        return;
+      }
 
       _showDownloadStatusSheet(
+        // ignore: use_build_context_synchronously
         context,
         localizations,
         DownloadState.downloading,
@@ -183,20 +185,6 @@ class DownloadToDeviceWidget extends StatelessWidget {
         schema: settingsState.downloadSchema,
       ),
     );
-  }
-
-  Future<bool> _checkAndRequestPermissions() async {
-    if (Platform.isAndroid) {
-      final status = await Permission.manageExternalStorage.status;
-      if (!status.isGranted) {
-        final result = await Permission.manageExternalStorage.request();
-        return result.isGranted;
-      } else if (status.isPermanentlyDenied) {
-        await openAppSettings();
-      }
-      return true;
-    }
-    return true;
   }
 
   void _showDownloadStatusSheet(

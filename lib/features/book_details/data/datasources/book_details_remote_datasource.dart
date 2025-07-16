@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:flutter_media_store/flutter_media_store.dart';
+import 'package:docman/docman.dart';
 import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -106,7 +106,7 @@ class BookDetailsRemoteDatasource {
 
   Future<String> downloadBook(
     BookDetailsModel book,
-    String selectedDirectory,
+    DocumentFile selectedDirectory,
     DownloadSchema schema, {
     String format = 'epub',
     Function(int)? progressCallback,
@@ -118,67 +118,6 @@ class BookDetailsRemoteDatasource {
       format: format,
       progressCallback: progressCallback,
     );
-  }
-
-  Future<String> _createPathBasedOnSchema(
-    String baseDirectory,
-    BookDetailsModel book,
-    String format,
-    DownloadSchema schema,
-  ) async {
-    final safeTitle = book.title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-    final safeAuthor = book.authors.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-    final fileName = '$safeTitle.$format';
-    String? safeSeries;
-
-    if (book.series.isNotEmpty) {
-      safeSeries = book.series.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-    }
-
-    String filePath;
-    Directory directory;
-
-    switch (schema) {
-      case DownloadSchema.flat:
-        filePath = path.join(baseDirectory, fileName);
-        break;
-
-      case DownloadSchema.authorOnly:
-        final authorDir = path.join(baseDirectory, safeAuthor);
-        directory = Directory(authorDir);
-        await directory.create(recursive: true);
-        filePath = path.join(authorDir, fileName);
-        break;
-
-      case DownloadSchema.authorBook:
-        final bookDir = path.join(baseDirectory, safeAuthor, safeTitle);
-        directory = Directory(bookDir);
-        await directory.create(recursive: true);
-        filePath = path.join(bookDir, fileName);
-        break;
-
-      case DownloadSchema.authorSeriesBook:
-        if (safeSeries != null && safeSeries.isNotEmpty) {
-          final bookDir = path.join(
-            baseDirectory,
-            safeAuthor,
-            safeSeries,
-            safeTitle,
-          );
-          directory = Directory(bookDir);
-          await directory.create(recursive: true);
-          filePath = path.join(bookDir, fileName);
-        } else {
-          final bookDir = path.join(baseDirectory, safeAuthor, safeTitle);
-          directory = Directory(bookDir);
-          await directory.create(recursive: true);
-          filePath = path.join(bookDir, fileName);
-        }
-        break;
-    }
-
-    logger.d('Created path based on schema $schema: $filePath');
-    return filePath;
   }
 
   Future<void> openInBrowser(BookDetailsModel book) async {
@@ -301,24 +240,36 @@ class BookDetailsRemoteDatasource {
     }
   }
 
+  Future<DocumentFile> _getOrCreateDirectory(
+    DocumentFile parent,
+    String name,
+  ) async {
+    final existing = await parent.find(name);
+    if (existing != null && existing.isDirectory) {
+      return existing;
+    }
+    return await parent.createDirectory(name) ?? parent;
+  }
+
   Future<String> downloadBookToPath({
     required BookDetailsModel book,
-    required String selectedDirectory,
+    required DocumentFile selectedDirectory,
     required DownloadSchema schema,
     String format = 'epub',
     Function(int)? progressCallback,
     bool deleteOnError = true,
   }) async {
     try {
-      final flutterMediaStorePlugin = FlutterMediaStore();
-
+      logger.i(
+        'Downloading book: ${book.title}, Format: $format, Schema: $schema, Directory: $selectedDirectory',
+      );
       // Create safe filename
       final safeTitle = book.title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
       final safeAuthor = book.authors.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
       final fileName = '$safeTitle.$format';
 
       // Determine folder structure based on schema
-      String folderName = '';
+      DocumentFile targetDir = selectedDirectory;
       String? safeSeries;
 
       if (book.series.isNotEmpty) {
@@ -327,21 +278,43 @@ class BookDetailsRemoteDatasource {
 
       switch (schema) {
         case DownloadSchema.flat:
-          folderName = 'Books';
+          // nothing to add
           break;
         case DownloadSchema.authorOnly:
-          folderName = 'Books/$safeAuthor';
+          targetDir = await _getOrCreateDirectory(
+            selectedDirectory,
+            safeAuthor,
+          );
           break;
         case DownloadSchema.authorBook:
-          folderName = 'Books/$safeAuthor/$safeTitle';
+          final authorDir = await _getOrCreateDirectory(
+            selectedDirectory,
+            safeAuthor,
+          );
+          targetDir = await _getOrCreateDirectory(authorDir, safeTitle);
           break;
         case DownloadSchema.authorSeriesBook:
+          final authorDir = await _getOrCreateDirectory(
+            selectedDirectory,
+            safeAuthor,
+          );
           if (safeSeries != null && safeSeries.isNotEmpty) {
-            folderName = 'Books/$safeAuthor/$safeSeries/$safeTitle';
+            final seriesDir = await _getOrCreateDirectory(
+              authorDir,
+              safeSeries,
+            );
+            targetDir = await _getOrCreateDirectory(seriesDir, safeTitle);
           } else {
-            folderName = 'Books/$safeAuthor/$safeTitle';
+            targetDir = await _getOrCreateDirectory(authorDir, safeTitle);
           }
           break;
+      }
+
+      final files = await targetDir.find(fileName.replaceAll(' ', '_'));
+
+      if (files != null && files.isFile) {
+        logger.w('File already exists: $fileName');
+        return targetDir.uri.toString();
       }
 
       // Get download stream
@@ -368,75 +341,21 @@ class BookDetailsRemoteDatasource {
 
       final Uint8List fileData = Uint8List.fromList(bytes);
 
-      // Determine MIME type based on format
-      String mimeType;
-      switch (format.toLowerCase()) {
-        case 'epub':
-          mimeType = 'application/epub+zip';
-          break;
-        case 'pdf':
-          mimeType = 'application/pdf';
-          break;
-        case 'mobi':
-          mimeType = 'application/x-mobipocket-ebook';
-          break;
-        case 'azw3':
-          mimeType = 'application/vnd.amazon.ebook';
-          break;
-        case 'txt':
-          mimeType = 'text/plain';
-          break;
-        default:
-          mimeType = 'application/octet-stream';
+      // Write file using DocMan SAF
+      final createdFile = await targetDir.createFile(
+        name: fileName,
+        bytes: fileData,
+      );
+
+      if (createdFile == null) {
+        logger.e('Failed to create file in SAF directory');
+        throw Exception('Failed to create file in SAF directory');
       }
 
-      // Try multiple root folders if first fails
-      final rootFolders = ['Documents', 'Downloads', 'Pictures'];
-      String? savedPath;
-
-      for (final rootFolder in rootFolders) {
-        try {
-          final completer = Completer<String>();
-
-          logger.i('Trying to save to $rootFolder/$folderName');
-
-          await flutterMediaStorePlugin.saveFile(
-            fileData: fileData,
-            mimeType: mimeType,
-            rootFolderName: rootFolder,
-            folderName: folderName,
-            fileName: fileName,
-            onSuccess: (String uri, String filePath) {
-              logger.i('File saved successfully to $rootFolder: $filePath');
-              completer.complete(filePath);
-            },
-            onError: (String errorMessage) {
-              logger.e('Failed to save file to $rootFolder: $errorMessage');
-              completer.completeError(
-                Exception('Failed to save file: $errorMessage'),
-              );
-            },
-          );
-
-          savedPath = await completer.future;
-          break; // Success, break out of loop
-        } catch (e) {
-          logger.w('Failed to save to $rootFolder: $e');
-          if (rootFolder == rootFolders.last) {
-            // Last attempt failed, rethrow
-            rethrow;
-          }
-          // Try next root folder
-          continue;
-        }
-      }
-
-      if (savedPath != null) {
-        logger.i('Download complete: $savedPath with $receivedBytes bytes');
-        return savedPath;
-      } else {
-        throw Exception('Failed to save file to any location');
-      }
+      logger.i(
+        'Download complete: ${createdFile.uri} with $receivedBytes bytes',
+      );
+      return createdFile.uri;
     } catch (e) {
       logger.e('Exception while downloading book: $e');
       throw Exception('Error downloading book: $e');
@@ -474,7 +393,7 @@ class BookDetailsRemoteDatasource {
 
   Future<bool> openInReader(
     BookDetailsModel book,
-    String selectedDirectory,
+    DocumentFile selectedDirectory,
     DownloadSchema schema, {
     Function(int)? progressCallback,
   }) async {
@@ -486,20 +405,20 @@ class BookDetailsRemoteDatasource {
         format = book.formats.first.toLowerCase();
       }
 
-      final filePath = await downloadBookToPath(
-        book: book,
-        selectedDirectory: selectedDirectory,
-        schema: schema,
-        format: format,
-        progressCallback: progressCallback,
-      );
+      // final filePath = await downloadBookToPath(
+      //   book: book,
+      //   selectedDirectory: selectedDirectory,
+      //   schema: schema,
+      //   format: format,
+      //   progressCallback: progressCallback,
+      // );
 
-      final result = await OpenFile.open(filePath);
+      //final result = await OpenFile.open(filePath);
 
-      if (result.type != ResultType.done) {
-        logger.e('Error while opening the file: ${result.message}');
-        throw Exception('Error while opening: ${result.message}');
-      }
+      // if (result.type != ResultType.done) {
+      //   logger.e('Error while opening the file: ${result.message}');
+      //   throw Exception('Error while opening: ${result.message}');
+      // }
 
       logger.i('Opened book successfully');
       return true;
@@ -588,7 +507,7 @@ class BookDetailsRemoteDatasource {
 
   Future<String> downloadBookForReader(
     BookDetailsModel book,
-    String selectedDirectory,
+    DocumentFile selectedDirectory,
     DownloadSchema schema, {
     String format = 'epub',
     Function(int)? progressCallback,
