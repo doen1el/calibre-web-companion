@@ -382,6 +382,7 @@ class SendToEreaderWidget extends StatelessWidget {
         code: code,
         isKindle: isKindle,
         title: book.title,
+        send2ereaderUrl: context.read<SettingsBloc>().state.send2ereaderUrl,
       ),
     );
   }

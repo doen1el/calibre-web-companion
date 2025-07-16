@@ -165,16 +165,18 @@ class SendToEReaderViaBrowser extends BookDetailsEvent {
   final String code;
   final bool isKindle;
   final String title;
+  final String send2ereaderUrl;
 
   const SendToEReaderViaBrowser({
     required this.bookId,
     required this.code,
     required this.isKindle,
     required this.title,
+    required this.send2ereaderUrl,
   });
 
   @override
-  List<Object?> get props => [bookId, code, isKindle, title];
+  List<Object?> get props => [bookId, code, isKindle, title, send2ereaderUrl];
 }
 
 class SendToEReaderByEmail extends BookDetailsEvent {
@@ -191,4 +193,9 @@ class CancelSendToEReader extends BookDetailsEvent {}
 
 class ClearSnackBarStates extends BookDetailsEvent {
   const ClearSnackBarStates();
+}
+
+class UpdateSendToEReaderProgress extends BookDetailsEvent {
+  final int progress;
+  const UpdateSendToEReaderProgress(this.progress);
 }

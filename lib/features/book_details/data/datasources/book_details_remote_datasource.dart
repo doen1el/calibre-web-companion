@@ -424,7 +424,7 @@ class BookDetailsRemoteDatasource {
           logger.w('Failed to save to $rootFolder: $e');
           if (rootFolder == rootFolders.last) {
             // Last attempt failed, rethrow
-            throw e;
+            rethrow;
           }
           // Try next root folder
           continue;

@@ -29,6 +29,9 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     on<SendToEReaderByEmail>(_onSendToEReaderByEmail);
     on<CancelSendToEReader>(_onCancelSendToEReader);
     on<ClearSnackBarStates>(_onClearSnackBarStates);
+    on<UpdateSendToEReaderProgress>((event, emit) {
+      emit(state.copyWith(sendToEReaderProgress: event.progress));
+    });
   }
 
   bool _downloadCancelled = false;
@@ -440,10 +443,12 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         ),
       );
 
-      final settingsState = GetIt.instance<SettingsBloc>().state;
+      logger.i(
+        'Uploading book to Send2Ereader: ${event.title}, URL: ${event.send2ereaderUrl}',
+      );
 
       final success = await repository.uploadToSend2Ereader(
-        settingsState.send2ereaderUrl,
+        event.send2ereaderUrl,
         event.code,
         '${event.title}.epub',
         bookBytes,
@@ -451,7 +456,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         onProgressUpdate: (progress) {
           if (!_sendToEReaderCancelled) {
             logger.d('Upload progress: $progress%');
-            emit(state.copyWith(sendToEReaderProgress: progress));
+            add(UpdateSendToEReaderProgress(progress));
           }
         },
       );
