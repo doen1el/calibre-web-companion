@@ -1,7 +1,19 @@
 <p align="center">
     <img src="docs/icon/icon.png" alt="App Icon" width="100" />
     <br>
-    v1.6.5
+    v1.7.0
+</p>
+
+<p align="center">
+    <a href="https://github.com/doen1el/calibre-web-companion/releases">
+        <img src="https://img.shields.io/github/downloads/doen1el/calibre-web-companion/total?color=green&label=github%20downloads" alt="GitHub all releases">
+    </a>
+    <a href="https://github.com/doen1el/calibre-web-companion/releases">
+        <img src="https://img.shields.io/github/v/release/doen1el/calibre-web-companion?color=green&label=download&sort=semver" alt="GitHub release (latest SemVer)">
+    </a>
+    <a href="https://github.com/doen1el/calibre-web-companion/actions?query=workflow%3ABuild+branch%3Adev">
+        <img src="https://img.shields.io/github/actions/workflow/status/doen1el/calibre-web-companion/main.yml?branch=dev" alt="GitHub Workflow Status">
+    </a>
 </p>
 
 # Calibre Web Companion
@@ -14,13 +26,16 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 
 <p align="left">
     <a href="https://f-droid.org/en/packages/de.doen1el.calibreWebCompanion/">
-        <img src="https://f-droid.org/badge/get-it-on.png" height="80">
+        <img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="80">
+    </a>
+    <a href="https://play.google.com/store/apps/details?id=de.doen1el.calibreWebCompanion">
+        <img src="docs/badges/badge_play.png" alt="Get it on Google Play" height="80">
     </a>
     <a href="https://github.com/doen1el/calibre-web-companion/releases">
         <img src="docs/badges/badge_github.png" alt="Get it on GitHub" height="80">
     </a>
     <a href="https://github.com/doen1el/calibre-web-companion/wiki/Installing-Calibre%E2%80%90Web%E2%80%90Companion-from-GitHub-using-Obtainium">
-        <img src="docs/badges/badge_obtainium.png" alt="Obtainium" height="80">
+        <img src="docs/badges/badge_obtainium.png" alt="Get it on Obtainium" height="80">
     </a>
 </p>
 
@@ -61,8 +76,11 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 - [x] Add bookmark function
 - [x] Calibre Web Automated Download integration
 - [x] Add and remove from shelfs
-- [ ] Code refactoring
-- [ ] Better error handling
+- [x] Code refactoring
+- [x] Better error handling
+- [ ] Integrate [Weblate](https://hosted.weblate.org/) for translations
+- [ ] Integrate a book recommendation system.
+- [ ] Add API and widget tests using [flutter_test](https://docs.flutter.dev/testing/overview)
 
 ## 📜 Credits
 

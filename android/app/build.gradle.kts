@@ -29,7 +29,7 @@ require(detStorePassword != null) { "storePassword not found in key.properties f
 android {
     namespace = "de.doen1el.calibreWebCompanion"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

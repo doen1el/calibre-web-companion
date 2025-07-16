@@ -1,63 +1,87 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:calibre_web_companion/view_models/book_details_view_model.dart';
-import 'package:calibre_web_companion/view_models/book_list_view_model.dart';
-import 'package:calibre_web_companion/view_models/book_metadata_edit_view_model.dart';
-import 'package:calibre_web_companion/view_models/book_recommendation_view_model.dart';
-import 'package:calibre_web_companion/view_models/books_view_model.dart';
-import 'package:calibre_web_companion/view_models/download_service_view_model.dart';
-import 'package:calibre_web_companion/view_models/homepage_view_model.dart';
-import 'package:calibre_web_companion/view_models/login_settings_view_model.dart';
-import 'package:calibre_web_companion/view_models/login_view_model.dart';
-import 'package:calibre_web_companion/view_models/main_view_model.dart';
-import 'package:calibre_web_companion/view_models/me_view_model.dart';
-import 'package:calibre_web_companion/view_models/settings_view_mode.dart';
-import 'package:calibre_web_companion/view_models/shelf_view_model.dart';
-import 'package:calibre_web_companion/views/homepage_view.dart';
-import 'package:calibre_web_companion/views/login_view.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
+import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/core/di/injection_container.dart' as di;
+import 'package:logger/web.dart';
+
+import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
+import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.dart';
+import 'package:calibre_web_companion/features/discover/blocs/discover_bloc.dart';
+import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_bloc.dart';
+import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
+import 'package:calibre_web_companion/features/homepage/bloc/homepage_bloc.dart';
+import 'package:calibre_web_companion/features/homepage/presentation/pages/home_page.dart';
+import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_event.dart';
+import 'package:calibre_web_companion/features/me/bloc/me_bloc.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
+import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
+import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_bloc.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
+import 'package:calibre_web_companion/features/login/data/repositories/login_repository.dart';
+import 'package:calibre_web_companion/features/login/bloc/login_bloc.dart';
+import 'package:calibre_web_companion/features/login/presentation/pages/login_page.dart';
+import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_bloc.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
+final GetIt getIt = GetIt.instance;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Setup dependency injection
+  await di.init();
+
+  // Load theme settings
   final savedThemeMode = await AdaptiveTheme.getThemeMode();
 
-  // Get the saved color key from SharedPreferences
-  final prefs = await SharedPreferences.getInstance();
-  final colorKey = prefs.getString('theme_color_key') ?? 'lightGreen';
-  final themeSourceIndex =
-      prefs.getInt('theme_source') ?? ThemeSource.custom.index;
-
   runApp(
-    MultiProvider(
+    MultiBlocProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => MainViewModel()),
-        ChangeNotifierProvider(create: (_) => LoginViewModel()),
-        ChangeNotifierProvider(create: (_) => HomepageViewModel()),
-        ChangeNotifierProvider(create: (_) => BooksViewModel()..refreshBooks()),
-        ChangeNotifierProvider(create: (_) => BookDetailsViewModel()),
-        ChangeNotifierProvider(create: (_) => MeViewModel()..getStats()),
-        ChangeNotifierProvider(create: (_) => BookListViewModel()),
-        ChangeNotifierProvider(
+        // BLoC Providers for new features
+        BlocProvider<LoginBloc>(create: (_) => getIt<LoginBloc>()),
+        BlocProvider<LoginSettingsBloc>(
           create:
-              (_) => SettingsViewModel(
-                navigatorKey: navigatorKey,
-                initialColorKey: colorKey,
-                initialThemeSource: ThemeSource.values[themeSourceIndex],
-              )..loadSettings(),
+              (_) => getIt<LoginSettingsBloc>()..add(const LoadLoginSettings()),
         ),
-        ChangeNotifierProvider(create: (_) => DownloadServiceViewModel()),
-        ChangeNotifierProvider(create: (_) => ShelfViewModel()..loadShelfs()),
-        ChangeNotifierProvider(
-          create: (_) => LoginSettingsViewModel()..loadHeaders(),
+        BlocProvider<BookViewBloc>(
+          create: (_) => getIt<BookViewBloc>()..add(const LoadViewSettings()),
         ),
-        ChangeNotifierProvider(create: (_) => BookMetadataEditViewModel()),
-        ChangeNotifierProvider(create: (_) => BookRecommendationsViewModel()),
+        BlocProvider<MeBloc>(create: (_) => getIt<MeBloc>()),
+        BlocProvider<DiscoverBloc>(create: (_) => getIt<DiscoverBloc>()),
+        BlocProvider<DiscoverDetailsBloc>(
+          create: (_) => getIt<DiscoverDetailsBloc>(),
+        ),
+        BlocProvider<ShelfViewBloc>(
+          create: (_) => getIt<ShelfViewBloc>()..add(const LoadShelves()),
+        ),
+        BlocProvider<ShelfDetailsBloc>(
+          create: (_) => getIt<ShelfDetailsBloc>(),
+        ),
+        BlocProvider<SettingsBloc>(
+          create: (_) => getIt<SettingsBloc>()..add(LoadSettings()),
+        ),
+        BlocProvider<DownloadServiceBloc>(
+          create: (_) => getIt<DownloadServiceBloc>(),
+        ),
+        BlocProvider<HomePageBloc>(create: (_) => getIt<HomePageBloc>()),
+        BlocProvider<BookDetailsBloc>(
+          create: (_) => di.getIt<BookDetailsBloc>(),
+        ),
+        BlocProvider<BookViewBloc>(
+          create:
+              (_) =>
+                  getIt<BookViewBloc>()
+                    ..add(const LoadViewSettings())
+                    ..add(const LoadBooks()),
+        ),
       ],
       child: MyApp(savedThemeMode: savedThemeMode),
     ),
@@ -83,26 +107,34 @@ class _MyAppState extends State<MyApp> {
 
   // Check if the user is logged in by looking for a session cookie
   Future<bool> _isLoggedIn() async {
-    final prefs = await SharedPreferences.getInstance();
-    final cookie = prefs.getString('calibre_web_session');
-    return cookie != null;
+    return await LoginRepository(
+      dataSource: getIt<LoginRemoteDataSource>(),
+      logger: getIt<Logger>(),
+    ).isLoggedIn();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SettingsViewModel>(
-      builder: (context, settingsViewModel, child) {
+    return BlocBuilder<SettingsBloc, SettingsState>(
+      buildWhen:
+          (previous, current) =>
+              previous.themeMode != current.themeMode ||
+              previous.themeSource != current.themeSource ||
+              previous.selectedColorKey != current.selectedColorKey ||
+              previous.languageCode != current.languageCode,
+
+      builder: (context, settingsState) {
         return DynamicColorBuilder(
           builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
             // Get the base seed color from settings
             final seedColor =
-                settingsViewModel.themeSource == ThemeSource.custom
-                    ? settingsViewModel.selectedColor
+                settingsState.themeSource == ThemeSource.custom
+                    ? settingsState.selectedColor
                     : Colors.lightGreen;
 
             // Create the color schemes
             final lightScheme =
-                settingsViewModel.themeSource == ThemeSource.system &&
+                settingsState.themeSource == ThemeSource.system &&
                         lightDynamic != null
                     ? lightDynamic
                     : ColorScheme.fromSeed(
@@ -111,7 +143,7 @@ class _MyAppState extends State<MyApp> {
                     );
 
             final darkScheme =
-                settingsViewModel.themeSource == ThemeSource.system &&
+                settingsState.themeSource == ThemeSource.system &&
                         darkDynamic != null
                     ? darkDynamic
                     : ColorScheme.fromSeed(
@@ -134,12 +166,14 @@ class _MyAppState extends State<MyApp> {
               title: 'Calibre-Web-Companion',
               theme: lightTheme,
               darkTheme: darkTheme,
-              themeMode: settingsViewModel.currentTheme,
+              themeMode: settingsState.themeMode,
               navigatorKey: navigatorKey,
               navigatorObservers: [routeObserver],
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              locale: const Locale('en'),
+              locale: Locale(
+                settingsState.languageCode ?? 'en', // Fallback to 'en' if null
+              ),
               debugShowCheckedModeBanner: false,
               localeResolutionCallback: (locale, supportedLocales) {
                 // If the locale of the device is supported, use it
@@ -163,7 +197,7 @@ class _MyAppState extends State<MyApp> {
                   }
 
                   final isLoggedIn = snapshot.data ?? false;
-                  return isLoggedIn ? const HomepageView() : const LoginView();
+                  return isLoggedIn ? const HomePage() : const LoginPage();
                 },
               ),
             );
