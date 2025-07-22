@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:docman/docman.dart';
 import 'package:http/http.dart';
@@ -38,7 +37,7 @@ class BookDetailsRemoteDatasource {
 
       final response = await apiService.getJson(
         endpoint: '/ajax/book/$bookUuid',
-        authMethod: AuthMethod.basic,
+        authMethod: AuthMethod.auto,
       );
 
       return BookDetailsModel.fromBookListModel(
@@ -60,7 +59,6 @@ class BookDetailsRemoteDatasource {
         endpoint: '/ajax/toggleread/$bookId',
         authMethod: AuthMethod.cookie,
         useCsrf: true,
-        contentType: 'application/x-www-form-urlencoded',
       );
 
       if (response.statusCode == 200) {
@@ -86,7 +84,6 @@ class BookDetailsRemoteDatasource {
         endpoint: '/ajax/togglearchived/$bookId',
         authMethod: AuthMethod.cookie,
         useCsrf: true,
-        contentType: 'application/x-www-form-urlencoded',
       );
 
       if (response.statusCode == 200) {
@@ -263,12 +260,10 @@ class BookDetailsRemoteDatasource {
       logger.i(
         'Downloading book: ${book.title}, Format: $format, Schema: $schema, Directory: $selectedDirectory',
       );
-      // Create safe filename
       final safeTitle = book.title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
       final safeAuthor = book.authors.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
       final fileName = '$safeTitle.$format';
 
-      // Determine folder structure based on schema
       DocumentFile targetDir = selectedDirectory;
       String? safeSeries;
 
@@ -278,7 +273,6 @@ class BookDetailsRemoteDatasource {
 
       switch (schema) {
         case DownloadSchema.flat:
-          // nothing to add
           break;
         case DownloadSchema.authorOnly:
           targetDir = await _getOrCreateDirectory(
@@ -317,7 +311,6 @@ class BookDetailsRemoteDatasource {
         return existingFile.uri.toString();
       }
 
-      // Get download stream
       final response = await getDownloadStream(book.id.toString(), format);
       final contentLength = response.contentLength ?? -1;
 
@@ -325,7 +318,6 @@ class BookDetailsRemoteDatasource {
         'Download response status: ${response.statusCode}, Content length: $contentLength',
       );
 
-      // Collect all bytes from stream
       final List<int> bytes = [];
       int receivedBytes = 0;
 
@@ -341,7 +333,6 @@ class BookDetailsRemoteDatasource {
 
       final Uint8List fileData = Uint8List.fromList(bytes);
 
-      // Write file using DocMan SAF
       final createdFile = await targetDir.createFile(
         name: fileName,
         bytes: fileData,

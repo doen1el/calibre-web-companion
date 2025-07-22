@@ -1,4 +1,8 @@
 import 'dart:io';
+import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,8 +13,6 @@ import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.da
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_state.dart';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/features/book_view/presentation/widgets/book_card.dart';
-import 'package:calibre_web_companion/features/book_view/presentation/widgets/book_skeleton.dart';
 import 'package:calibre_web_companion/features/book_view/presentation/widgets/search_dialog.dart';
 
 class BookViewPage extends StatefulWidget {
@@ -147,7 +149,19 @@ class _BookViewPageState extends State<BookViewPage> {
           if (index == state.books.length) {
             return const BookCardSkeleton();
           }
-          return BookCard(book: state.books[index]);
+          final book = state.books[index];
+          return BookCard(
+            bookId: book.id.toString(),
+            title: book.title,
+            authors: book.authors,
+            onTap: () {
+              Navigator.of(context).push(
+                AppTransitions.createSlideRoute(
+                  BookDetailsPage(bookViewModel: book, bookUuid: book.uuid),
+                ),
+              );
+            },
+          );
         },
       ),
     );

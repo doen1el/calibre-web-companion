@@ -983,4 +983,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attentionSSLCertificate => 'Achtung: Selbstsignierte Zertifikate können unsicher sein. Verwende sie nur, wenn du die Risiken verstehst.';
+
+  @override
+  String get ssoLogin => 'SSO-Anmeldung';
+
+  @override
+  String get pleaseLoginWithYourSSOAccount => 'Bitte melde dich mit deinem SSO-Konto an. Du wirst nach der Anmeldung automatisch zur App zurückgeleitet.';
+
+  @override
+  String get loginWithSSO => 'Mit SSO anmelden';
+
+  @override
+  String get pleaseEnterSSOUrl => 'Bitte gib die SSO-URL ein';
 }

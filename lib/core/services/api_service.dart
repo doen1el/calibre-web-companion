@@ -8,11 +8,11 @@ import 'package:xml2json/xml2json.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:http/io_client.dart';
+import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
 
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 
-/// Authentication methods supported by the API
-enum AuthMethod { none, cookie, basic }
+enum AuthMethod { none, cookie, basic, auto }
 
 class ApiService {
   final Logger _logger = Logger();
@@ -49,7 +49,7 @@ class ApiService {
 
       final fullUrl = basePath.isEmpty ? _baseUrl : '$_baseUrl/$basePath';
 
-      _logger.d('Base URL with path: $fullUrl');
+      // _logger.d('Base URL with path: $fullUrl');
       return fullUrl!;
     }
   }
@@ -86,6 +86,20 @@ class ApiService {
   void dispose() {
     _client!.close();
     _httpClient?.close(force: true);
+  }
+
+  Future<void> reset() async {
+    _logger.i('Resetting ApiService state.');
+    _baseUrl = null;
+    _cookie = null;
+    _username = null;
+    _password = null;
+    _basePath = null;
+    _client?.close();
+    _httpClient?.close(force: true);
+    _client = null;
+    _httpClient = null;
+    await initialize();
   }
 
   /// Makes an authenticated GET request
@@ -193,29 +207,75 @@ class ApiService {
   /// - `endpoint`: The API endpoint to request
   /// - `authMethod`: The authentication method to use
   /// - `queryParams`: Optional query parameters
+  /// - `followRedirects`: If false, will throw a [RedirectException] on 301/302 status codes.
   Future<http.Response> get({
     String endpoint = '',
     AuthMethod authMethod = AuthMethod.basic,
     Map<String, String> queryParams = const {},
+    bool followRedirects = true,
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
-    final headers = _getAuthHeaders(authMethod: authMethod);
+    final headers = getAuthHeaders(authMethod: authMethod);
 
     final customHeaders = await _processCustomHeaders();
     headers.addAll(customHeaders);
 
-    _logger.d('GET request to: $uri');
-    _logger.d('Headers: $headers');
+    if (followRedirects) {
+      _logger.d('GET request to: $uri');
+      _logger.d('Headers: $headers');
 
-    try {
-      final response = await _client!.get(uri, headers: headers);
-      _logger.i('Response status: ${response.statusCode}');
-      _checkResponseStatus(statusCode: response.statusCode);
-      return response;
-    } catch (e) {
-      _logger.e('Request failed: $e');
-      rethrow;
+      try {
+        final response = await _client!.get(uri, headers: headers);
+        _logger.i('Response status: ${response.statusCode}');
+        _checkResponseStatus(statusCode: response.statusCode);
+        return response;
+      } catch (e) {
+        _logger.e('Request failed: $e');
+        rethrow;
+      }
+    } else {
+      final httpClient = HttpClient();
+      httpClient.autoUncompress = true;
+      httpClient.connectionTimeout = const Duration(seconds: 10);
+
+      if (_allowSelfSigned) {
+        httpClient.badCertificateCallback = (cert, host, port) => true;
+      }
+
+      try {
+        _logger.d('GET (no-redirect) request to: $uri');
+        final request = await httpClient.getUrl(uri);
+        request.followRedirects = false;
+
+        headers.forEach((key, value) {
+          request.headers.set(key, value);
+        });
+
+        final response = await request.close();
+
+        if (response.isRedirect) {
+          final location = response.headers.value('location');
+          if (location != null) {
+            _logger.i('Redirect detected to: $location');
+            throw RedirectException(location);
+          }
+        }
+
+        final responseBody = await response.transform(utf8.decoder).join();
+        final Map<String, String> responseHeaders = {};
+        response.headers.forEach((name, values) {
+          responseHeaders[name] = values.join(', ');
+        });
+
+        return http.Response(
+          responseBody,
+          response.statusCode,
+          headers: responseHeaders,
+        );
+      } finally {
+        httpClient.close();
+      }
     }
   }
 
@@ -229,6 +289,7 @@ class ApiService {
   /// - `useCsrf`: Whether to fetch and include CSRF token
   /// - `csrfSelector`: CSS selector for the CSRF token input field
   /// - `files`: Optional list of files to upload as multipart/form-data
+  /// - `followRedirects`: If false, will throw a [RedirectException] on 301/302 status codes.
   Future<http.Response> post({
     String endpoint = '',
     AuthMethod authMethod = AuthMethod.basic,
@@ -238,16 +299,69 @@ class ApiService {
     bool useCsrf = false,
     String csrfSelector = 'input[name="csrf_token"]',
     List<http.MultipartFile>? files,
+    bool followRedirects = true,
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
+
+    if (!followRedirects) {
+      final httpClient = HttpClient();
+      if (_allowSelfSigned) {
+        httpClient.badCertificateCallback = (cert, host, port) => true;
+      }
+      httpClient.connectionTimeout = const Duration(seconds: 10);
+
+      try {
+        _logger.d('POST (no-redirect) request to: $uri');
+        final request = await httpClient.postUrl(uri);
+        request.followRedirects = false;
+
+        final headers = getAuthHeaders(authMethod: authMethod);
+        headers['Content-Type'] = contentType;
+        final customHeaders = await _processCustomHeaders();
+        headers.addAll(customHeaders);
+
+        headers.forEach((key, value) {
+          request.headers.set(key, value);
+        });
+
+        if (body != null) {
+          final encodedBody = _encodeBody(body: body, contentType: contentType);
+          request.write(encodedBody);
+        }
+
+        final response = await request.close();
+
+        if (response.isRedirect) {
+          final location = response.headers.value('location');
+          if (location != null) {
+            _logger.i('Redirect detected to: $location');
+            throw RedirectException(location);
+          }
+        }
+
+        final responseBody = await response.transform(utf8.decoder).join();
+        final Map<String, String> responseHeaders = {};
+        response.headers.forEach((name, values) {
+          responseHeaders[name] = values.join(', ');
+        });
+
+        return http.Response(
+          responseBody,
+          response.statusCode,
+          headers: responseHeaders,
+        );
+      } finally {
+        httpClient.close();
+      }
+    }
 
     final customHeaders = await _processCustomHeaders();
 
     if (useCsrf) {
       _logger.i('Making CSRF-protected POST request to: $uri');
 
-      final getHeaders = _getAuthHeaders(authMethod: authMethod);
+      final getHeaders = getAuthHeaders(authMethod: authMethod);
       getHeaders.addAll(customHeaders);
       getHeaders['Accept'] = 'text/html,application/xhtml+xml,application/xml';
 
@@ -274,26 +388,37 @@ class ApiService {
         throw Exception('CSRF token not found');
       }
 
-      String sessionCookie = _cookie ?? '';
+      final cookies =
+          (getHeaders['Cookie'] ?? '')
+              .split(';')
+              .map((c) => c.trim())
+              .where((c) => c.isNotEmpty)
+              .toList();
+
       if (getResponse.headers.containsKey('set-cookie')) {
         final setCookieHeader = getResponse.headers['set-cookie']!;
         final sessionMatch = RegExp(
-          r'session=([^;]+)',
+          r'(session=[^;]+)',
         ).firstMatch(setCookieHeader);
-        if (sessionMatch != null && sessionMatch.groupCount >= 1) {
-          sessionCookie = 'session=${sessionMatch.group(1)}';
+        if (sessionMatch != null) {
+          final newSessionCookie = sessionMatch.group(1)!;
+          cookies.removeWhere((c) => c.startsWith('session='));
+          cookies.add(newSessionCookie);
         }
       }
+
+      final combinedCookieHeader = cookies.join('; ');
 
       if (files != null && files.isNotEmpty) {
         final request = http.MultipartRequest('POST', uri);
 
-        request.headers['Cookie'] = sessionCookie;
+        request.headers['Cookie'] = combinedCookieHeader;
         request.headers['X-CSRFToken'] = csrfToken;
         request.headers['X-Requested-With'] = 'XMLHttpRequest';
         request.headers['Referer'] = uri.toString();
         request.headers['Origin'] =
             '${uri.scheme}://${uri.host}${uri.port != 80 && uri.port != 443 ? ":${uri.port}" : ""}';
+        request.headers['Connection'] = 'close';
 
         request.headers.addAll(customHeaders);
 
@@ -327,7 +452,7 @@ class ApiService {
       } else {
         final postHeaders = {
           'Content-Type': contentType,
-          'Cookie': sessionCookie,
+          'Cookie': combinedCookieHeader,
           'X-CSRFToken': csrfToken,
           'X-Requested-With': 'XMLHttpRequest',
           'Referer': uri.toString(),
@@ -378,7 +503,7 @@ class ApiService {
       if (files != null && files.isNotEmpty) {
         final request = http.MultipartRequest('POST', uri);
 
-        final headers = _getAuthHeaders(authMethod: authMethod);
+        final headers = getAuthHeaders(authMethod: authMethod);
         headers.addAll(customHeaders);
         request.headers.addAll(headers);
 
@@ -405,7 +530,7 @@ class ApiService {
           rethrow;
         }
       } else {
-        final headers = _getAuthHeaders(authMethod: authMethod);
+        final headers = getAuthHeaders(authMethod: authMethod);
         headers['Content-Type'] = contentType;
         headers.addAll(customHeaders);
 
@@ -447,7 +572,7 @@ class ApiService {
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
 
     final request = http.Request('GET', uri);
-    final headers = _getAuthHeaders(authMethod: authMethod);
+    final headers = getAuthHeaders(authMethod: authMethod);
 
     final customHeaders = await _processCustomHeaders();
     headers.addAll(customHeaders);
@@ -590,14 +715,36 @@ class ApiService {
   /// Parameters:
   ///
   /// - `authMethod`: The authentication method to use
-  Map<String, String> _getAuthHeaders({
-    AuthMethod authMethod = AuthMethod.basic,
+  Map<String, String> getAuthHeaders({
+    AuthMethod authMethod = AuthMethod.auto,
   }) {
     Map<String, String> headers = {};
+    AuthMethod resolvedAuthMethod = authMethod;
 
-    if (authMethod == AuthMethod.cookie && _cookie != null) {
+    if (resolvedAuthMethod == AuthMethod.auto) {
+      // NEUE LOGIK:
+      // Wenn Username/Passwort vorhanden sind, ist es eine Basic-Auth-Sitzung.
+      // OPDS-Endpunkte benötigen Basic Auth, auch wenn ein Cookie existiert.
+      // Daher wird Basic Auth bevorzugt, wenn die Credentials vorhanden sind.
+      if (_username != null && _username!.isNotEmpty && _password != null) {
+        resolvedAuthMethod = AuthMethod.basic;
+        _logger.d('Auto-Auth: Resolved to Basic (Credentials available)');
+      }
+      // Nur wenn KEINE Credentials, aber ein Cookie da ist, ist es eine reine SSO-Sitzung.
+      else if (_cookie != null && _cookie!.isNotEmpty) {
+        resolvedAuthMethod = AuthMethod.cookie;
+        _logger.d('Auto-Auth: Resolved to Cookie (No credentials)');
+      } else {
+        resolvedAuthMethod = AuthMethod.none;
+        _logger.d('Auto-Auth: Resolved to None');
+      }
+    }
+
+    if (resolvedAuthMethod == AuthMethod.cookie && _cookie != null) {
       headers['Cookie'] = _cookie!;
-    } else if (_username != null && _password != null) {
+    } else if (resolvedAuthMethod == AuthMethod.basic &&
+        _username != null &&
+        _password != null) {
       headers['Authorization'] =
           'Basic ${base64.encode(utf8.encode('$_username:$_password'))}';
     }

@@ -317,5 +317,9 @@
   "allowSelfSignedCertificates": "Allow self-signed certificates",
   "allowUnsafeConnections": "Allow unsafe connections",
   "ok": "Ok",
-  "attentionSSLCertificate": "Attention: Self-signed certificates can be insecure. Use them only if you understand the risks."
+  "attentionSSLCertificate": "Attention: Self-signed certificates can be insecure. Use them only if you understand the risks.",
+  "ssoLogin": "SSO-Login",
+  "pleaseLoginWithYourSSOAccount": "Please login with your SSO account. You will be redirected back to the app after successful login.",
+  "loginWithSSO": "Login with SSO",
+  "pleaseEnterSSOUrl": "Please enter the SSO URL"
 }

@@ -24,7 +24,7 @@ class DiscoverDetailsRemoteDatasource {
       final String path = _getBookListPath(type, subPath);
       final jsonData = await apiService.getXmlAsJson(
         endpoint: path,
-        authMethod: AuthMethod.basic,
+        authMethod: AuthMethod.auto,
       );
 
       final dynamic entryData = jsonData['feed']["entry"];
@@ -57,7 +57,7 @@ class DiscoverDetailsRemoteDatasource {
       final String path = _getCategoryPath(type, subPath);
       final jsonData = await apiService.getXmlAsJson(
         endpoint: path,
-        authMethod: AuthMethod.basic,
+        authMethod: AuthMethod.auto,
       );
 
       final dynamic entryData = jsonData['feed']["entry"];
@@ -79,7 +79,7 @@ class DiscoverDetailsRemoteDatasource {
     try {
       final jsonData = await apiService.getXmlAsJson(
         endpoint: fullPath,
-        authMethod: AuthMethod.basic,
+        authMethod: AuthMethod.auto,
       );
 
       final dynamic entryData = jsonData['feed']["entry"];

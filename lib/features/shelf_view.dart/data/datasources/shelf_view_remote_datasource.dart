@@ -21,7 +21,7 @@ class ShelfViewRemoteDataSource {
     try {
       final res = await apiService.getXmlAsJson(
         endpoint: '/opds/shelfindex',
-        authMethod: AuthMethod.basic,
+        authMethod: AuthMethod.auto,
       );
       return ShelfListViewModel.fromFeedJson(res);
     } catch (e) {

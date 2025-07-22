@@ -2006,6 +2006,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Attention: Self-signed certificates can be insecure. Use them only if you understand the risks.'**
   String get attentionSSLCertificate;
+
+  /// No description provided for @ssoLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'SSO-Login'**
+  String get ssoLogin;
+
+  /// No description provided for @pleaseLoginWithYourSSOAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Please login with your SSO account. You will be redirected back to the app after successful login.'**
+  String get pleaseLoginWithYourSSOAccount;
+
+  /// No description provided for @loginWithSSO.
+  ///
+  /// In en, this message translates to:
+  /// **'Login with SSO'**
+  String get loginWithSSO;
+
+  /// No description provided for @pleaseEnterSSOUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the SSO URL'**
+  String get pleaseEnterSSOUrl;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

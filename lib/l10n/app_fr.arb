@@ -317,5 +317,9 @@
   "allowSelfSignedCertificates": "Autoriser les certificats auto-signés",
   "allowUnsafeConnections": "Autoriser les connexions non sécurisées",
   "ok": "Ok",
-  "attentionSSLCertificate": "Attention : Les certificats auto-signés peuvent être non sécurisés. Utilisez-les uniquement si vous comprenez les risques."
+  "attentionSSLCertificate": "Attention : Les certificats auto-signés peuvent être non sécurisés. Utilisez-les uniquement si vous comprenez les risques.",
+  "ssoLogin": "SSO-Connexion",
+  "pleaseLoginWithYourSSOAccount": "Veuillez vous connecter avec votre compte SSO. Vous serez redirigé vers l'application après une connexion réussie.",
+  "loginWithSSO": "Connexion avec SSO",
+  "pleaseEnterSSOUrl": "Veuillez entrer l'URL SSO"
 }

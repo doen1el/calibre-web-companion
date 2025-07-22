@@ -37,3 +37,15 @@ class EnterPassword extends LoginEvent {
 class SubmitLogin extends LoginEvent {
   const SubmitLogin();
 }
+
+class SubmitSsoLogin extends LoginEvent {
+  const SubmitSsoLogin();
+}
+
+class ResetLoginStatus extends LoginEvent {
+  const ResetLoginStatus();
+}
+
+class LoginLogOut extends LoginEvent {
+  const LoginLogOut();
+}

@@ -51,7 +51,7 @@ dependencies:
   url_launcher: 
   dynamic_color: 
   open_file: 
-  webview_flutter: 
+  flutter_inappwebview:
   flutter_bloc: 
   bloc: 
   equatable: 
@@ -59,9 +59,8 @@ dependencies:
   image_picker: 
   path_provider: 
   http_parser:
-  docman: 
-
-
+  docman:
+  
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8

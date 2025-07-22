@@ -1,3 +1,5 @@
+import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -12,8 +14,6 @@ import 'package:calibre_web_companion/features/discover/blocs/discover_event.dar
 import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_feed_model.dart';
-import 'package:calibre_web_companion/features/discover_details/presentation/widgets/book_card_skeleton_widget.dart';
-import 'package:calibre_web_companion/features/discover_details/presentation/widgets/book_card_widget.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/widgets/category_list_item_skeleton_widget.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/widgets/category_list_item_widget.dart';
 import 'package:calibre_web_companion/main.dart';
@@ -177,7 +177,9 @@ class DiscoverDetailsPage extends StatelessWidget {
           itemBuilder: (context, index) {
             final book = feed.books[index];
             return BookCard(
-              book: book,
+              bookId: book.coverUrl ?? '',
+              title: book.title,
+              authors: book.author,
               isLoading: state.loadingBookId == book.id,
               onTap:
                   () => context.read<DiscoverDetailsBloc>().add(
@@ -366,8 +368,6 @@ class DiscoverDetailsPage extends StatelessWidget {
     final categoryType = categoryTypeMap[pathParts[1]];
     final discoverType = discoverTypeMap[pathParts[1]];
 
-    // This handles the case where the category is a format and has a sub-path.
-    // Otherwise the books will be treated as a generic category.
     if (categoryType == CategoryType.formats && pathParts.length > 2) {
       _navigateToPage(
         context,

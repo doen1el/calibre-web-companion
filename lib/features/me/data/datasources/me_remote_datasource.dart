@@ -13,7 +13,7 @@ class MeRemoteDataSource {
     try {
       final jsonData = await apiService.getJson(
         endpoint: '/opds/stats',
-        authMethod: AuthMethod.basic,
+        authMethod: AuthMethod.auto,
       );
       return StatsModel.fromJson(jsonData);
     } catch (e) {
@@ -28,6 +28,7 @@ class MeRemoteDataSource {
       await preferences.remove('username');
       await preferences.remove('password');
       await preferences.remove('calibre_web_session');
+      await apiService.reset();
     } catch (e) {
       throw Exception('Failed to logout: $e');
     }

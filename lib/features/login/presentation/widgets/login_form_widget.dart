@@ -118,128 +118,178 @@ class _LoginFormState extends State<LoginForm> {
 
                       const SizedBox(height: 24),
 
-                      state.isLoading
-                          ? Center(
-                            child: Container(
-                              width: double.infinity,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surface,
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                              child: const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            ),
-                          )
-                          : Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 5,
-                                  child: Material(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.primaryContainer,
-                                    borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(12.0),
-                                      bottomLeft: Radius.circular(12.0),
-                                    ),
-                                    child: InkWell(
-                                      borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(12.0),
-                                        bottomLeft: Radius.circular(12.0),
-                                      ),
-                                      onTap:
-                                          () => _handleLogin(
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 5,
+                              child: Material(
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.primaryContainer,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(12.0),
+                                  bottomLeft: Radius.circular(12.0),
+                                ),
+                                child: InkWell(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(12.0),
+                                    bottomLeft: Radius.circular(12.0),
+                                  ),
+                                  onTap:
+                                      state.status == LoginStatus.loading
+                                          ? null
+                                          : () => _handleLogin(
                                             context,
                                             localizations,
                                           ),
-                                      child: Container(
-                                        height: 50,
-                                        alignment: Alignment.center,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.login_rounded,
+                                  child: Container(
+                                    height: 50,
+                                    alignment: Alignment.center,
+                                    child:
+                                        state.status == LoginStatus.loading &&
+                                                state.loadingType ==
+                                                    LoginLoadingType.standard
+                                            ? const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            )
+                                            : Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.login_rounded,
+                                                  color:
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .onPrimaryContainer,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Text(
+                                                  localizations.login,
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color:
+                                                        Theme.of(context)
+                                                            .colorScheme
+                                                            .onPrimaryContainer,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              height: 50,
+                              width: 1,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer.withAlpha(80),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Material(
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.primaryContainer,
+                                borderRadius: const BorderRadius.only(
+                                  topRight: Radius.circular(12.0),
+                                  bottomRight: Radius.circular(12.0),
+                                ),
+                                child: InkWell(
+                                  borderRadius: const BorderRadius.only(
+                                    topRight: Radius.circular(12.0),
+                                    bottomRight: Radius.circular(12.0),
+                                  ),
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      AppTransitions.createSlideRoute(
+                                        const LoginSettingsPage(),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    height: 50,
+                                    alignment: Alignment.center,
+                                    child: Icon(
+                                      Icons.settings,
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: Material(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(12.0),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12.0),
+                            onTap:
+                                state.status == LoginStatus.loading
+                                    ? null
+                                    : () =>
+                                        _handleSsoLogin(context, localizations),
+                            child: Container(
+                              height: 50,
+                              alignment: Alignment.center,
+                              child:
+                                  state.status == LoginStatus.loading &&
+                                          state.loadingType ==
+                                              LoginLoadingType.sso
+                                      ? const Center(
+                                        child: CircularProgressIndicator(),
+                                      )
+                                      : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.shield_outlined,
+                                            color:
+                                                Theme.of(context)
+                                                    .colorScheme
+                                                    .onPrimaryContainer,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            localizations.loginWithSSO,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
                                               color:
                                                   Theme.of(context)
                                                       .colorScheme
                                                       .onPrimaryContainer,
                                             ),
-                                            const SizedBox(width: 12),
-                                            Text(
-                                              localizations.login,
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color:
-                                                    Theme.of(context)
-                                                        .colorScheme
-                                                        .onPrimaryContainer,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  height: 50,
-                                  width: 1,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimaryContainer
-                                      .withValues(alpha: .3),
-                                ),
-                                Expanded(
-                                  flex: 1,
-                                  child: Material(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.primaryContainer,
-                                    borderRadius: const BorderRadius.only(
-                                      topRight: Radius.circular(12.0),
-                                      bottomRight: Radius.circular(12.0),
-                                    ),
-                                    child: InkWell(
-                                      borderRadius: const BorderRadius.only(
-                                        topRight: Radius.circular(12.0),
-                                        bottomRight: Radius.circular(12.0),
-                                      ),
-                                      onTap: () {
-                                        Navigator.of(context).push(
-                                          AppTransitions.createSlideRoute(
-                                            const LoginSettingsPage(),
                                           ),
-                                        );
-                                      },
-                                      child: Container(
-                                        height: 50,
-                                        alignment: Alignment.center,
-                                        child: Icon(
-                                          Icons.settings,
-                                          color:
-                                              Theme.of(
-                                                context,
-                                              ).colorScheme.onPrimaryContainer,
-                                        ),
+                                        ],
                                       ),
-                                    ),
-                                  ),
-                                ),
-                              ],
                             ),
                           ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -251,8 +301,26 @@ class _LoginFormState extends State<LoginForm> {
     );
   }
 
+  void _handleSsoLogin(BuildContext context, AppLocalizations localizations) {
+    if (context.read<LoginBloc>().state.status == LoginStatus.loading) return;
+
+    if (_urlController.text.isEmpty) {
+      context.showSnackBar(localizations.pleaseEnterSSOUrl, isError: true);
+      return;
+    }
+    String url = _urlController.text.trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      context.showSnackBar(
+        localizations.urlMustStartWithHttpOrHttps,
+        isError: true,
+      );
+      return;
+    }
+    context.read<LoginBloc>().add(const SubmitSsoLogin());
+  }
+
   void _handleLogin(BuildContext context, AppLocalizations localizations) {
-    if (context.read<LoginBloc>().state.isLoading) return;
+    if (context.read<LoginBloc>().state.status == LoginStatus.loading) return;
 
     if (_urlController.text.isEmpty ||
         _usernameController.text.isEmpty ||

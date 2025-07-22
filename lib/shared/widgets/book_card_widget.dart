@@ -1,27 +1,31 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-
-import 'package:calibre_web_companion/features/discover_details/data/models/discover_details_model.dart';
+import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 
 class BookCard extends StatelessWidget {
-  final DiscoverDetailsModel book;
+  final String bookId;
+  final String title;
+  final String authors;
   final VoidCallback? onTap;
   final bool isLoading;
 
   const BookCard({
     super.key,
-    required this.book,
+    required this.bookId,
+    required this.title,
+    required this.authors,
     this.onTap,
     this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final borderRadius = BorderRadius.circular(12);
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: borderRadius,
         onTap: isLoading ? null : onTap,
         child: Stack(
           children: [
@@ -30,30 +34,12 @@ class BookCard extends StatelessWidget {
               children: [
                 Expanded(
                   flex: 3,
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12),
-                      ),
-                      color:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
-                    ),
-                    child:
-                        book.coverUrl != null
-                            ? ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(12),
-                              ),
-                              child: CachedNetworkImage(
-                                imageUrl: book.coverUrl!,
-                                fit: BoxFit.cover,
-                                errorWidget:
-                                    (context, error, stackTrace) =>
-                                        _buildPlaceholder(context),
-                              ),
-                            )
-                            : _buildPlaceholder(context),
+                  child: BookCoverWidget(
+                    bookId:
+                        int.tryParse(bookId) ??
+                        int.parse(
+                          bookId.split('/').last,
+                        ), // Since opds has only uuid -> i need to strip from the coverUrl
                   ),
                 ),
                 Expanded(
@@ -62,9 +48,10 @@ class BookCard extends StatelessWidget {
                     padding: const EdgeInsets.all(8.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          book.title,
+                          title,
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                           maxLines: 2,
@@ -72,7 +59,7 @@ class BookCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          book.author,
+                          authors,
                           style: Theme.of(
                             context,
                           ).textTheme.bodySmall?.copyWith(
@@ -89,36 +76,22 @@ class BookCard extends StatelessWidget {
                 ),
               ],
             ),
-
             if (isLoading)
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
                     color: Theme.of(
                       context,
-                    ).colorScheme.secondaryContainer.withValues(alpha: .6),
-                    borderRadius: BorderRadius.circular(12),
+                    ).colorScheme.surface.withValues(alpha: .6),
+                    borderRadius: borderRadius,
                   ),
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: Theme.of(context).colorScheme.secondaryContainer,
-                      strokeWidth: 3,
-                    ),
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 3),
                   ),
                 ),
               ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildPlaceholder(BuildContext context) {
-    return Center(
-      child: Icon(
-        Icons.book,
-        size: 48,
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: .5),
       ),
     );
   }

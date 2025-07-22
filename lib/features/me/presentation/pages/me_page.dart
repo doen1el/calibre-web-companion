@@ -1,3 +1,5 @@
+import 'package:calibre_web_companion/features/login/bloc/login_bloc.dart';
+import 'package:calibre_web_companion/features/login/bloc/login_event.dart';
 import 'package:calibre_web_companion/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -153,9 +155,20 @@ class MePage extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   Navigator.of(dialogContext).pop();
+                  context.read<LoginBloc>().add(const LoginLogOut());
+
                   context.read<MeBloc>().add(const LogOut());
                 },
-                child: Text(localizations.logout),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      Theme.of(context).colorScheme.primaryContainer,
+                ),
+                child: Text(
+                  localizations.logout,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
               ),
             ],
           ),

@@ -317,5 +317,9 @@
   "allowSelfSignedCertificates": "Permitir certificados autofirmados",
   "allowUnsafeConnections": "Permitir conexiones inseguras",
   "ok": "Ok",
-  "attentionSSLCertificate": "Atención: Los certificados autofirmados pueden ser inseguros. Úsalos solo si entiendes los riesgos."
+  "attentionSSLCertificate": "Atención: Los certificados autofirmados pueden ser inseguros. Úsalos solo si entiendes los riesgos.",
+  "ssoLogin": "SSO-Iniciar sesión",
+  "pleaseLoginWithYourSSOAccount": "Por favor, inicia sesión con tu cuenta SSO. Serás redirigido de vuelta a la aplicación después de iniciar sesión correctamente.",
+  "loginWithSSO": "Iniciar sesión con SSO",
+  "pleaseEnterSSOUrl": "Por favor, introduce la URL de SSO"
 }

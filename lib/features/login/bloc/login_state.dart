@@ -1,41 +1,45 @@
 import 'package:equatable/equatable.dart';
 
+enum LoginStatus { initial, success, loading, failure, redirect }
+
+enum LoginLoadingType { initial, standard, sso }
+
 class LoginState extends Equatable {
   final String url;
   final String username;
   final String password;
-  final bool isLoading;
-  final bool isSuccess;
-  final bool isFailure;
+  final String? redirectUrl;
+  final LoginStatus status;
   final String? errorMessage;
+  final LoginLoadingType loadingType;
 
   const LoginState({
     this.url = '',
     this.username = '',
     this.password = '',
-    this.isLoading = false,
-    this.isSuccess = false,
-    this.isFailure = false,
+    this.redirectUrl,
+    this.status = LoginStatus.initial,
     this.errorMessage,
+    this.loadingType = LoginLoadingType.initial,
   });
 
   LoginState copyWith({
     String? url,
     String? username,
     String? password,
-    bool? isLoading,
-    bool? isSuccess,
-    bool? isFailure,
+    String? redirectUrl,
+    LoginStatus? status,
     String? errorMessage,
+    LoginLoadingType? loadingType,
   }) {
     return LoginState(
       url: url ?? this.url,
       username: username ?? this.username,
       password: password ?? this.password,
-      isLoading: isLoading ?? this.isLoading,
-      isSuccess: isSuccess ?? this.isSuccess,
-      isFailure: isFailure ?? this.isFailure,
+      redirectUrl: redirectUrl ?? this.redirectUrl,
+      status: status ?? this.status,
       errorMessage: errorMessage,
+      loadingType: loadingType ?? this.loadingType,
     );
   }
 
@@ -44,9 +48,9 @@ class LoginState extends Equatable {
     url,
     username,
     password,
-    isLoading,
-    isSuccess,
-    isFailure,
+    redirectUrl,
+    status,
     errorMessage,
+    loadingType,
   ];
 }

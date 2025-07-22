@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:docman/docman.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';

@@ -1,8 +1,5 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:docman/docman.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
@@ -14,7 +11,6 @@ import 'package:calibre_web_companion/features/book_details/bloc/book_details_ev
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
 
 import 'package:calibre_web_companion/core/di/injection_container.dart';
-import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/tag_model.dart';
@@ -214,7 +210,7 @@ class BookDetailsPage extends StatelessWidget {
       id: 0,
       uuid: 'dummy-uuid',
       title: localizations.loading,
-      authors: 'Jane  & John Doe',
+      authors: 'Author Name',
     );
   }
 
@@ -232,7 +228,7 @@ class BookDetailsPage extends StatelessWidget {
           Stack(
             alignment: Alignment.bottomLeft,
             children: [
-              _buildCoverImage(context, book.id, localizations),
+              _buildCoverImage(context, book.id),
 
               Container(
                 decoration: BoxDecoration(
@@ -698,71 +694,11 @@ class BookDetailsPage extends StatelessWidget {
     return '${(sizeInBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
-  Widget _buildCoverImage(
-    BuildContext context,
-    int bookId,
-    AppLocalizations localizations,
-  ) {
-    ApiService apiService = ApiService();
-    final baseUrl = apiService.getBaseUrl();
-    final username = apiService.getUsername();
-    final password = apiService.getPassword();
-
-    final authHeader =
-        'Basic ${base64.encode(utf8.encode('$username:$password'))}';
-    final coverUrl = '$baseUrl/opds/cover/$bookId';
-
+  Widget _buildCoverImage(BuildContext context, int bookId) {
     return SizedBox(
       height: 300,
       width: double.infinity,
-      child: CachedNetworkImage(
-        imageUrl: coverUrl,
-        httpHeaders: {'Authorization': authHeader},
-        fit: BoxFit.cover,
-        placeholder:
-            (context, url) => Container(
-              color: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
-              child: Skeletonizer(
-                enabled: true,
-                effect: ShimmerEffect(
-                  baseColor: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: .2),
-                  highlightColor: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: .4),
-                ),
-                child: SizedBox(),
-              ),
-            ),
-        errorWidget:
-            (context, url, error) => Container(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.book,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      localizations.noCoverAvailable,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        memCacheWidth: 600,
-        memCacheHeight: 900,
-      ),
+      child: BookCoverWidget(bookId: bookId),
     );
   }
 

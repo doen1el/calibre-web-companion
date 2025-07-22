@@ -1,6 +1,7 @@
+import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
+import 'package:http/src/response.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
 
@@ -19,13 +20,31 @@ class LoginRemoteDataSource {
 
       await apiService.initialize();
 
-      final response = await apiService.post(
-        endpoint: '/login',
-        body: credentials.toFormData(),
-        authMethod: AuthMethod.none,
-        contentType: 'application/x-www-form-urlencoded',
-        useCsrf: true,
-      );
+      if (credentials.username.isEmpty && credentials.password.isEmpty) {
+        logger.i('Attempting SSO login by triggering a redirect...');
+
+        await apiService.get(endpoint: '/', followRedirects: false);
+        logger.i('User is already logged in.');
+        return true;
+      }
+
+      Response response;
+
+      if (credentials.username.isEmpty && credentials.password.isEmpty) {
+        response = await apiService.post(
+          endpoint: '/login',
+          body: credentials.toFormData(),
+          followRedirects: false,
+        );
+      } else {
+        response = await apiService.post(
+          endpoint: '/login',
+          body: credentials.toFormData(),
+          authMethod: AuthMethod.none,
+          contentType: 'application/x-www-form-urlencoded',
+          useCsrf: true,
+        );
+      }
 
       if (response.statusCode == 200 || response.statusCode == 302) {
         final isSuccess = !response.body.contains('flash_danger');
@@ -51,6 +70,8 @@ class LoginRemoteDataSource {
         'Login failed: ${response.reasonPhrase ?? response.body} ${response.statusCode}',
       );
       throw Exception(response.reasonPhrase ?? response.body);
+    } on RedirectException {
+      rethrow;
     } catch (e) {
       logger.e("Error during login: $e");
       throw Exception('Connection error: ${e.toString().split(': ').last}');
@@ -61,10 +82,9 @@ class LoginRemoteDataSource {
     logger.i('Checking if user can access website...');
     final prefs = await SharedPreferences.getInstance();
     final baseUrl = prefs.getString('base_url');
-    final username = prefs.getString('username');
-    final password = prefs.getString('password');
+    final cookie = prefs.getString('calibre_web_session');
 
-    if (baseUrl == null || username == null || password == null) {
+    if (baseUrl == null || cookie == null || cookie.isEmpty) {
       return false;
     }
 
@@ -74,9 +94,13 @@ class LoginRemoteDataSource {
       final response = await apiService.get(
         endpoint: '/',
         authMethod: AuthMethod.cookie,
+        followRedirects: false,
       );
 
-      return !response.body.contains('Login');
+      return response.statusCode == 200 && !response.body.contains('Login');
+    } on RedirectException {
+      logger.i('Session invalid, redirect detected.');
+      return false;
     } catch (e) {
       logger.e('Credential validation failed: $e');
       return false;
