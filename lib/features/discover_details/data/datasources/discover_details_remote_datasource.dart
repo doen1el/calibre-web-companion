@@ -27,6 +27,11 @@ class DiscoverDetailsRemoteDatasource {
         authMethod: AuthMethod.auto,
       );
 
+      if (jsonData['feed'] == null || jsonData['feed']['entry'] == null) {
+        logger.i('No entries found in feed for path: $path');
+        return const DiscoverFeedModel(books: [], nextPageUrl: null);
+      }
+
       final dynamic entryData = jsonData['feed']["entry"];
       final List<dynamic> items = entryData is List ? entryData : [entryData];
       final books =
@@ -60,6 +65,11 @@ class DiscoverDetailsRemoteDatasource {
         authMethod: AuthMethod.auto,
       );
 
+      if (jsonData['feed'] == null || jsonData['feed']['entry'] == null) {
+        logger.i('No entries found in feed for path: $path');
+        return const CategoryFeed(categories: [], nextPageUrl: null);
+      }
+
       final dynamic entryData = jsonData['feed']["entry"];
       final List<dynamic> items = entryData is List ? entryData : [entryData];
       final categories =
@@ -81,6 +91,11 @@ class DiscoverDetailsRemoteDatasource {
         endpoint: fullPath,
         authMethod: AuthMethod.auto,
       );
+
+      if (jsonData['feed'] == null || jsonData['feed']['entry'] == null) {
+        logger.i('No entries found in feed for path: $fullPath');
+        return const DiscoverFeedModel(books: [], nextPageUrl: null);
+      }
 
       final dynamic entryData = jsonData['feed']["entry"];
       final List<dynamic> items = entryData is List ? entryData : [entryData];
