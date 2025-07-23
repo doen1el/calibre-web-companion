@@ -27,6 +27,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     on<SendToEReaderByEmail>(_onSendToEReaderByEmail);
     on<CancelSendToEReader>(_onCancelSendToEReader);
     on<ClearSnackBarStates>(_onClearSnackBarStates);
+    on<OpenBookInInternalReader>(_openBookInInternalReader);
     on<UpdateSendToEReaderProgress>((event, emit) {
       emit(state.copyWith(sendToEReaderProgress: event.progress));
     });
@@ -324,6 +325,64 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       emit(
         state.copyWith(
           openInReaderState: OpenInReaderState.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openBookInInternalReader(
+    OpenBookInInternalReader event,
+    Emitter<BookDetailsState> emit,
+  ) async {
+    if (state.bookDetails == null) {
+      emit(
+        state.copyWith(
+          openInInternalReaderState: OpenInInternalReaderState.error,
+          errorMessage: 'Book details not available',
+        ),
+      );
+      return;
+    }
+
+    try {
+      logger.i('Opening book in internal reader: ${state.bookDetails!.title}');
+      emit(
+        state.copyWith(
+          openInInternalReaderState: OpenInInternalReaderState.loading,
+        ),
+      );
+
+      final downloadedPath = await repository.openInInternalReader(
+        event.selectedDirectory,
+        event.schema,
+        event.book,
+        progressCallback: (progress) {
+          logger.d('Reader download progress: $progress%');
+          emit(state.copyWith(downloadProgress: progress));
+        },
+      );
+
+      if (downloadedPath.isNotEmpty) {
+        emit(
+          state.copyWith(
+            openInInternalReaderState: OpenInInternalReaderState.success,
+            downloadFilePath: downloadedPath,
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            openInInternalReaderState: OpenInInternalReaderState.error,
+            errorMessage: 'Failed to open book in internal reader',
+          ),
+        );
+      }
+    } catch (e) {
+      logger.e('Error opening book in internal reader: $e');
+      emit(
+        state.copyWith(
+          openInInternalReaderState: OpenInInternalReaderState.error,
           errorMessage: e.toString(),
         ),
       );

@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/features/book_details/presentation/widgets/ebook_reader_widget.dart';
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,30 @@ class BookDetailsPage extends StatelessWidget {
     required this.bookUuid,
   });
 
+  Future<void> _openInternalReader(
+    BuildContext context,
+    String filePath,
+    BookDetailsModel bookDetailsModel,
+  ) async {
+    try {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder:
+              (context) => EbookReaderWidget(
+                bookPath: filePath,
+                bookDetailsModel: bookDetailsModel,
+              ),
+        ),
+      );
+    } catch (e) {
+      final localizations = AppLocalizations.of(context)!;
+      context.showSnackBar(
+        '${localizations.errorOpeningBookInInternalReader}: $e',
+        isError: true,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
@@ -49,6 +74,8 @@ class BookDetailsPage extends StatelessWidget {
                 previous.readStatusState != current.readStatusState ||
                 previous.archiveStatusState != current.archiveStatusState ||
                 previous.openInReaderState != current.openInReaderState ||
+                previous.openInInternalReaderState !=
+                    current.openInInternalReaderState ||
                 previous.metadataUpdateState != current.metadataUpdateState ||
                 previous.bookDetails != current.bookDetails,
         listener: (context, state) {
@@ -97,6 +124,24 @@ class BookDetailsPage extends StatelessWidget {
               isError: true,
             );
             context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
+          }
+
+          if (state.openInInternalReaderState ==
+                  OpenInInternalReaderState.success &&
+              state.downloadFilePath != null) {
+            _openInternalReader(
+              context,
+              state.downloadFilePath!,
+              state.bookDetails!,
+            );
+          }
+
+          if (state.openInInternalReaderState ==
+              OpenInInternalReaderState.error) {
+            context.showSnackBar(
+              '${localizations.errorOpeningBookInInternalReader} ${state.errorMessage}',
+              isError: true,
+            );
           }
         },
         buildWhen:
@@ -487,6 +532,64 @@ class BookDetailsPage extends StatelessWidget {
           AddToShelfWidget(book: book, isLoading: isLoading),
 
           DownloadToDeviceWidget(book: book, isLoading: isLoading),
+
+          IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              child:
+                  state.openInReaderState == OpenInReaderState.loading
+                      ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      )
+                      : Icon(Icons.menu_book_rounded),
+            ),
+            onPressed:
+                isLoading
+                    ? null
+                    : () async {
+                      final settingsState = context.read<SettingsBloc>().state;
+                      DocumentFile? selectedDirectory;
+
+                      if (settingsState.defaultDownloadPath.isEmpty) {
+                        selectedDirectory = await DocMan.pick.directory();
+                        if (selectedDirectory == null) {
+                          // ignore: use_build_context_synchronously
+                          context.showSnackBar(
+                            localizations.noFolderWasSelected,
+                            isError: true,
+                          );
+                          return;
+                        }
+                      } else {
+                        final uri = settingsState.defaultDownloadPath;
+                        selectedDirectory =
+                            uri.isNotEmpty
+                                ? await DocumentFile.fromUri(uri)
+                                : null;
+                        if (selectedDirectory == null ||
+                            !selectedDirectory.isDirectory) {
+                          // ignore: use_build_context_synchronously
+                          context.showSnackBar(
+                            localizations.noFolderWasSelected,
+                            isError: true,
+                          );
+                          return;
+                        }
+                      }
+
+                      // ignore: use_build_context_synchronously
+                      context.read<BookDetailsBloc>().add(
+                        OpenBookInInternalReader(
+                          selectedDirectory: selectedDirectory,
+                          schema: settingsState.downloadSchema,
+                          book: book,
+                        ),
+                      );
+                    },
+            tooltip: localizations.openInInternalReader,
+          ),
 
           IconButton(
             icon: CircleAvatar(

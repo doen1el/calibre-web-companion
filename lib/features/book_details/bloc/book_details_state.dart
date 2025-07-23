@@ -34,6 +34,8 @@ enum EmailState { initial, sending, success, error }
 
 enum OpenInReaderState { initial, loading, success, error }
 
+enum OpenInInternalReaderState { initial, loading, success, error }
+
 class BookDetailsState extends Equatable {
   final BookDetailsStatus status;
   final BookDetailsModel? bookDetails;
@@ -47,6 +49,7 @@ class BookDetailsState extends Equatable {
   final String? downloadedFilePath;
   final EmailState emailState;
   final OpenInReaderState openInReaderState;
+  final OpenInInternalReaderState openInInternalReaderState;
   final String? downloadErrorMessage;
   final String? downloadFilePath;
   final MetadataUpdateState metadataUpdateState;
@@ -67,6 +70,7 @@ class BookDetailsState extends Equatable {
     this.downloadedFilePath,
     this.emailState = EmailState.initial,
     this.openInReaderState = OpenInReaderState.initial,
+    this.openInInternalReaderState = OpenInInternalReaderState.initial,
     this.downloadErrorMessage,
     this.downloadFilePath,
     this.metadataUpdateState = MetadataUpdateState.initial,
@@ -88,6 +92,7 @@ class BookDetailsState extends Equatable {
     String? downloadedFilePath,
     EmailState? emailState,
     OpenInReaderState? openInReaderState,
+    OpenInInternalReaderState? openInInternalReaderState,
     String? downloadErrorMessage,
     String? downloadFilePath,
     MetadataUpdateState? metadataUpdateState,
@@ -108,6 +113,8 @@ class BookDetailsState extends Equatable {
       downloadedFilePath: downloadedFilePath ?? this.downloadedFilePath,
       emailState: emailState ?? this.emailState,
       openInReaderState: openInReaderState ?? this.openInReaderState,
+      openInInternalReaderState:
+          openInInternalReaderState ?? this.openInInternalReaderState,
       downloadErrorMessage: downloadErrorMessage ?? this.downloadErrorMessage,
       downloadFilePath: downloadFilePath ?? this.downloadFilePath,
       metadataUpdateState: metadataUpdateState ?? this.metadataUpdateState,
@@ -132,6 +139,7 @@ class BookDetailsState extends Equatable {
     downloadedFilePath,
     emailState,
     openInReaderState,
+    openInInternalReaderState,
     downloadErrorMessage,
     downloadFilePath,
     metadataUpdateState,

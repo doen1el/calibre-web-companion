@@ -114,6 +114,21 @@ class OpenBookInReader extends BookDetailsEvent {
   List<Object?> get props => [selectedDirectory, schema];
 }
 
+class OpenBookInInternalReader extends BookDetailsEvent {
+  final DocumentFile selectedDirectory;
+  final DownloadSchema schema;
+  final BookDetailsModel book;
+
+  const OpenBookInInternalReader({
+    required this.selectedDirectory,
+    required this.schema,
+    required this.book,
+  });
+
+  @override
+  List<Object> get props => [selectedDirectory, schema, book];
+}
+
 class OpenBookInBrowser extends BookDetailsEvent {
   const OpenBookInBrowser();
 }

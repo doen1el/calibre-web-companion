@@ -995,4 +995,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pleaseEnterSSOUrl => 'Por favor, introduce la URL de SSO';
+
+  @override
+  String get openInInternalReader => 'Abrir en lector interno';
+
+  @override
+  String get errorOpeningBookInInternalReader => 'Error al abrir el libro en el lector interno';
 }

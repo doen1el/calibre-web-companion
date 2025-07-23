@@ -321,5 +321,7 @@
   "ssoLogin": "SSO-Iniciar sesión",
   "pleaseLoginWithYourSSOAccount": "Por favor, inicia sesión con tu cuenta SSO. Serás redirigido de vuelta a la aplicación después de iniciar sesión correctamente.",
   "loginWithSSO": "Iniciar sesión con SSO",
-  "pleaseEnterSSOUrl": "Por favor, introduce la URL de SSO"
+  "pleaseEnterSSOUrl": "Por favor, introduce la URL de SSO",
+  "openInInternalReader": "Abrir en lector interno",
+  "errorOpeningBookInInternalReader": "Error al abrir el libro en el lector interno"
 }

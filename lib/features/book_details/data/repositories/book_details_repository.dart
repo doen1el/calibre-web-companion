@@ -157,4 +157,19 @@ class BookDetailsRepository {
       rethrow;
     }
   }
+
+  Future<String> openInInternalReader(
+    DocumentFile selectedDirectory,
+    DownloadSchema schema,
+    BookDetailsModel book, {
+    Function(int)? progressCallback,
+  }) async {
+    return await datasource.downloadBookForReader(
+      book,
+      selectedDirectory,
+      schema,
+      format: 'epub',
+      progressCallback: progressCallback,
+    );
+  }
 }

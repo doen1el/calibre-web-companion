@@ -2030,6 +2030,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter the SSO URL'**
   String get pleaseEnterSSOUrl;
+
+  /// No description provided for @openInInternalReader.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Internal Reader'**
+  String get openInInternalReader;
+
+  /// No description provided for @errorOpeningBookInInternalReader.
+  ///
+  /// In en, this message translates to:
+  /// **'Error opening book in internal reader'**
+  String get errorOpeningBookInInternalReader;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
