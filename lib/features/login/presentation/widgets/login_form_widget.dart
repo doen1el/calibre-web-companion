@@ -19,7 +19,7 @@ class LoginForm extends StatefulWidget {
 }
 
 class _LoginFormState extends State<LoginForm> {
-  final _urlController = TextEditingController();
+  final _urlController = TextEditingController(text: 'https://');
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
