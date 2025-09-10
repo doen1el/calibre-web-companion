@@ -62,41 +62,67 @@ class BookCard extends StatelessWidget {
   }
 
   Widget _buildCoverImage(BuildContext context, int bookId) {
-    ApiService apiService = ApiService();
+    final apiService = ApiService();
     final baseUrl = apiService.getBaseUrl();
-    final username = apiService.getUsername();
-    final password = apiService.getPassword();
-
-    final authHeader =
-        'Basic ${base64.encode(utf8.encode('$username:$password'))}';
     final coverUrl = '$baseUrl/opds/cover/$bookId';
 
-    return CachedNetworkImage(
-      imageUrl: coverUrl,
-      httpHeaders: {'Authorization': authHeader},
-      fit: BoxFit.cover,
-      width: double.infinity,
-      placeholder:
-          (context, url) => Container(
-            color: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
+    return FutureBuilder<Map<String, String>>(
+      future: () async {
+        final headers = <String, String>{};
+        // Include cookie if present
+        final cookie = await apiService.getCookieHeader();
+        if (cookie != null && cookie.trim().isNotEmpty) {
+          headers['Cookie'] = cookie;
+        }
+        // Include any custom headers (e.g., CF Access)
+        final custom = await apiService.getProcessedCustomHeaders();
+        headers.addAll(custom);
+        // Always include Basic auth when credentials exist (some endpoints challenge with 401 even with cookies)
+        final username = apiService.getUsername();
+        final password = apiService.getPassword();
+        if (username.isNotEmpty && password.isNotEmpty) {
+          headers['Authorization'] =
+              'Basic ${base64.encode(utf8.encode('$username:$password'))}';
+        }
+        // Prefer broadly compatible formats and discourage proxy transforms
+        headers['Accept'] = 'image/avif;q=0,image/webp;q=0,image/jpeg,image/png,*/*;q=0.5';
+        headers['Cache-Control'] = 'no-transform';
+        return headers;
+      }(),
+      builder: (context, snapshot) {
+        final headers = snapshot.data ?? const <String, String>{};
+
+        return CachedNetworkImage(
+          imageUrl: coverUrl,
+          httpHeaders: headers,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          placeholder: (context, url) => Container(
+            color: Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withValues(alpha: .3),
             child: Skeletonizer(
               enabled: true,
               effect: ShimmerEffect(
-                baseColor: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: .2),
-                highlightColor: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: .4),
+                baseColor:
+                    Theme.of(context).colorScheme.primary.withValues(alpha: .2),
+                highlightColor:
+                    Theme.of(context).colorScheme.primary.withValues(alpha: .4),
               ),
-              child: SizedBox(),
+              child: const SizedBox(),
             ),
           ),
-      errorWidget: (context, url, error) => const SizedBox(),
-      memCacheWidth: 300,
-      memCacheHeight: 400,
+          errorWidget: (context, url, error) => Image.network(
+            coverUrl,
+            headers: headers,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => const SizedBox(),
+          ),
+          memCacheWidth: 300,
+          memCacheHeight: 400,
+        );
+      },
     );
   }
 }
