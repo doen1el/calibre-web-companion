@@ -409,7 +409,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectShelf => 'Select shelf';
 
   @override
-  String get noShelvesFound => 'No shelfs found';
+  String get noShelvesFound => 'No shelves found';
 
   @override
   String bookAddedToShelf(Object book) {
@@ -431,7 +431,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removeFromShelf => 'Remove';
 
   @override
-  String get shelfs => 'Shelfs';
+  String get shelfs => 'Shelves';
 
   @override
   String shelfContains(Object count) {
@@ -522,7 +522,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count shelfs',
+      other: '$count shelves',
       one: 'one shelf',
     );
     return 'Book in $_temp0';
@@ -535,7 +535,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectionSettings => 'Connection settings';
 
   @override
-  String get costumHttpPHeader => 'Costum HTTP-Header';
+  String get costumHttpPHeader => 'Custom HTTP-Header';
 
   @override
   String get addHeader => 'Add header';
@@ -544,10 +544,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get httpHeader => 'HTTP-Header';
 
   @override
-  String get addACostumHttpHeaderThatWillBeSentWithEveryRequest => 'Add a costum HTTP-Header that will be sent with every request';
+  String get addACostumHttpHeaderThatWillBeSentWithEveryRequest => 'Add a custom HTTP-Header that will be sent with every request';
 
   @override
-  String get noCostumHttpHeadersYet => 'No costum HTTP-Header yet';
+  String get noCostumHttpHeadersYet => 'No custom HTTP-Header yet';
 
   @override
   String get header => 'Header';
