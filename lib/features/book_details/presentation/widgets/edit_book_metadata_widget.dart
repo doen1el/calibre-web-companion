@@ -396,33 +396,54 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
     int bookId,
     AppLocalizations localizations,
   ) {
-    ApiService apiService = ApiService();
+    final apiService = ApiService();
     final baseUrl = apiService.getBaseUrl();
-    final username = apiService.getUsername();
-    final password = apiService.getPassword();
-
-    final authHeader =
-        'Basic ${base64.encode(utf8.encode('$username:$password'))}';
     final coverUrl = '$baseUrl/opds/cover/$bookId';
 
-    return CachedNetworkImage(
-      imageUrl: coverUrl,
-      height: 150,
-      fit: BoxFit.contain,
-      httpHeaders: {'Authorization': authHeader},
-
-      placeholder:
-          (context, url) => Container(
+    return FutureBuilder<Map<String, String>>(
+      future: () async {
+        final headers = <String, String>{};
+        final cookie = await apiService.getCookieHeader();
+        if (cookie != null && cookie.trim().isNotEmpty) {
+          headers['Cookie'] = cookie;
+        }
+        final custom = await apiService.getProcessedCustomHeaders();
+        headers.addAll(custom);
+        final username = apiService.getUsername();
+        final password = apiService.getPassword();
+        if (username.isNotEmpty && password.isNotEmpty) {
+          headers['Authorization'] =
+              'Basic ${base64.encode(utf8.encode('$username:$password'))}';
+        }
+        headers['Accept'] = 'image/avif;q=0,image/webp;q=0,image/jpeg,image/png,*/*;q=0.5';
+        headers['Cache-Control'] = 'no-transform';
+        return headers;
+      }(),
+      builder: (context, snapshot) {
+        final headers = snapshot.data ?? const <String, String>{};
+        return CachedNetworkImage(
+          imageUrl: coverUrl,
+          height: 150,
+          fit: BoxFit.contain,
+          httpHeaders: headers,
+          placeholder: (context, url) => Container(
             height: 150,
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
             child: const Center(child: CircularProgressIndicator()),
           ),
-      errorWidget:
-          (context, url, error) => Container(
+          errorWidget: (context, url, error) => Image.network(
+            coverUrl,
+            headers: headers,
+            fit: BoxFit.contain,
             height: 150,
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            child: const Icon(Icons.error),
+            errorBuilder: (context, error, stack) => Container(
+              height: 150,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: const Icon(Icons.error),
+            ),
           ),
+        );
+      },
     );
   }
 }

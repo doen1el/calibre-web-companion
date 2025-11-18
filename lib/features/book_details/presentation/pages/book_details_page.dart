@@ -703,65 +703,89 @@ class BookDetailsPage extends StatelessWidget {
     int bookId,
     AppLocalizations localizations,
   ) {
-    ApiService apiService = ApiService();
+    final apiService = ApiService();
     final baseUrl = apiService.getBaseUrl();
-    final username = apiService.getUsername();
-    final password = apiService.getPassword();
-
-    final authHeader =
-        'Basic ${base64.encode(utf8.encode('$username:$password'))}';
     final coverUrl = '$baseUrl/opds/cover/$bookId';
 
     return SizedBox(
       height: 300,
       width: double.infinity,
-      child: CachedNetworkImage(
-        imageUrl: coverUrl,
-        httpHeaders: {'Authorization': authHeader},
-        fit: BoxFit.cover,
-        placeholder:
-            (context, url) => Container(
-              color: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
+      child: FutureBuilder<Map<String, String>>(
+        future: () async {
+          final headers = <String, String>{};
+          final cookie = await apiService.getCookieHeader();
+          if (cookie != null && cookie.trim().isNotEmpty) {
+            headers['Cookie'] = cookie;
+          }
+          final custom = await apiService.getProcessedCustomHeaders();
+          headers.addAll(custom);
+          final username = apiService.getUsername();
+          final password = apiService.getPassword();
+          if (username.isNotEmpty && password.isNotEmpty) {
+            headers['Authorization'] =
+                'Basic ${base64.encode(utf8.encode('$username:$password'))}';
+          }
+          headers['Accept'] = 'image/avif;q=0,image/webp;q=0,image/jpeg,image/png,*/*;q=0.5';
+          headers['Cache-Control'] = 'no-transform';
+          return headers;
+        }(),
+        builder: (context, snapshot) {
+          final headers = snapshot.data ?? const <String, String>{};
+          return CachedNetworkImage(
+            imageUrl: coverUrl,
+            httpHeaders: headers,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => Container(
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withValues(alpha: .3),
               child: Skeletonizer(
                 enabled: true,
                 effect: ShimmerEffect(
-                  baseColor: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: .2),
-                  highlightColor: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: .4),
+                  baseColor: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: .2),
+                  highlightColor: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: .4),
                 ),
-                child: SizedBox(),
+                child: const SizedBox(),
               ),
             ),
-        errorWidget:
-            (context, url, error) => Container(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.book,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      localizations.noCoverAvailable,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+            errorWidget: (context, url, error) => Image.network(
+              coverUrl,
+              headers: headers,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stack) => Container(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.book,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        localizations.noCoverAvailable,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-        memCacheWidth: 600,
-        memCacheHeight: 900,
+            memCacheWidth: 600,
+            memCacheHeight: 900,
+          );
+        },
       ),
     );
   }
