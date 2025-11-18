@@ -37,3 +37,7 @@ class EnterPassword extends LoginEvent {
 class SubmitLogin extends LoginEvent {
   const SubmitLogin();
 }
+
+class LoadStoredCredentials extends LoginEvent {
+  const LoadStoredCredentials();
+}

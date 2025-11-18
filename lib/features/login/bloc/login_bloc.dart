@@ -16,6 +16,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<EnterUsername>(_onEnterUsername);
     on<EnterPassword>(_onEnterPassword);
     on<SubmitLogin>(_onSubmitLogin);
+    on<LoadStoredCredentials>(_onLoadStoredCredentials);
   }
 
   void _onEnterUrl(EnterUrl event, Emitter<LoginState> emit) {
@@ -76,6 +77,27 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           errorMessage: e.toString(),
         ),
       );
+    }
+  }
+
+  Future<void> _onLoadStoredCredentials(
+    LoadStoredCredentials event,
+    Emitter<LoginState> emit,
+  ) async {
+    try {
+      final credentials = await loginRepository.getStoredCredentials();
+      if (credentials != null) {
+        emit(
+          state.copyWith(
+            url: credentials.baseUrl,
+            username: credentials.username,
+            password: credentials.password,
+          ),
+        );
+        logger.i('Stored credentials loaded successfully');
+      }
+    } catch (e) {
+      logger.e('Error loading stored credentials: $e');
     }
   }
 }
