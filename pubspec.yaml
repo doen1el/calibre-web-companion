@@ -1,8 +1,8 @@
 name: calibre_web_companion
-description: "A calibre web (automated) companion app."
+description: 'A calibre web (automated) companion app.'
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: "none" # Remove this line if you wish to publish to pub.dev
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.7.1+21
+version: 1.7.2+22
 
 environment:
   sdk: ^3.7.0
@@ -32,36 +32,36 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  logger: 
-  shared_preferences: 
-  http: 
-  provider: 
-  fluttertoast: 
-  adaptive_theme: 
+  logger:
+  shared_preferences:
+  http:
+  provider:
+  fluttertoast:
+  adaptive_theme:
   html:
-  flutter_cache_manager: 
-  file_picker: 
-  path: 
-  xml2json: 
+  flutter_cache_manager:
+  file_picker:
+  path:
+  xml2json:
   cached_network_image:
-  intl: 
-  skeletonizer: ^2.1.0+1 
-  flutter_launcher_icons: 
-  package_info_plus: 
-  url_launcher: 
-  dynamic_color: 
-  open_file: 
+  intl:
+  skeletonizer: ^2.1.0+1
+  flutter_launcher_icons:
+  package_info_plus:
+  url_launcher:
+  dynamic_color:
+  open_file:
   flutter_inappwebview:
-  flutter_bloc: 
-  bloc: 
-  equatable: 
-  get_it: 
-  image_picker: 
-  path_provider: 
+  flutter_bloc:
+  bloc:
+  equatable:
+  get_it:
+  image_picker:
+  path_provider:
   http_parser:
   docman:
   epub_view:
-  
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -81,9 +81,9 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 flutter_launcher_icons:
-  android: "launcher_icon"
+  android: 'launcher_icon'
   ios: true
-  image_path: "docs/icon/icon.png"
+  image_path: 'docs/icon/icon.png'
   remove_alpha_ios: true
   min_sdk_android: 21
 
