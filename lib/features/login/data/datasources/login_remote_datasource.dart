@@ -106,4 +106,21 @@ class LoginRemoteDataSource {
       return false;
     }
   }
+
+  Future<LoginCredentials?> getStoredCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final baseUrl = prefs.getString('base_url');
+    final username = prefs.getString('username');
+    final password = prefs.getString('password');
+
+    if (baseUrl != null && username != null && password != null) {
+      return LoginCredentials(
+        baseUrl: baseUrl,
+        username: username,
+        password: password,
+      );
+    }
+
+    return null;
+  }
 }

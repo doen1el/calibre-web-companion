@@ -45,6 +45,10 @@ class LoginRepository {
   Future<bool> isLoggedIn() async {
     return dataSource.canAccessWebsite();
   }
+
+  Future<LoginCredentials?> getStoredCredentials() async {
+    return dataSource.getStoredCredentials();
+  }
 }
 
 class LoginResult {

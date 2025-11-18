@@ -797,11 +797,102 @@ class BookDetailsPage extends StatelessWidget {
     return '${(sizeInBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
-  Widget _buildCoverImage(BuildContext context, int bookId) {
+  Widget _buildCoverImage(
+    BuildContext context,
+    int bookId,
+    AppLocalizations localizations,
+  ) {
+    final apiService = ApiService();
+    final baseUrl = apiService.getBaseUrl();
+    final coverUrl = '$baseUrl/opds/cover/$bookId';
+
     return SizedBox(
       height: 300,
       width: double.infinity,
-      child: BookCoverWidget(bookId: bookId),
+      child: FutureBuilder<Map<String, String>>(
+        future: () async {
+          final headers = <String, String>{};
+          final cookie = await apiService.getCookieHeader();
+          if (cookie != null && cookie.trim().isNotEmpty) {
+            headers['Cookie'] = cookie;
+          }
+          final custom = await apiService.getProcessedCustomHeaders();
+          headers.addAll(custom);
+          final username = apiService.getUsername();
+          final password = apiService.getPassword();
+          if (username.isNotEmpty && password.isNotEmpty) {
+            headers['Authorization'] =
+                'Basic ${base64.encode(utf8.encode('$username:$password'))}';
+          }
+          headers['Accept'] =
+              'image/avif;q=0,image/webp;q=0,image/jpeg,image/png,*/*;q=0.5';
+          headers['Cache-Control'] = 'no-transform';
+          return headers;
+        }(),
+        builder: (context, snapshot) {
+          final headers = snapshot.data ?? const <String, String>{};
+          return CachedNetworkImage(
+            imageUrl: coverUrl,
+            httpHeaders: headers,
+            fit: BoxFit.cover,
+            placeholder:
+                (context, url) => Container(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
+                  child: Skeletonizer(
+                    enabled: true,
+                    effect: ShimmerEffect(
+                      baseColor: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: .2),
+                      highlightColor: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: .4),
+                    ),
+                    child: const SizedBox(),
+                  ),
+                ),
+            errorWidget:
+                (context, url, error) => Image.network(
+                  coverUrl,
+                  headers: headers,
+                  fit: BoxFit.cover,
+                  errorBuilder:
+                      (context, error, stack) => Container(
+                        color:
+                            Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.book,
+                                size: 64,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                localizations.noCoverAvailable,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                ),
+            memCacheWidth: 600,
+            memCacheHeight: 900,
+          );
+        },
+      ),
     );
   }
 

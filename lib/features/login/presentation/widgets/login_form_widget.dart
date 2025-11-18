@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
@@ -24,6 +25,16 @@ class _LoginFormState extends State<LoginForm> {
   final _passwordController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+
+    // Load stored credentials when the form initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LoginBloc>().add(const LoadStoredCredentials());
+    });
+  }
+
+  @override
   void dispose() {
     _urlController.dispose();
     _usernameController.dispose();
@@ -35,7 +46,24 @@ class _LoginFormState extends State<LoginForm> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
 
-    return BlocBuilder<LoginBloc, LoginState>(
+    return BlocConsumer<LoginBloc, LoginState>(
+      listener: (context, state) {
+        // Update text controllers when credentials are loaded from storage
+        if (_urlController.text != state.url) {
+          _urlController.text = state.url;
+        }
+        if (_usernameController.text != state.username) {
+          _usernameController.text = state.username;
+        }
+        if (_passwordController.text != state.password) {
+          _passwordController.text = state.password;
+        }
+
+        // Notify autofill service when login is successful
+        if (state.isSuccess) {
+          TextInput.finishAutofillContext();
+        }
+      },
       builder: (context, state) {
         return Padding(
           padding: const EdgeInsets.all(16.0),
@@ -80,7 +108,7 @@ class _LoginFormState extends State<LoginForm> {
                         labelText: localizations.username,
                         hintText: localizations.enterYourUsername,
                         prefixIcon: Icons.person_rounded,
-                        autofillHint: AutofillHints.username,
+                        autofillHints: [AutofillHints.username, AutofillHints.email],
                         onChanged:
                             (value) => context.read<LoginBloc>().add(
                               EnterUsername(value),
@@ -95,6 +123,7 @@ class _LoginFormState extends State<LoginForm> {
                         obscureText: true,
                         prefixIcon: Icons.lock_rounded,
                         autofillHint: AutofillHints.password,
+                        keyboardType: TextInputType.visiblePassword,
                         textInputAction: TextInputAction.done,
                         onChanged:
                             (value) => context.read<LoginBloc>().add(
