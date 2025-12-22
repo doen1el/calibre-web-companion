@@ -25,9 +25,17 @@ class ShelfDetailsRepository {
     }
   }
 
-  Future<bool> editShelf(String shelfId, String newShelfName) async {
+  Future<bool> editShelf(
+    String shelfId,
+    String newShelfName, {
+    bool isPublic = false,
+  }) async {
     try {
-      final result = await dataSource.editShelf(shelfId, newShelfName);
+      final result = await dataSource.editShelf(
+        shelfId,
+        newShelfName,
+        isPublic: isPublic,
+      );
       return result;
     } catch (e) {
       rethrow;

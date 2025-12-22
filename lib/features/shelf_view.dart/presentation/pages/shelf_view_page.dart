@@ -195,7 +195,10 @@ class ShelfViewPage extends StatelessWidget {
                           create: (context) => getIt<ShelfDetailsBloc>(),
                         ),
                       ],
-                      child: ShelfDetailsPage(shelfId: shelf.id),
+                      child: ShelfDetailsPage(
+                        shelfId: shelf.id,
+                        isPublic: shelf.isPublic,
+                      ),
                     ),
                   ),
                 ),
@@ -213,8 +216,10 @@ class ShelfViewPage extends StatelessWidget {
       context: context,
       builder:
           (dialogContext) => CreateShelfDialog(
-            onCreateShelf: (shelfName) {
-              context.read<ShelfViewBloc>().add(CreateShelf(shelfName));
+            onCreateShelf: (shelfName, isPublic) {
+              context.read<ShelfViewBloc>().add(
+                CreateShelf(shelfName, isPublic: isPublic),
+              );
             },
           ),
     );

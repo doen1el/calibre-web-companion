@@ -22,8 +22,13 @@ import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_e
 
 class ShelfDetailsPage extends StatelessWidget {
   final String shelfId;
+  final bool isPublic;
 
-  const ShelfDetailsPage({super.key, required this.shelfId});
+  const ShelfDetailsPage({
+    super.key,
+    required this.shelfId,
+    required this.isPublic,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +37,7 @@ class ShelfDetailsPage extends StatelessWidget {
     return BlocProvider(
       create:
           (context) =>
-              getIt<ShelfDetailsBloc>()..add(LoadShelfDetails(shelfId)),
+              getIt<ShelfDetailsBloc>()..add(LoadShelfDetails(shelfId, isPublic: isPublic)),
       child: BlocConsumer<ShelfDetailsBloc, ShelfDetailsState>(
         listener: (context, state) {
           if (state.actionDetailsStatus == ShelfDetailsActionStatus.success) {
@@ -53,11 +58,13 @@ class ShelfDetailsPage extends StatelessWidget {
           }
         },
         builder: (context, state) {
+          final shelf = state.currentShelfDetail;
+          final bool showPublic = shelf?.isPublic ?? isPublic;
+          final String title = shelf?.name ?? localizations.loading;
+
           return Scaffold(
             appBar: AppBar(
-              title: Text(
-                state.currentShelfDetail?.name ?? localizations.loading,
-              ),
+              title: Text(showPublic ? "$title (Public)" : title),
               actions: [
                 IconButton(
                   icon: CircleAvatar(
@@ -423,12 +430,15 @@ class ShelfDetailsPage extends StatelessWidget {
       builder:
           (dialogContext) => EditShelfDialog(
             currentName: state.currentShelfDetail!.name,
-            onEditShelf: (newName) {
-              context.read<ShelfDetailsBloc>().add(EditShelf(shelfId, newName));
+            isPublic: state.currentShelfDetail!.isPublic,
+            onEditShelf: (newName, isPublic) {
+              context.read<ShelfDetailsBloc>().add(
+                EditShelf(shelfId, newName, isPublic: isPublic),
+              );
 
               if (context.read<ShelfViewBloc>().state.shelves.isNotEmpty) {
                 context.read<ShelfViewBloc>().add(
-                  EditShelfState(shelfId, newName),
+                  EditShelfState(shelfId, newName, isPublic: isPublic),
                 );
               }
             },

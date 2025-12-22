@@ -12,11 +12,12 @@ abstract class ShelfDetailsEvent extends Equatable {
 
 class LoadShelfDetails extends ShelfDetailsEvent {
   final String shelfId;
+  final bool isPublic;
 
-  const LoadShelfDetails(this.shelfId);
+  const LoadShelfDetails(this.shelfId, {this.isPublic = false});
 
   @override
-  List<Object?> get props => [shelfId];
+  List<Object?> get props => [shelfId, isPublic];
 }
 
 class RemoveFromShelf extends ShelfDetailsEvent {
@@ -32,11 +33,12 @@ class RemoveFromShelf extends ShelfDetailsEvent {
 class EditShelf extends ShelfDetailsEvent {
   final String shelfId;
   final String newShelfName;
+  final bool isPublic;
 
-  const EditShelf(this.shelfId, this.newShelfName);
+  const EditShelf(this.shelfId, this.newShelfName, {this.isPublic = false});
 
   @override
-  List<Object?> get props => [shelfId, newShelfName];
+  List<Object?> get props => [shelfId, newShelfName, isPublic];
 }
 
 class DeleteShelf extends ShelfDetailsEvent {

@@ -8,8 +8,13 @@ import 'package:calibre_web_companion/features/shelf_details/data/models/book_au
 class ShelfDetailsModel extends Equatable {
   final String name;
   final List<ShelfBookItem> books;
+  final bool isPublic;
 
-  const ShelfDetailsModel({required this.name, required this.books});
+  const ShelfDetailsModel({
+    required this.name,
+    required this.books,
+    this.isPublic = false,
+  });
 
   factory ShelfDetailsModel.fromHtml(String htmlContent) {
     final document = html_parser.parse(htmlContent);
@@ -93,13 +98,18 @@ class ShelfDetailsModel extends Equatable {
         .lastWhere((part) => part.isNotEmpty, orElse: () => '');
   }
 
-  ShelfDetailsModel copyWith({String? name, List<ShelfBookItem>? books}) {
+  ShelfDetailsModel copyWith({
+    String? name,
+    List<ShelfBookItem>? books,
+    bool? isPublic,
+  }) {
     return ShelfDetailsModel(
       name: name ?? this.name,
       books: books ?? this.books,
+      isPublic: isPublic ?? this.isPublic,
     );
   }
 
   @override
-  List<Object?> get props => [name, books];
+  List<Object?> get props => [name, books, isPublic];
 }

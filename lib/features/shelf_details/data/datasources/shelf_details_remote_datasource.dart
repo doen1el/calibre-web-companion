@@ -48,29 +48,16 @@ class ShelfDetailsRemoteDataSource {
     }
   }
 
-  Future<bool> createShelf(String shelfName) async {
-    try {
-      final response = await apiService.post(
-        endpoint: '/shelf/create',
-        authMethod: AuthMethod.cookie,
-        body: {'title': shelfName},
-        useCsrf: true,
-        contentType: 'application/x-www-form-urlencoded',
-      );
-
-      return response.statusCode == 302;
-    } catch (e) {
-      logger.e('Error creating shelf: $e');
-      throw Exception('Failed to create shelf: $e');
-    }
-  }
-
-  Future<bool> editShelf(String shelfId, String newShelfName) async {
+  Future<bool> editShelf(
+    String shelfId,
+    String newShelfName, {
+    bool isPublic = false,
+  }) async {
     try {
       final response = await apiService.post(
         endpoint: '/shelf/edit/$shelfId',
         authMethod: AuthMethod.cookie,
-        body: {'title': newShelfName},
+        body: {'title': newShelfName, if (isPublic) 'is_public': 'on'},
         useCsrf: true,
         contentType: 'application/x-www-form-urlencoded',
       );

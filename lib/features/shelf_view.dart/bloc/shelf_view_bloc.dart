@@ -51,9 +51,16 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
     emit(state.copyWith(createShelfStatus: CreateShelfStatus.loading));
 
     try {
-      final newShelfId = await repository.createShelf(event.shelfName);
+      final newShelfId = await repository.createShelf(
+        event.shelfName,
+        event.isPublic,
+      );
 
-      final newShelf = ShelfViewModel(id: newShelfId, title: event.shelfName);
+      final newShelf = ShelfViewModel(
+        id: newShelfId,
+        title: event.isPublic ? '${event.shelfName} (Public)' : event.shelfName,
+        isPublic: event.isPublic,
+      );
 
       final updatedShelves = List.of(state.shelves)..add(newShelf);
 
@@ -100,7 +107,12 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
     final updatedShelves =
         state.shelves.map((shelf) {
           if (shelf.id == event.shelfId) {
-            return shelf.copyWith(title: event.newShelfName);
+            final displayTitle =
+                event.isPublic
+                    ? '${event.newShelfName} (Public)'
+                    : event.newShelfName;
+
+            return shelf.copyWith(title: displayTitle);
           }
           return shelf;
         }).toList();

@@ -31,10 +31,14 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
     try {
       final result = await repository.getShelfDetails(event.shelfId);
 
+      final mergedResult = result.copyWith(
+        isPublic: result.isPublic || event.isPublic,
+      );
+
       emit(
         state.copyWith(
           status: ShelfDetailsStatus.loaded,
-          currentShelfDetail: result,
+          currentShelfDetail: mergedResult,
           errorMessage: null,
         ),
       );
@@ -103,12 +107,14 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
       final success = await repository.editShelf(
         event.shelfId,
         event.newShelfName,
+        isPublic: event.isPublic,
       );
       if (success) {
         emit(
           state.copyWith(
             currentShelfDetail: state.currentShelfDetail!.copyWith(
               name: event.newShelfName,
+              isPublic: event.isPublic,
             ),
             actionDetailsStatus: ShelfDetailsActionStatus.success,
             actionMessage: 'Shelf edited successfully',

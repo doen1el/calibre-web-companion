@@ -4,7 +4,7 @@ import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 
 class CreateShelfDialog extends StatefulWidget {
-  final Function(String) onCreateShelf;
+  final Function(String, bool) onCreateShelf;
 
   const CreateShelfDialog({super.key, required this.onCreateShelf});
 
@@ -15,6 +15,7 @@ class CreateShelfDialog extends StatefulWidget {
 class _CreateShelfDialogState extends State<CreateShelfDialog> {
   final _controller = TextEditingController();
   bool _isCreating = false;
+  bool _isPublic = false;
 
   @override
   void dispose() {
@@ -30,15 +31,34 @@ class _CreateShelfDialogState extends State<CreateShelfDialog> {
       title: Text(localizations.createShelf),
       content: SizedBox(
         width: double.maxFinite,
-        child: TextField(
-          controller: _controller,
-          decoration: InputDecoration(
-            labelText: localizations.shelfName,
-            border: const OutlineInputBorder(),
-            prefixIcon: const Icon(Icons.list_rounded),
-          ),
-          autofocus: true,
-          enabled: !_isCreating,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _controller,
+              decoration: InputDecoration(
+                labelText: localizations.shelfName,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.list_rounded),
+              ),
+              autofocus: true,
+              enabled: !_isCreating,
+            ),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: const Text('Public'),
+              value: _isPublic,
+              onChanged:
+                  _isCreating
+                      ? null
+                      : (value) {
+                        setState(() {
+                          _isPublic = value;
+                        });
+                      },
+              contentPadding: EdgeInsets.zero,
+            ),
+          ],
         ),
       ),
       actions: [
@@ -81,7 +101,7 @@ class _CreateShelfDialogState extends State<CreateShelfDialog> {
       _isCreating = true;
     });
 
-    widget.onCreateShelf(_controller.text.trim());
+    widget.onCreateShelf(_controller.text.trim(), _isPublic);
     Navigator.of(context).pop();
   }
 }

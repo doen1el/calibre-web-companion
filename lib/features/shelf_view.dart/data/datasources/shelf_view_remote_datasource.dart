@@ -30,12 +30,17 @@ class ShelfViewRemoteDataSource {
     }
   }
 
-  Future<String> createShelf(String shelfName) async {
+  Future<String> createShelf(String shelfName, {bool isPublic = false}) async {
     try {
+      final Map<String, dynamic> body = {'title': shelfName};
+      if (isPublic) {
+        body['is_public'] = 'on';
+      }
+
       final response = await apiService.post(
         endpoint: '/shelf/create',
         authMethod: AuthMethod.cookie,
-        body: {'title': shelfName},
+        body: body,
         useCsrf: true,
         contentType: 'application/x-www-form-urlencoded',
       );
