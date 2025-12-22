@@ -58,6 +58,15 @@ class ChangeColumnCount extends BookViewEvent {
   List<Object?> get props => [count];
 }
 
+class SetViewMode extends BookViewEvent {
+  final bool isListView;
+
+  const SetViewMode(this.isListView);
+
+  @override
+  List<Object?> get props => [isListView];
+}
+
 class LoadViewSettings extends BookViewEvent {
   const LoadViewSettings();
 }

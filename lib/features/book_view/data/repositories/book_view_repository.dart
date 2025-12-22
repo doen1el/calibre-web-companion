@@ -48,4 +48,12 @@ class BookViewRepository {
   Future<void> setColumnCount(int count) async {
     await datasource.setColumnCount(count);
   }
+
+  Future<bool> getIsListView() async {
+    return await datasource.getIsListView();
+  }
+
+  Future<void> setIsListView(bool isList) async {
+    await datasource.setIsListView(isList);
+  }
 }

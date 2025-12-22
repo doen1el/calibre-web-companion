@@ -898,6 +898,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get columns => 'Colonnes';
 
   @override
+  String get listView => 'Vue en liste';
+
+  @override
   String get uploadEbook => 'Télécharger un eBook';
 
   @override

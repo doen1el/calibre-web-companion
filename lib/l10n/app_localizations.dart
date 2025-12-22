@@ -1833,6 +1833,12 @@ abstract class AppLocalizations {
   /// **'Columns'**
   String get columns;
 
+  /// No description provided for @listView.
+  ///
+  /// In en, this message translates to:
+  /// **'List view'**
+  String get listView;
+
   /// No description provided for @uploadEbook.
   ///
   /// In en, this message translates to:

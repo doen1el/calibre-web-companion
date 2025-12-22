@@ -898,6 +898,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get columns => 'Columns';
 
   @override
+  String get listView => 'List view';
+
+  @override
   String get uploadEbook => 'Upload eBook';
 
   @override

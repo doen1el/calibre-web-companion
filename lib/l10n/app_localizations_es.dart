@@ -898,6 +898,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get columns => 'Columnas';
 
   @override
+  String get listView => 'Vista de lista';
+
+  @override
   String get uploadEbook => 'Cargar libro electrónico';
 
   @override
