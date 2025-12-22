@@ -49,3 +49,7 @@ class ResetLoginStatus extends LoginEvent {
 class LoginLogOut extends LoginEvent {
   const LoginLogOut();
 }
+
+class LoadStoredCredentials extends LoginEvent {
+  const LoadStoredCredentials();
+}

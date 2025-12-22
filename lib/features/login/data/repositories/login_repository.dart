@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
 import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class LoginFailure {}
 
@@ -44,6 +45,10 @@ class LoginRepository {
 
   Future<bool> isLoggedIn() async {
     return dataSource.canAccessWebsite();
+  }
+
+  Future<LoginCredentials?> getStoredCredentials() async {
+    return dataSource.getStoredCredentials();
   }
 }
 

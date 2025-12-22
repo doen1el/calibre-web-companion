@@ -7,6 +7,7 @@ class LoginTextField extends StatelessWidget {
   final IconData? prefixIcon;
   final bool obscureText;
   final String? autofillHint;
+  final List<String>? autofillHints;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onChanged;
@@ -20,6 +21,7 @@ class LoginTextField extends StatelessWidget {
     this.prefixIcon,
     this.obscureText = false,
     this.autofillHint,
+    this.autofillHints,
     this.keyboardType,
     this.textInputAction,
     this.onChanged,
@@ -37,7 +39,8 @@ class LoginTextField extends StatelessWidget {
       builder: (context, isObscureText, _) {
         return TextField(
           controller: controller,
-          autofillHints: autofillHint != null ? [autofillHint!] : null,
+          autofillHints:
+              autofillHints ?? (autofillHint != null ? [autofillHint!] : null),
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           onSubmitted: onSubmitted,
