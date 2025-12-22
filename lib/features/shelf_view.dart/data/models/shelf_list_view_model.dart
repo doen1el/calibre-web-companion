@@ -11,8 +11,19 @@ class ShelfListViewModel extends Equatable {
     final List<ShelfViewModel> shelves = [];
 
     try {
-      for (var shelf in json['feed']['entry']) {
-        shelves.add(ShelfViewModel.fromJson(shelf));
+      final feed = json['feed'];
+      if (feed == null) return const ShelfListViewModel(shelves: []);
+
+      final entryRaw = feed['entry'];
+
+      if (entryRaw is List) {
+        for (var shelf in entryRaw) {
+          shelves.add(ShelfViewModel.fromJson(shelf));
+        }
+      } else if (entryRaw is Map) {
+        shelves.add(
+          ShelfViewModel.fromJson(Map<String, dynamic>.from(entryRaw)),
+        );
       }
 
       return ShelfListViewModel(shelves: shelves);

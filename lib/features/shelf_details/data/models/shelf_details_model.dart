@@ -1,9 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:html/parser.dart' as html_parser;
-import 'package:html/dom.dart' as html;
 
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_book_item_model.dart';
-import 'package:calibre_web_companion/features/shelf_details/data/models/book_author_model.dart';
 
 class ShelfDetailsModel extends Equatable {
   final String name;
@@ -16,86 +13,25 @@ class ShelfDetailsModel extends Equatable {
     this.isPublic = false,
   });
 
-  factory ShelfDetailsModel.fromHtml(String htmlContent) {
-    final document = html_parser.parse(htmlContent);
+  factory ShelfDetailsModel.fromFeedJson(Map<String, dynamic> json) {
+    final feed = json['feed'];
+    final shelfName = feed['title'] as String? ?? 'Unknown Shelf';
 
-    return ShelfDetailsModel(
-      name: _extractShelfName(document),
-      books: _extractBooks(document),
-    );
-  }
+    final entriesRaw = feed['entry'];
+    List<dynamic> entries = [];
 
-  static String _extractShelfName(html.Document document) {
-    return document
-            .querySelector('h2')
-            ?.text
-            .replaceAll(RegExp(r"^[^']*'|'[^']*$"), '') ??
-        "Unknown Shelf";
-  }
-
-  static List<ShelfBookItem> _extractBooks(html.Document document) {
-    return document.querySelectorAll('.book').map(_extractBookItem).toList();
-  }
-
-  static ShelfBookItem _extractBookItem(html.Element bookElement) {
-    final seriesInfo = _extractSeriesInfo(bookElement);
-
-    return ShelfBookItem(
-      id: _extractBookId(bookElement),
-      title: _extractTitle(bookElement),
-      authors: _extractAuthors(bookElement),
-      seriesName: seriesInfo['name'],
-      seriesId: seriesInfo['id'],
-      seriesIndex: seriesInfo['index'],
-    );
-  }
-
-  static String _extractTitle(html.Element bookElement) {
-    return bookElement.querySelector('.title')?.text ?? "Unknown Title";
-  }
-
-  static List<BookAuthor> _extractAuthors(html.Element bookElement) {
-    return bookElement
-        .querySelectorAll('.author a')
-        .map(
-          (link) => BookAuthor(
-            name: link.text,
-            id: _extractIdFromUrl(link.attributes['href'] ?? ''),
-          ),
-        )
-        .toList();
-  }
-
-  static Map<String, String?> _extractSeriesInfo(html.Element bookElement) {
-    final seriesElement = bookElement.querySelector('.series');
-    final seriesLink = seriesElement?.querySelector('a');
-
-    if (seriesLink == null) {
-      return {'name': null, 'id': null, 'index': null};
+    if (entriesRaw is List) {
+      entries = entriesRaw;
+    } else if (entriesRaw is Map) {
+      entries = [entriesRaw];
     }
 
-    final seriesIndex = RegExp(
-      r'\((\d+(?:\.\d+)?)\)',
-    ).firstMatch(seriesElement!.text)?.group(1);
+    final books =
+        entries.map((entry) {
+          return ShelfBookItem.fromJson(entry as Map<String, dynamic>);
+        }).toList();
 
-    return {
-      'name': seriesLink.text.trim(),
-      'id': _extractIdFromUrl(seriesLink.attributes['href'] ?? ''),
-      'index': seriesIndex,
-    };
-  }
-
-  static String _extractBookId(html.Element bookElement) {
-    final href =
-        bookElement.querySelector('a[data-toggle="modal"]')?.attributes['href'];
-
-    return RegExp(r'/book/(\d+)').firstMatch(href ?? '')?.group(1) ?? '';
-  }
-
-  static String _extractIdFromUrl(String url) {
-    return url
-        .split('/')
-        .lastWhere((part) => part.isNotEmpty, orElse: () => '');
+    return ShelfDetailsModel(name: shelfName, books: books);
   }
 
   ShelfDetailsModel copyWith({

@@ -3,22 +3,23 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_event.dart';
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_state.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/main.dart';
-import 'package:calibre_web_companion/features/shelf_details/data/models/book_author_model.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_book_item_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/presentation/widgets/edit_shelf_dialog_widget.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
 class ShelfDetailsPage extends StatelessWidget {
   final String shelfId;
@@ -37,7 +38,8 @@ class ShelfDetailsPage extends StatelessWidget {
     return BlocProvider(
       create:
           (context) =>
-              getIt<ShelfDetailsBloc>()..add(LoadShelfDetails(shelfId, isPublic: isPublic)),
+              getIt<ShelfDetailsBloc>()
+                ..add(LoadShelfDetails(shelfId, isPublic: isPublic)),
       child: BlocConsumer<ShelfDetailsBloc, ShelfDetailsState>(
         listener: (context, state) {
           if (state.actionDetailsStatus == ShelfDetailsActionStatus.success) {
@@ -128,10 +130,9 @@ class ShelfDetailsPage extends StatelessWidget {
       6,
       (index) => ShelfBookItem(
         id: 'dummy-$index',
+        uuid: 'dummy-uuid-$index',
         title: 'Loading Book Title',
-        authors: [BookAuthor(name: 'Loading Author', id: 'author-id')],
-        seriesName: index % 2 == 0 ? 'Loading Series' : null,
-        seriesIndex: index % 2 == 0 ? '1' : null,
+        authors: 'Loading Author',
       ),
     );
 
@@ -339,12 +340,23 @@ class ShelfDetailsPage extends StatelessWidget {
           elevation: 4.0,
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap:
-                isLoading
-                    ? null
-                    : () => context.read<ShelfDetailsBloc>().add(
-                      LoadShelfBookDetails(book.id, context),
-                    ),
+            onTap: () async {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder:
+                      (context) => BookDetailsPage(
+                        bookViewModel: BookViewModel(
+                          id: int.parse(book.id),
+                          uuid: book.uuid,
+                          title: book.title,
+                          authors: book.authors.toString(),
+                        ),
+                        bookUuid: book.uuid,
+                      ),
+                ),
+              );
+            },
+
             child: Stack(
               children: [
                 Column(
@@ -367,7 +379,7 @@ class ShelfDetailsPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            book.authors.map((a) => a.name).join(', '),
+                            book.authors,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -375,17 +387,6 @@ class ShelfDetailsPage extends StatelessWidget {
                               color: Colors.grey[700],
                             ),
                           ),
-                          if (book.seriesName != null)
-                            Text(
-                              '${book.seriesName} ${book.seriesIndex ?? ""}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontStyle: FontStyle.italic,
-                                color: Theme.of(context).colorScheme.secondary,
-                              ),
-                            ),
                         ],
                       ),
                     ),
