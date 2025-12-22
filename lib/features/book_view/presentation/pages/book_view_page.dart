@@ -290,7 +290,7 @@ class _BookViewPageState extends State<BookViewPage> {
   ) async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['epub', 'mobi', 'pdf'],
+      allowedExtensions: ['pdf', 'epub', 'mobi', 'fb2', 'cbr', 'djvu', 'cbz'],
       allowMultiple: false,
     );
 
