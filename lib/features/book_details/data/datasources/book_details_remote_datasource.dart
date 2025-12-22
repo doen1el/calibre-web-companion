@@ -262,15 +262,15 @@ class BookDetailsRemoteDatasource {
       logger.i(
         'Downloading book: ${book.title}, Format: $format, Schema: $schema, Directory: $selectedDirectory',
       );
-      final safeTitle = book.title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-      final safeAuthor = book.authors.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+      final safeTitle = book.title.replaceAll(RegExp(r'[\\/:*?"<>|.]'), '');
+      final safeAuthor = book.authors.replaceAll(RegExp(r'[\\/:*?"<>|]'), '');
       final fileName = '$safeTitle.$format';
 
       DocumentFile targetDir = selectedDirectory;
       String? safeSeries;
 
       if (book.series.isNotEmpty) {
-        safeSeries = book.series.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+        safeSeries = book.series.replaceAll(RegExp(r'[\\/:*?"<>|]'), '');
       }
 
       switch (schema) {
