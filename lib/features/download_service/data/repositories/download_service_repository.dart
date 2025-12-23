@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:calibre_web_companion/features/download_service/data/datasources/download_service_remote_datasource.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_status.dart';
+import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart'; // Import hinzufügen
 
 class DownloadServiceRepository {
   final DownloadServiceRemoteDataSource remoteDataSource;
@@ -13,9 +14,12 @@ class DownloadServiceRepository {
     required this.logger,
   });
 
-  Future<List<DownloadServiceBookModel>> searchBooks(String query) async {
+  Future<List<DownloadServiceBookModel>> searchBooks(
+    String query, {
+    DownloadFilterModel? filter,
+  }) async {
     try {
-      return await remoteDataSource.searchBooks(query);
+      return await remoteDataSource.searchBooks(query, filter: filter);
     } catch (e) {
       rethrow;
     }
