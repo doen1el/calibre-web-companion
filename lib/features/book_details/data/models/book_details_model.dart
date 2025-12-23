@@ -123,7 +123,7 @@ class BookDetailsModel extends BookViewModel {
       thumbnail: additionalData['thumbnail'] ?? '',
       titleSort: additionalData['title_sort'] ?? '',
       rating: double.tryParse(additionalData['rating'].toString()) ?? 0.0,
-      comments: additionalData['comments'] ?? '',
+      comments: _removeHtmlTags(additionalData['comments'] ?? ''),
       // TODO: Does not work when updating tags
       tags:
           (additionalData['tags'] as List?)
@@ -132,6 +132,20 @@ class BookDetailsModel extends BookViewModel {
           const [],
       tagModels: tagModels,
     );
+  }
+
+  static String _removeHtmlTags(String htmlString) {
+    final RegExp exp = RegExp(r"<[^>]*>", multiLine: true, caseSensitive: true);
+    String parsedString = htmlString.replaceAll(exp, '');
+
+    parsedString = parsedString
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"');
+
+    return parsedString.trim();
   }
 
   @override
