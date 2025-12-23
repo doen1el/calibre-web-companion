@@ -324,5 +324,9 @@
   "loginWithSSO": "Connexion avec SSO",
   "pleaseEnterSSOUrl": "Veuillez entrer l'URL SSO",
   "openInInternalReader": "Ouvrir dans le lecteur interne",
-  "errorOpeningBookInInternalReader": "Erreur lors de l'ouverture du livre dans le lecteur interne"
+  "errorOpeningBookInInternalReader": "Erreur lors de l'ouverture du livre dans le lecteur interne",
+  "readNow": "Lire maintenant",
+  "showReadNowButton": "Afficher le bouton 'Lire maintenant'",
+  "showReadNowButtonDescription": "Affiche un bouton 'Lire maintenant' sur les détails du livre pour ouvrir le livre dans le lecteur interne.",
+  "bookDetails": "Détails du livre"
 }

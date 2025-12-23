@@ -113,6 +113,15 @@ class SetLanguage extends SettingsEvent {
   List<Object?> get props => [languageCode];
 }
 
+class SetShowReadNowButton extends SettingsEvent {
+  final bool enabled;
+
+  const SetShowReadNowButton(this.enabled);
+
+  @override
+  List<Object?> get props => [enabled];
+}
+
 class BuyMeACoffee extends SettingsEvent {
   const BuyMeACoffee();
 

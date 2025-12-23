@@ -35,6 +35,8 @@ class SettingsLocalDataSource {
             sharedPreferences.getString('default_download_path') ?? '',
         'download_schema': sharedPreferences.getInt('download_schema') ?? 0,
         'language_code': sharedPreferences.getString('language_code') ?? 'en',
+        'show_read_now_button':
+            sharedPreferences.getBool('show_read_now_button') ?? false,
       });
     } catch (e) {
       logger.e('Error getting settings: $e');
@@ -182,6 +184,15 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error opening buy me a coffe page: $e');
       throw Exception('Error opening buy me a coffe page: $e');
+    }
+  }
+
+  Future<void> saveShowReadNowButton(bool enabled) async {
+    try {
+      await sharedPreferences.setBool('show_read_now_button', enabled);
+    } catch (e) {
+      logger.e('Error saving show read now button: $e');
+      throw Exception('Failed to save show read now button: $e');
     }
   }
 }

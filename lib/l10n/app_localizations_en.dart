@@ -1004,4 +1004,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorOpeningBookInInternalReader => 'Error opening book in internal reader';
+
+  @override
+  String get readNow => 'Read Now';
+
+  @override
+  String get showReadNowButton => 'Show \'Read Now\' button';
+
+  @override
+  String get showReadNowButtonDescription => 'Replaces the \'Send to E-Reader\' button with a \'Read Now\' button to open books directly.';
+
+  @override
+  String get bookDetails => 'Book Details';
 }

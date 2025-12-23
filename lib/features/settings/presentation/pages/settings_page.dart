@@ -90,6 +90,14 @@ class _SettingsPageState extends State<SettingsPage> {
                         _buildLanguageSelector(context, state, localizations),
 
                         const SizedBox(height: 24),
+                        _buildSectionTitle(context, localizations.bookDetails),
+                        _buildBookDetailsSettings(
+                          context,
+                          state,
+                          localizations,
+                        ),
+
+                        const SizedBox(height: 24),
                         _buildSectionTitle(context, "Download Options"),
                         const DownloadOptionsWidget(),
 
@@ -492,6 +500,62 @@ class _SettingsPageState extends State<SettingsPage> {
               Text(title, style: Theme.of(context).textTheme.titleMedium),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBookDetailsSettings(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.visibility_rounded,
+                  size: 28,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        localizations.showReadNowButton,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        localizations.showReadNowButtonDescription,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: state.showReadNowButton,
+                  onChanged: (value) {
+                    context.read<SettingsBloc>().add(
+                      SetShowReadNowButton(value),
+                    );
+                  },
+                  activeColor: Theme.of(context).colorScheme.primary,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

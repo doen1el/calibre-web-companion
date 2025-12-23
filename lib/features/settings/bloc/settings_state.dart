@@ -25,6 +25,7 @@ class SettingsState extends Equatable {
   final String? appVersion;
   final String? buildNumber;
   final String? languageCode;
+  final bool showReadNowButton;
 
   const SettingsState({
     this.status = SettingsStatus.initial,
@@ -42,6 +43,7 @@ class SettingsState extends Equatable {
     this.appVersion,
     this.buildNumber,
     this.languageCode = 'en',
+    this.showReadNowButton = false,
   });
 
   MaterialColor get selectedColor =>
@@ -63,6 +65,7 @@ class SettingsState extends Equatable {
     String? appVersion,
     String? buildNumber,
     String? languageCode,
+    bool? showReadNowButton,
   }) {
     return SettingsState(
       status: status ?? this.status,
@@ -81,6 +84,7 @@ class SettingsState extends Equatable {
       appVersion: appVersion ?? this.appVersion,
       buildNumber: buildNumber ?? this.buildNumber,
       languageCode: languageCode ?? this.languageCode,
+      showReadNowButton: showReadNowButton ?? this.showReadNowButton,
     );
   }
 
@@ -101,5 +105,6 @@ class SettingsState extends Equatable {
     appVersion,
     buildNumber,
     languageCode,
+    showReadNowButton,
   ];
 }

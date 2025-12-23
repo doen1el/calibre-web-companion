@@ -110,6 +110,14 @@ class SettingsRepository {
     return await dataSource.getLanguage();
   }
 
+  Future<void> setShowReadNowButton(bool enabled) async {
+    try {
+      await dataSource.saveShowReadNowButton(enabled);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> buyMeACoffee() async {
     try {
       return await dataSource.buyMeACoffe();

@@ -2048,6 +2048,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error opening book in internal reader'**
   String get errorOpeningBookInInternalReader;
+
+  /// No description provided for @readNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Read Now'**
+  String get readNow;
+
+  /// No description provided for @showReadNowButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Show \'Read Now\' button'**
+  String get showReadNowButton;
+
+  /// No description provided for @showReadNowButtonDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces the \'Send to E-Reader\' button with a \'Read Now\' button to open books directly.'**
+  String get showReadNowButtonDescription;
+
+  /// No description provided for @bookDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Book Details'**
+  String get bookDetails;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

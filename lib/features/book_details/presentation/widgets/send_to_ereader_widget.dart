@@ -1,3 +1,4 @@
+import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -29,6 +30,20 @@ class SendToEreaderWidget extends StatelessWidget {
 
     return BlocBuilder<SettingsBloc, SettingsState>(
       builder: (context, settingsState) {
+        final bool showReadNow = settingsState.showReadNowButton;
+
+        if (showReadNow) {
+          return FloatingActionButton.extended(
+            onPressed:
+                isLoading
+                    ? null
+                    : () =>
+                        _handleReadNow(context, localizations, settingsState),
+            icon: const Icon(Icons.open_in_new_rounded),
+            label: Text(localizations.readNow),
+          );
+        }
+
         return FloatingActionButton.extended(
           onPressed:
               isLoading
@@ -39,6 +54,49 @@ class SendToEreaderWidget extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _handleReadNow(
+    BuildContext context,
+    AppLocalizations localizations,
+    SettingsState settingsState,
+  ) async {
+    DocumentFile? selectedDirectory;
+
+    if (settingsState.defaultDownloadPath.isEmpty) {
+      selectedDirectory = await DocMan.pick.directory();
+      if (selectedDirectory == null) {
+        if (context.mounted) {
+          context.showSnackBar(
+            localizations.noFolderWasSelected,
+            isError: true,
+          );
+        }
+        return;
+      }
+    } else {
+      final uri = settingsState.defaultDownloadPath;
+      selectedDirectory =
+          uri.isNotEmpty ? await DocumentFile.fromUri(uri) : null;
+      if (selectedDirectory == null || !selectedDirectory.isDirectory) {
+        if (context.mounted) {
+          context.showSnackBar(
+            localizations.noFolderWasSelected,
+            isError: true,
+          );
+        }
+        return;
+      }
+    }
+
+    if (context.mounted) {
+      context.read<BookDetailsBloc>().add(
+        OpenBookInReader(
+          selectedDirectory: selectedDirectory,
+          schema: settingsState.downloadSchema,
+        ),
+      );
+    }
   }
 
   void _showSendToReaderDialog(
