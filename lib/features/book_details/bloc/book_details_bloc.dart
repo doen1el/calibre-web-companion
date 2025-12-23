@@ -419,6 +419,13 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         authors: event.authors,
         comments: event.comments,
         tags: event.tags,
+        series: event.series,
+        seriesIndex: event.seriesIndex,
+        pubdate: event.pubdate,
+        publisher: event.publisher,
+        languages: event.languages,
+        rating: event.rating,
+
         coverImageBytes: event.coverImageBytes,
         coverFileName: event.coverFileName,
       );

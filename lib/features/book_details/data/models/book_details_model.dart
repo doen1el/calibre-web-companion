@@ -95,15 +95,25 @@ class BookDetailsModel extends BookViewModel {
       identifiers: bookListModel.identifiers,
       isArchived: bookListModel.isArchived,
       isbn: bookListModel.isbn,
-      languages: bookListModel.languages,
+      languages:
+          (additionalData['languages'] is List)
+              ? (additionalData['languages'] as List).join(', ')
+              : (additionalData['languages']?.toString() ??
+                  bookListModel.languages),
       lastModified: bookListModel.lastModified,
       path: bookListModel.path,
-      pubdate: bookListModel.pubdate,
-      publishers: bookListModel.publishers,
+      pubdate: additionalData['pubdate'] ?? bookListModel.pubdate,
+      publishers: additionalData['publisher'] ?? bookListModel.publishers,
       readStatus: bookListModel.readStatus,
       registry: bookListModel.registry,
-      series: bookListModel.series,
-      seriesIndex: bookListModel.seriesIndex,
+      series: additionalData['series'] ?? bookListModel.series,
+      seriesIndex:
+          additionalData['series_index'] != null
+              ? (double.tryParse(
+                    additionalData['series_index'].toString(),
+                  )?.toInt() ??
+                  0)
+              : bookListModel.seriesIndex,
       sort: bookListModel.sort,
       timestamp: bookListModel.timestamp,
       formats:
@@ -124,7 +134,6 @@ class BookDetailsModel extends BookViewModel {
       titleSort: additionalData['title_sort'] ?? '',
       rating: double.tryParse(additionalData['rating'].toString()) ?? 0.0,
       comments: _removeHtmlTags(additionalData['comments'] ?? ''),
-      // TODO: Does not work when updating tags
       tags:
           (additionalData['tags'] as List?)
               ?.map((tag) => tag.toString())

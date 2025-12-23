@@ -197,6 +197,7 @@
   "updateFailed": "Aktualisierung fehlgeschlagen",
   "save": "Speichern",
   "separateWithCommas": "Mit Kommas trennen",
+  "separateWithAnd": "Mit '&' trennen",
   "ratingOneToTen": "Bewertung (1-10)",
   "markedAsUnreadSuccessfully": "Erfolgreich als ungelesen markiert",
   "markedAsUnreadFailed": "Fehler beim Markieren als ungelesen",

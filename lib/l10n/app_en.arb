@@ -193,6 +193,7 @@
   "updateFailed": "Update failed",
   "save": "Save",
   "separateWithCommas": "Separate with commas",
+  "separateWithAnd": "Separate with '&'",
   "ratingOneToTen": "Rating (1-10)",
   "markedAsReadSuccessfully": "Marked as read successfully",
   "markedAsReadFailed": "Failed to mark as read",

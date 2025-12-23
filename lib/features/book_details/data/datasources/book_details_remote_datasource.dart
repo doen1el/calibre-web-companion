@@ -176,6 +176,12 @@ class BookDetailsRemoteDatasource {
     required String authors,
     required String comments,
     required String tags,
+    required String series,
+    required String seriesIndex,
+    required String pubdate,
+    required String publisher,
+    required String languages,
+    required double rating,
     Uint8List? coverImageBytes,
     String? coverFileName,
   }) async {
@@ -185,56 +191,56 @@ class BookDetailsRemoteDatasource {
         'authors': authors,
         'comments': comments,
         'tags': tags,
+        'series': series,
+        'series_index': seriesIndex,
+        'pubdate': pubdate,
+        'publisher': publisher,
+        'languages': languages,
+        'cover_url': '',
+        'rating': rating.toString(),
         'detail_view': 'on',
       };
 
+      http.MultipartFile multipartFile;
+
       if (coverImageBytes != null && coverFileName != null) {
         logger.i('Updating book metadata with cover for book: $bookId');
-
-        final multipartFile = http.MultipartFile.fromBytes(
+        multipartFile = http.MultipartFile.fromBytes(
           'btn-upload-cover',
           coverImageBytes,
           filename: coverFileName,
           contentType: MediaType('image', 'jpeg'),
         );
-
-        final response = await apiService.post(
-          endpoint: '/admin/book/$bookId',
-          body: body,
-          files: [multipartFile],
-          authMethod: AuthMethod.cookie,
-          useCsrf: true,
-          contentType: 'multipart/form-data',
-        );
-
-        if (response.statusCode == 302) {
-          logger.i('Successfully updated book metadata with cover');
-          return true;
-        } else {
-          logger.e(
-            'Failed to update book metadata with cover: ${response.statusCode}, ${response.body}',
-          );
-          return false;
-        }
       } else {
-        final response = await apiService.post(
-          endpoint: '/admin/book/$bookId',
-          body: body,
-          authMethod: AuthMethod.cookie,
-          useCsrf: true,
-          contentType: 'application/x-www-form-urlencoded',
+        logger.i(
+          'Updating book metadata (forcing multipart) for book: $bookId',
         );
-
-        if (response.statusCode == 302) {
-          logger.i('Successfully updated book metadata');
-          return true;
-        } else {
-          logger.e(
-            'Failed to update book metadata: ${response.statusCode} - ${response.body}',
-          );
-          return false;
-        }
+        multipartFile = http.MultipartFile.fromBytes(
+          'btn-upload-cover',
+          [],
+          filename: '',
+          contentType: MediaType('application', 'octet-stream'),
+        );
       }
+
+      final response = await apiService.post(
+        endpoint: '/admin/book/$bookId',
+        body: body,
+        authMethod: AuthMethod.cookie,
+        files: [multipartFile],
+        useCsrf: true,
+      );
+
+      if (response.statusCode == 302) {
+        logger.i('Successfully updated book metadata');
+        return true;
+      } else {
+        logger.e(
+          'Failed to update book metadata: ${response.statusCode} - ${response.body}',
+        );
+        return false;
+      }
+      //}
     } catch (e) {
       logger.e('Error updating book metadata: $e');
       throw Exception('Failed to update book metadata: $e');

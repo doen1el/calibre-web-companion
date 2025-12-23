@@ -1257,6 +1257,12 @@ abstract class AppLocalizations {
   /// **'Separate with commas'**
   String get separateWithCommas;
 
+  /// No description provided for @separateWithAnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate with \'&\''**
+  String get separateWithAnd;
+
   /// No description provided for @ratingOneToTen.
   ///
   /// In en, this message translates to:

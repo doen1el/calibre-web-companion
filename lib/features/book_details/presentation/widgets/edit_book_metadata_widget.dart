@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
-import 'package:calibre_web_companion/shared/widgets/coming_soon_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,7 +15,7 @@ import 'package:calibre_web_companion/features/book_details/data/models/book_det
 import 'package:image_picker/image_picker.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 
-class EditBookMetadataWidget extends StatefulWidget {
+class EditBookMetadataWidget extends StatelessWidget {
   final BookDetailsModel book;
   final bool isLoading;
   final BookViewModel bookViewModel;
@@ -29,14 +28,73 @@ class EditBookMetadataWidget extends StatefulWidget {
   });
 
   @override
-  State<EditBookMetadataWidget> createState() => _EditBookMetadataWidgetState();
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
+    return IconButton(
+      icon: CircleAvatar(
+        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+        child: const Icon(Icons.edit),
+      ),
+      onPressed:
+          isLoading
+              ? null
+              : () async {
+                final bloc = context.read<BookDetailsBloc>();
+
+                final result = await showDialog<bool>(
+                  context: context,
+                  builder:
+                      (context) => BlocProvider.value(
+                        value: bloc,
+                        child: _EditBookMetadataDialog(
+                          book: book,
+                          bookViewModel: bookViewModel,
+                        ),
+                      ),
+                );
+
+                if (result == true && context.mounted) {
+                  context.showSnackBar(
+                    localizations.metadataUpdateSuccessfully,
+                    isError: false,
+                  );
+
+                  context.read<BookDetailsBloc>().add(
+                    ReloadBookDetails(bookViewModel, bookViewModel.uuid),
+                  );
+                }
+              },
+      tooltip: localizations.editBookMetadata,
+    );
+  }
 }
 
-class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
+class _EditBookMetadataDialog extends StatefulWidget {
+  final BookDetailsModel book;
+  final BookViewModel bookViewModel;
+
+  const _EditBookMetadataDialog({
+    required this.book,
+    required this.bookViewModel,
+  });
+
+  @override
+  State<_EditBookMetadataDialog> createState() =>
+      _EditBookMetadataDialogState();
+}
+
+class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
   late TextEditingController _titleController;
   late TextEditingController _authorsController;
   late TextEditingController _commentsController;
   late TextEditingController _tagsController;
+  late TextEditingController _seriesController;
+  late TextEditingController _seriesIndexController;
+  late TextEditingController _pubdateController;
+  late TextEditingController _publisherController;
+  late TextEditingController _languagesController;
+  late TextEditingController _ratingController;
 
   Uint8List? _selectedCoverBytes;
   String? _selectedCoverName;
@@ -47,19 +105,22 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
     _initControllers();
   }
 
-  @override
-  void didUpdateWidget(EditBookMetadataWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.book.id != widget.book.id) {
-      _initControllers();
-    }
-  }
-
   void _initControllers() {
     _titleController = TextEditingController(text: widget.book.title);
     _authorsController = TextEditingController(text: widget.book.authors);
     _commentsController = TextEditingController(text: widget.book.comments);
     _tagsController = TextEditingController(text: widget.book.tags.join(', '));
+
+    _seriesController = TextEditingController(text: widget.book.series);
+    _seriesIndexController = TextEditingController(
+      text: widget.book.seriesIndex.toString(),
+    );
+    _pubdateController = TextEditingController(text: widget.book.pubdate);
+    _publisherController = TextEditingController(text: widget.book.publishers);
+    _languagesController = TextEditingController(text: widget.book.languages);
+    _ratingController = TextEditingController(
+      text: (widget.book.rating / 2).toString(),
+    );
   }
 
   @override
@@ -68,52 +129,17 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
     _authorsController.dispose();
     _commentsController.dispose();
     _tagsController.dispose();
+    _seriesController.dispose();
+    _seriesIndexController.dispose();
+    _pubdateController.dispose();
+    _publisherController.dispose();
+    _languagesController.dispose();
+    _ratingController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
-
-    return IconButton(
-      icon: CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-        child: const Icon(Icons.edit),
-      ),
-      onPressed:
-          widget.isLoading
-              ? null
-              : () async {
-                showComingSoonDialog(
-                  context,
-                  "The edit book metadata feature is coming soon!",
-                );
-                // final result = await showDialog<bool>(
-                //   context: context,
-                //   builder: (context) => _buildMetadataDialog(context),
-                // );
-
-                // if (result == true && context.mounted) {
-                //   context.showSnackBar(
-                //     localizations.metadataUpdateSuccessfully,
-                //     isError: false,
-                //   );
-
-                //   Navigator.of(context).pop();
-
-                //   context.read<BookDetailsBloc>().add(
-                //     ReloadBookDetails(
-                //       widget.bookViewModel,
-                //       widget.bookViewModel.uuid,
-                //     ),
-                //   );
-                // }
-              },
-      tooltip: localizations.editBookMetadata,
-    );
-  }
-
-  Widget _buildMetadataDialog(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
 
     return BlocProvider.value(
@@ -162,6 +188,16 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
                               authors: _authorsController.text,
                               comments: _commentsController.text,
                               tags: _tagsController.text,
+
+                              series: _seriesController.text,
+                              seriesIndex: _seriesIndexController.text,
+                              pubdate: _pubdateController.text,
+                              publisher: _publisherController.text,
+                              languages: _languagesController.text,
+                              rating:
+                                  double.tryParse(_ratingController.text) ??
+                                  0.0,
+
                               coverImageBytes: _selectedCoverBytes,
                               coverFileName: _selectedCoverName ?? 'cover.jpg',
                               bookDetails: widget.book,
@@ -170,7 +206,7 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
                         },
                 child:
                     isLoading
-                        ? SizedBox(
+                        ? const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
@@ -189,8 +225,6 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
     bool isLoading,
     AppLocalizations localizations,
   ) {
-    final localizations = AppLocalizations.of(context)!;
-
     return Form(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -293,9 +327,95 @@ class _EditBookMetadataWidgetState extends State<EditBookMetadataWidget> {
           TextFormField(
             controller: _tagsController,
             decoration: InputDecoration(
-              labelText: localizations.categories,
+              labelText: localizations.tags,
               helperText: localizations.separateWithCommas,
             ),
+            enabled: !isLoading,
+          ),
+          const SizedBox(height: 16),
+
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: TextFormField(
+                  controller: _seriesController,
+                  decoration: InputDecoration(labelText: localizations.series),
+                  enabled: !isLoading,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 1,
+                child: TextFormField(
+                  controller: _seriesIndexController,
+                  decoration: const InputDecoration(labelText: '#'),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  enabled: !isLoading,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          TextFormField(
+            controller: _publisherController,
+            decoration: InputDecoration(labelText: localizations.publisher),
+            enabled: !isLoading,
+          ),
+          const SizedBox(height: 16),
+
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _pubdateController,
+                  decoration: InputDecoration(
+                    labelText: localizations.published,
+                    hintText: 'YYYY-MM-DD',
+                    suffixIcon: const Icon(Icons.calendar_today),
+                  ),
+                  enabled: !isLoading,
+                  onTap: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate:
+                          DateTime.tryParse(_pubdateController.text) ??
+                          DateTime.now(),
+                      firstDate: DateTime(1800),
+                      lastDate: DateTime(2100),
+                    );
+                    if (pickedDate != null) {
+                      String formattedDate =
+                          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                      _pubdateController.text = formattedDate;
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: TextFormField(
+                  controller: _languagesController,
+                  decoration: InputDecoration(
+                    labelText: localizations.language,
+                  ),
+                  enabled: !isLoading,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          TextFormField(
+            controller: _ratingController,
+            decoration: InputDecoration(
+              labelText: localizations.rating,
+              helperText: localizations.ratingOneToTen,
+            ),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             enabled: !isLoading,
           ),
         ],

@@ -148,6 +148,13 @@ class UpdateBookMetadata extends BookDetailsEvent {
   final String authors;
   final String comments;
   final String tags;
+  final String series;
+  final String seriesIndex;
+  final String pubdate;
+  final String publisher;
+  final String languages;
+  final double rating;
+
   final Uint8List? coverImageBytes;
   final String? coverFileName;
   final BookDetailsModel bookDetails;
@@ -158,6 +165,13 @@ class UpdateBookMetadata extends BookDetailsEvent {
     required this.authors,
     required this.comments,
     required this.tags,
+    required this.series,
+    required this.seriesIndex,
+    required this.pubdate,
+    required this.publisher,
+    required this.languages,
+    required this.rating,
+
     this.coverImageBytes,
     this.coverFileName,
     required this.bookDetails,
@@ -170,6 +184,13 @@ class UpdateBookMetadata extends BookDetailsEvent {
     authors,
     comments,
     tags,
+    series,
+    seriesIndex,
+    pubdate,
+    publisher,
+    languages,
+    rating,
+
     coverImageBytes,
     coverFileName,
     bookDetails,

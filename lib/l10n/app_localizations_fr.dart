@@ -610,6 +610,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get separateWithCommas => 'Séparer par des virgules';
 
   @override
+  String get separateWithAnd => 'Séparer par \'&\'';
+
+  @override
   String get ratingOneToTen => 'Évaluation (1-10)';
 
   @override

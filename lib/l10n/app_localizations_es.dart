@@ -610,6 +610,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get separateWithCommas => 'Separar con comas';
 
   @override
+  String get separateWithAnd => 'Separar con \'&\'';
+
+  @override
   String get ratingOneToTen => 'Calificación (1-10)';
 
   @override

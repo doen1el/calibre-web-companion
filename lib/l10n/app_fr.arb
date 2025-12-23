@@ -197,6 +197,7 @@
   "updateFailed": "Échec de la mise à jour",
   "save": "Enregistrer",
   "separateWithCommas": "Séparer par des virgules",
+  "separateWithAnd": "Séparer par '&'",
   "ratingOneToTen": "Évaluation (1-10)",
   "markedAsUnreadSuccessfully": "Marqué comme non lu avec succès",
   "markedAsUnreadFailed": "Échec du marquage comme non lu",

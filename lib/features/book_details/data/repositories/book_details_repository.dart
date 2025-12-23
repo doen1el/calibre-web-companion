@@ -85,6 +85,13 @@ class BookDetailsRepository {
     required String authors,
     required String comments,
     required String tags,
+    required String series,
+    required String seriesIndex,
+    required String pubdate,
+    required String publisher,
+    required String languages,
+    required double rating,
+
     Uint8List? coverImageBytes,
     String? coverFileName,
   }) async {
@@ -95,6 +102,13 @@ class BookDetailsRepository {
         authors: authors,
         comments: comments,
         tags: tags,
+        series: series,
+        seriesIndex: seriesIndex,
+        pubdate: pubdate,
+        publisher: publisher,
+        languages: languages,
+        rating: rating,
+
         coverImageBytes: coverImageBytes,
         coverFileName: coverFileName,
       );
