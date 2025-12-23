@@ -176,6 +176,7 @@ class DiscoverDetailsPage extends StatelessWidget {
           itemCount: feed.books.length,
           itemBuilder: (context, index) {
             final book = feed.books[index];
+            // TODO: Try to load book details via a different way
             return BookCard(
               bookId: book.coverUrl ?? '',
               title: book.title,

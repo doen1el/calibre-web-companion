@@ -77,7 +77,9 @@ class BookDetailsPage extends StatelessWidget {
                 previous.openInInternalReaderState !=
                     current.openInInternalReaderState ||
                 previous.metadataUpdateState != current.metadataUpdateState ||
-                previous.bookDetails != current.bookDetails,
+                previous.bookDetails != current.bookDetails ||
+                previous.seriesNavigationStatus !=
+                    current.seriesNavigationStatus,
         listener: (context, state) {
           if (state.readStatusState == ReadStatusState.success) {
             context.showSnackBar(
@@ -142,6 +144,23 @@ class BookDetailsPage extends StatelessWidget {
               '${localizations.errorOpeningBookInInternalReader} ${state.errorMessage}',
               isError: true,
             );
+          }
+
+          if (state.seriesNavigationStatus == SeriesNavigationStatus.success &&
+              state.seriesNavigationPath != null) {
+            Navigator.of(context).push(
+              AppTransitions.createSlideRoute(
+                DiscoverDetailsPage(
+                  title: state.bookDetails?.series ?? '',
+                  categoryType: CategoryType.series,
+                  fullPath: state.seriesNavigationPath!,
+                ),
+              ),
+            );
+          }
+
+          if (state.seriesNavigationStatus == SeriesNavigationStatus.error) {
+            context.showSnackBar(localizations.errorLoadingData, isError: true);
           }
         },
         buildWhen:
@@ -356,23 +375,30 @@ class BookDetailsPage extends StatelessWidget {
               InkWell(
                 borderRadius: BorderRadius.circular(8.0),
                 onTap: () {
-                  Navigator.of(context).push(
-                    AppTransitions.createSlideRoute(
-                      DiscoverDetailsPage(
-                        title: book.series,
-                        categoryType: CategoryType.series,
-                        fullPath: "/opds/series/${book.seriesIndex}",
-                      ),
-                    ),
-                  );
+                  context.read<BookDetailsBloc>().add(OpenSeries(book.series));
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     vertical: 4.0,
                     horizontal: 4.0,
                   ),
-                  child: Text(
-                    '${book.series} (${localizations.book} ${book.seriesIndex.toInt()})',
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${book.series} (${localizations.book} ${book.seriesIndex.toInt()})',
+                      ),
+                      if (state.seriesNavigationStatus ==
+                          SeriesNavigationStatus.loading)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 8.0),
+                          child: SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),

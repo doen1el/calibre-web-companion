@@ -97,6 +97,7 @@ class _BookViewPageState extends State<BookViewPage> {
     BookViewState state,
     AppLocalizations localizations,
   ) {
+    // TODO: Add Book List Skeleton for when loading in List View
     if (state.books.isEmpty && state.isLoading) {
       return _buildBookGridSkeletons(state);
     }

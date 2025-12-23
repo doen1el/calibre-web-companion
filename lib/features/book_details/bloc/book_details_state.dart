@@ -9,6 +9,8 @@ enum ReadStatusState { initial, loading, success, error }
 
 enum ArchiveStatusState { initial, loading, success, error }
 
+enum SeriesNavigationStatus { initial, loading, success, error }
+
 enum DownloadState {
   initial,
   selectingDestination,
@@ -56,6 +58,8 @@ class BookDetailsState extends Equatable {
   final SendToEReaderState sendToEReaderState;
   final int sendToEReaderProgress;
   final BookViewModel? bookViewModel;
+  final SeriesNavigationStatus seriesNavigationStatus;
+  final String? seriesNavigationPath;
 
   const BookDetailsState({
     this.status = BookDetailsStatus.initial,
@@ -77,6 +81,8 @@ class BookDetailsState extends Equatable {
     this.sendToEReaderState = SendToEReaderState.initial,
     this.sendToEReaderProgress = 0,
     this.bookViewModel,
+    this.seriesNavigationStatus = SeriesNavigationStatus.initial,
+    this.seriesNavigationPath,
   });
 
   BookDetailsState copyWith({
@@ -99,6 +105,8 @@ class BookDetailsState extends Equatable {
     SendToEReaderState? sendToEReaderState,
     int? sendToEReaderProgress,
     BookViewModel? bookViewModel,
+    SeriesNavigationStatus? seriesNavigationStatus,
+    String? seriesNavigationPath,
   }) {
     return BookDetailsState(
       status: status ?? this.status,
@@ -122,6 +130,9 @@ class BookDetailsState extends Equatable {
       sendToEReaderProgress:
           sendToEReaderProgress ?? this.sendToEReaderProgress,
       bookViewModel: bookViewModel ?? this.bookViewModel,
+      seriesNavigationStatus:
+          seriesNavigationStatus ?? this.seriesNavigationStatus,
+      seriesNavigationPath: seriesNavigationPath ?? this.seriesNavigationPath,
     );
   }
 
@@ -146,5 +157,7 @@ class BookDetailsState extends Equatable {
     sendToEReaderState,
     sendToEReaderProgress,
     bookViewModel,
+    seriesNavigationStatus,
+    seriesNavigationPath,
   ];
 }

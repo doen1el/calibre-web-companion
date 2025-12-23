@@ -631,4 +631,40 @@ class BookDetailsRemoteDatasource {
       }
     }
   }
+
+  Future<String?> getSeriesPath(String seriesName) async {
+    try {
+      if (seriesName.isEmpty) return null;
+
+      final response = await apiService.getXmlAsJson(
+        endpoint: '/opds/series/letter/00',
+        authMethod: AuthMethod.auto,
+      );
+
+      final entriesRaw = response["feed"]['entry'];
+
+      logger.d(entriesRaw);
+
+      List<dynamic> entries = [];
+
+      if (entriesRaw is List) {
+        entries = entriesRaw;
+      } else if (entriesRaw is Map) {
+        entries = [entriesRaw];
+      }
+
+      for (var entry in entries) {
+        final title = entry['title'] as String?;
+        logger.i(title);
+        if (title != null && title.toLowerCase() == seriesName.toLowerCase()) {
+          return entry['id'] as String?;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      logger.e('Error finding series path: $e');
+      return null;
+    }
+  }
 }

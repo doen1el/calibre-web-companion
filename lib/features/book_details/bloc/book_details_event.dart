@@ -215,3 +215,12 @@ class UpdateSendToEReaderProgress extends BookDetailsEvent {
   final int progress;
   const UpdateSendToEReaderProgress(this.progress);
 }
+
+class OpenSeries extends BookDetailsEvent {
+  final String seriesName;
+
+  const OpenSeries(this.seriesName);
+
+  @override
+  List<Object> get props => [seriesName];
+}

@@ -172,4 +172,12 @@ class BookDetailsRepository {
       progressCallback: progressCallback,
     );
   }
+
+  Future<String?> getSeriesPath(String seriesName) async {
+    try {
+      return await datasource.getSeriesPath(seriesName);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

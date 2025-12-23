@@ -31,6 +31,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     on<UpdateSendToEReaderProgress>((event, emit) {
       emit(state.copyWith(sendToEReaderProgress: event.progress));
     });
+    on<OpenSeries>(_onOpenSeries);
   }
 
   bool _downloadCancelled = false;
@@ -582,5 +583,41 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     Emitter<BookDetailsState> emit,
   ) {
     _sendToEReaderCancelled = true;
+  }
+
+  Future<void> _onOpenSeries(
+    OpenSeries event,
+    Emitter<BookDetailsState> emit,
+  ) async {
+    emit(
+      state.copyWith(seriesNavigationStatus: SeriesNavigationStatus.loading),
+    );
+
+    final path = await repository.getSeriesPath(event.seriesName);
+
+    if (path != null) {
+      emit(
+        state.copyWith(
+          seriesNavigationStatus: SeriesNavigationStatus.success,
+          seriesNavigationPath: path,
+        ),
+      );
+      emit(
+        state.copyWith(
+          seriesNavigationStatus: SeriesNavigationStatus.initial,
+          seriesNavigationPath: null,
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(
+          seriesNavigationStatus: SeriesNavigationStatus.error,
+          errorMessage: 'Series not found',
+        ),
+      );
+      emit(
+        state.copyWith(seriesNavigationStatus: SeriesNavigationStatus.initial),
+      );
+    }
   }
 }
