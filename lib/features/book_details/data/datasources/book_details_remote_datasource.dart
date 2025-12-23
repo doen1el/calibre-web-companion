@@ -306,7 +306,7 @@ class BookDetailsRemoteDatasource {
           break;
       }
 
-      final existingFile = await targetDir.find(fileName.replaceAll(' ', '_'));
+      final existingFile = await targetDir.find(fileName);
 
       if (existingFile != null && existingFile.isFile) {
         logger.w('File already exists: $fileName');
@@ -549,10 +549,12 @@ class BookDetailsRemoteDatasource {
       }
 
       final tempDir = await getTemporaryDirectory();
+
       final safeFileName = safFile.name.replaceAll(
         RegExp(r'[^a-zA-Z0-9.\-_]'),
         '_',
       );
+
       final localFile = File('${tempDir.path}/$safeFileName');
       await localFile.writeAsBytes(bytes, flush: true);
 
