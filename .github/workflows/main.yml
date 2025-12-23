@@ -50,8 +50,8 @@ jobs:
           echo "storeFile=../keystore.jks" >> android/key.properties
 
       #6 Building APK
-      - name: Build APK
-        run: flutter build apk --release --target-platform="android-arm64" --no-tree-shake-icons
+      - name: Build APKs (Split per ABI)
+        run: flutter build apk --release --split-per-abi --no-tree-shake-icons
 
       #7 Building App Bundle (aab)
       # - name: Build appBundle
@@ -68,8 +68,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Releases
-          path: |
-            build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/*.apk
 
         #10 Extract Version
       - name: Extract version from pubspec.yaml
@@ -101,7 +100,7 @@ jobs:
       - name: Create Release Draft
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/app-release.apk"
+          artifacts: "build/app/outputs/flutter-apk/*.apk"
           tag: v${{ env.VERSION }}
           draft: true
           token: ${{ secrets.TOKEN }}
