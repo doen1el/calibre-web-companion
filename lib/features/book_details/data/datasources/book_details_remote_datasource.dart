@@ -148,8 +148,10 @@ class BookDetailsRemoteDatasource {
     try {
       logger.i('Getting download stream for book: $bookId, Format: $format');
 
+      final lowerFormat = format.toLowerCase();
+
       final response = await apiService.getStream(
-        endpoint: '/download/$bookId/$format/$bookId.$format',
+        endpoint: '/download/$bookId/$lowerFormat/$bookId.$lowerFormat',
         authMethod: AuthMethod.cookie,
       );
 
@@ -492,8 +494,10 @@ class BookDetailsRemoteDatasource {
         'Getting download stream with progress - BookId: $bookId, Format: $format',
       );
 
+      final lowerFormat = format.toLowerCase();
+
       final response = await apiService.getStream(
-        endpoint: '/download/$bookId/$format/$bookId.$format',
+        endpoint: '/download/$bookId/$lowerFormat/$bookId.$lowerFormat',
         authMethod: AuthMethod.cookie,
       );
 

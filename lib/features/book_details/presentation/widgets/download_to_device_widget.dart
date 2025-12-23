@@ -76,7 +76,7 @@ class DownloadToDeviceWidget extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       builder:
-          (context) => SafeArea(
+          (sheetContext) => SafeArea(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -105,7 +105,7 @@ class DownloadToDeviceWidget extends StatelessWidget {
                     leading: Icon(icon),
                     title: Text(format.toUpperCase()),
                     onTap: () {
-                      Navigator.pop(context);
+                      Navigator.pop(sheetContext);
                       _downloadBook(context, localizations, book, format);
                     },
                   );
