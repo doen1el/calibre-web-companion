@@ -10,6 +10,7 @@ import 'package:calibre_web_companion/features/book_view/bloc/book_view_state.da
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
 import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_list_tile_skeleton_widget.dart'; // NEU: Import hinzufügen
 import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:calibre_web_companion/shared/widgets/book_list_tile_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -97,9 +98,12 @@ class _BookViewPageState extends State<BookViewPage> {
     BookViewState state,
     AppLocalizations localizations,
   ) {
-    // TODO: Add Book List Skeleton for when loading in List View
     if (state.books.isEmpty && state.isLoading) {
-      return _buildBookGridSkeletons(state);
+      if (state.isListView) {
+        return _buildBookListSkeletons(context);
+      } else {
+        return _buildBookGridSkeletons(state);
+      }
     }
 
     if (state.books.isEmpty) {
@@ -203,6 +207,16 @@ class _BookViewPageState extends State<BookViewPage> {
                   );
                 },
               ),
+    );
+  }
+
+  Widget _buildBookListSkeletons(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemCount: 10,
+      itemBuilder: (context, index) {
+        return const BookListTileSkeleton();
+      },
     );
   }
 

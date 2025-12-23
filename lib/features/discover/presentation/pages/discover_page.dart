@@ -46,17 +46,6 @@ class DiscoverPage extends StatelessWidget {
   ) {
     return Column(
       children: [
-        // TODO: implement a recommendation system
-        // LongButton(
-        //   text: localizations.recommendations,
-        //   icon: Icons.star_rounded,
-        //   onPressed: () {
-        //     context.read<DiscoverBloc>().add(const NavigateToRecommendations());
-        //     // Navigator.of(context).push(
-        //     //   AppTransitions.createSlideRoute(const BookRecommendationPage()),
-        //     // );
-        //   },
-        // ),
         LongButton(
           text: localizations.discover,
           icon: Icons.search,
