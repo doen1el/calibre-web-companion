@@ -1,3 +1,5 @@
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
 import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:flutter/material.dart';
@@ -176,16 +178,27 @@ class DiscoverDetailsPage extends StatelessWidget {
           itemCount: feed.books.length,
           itemBuilder: (context, index) {
             final book = feed.books[index];
-            // TODO: Try to load book details via a different way
             return BookCard(
               bookId: book.coverUrl ?? '',
               title: book.title,
-              authors: book.author,
+              authors: book.authors,
               isLoading: state.loadingBookId == book.id,
-              onTap:
-                  () => context.read<DiscoverDetailsBloc>().add(
-                    LoadDiscoverBookDetails(book.id, context),
+              onTap: () async {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder:
+                        (context) => BookDetailsPage(
+                          bookViewModel: BookViewModel(
+                            id: int.parse(book.id),
+                            uuid: book.uuid,
+                            title: book.title,
+                            authors: book.authors.toString(),
+                          ),
+                          bookUuid: book.uuid,
+                        ),
                   ),
+                );
+              },
             );
           },
         );

@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
@@ -58,14 +57,4 @@ class NavigateToCategory extends DiscoverDetailsEvent {
 
   @override
   List<Object?> get props => [category, currentCategoryType];
-}
-
-class LoadDiscoverBookDetails extends DiscoverDetailsEvent {
-  final String bookId;
-  final BuildContext context;
-
-  const LoadDiscoverBookDetails(this.bookId, this.context);
-
-  @override
-  List<Object?> get props => [bookId];
 }
