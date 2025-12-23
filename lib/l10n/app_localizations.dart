@@ -2072,6 +2072,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Book Details'**
   String get bookDetails;
+
+  /// No description provided for @applyFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Filters'**
+  String get applyFilters;
+
+  /// No description provided for @any.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get any;
+
+  /// No description provided for @contentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Type'**
+  String get contentType;
+
+  /// No description provided for @author.
+  ///
+  /// In en, this message translates to:
+  /// **'Author'**
+  String get author;
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @searchFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Filters'**
+  String get searchFilters;
+
+  /// No description provided for @bookFiction.
+  ///
+  /// In en, this message translates to:
+  /// **'Book (Fiction)'**
+  String get bookFiction;
+
+  /// No description provided for @bookNonFiction.
+  ///
+  /// In en, this message translates to:
+  /// **'Book (Non-Fiction)'**
+  String get bookNonFiction;
+
+  /// No description provided for @magazine.
+  ///
+  /// In en, this message translates to:
+  /// **'Magazine'**
+  String get magazine;
+
+  /// No description provided for @comic.
+  ///
+  /// In en, this message translates to:
+  /// **'Comic'**
+  String get comic;
+
+  /// No description provided for @audiobook.
+  ///
+  /// In en, this message translates to:
+  /// **'Audiobook'**
+  String get audiobook;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

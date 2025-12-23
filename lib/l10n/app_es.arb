@@ -328,5 +328,16 @@
   "readNow": "Leer ahora",
   "showReadNowButton": "Mostrar botón Leer ahora",
   "showReadNowButtonDescription": "Muestra un botón 'Leer ahora' en los detalles del libro para abrir el libro en el lector interno",
-  "bookDetails": "Detalles del libro"
+  "bookDetails": "Detalles del libro",
+  "applyFilters": "Aplicar filtros",
+  "any": "Cualquiera",
+  "contentType": "Tipo de contenido",
+  "author": "Autor",
+  "reset": "Restablecer",
+  "searchFilters": "Filtros de búsqueda",
+  "bookFiction": "Ficción",
+  "bookNonFiction": "No ficción",
+  "magazine": "Revista",
+  "comic": "Cómic",
+  "audiobook": "Audiolibro"
 }

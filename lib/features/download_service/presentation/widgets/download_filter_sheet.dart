@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
 
@@ -15,7 +16,6 @@ class DownloadFilterSheet extends StatefulWidget {
   State<DownloadFilterSheet> createState() => _DownloadFilterSheetState();
 }
 
-// TODO: Localization
 class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
   late TextEditingController _isbnController;
   late TextEditingController _authorController;
@@ -24,14 +24,6 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
   late List<String> _selectedLanguages;
   late List<String> _selectedFormats;
   String? _selectedContent;
-
-  final Map<String, String> _contentTypes = {
-    'book_fiction': 'Book (Fiction)',
-    'book_nonfiction': 'Book (Non-Fiction)',
-    'magazine': 'Magazine',
-    'comic': 'Comic',
-    'audiobook': 'Audiobook',
-  };
 
   final List<String> _availableLanguages = [
     'de',
@@ -68,6 +60,16 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
+    final Map<String, String> contentTypes = {
+      'book_fiction': localizations.bookFiction,
+      'book_nonfiction': localizations.bookNonFiction,
+      'magazine': localizations.magazine,
+      'comic': localizations.comic,
+      'audiobook': localizations.audiobook,
+    };
+
     return Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -88,12 +90,12 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Search Filters',
+                  localizations.searchFilters,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 TextButton(
                   onPressed: _resetFilters,
-                  child: const Text('Reset'),
+                  child: Text(localizations.reset),
                 ),
               ],
             ),
@@ -103,21 +105,21 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
             // Text Fields
             _buildTextField('ISBN', _isbnController),
             const SizedBox(height: 10),
-            _buildTextField('Author', _authorController),
+            _buildTextField(localizations.author, _authorController),
             const SizedBox(height: 10),
-            _buildTextField('Title', _titleController),
+            _buildTextField(localizations.title, _titleController),
 
             const SizedBox(height: 20),
 
             DropdownButtonFormField<String>(
               value: _selectedContent,
-              decoration: const InputDecoration(
-                labelText: 'Content Type',
+              decoration: InputDecoration(
+                labelText: localizations.contentType,
                 border: OutlineInputBorder(),
               ),
               items: [
-                const DropdownMenuItem(value: null, child: Text('Any')),
-                ..._contentTypes.entries.map(
+                DropdownMenuItem(value: null, child: Text(localizations.any)),
+                ...contentTypes.entries.map(
                   (e) => DropdownMenuItem(value: e.key, child: Text(e.value)),
                 ),
               ],
@@ -126,7 +128,10 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
 
             const SizedBox(height: 20),
 
-            Text('Languages', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              localizations.languages,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -151,7 +156,10 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
 
             const SizedBox(height: 20),
 
-            Text('Formats', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              localizations.formats,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -191,7 +199,7 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
                   widget.onApply(filter);
                   Navigator.pop(context);
                 },
-                child: const Text('Apply Filters'),
+                child: Text(localizations.applyFilters),
               ),
             ),
             const SizedBox(height: 20),

@@ -1016,4 +1016,37 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get bookDetails => 'Detalles del libro';
+
+  @override
+  String get applyFilters => 'Aplicar filtros';
+
+  @override
+  String get any => 'Cualquiera';
+
+  @override
+  String get contentType => 'Tipo de contenido';
+
+  @override
+  String get author => 'Autor';
+
+  @override
+  String get reset => 'Restablecer';
+
+  @override
+  String get searchFilters => 'Filtros de búsqueda';
+
+  @override
+  String get bookFiction => 'Ficción';
+
+  @override
+  String get bookNonFiction => 'No ficción';
+
+  @override
+  String get magazine => 'Revista';
+
+  @override
+  String get comic => 'Cómic';
+
+  @override
+  String get audiobook => 'Audiolibro';
 }

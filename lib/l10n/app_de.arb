@@ -328,5 +328,16 @@
   "readNow": "Jetzt lesen",
   "showReadNowButton": "'Jetzt lesen' Button anzeigen",
   "showReadNowButtonDescription": "Ersetzt den 'An E-Reader senden' Button durch 'Jetzt lesen', um Bücher direkt zu öffnen.",
-  "bookDetails": "Buchdetails"
+  "bookDetails": "Buchdetails",
+  "applyFilters": "Filter anwenden",
+  "any": "Beliebig",
+  "contentType": "Inhaltstyp",
+  "author": "Autor",
+  "reset": "Zurücksetzen",
+  "searchFilters": "Suchfilter",
+  "bookFiction": "Buch (Fiktion)",
+  "bookNonFiction": "Buch (Sachbuch)",
+  "magazine": "Magazin",
+  "comic": "Comic",
+  "audiobook": "Hörbuch"
 }
