@@ -75,6 +75,20 @@ class DiscoverDetailsRemoteDatasource {
       final categories =
           items.map((item) => CategoryModel.fromJson(item)).toList();
 
+      bool shouldSort = true;
+      if (subPath == null &&
+          (type == CategoryType.author ||
+              type == CategoryType.category ||
+              type == CategoryType.series)) {
+        shouldSort = false;
+      }
+
+      if (shouldSort) {
+        categories.sort(
+          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+        );
+      }
+
       return CategoryFeed(
         categories: categories,
         nextPageUrl: jsonData['nextPageUrl'],
