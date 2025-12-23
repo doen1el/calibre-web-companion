@@ -25,6 +25,7 @@ class DiscoverDetailsBloc
         status: DiscoverDetailsStatus.loading,
         isShowingBooks: true,
         isShowingCategories: false,
+        isNotFound: false,
       ),
     );
     try {
@@ -41,10 +42,12 @@ class DiscoverDetailsBloc
         ),
       );
     } catch (e) {
+      final isNotFound = e.toString().contains('404');
       emit(
         state.copyWith(
           status: DiscoverDetailsStatus.error,
           errorMessage: e.toString(),
+          isNotFound: isNotFound,
         ),
       );
     }
@@ -59,6 +62,7 @@ class DiscoverDetailsBloc
         status: DiscoverDetailsStatus.loading,
         isShowingBooks: false,
         isShowingCategories: true,
+        isNotFound: false,
       ),
     );
 
@@ -76,10 +80,12 @@ class DiscoverDetailsBloc
         ),
       );
     } catch (e) {
+      final isNotFound = e.toString().contains('404');
       emit(
         state.copyWith(
           status: DiscoverDetailsStatus.error,
           errorMessage: e.toString(),
+          isNotFound: isNotFound,
         ),
       );
     }
@@ -94,6 +100,7 @@ class DiscoverDetailsBloc
         status: DiscoverDetailsStatus.loading,
         isShowingBooks: true,
         isShowingCategories: false,
+        isNotFound: false,
       ),
     );
 
@@ -108,10 +115,12 @@ class DiscoverDetailsBloc
         ),
       );
     } catch (e) {
+      final isNotFound = e.toString().contains('404');
       emit(
         state.copyWith(
           status: DiscoverDetailsStatus.error,
           errorMessage: e.toString(),
+          isNotFound: isNotFound,
         ),
       );
     }

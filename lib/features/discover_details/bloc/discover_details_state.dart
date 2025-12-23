@@ -15,6 +15,7 @@ class DiscoverDetailsState extends Equatable {
   final bool isShowingCategories;
   final BookViewModel? bookDetails;
   final String? loadingBookId;
+  final bool isNotFound;
 
   const DiscoverDetailsState({
     this.status = DiscoverDetailsStatus.initial,
@@ -25,6 +26,7 @@ class DiscoverDetailsState extends Equatable {
     this.isShowingCategories = false,
     this.bookDetails,
     this.loadingBookId,
+    this.isNotFound = false,
   });
 
   DiscoverDetailsState copyWith({
@@ -36,6 +38,7 @@ class DiscoverDetailsState extends Equatable {
     bool? isShowingCategories,
     BookViewModel? bookDetails,
     String? loadingBookId,
+    bool? isNotFound,
   }) {
     return DiscoverDetailsState(
       status: status ?? this.status,
@@ -46,6 +49,7 @@ class DiscoverDetailsState extends Equatable {
       isShowingCategories: isShowingCategories ?? this.isShowingCategories,
       bookDetails: bookDetails ?? this.bookDetails,
       loadingBookId: loadingBookId ?? this.loadingBookId,
+      isNotFound: isNotFound ?? this.isNotFound,
     );
   }
 
@@ -59,5 +63,6 @@ class DiscoverDetailsState extends Equatable {
     isShowingCategories,
     bookDetails,
     loadingBookId,
+    isNotFound,
   ];
 }

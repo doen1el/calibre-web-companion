@@ -340,5 +340,7 @@
   "bookNonFiction": "Book (Non-Fiction)",
   "magazine": "Magazine",
   "comic": "Comic",
-  "audiobook": "Audiobook"
+  "audiobook": "Audiobook",
+  "sectionDisabledOrNotFound": "Section unavailable",
+  "sectionDisabledDescription": "This section appears to be disabled in your Calibre-Web server settings or does not exist."
 }

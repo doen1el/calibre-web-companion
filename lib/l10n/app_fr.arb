@@ -340,5 +340,7 @@
   "bookNonFiction": "Non-fiction",
   "magazine": "Magazine",
   "comic": "Bande dessinée",
-  "audiobook": "Livre audio"
+  "audiobook": "Livre audio",
+  "sectionDisabledOrNotFound": "Section non disponible",
+  "sectionDisabledDescription": "Cette section semble être désactivée dans les paramètres de votre serveur Calibre-Web ou n'existe pas."
 }

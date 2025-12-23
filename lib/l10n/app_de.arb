@@ -340,5 +340,7 @@
   "bookNonFiction": "Buch (Sachbuch)",
   "magazine": "Magazin",
   "comic": "Comic",
-  "audiobook": "Hörbuch"
+  "audiobook": "Hörbuch",
+  "sectionDisabledOrNotFound": "Bereich nicht verfügbar",
+  "sectionDisabledDescription": "Dieser Bereich scheint in deinen Calibre-Web Servereinstellungen deaktiviert zu sein oder existiert nicht."
 }

@@ -2144,6 +2144,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Audiobook'**
   String get audiobook;
+
+  /// No description provided for @sectionDisabledOrNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Section unavailable'**
+  String get sectionDisabledOrNotFound;
+
+  /// No description provided for @sectionDisabledDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This section appears to be disabled in your Calibre-Web server settings or does not exist.'**
+  String get sectionDisabledDescription;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

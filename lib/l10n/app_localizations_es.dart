@@ -1052,4 +1052,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get audiobook => 'Audiolibro';
+
+  @override
+  String get sectionDisabledOrNotFound => 'Sección no disponible';
+
+  @override
+  String get sectionDisabledDescription => 'Esta sección parece estar deshabilitada en la configuración de tu servidor Calibre-Web o no existe.';
 }
