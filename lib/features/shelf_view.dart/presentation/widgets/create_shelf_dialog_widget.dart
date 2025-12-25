@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 
 class CreateShelfDialog extends StatefulWidget {

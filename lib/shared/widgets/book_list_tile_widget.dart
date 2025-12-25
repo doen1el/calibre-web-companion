@@ -1,8 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:calibre_web_companion/core/services/api_service.dart';
-import 'package:calibre_web_companion/core/di/injection_container.dart';
+
+import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
 class BookListTile extends StatelessWidget {
@@ -23,19 +21,16 @@ class BookListTile extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Cover Image
               AspectRatio(
                 aspectRatio: 2 / 3,
                 child: BookCoverWidget(bookId: book.id),
               ),
-              // Details
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title
                       Text(
                         book.title,
                         style: Theme.of(context).textTheme.titleMedium
@@ -44,14 +39,12 @@ class BookListTile extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
-                      // Author
                       Text(
                         book.authors.replaceAll('&', ', '),
                         style: Theme.of(context).textTheme.bodyMedium,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      // Series
                       if (book.series.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
@@ -66,7 +59,6 @@ class BookListTile extends StatelessWidget {
                         ),
                       ],
                       const Spacer(),
-                      // Publisher & Date
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -81,9 +73,7 @@ class BookListTile extends StatelessWidget {
                             ),
                           if (book.pubdate.isNotEmpty)
                             Text(
-                              book.pubdate
-                                  .split(' ')
-                                  .first, // Nur Datum, keine Zeit
+                              book.pubdate.split(' ').first,
                               style: Theme.of(context).textTheme.labelSmall,
                             ),
                         ],

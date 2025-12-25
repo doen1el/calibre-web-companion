@@ -1,5 +1,6 @@
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
 
 class DownloadFilterSheet extends StatefulWidget {

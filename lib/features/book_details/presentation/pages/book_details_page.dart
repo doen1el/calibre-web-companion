@@ -1,10 +1,7 @@
-import 'package:calibre_web_companion/features/book_details/presentation/widgets/ebook_reader_widget.dart';
-import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
@@ -24,6 +21,9 @@ import 'package:calibre_web_companion/features/discover/blocs/discover_event.dar
 import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/widgets/ebook_reader_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 class BookDetailsPage extends StatefulWidget {
   final BookViewModel bookViewModel;

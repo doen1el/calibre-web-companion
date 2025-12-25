@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:docman/docman.dart';
@@ -15,6 +16,7 @@ import 'package:calibre_web_companion/features/settings/data/models/download_sch
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart'; // Import hinzufügen
 
 class BookDetailsRemoteDatasource {
   final ApiService apiService;
@@ -169,6 +171,61 @@ class BookDetailsRemoteDatasource {
     }
   }
 
+  Future<List<MetadataProvider>> getMetadataProviders() async {
+    try {
+      final response = await apiService.get(
+        endpoint: '/metadata/provider',
+        authMethod: AuthMethod.cookie,
+      );
+
+      if (response.statusCode == 200) {
+        logger.i(response.body);
+        final dynamic decoded = json.decode(response.body);
+        logger.i('Decoded metadata providers: $decoded');
+        if (decoded is List) {
+          return decoded.map((e) => MetadataProvider.fromJson(e)).toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      logger.e('Error fetching metadata providers: $e');
+      return [];
+    }
+  }
+
+  Future<List<MetadataSearchResult>> searchMetadata(
+    String query,
+    List<String> activeProviderIds,
+  ) async {
+    try {
+      final body = {'query': query};
+
+      for (var id in activeProviderIds) {
+        body[id] = 'on';
+      }
+
+      final response = await apiService.post(
+        endpoint: '/metadata/search',
+        body: body,
+        authMethod: AuthMethod.cookie,
+        useCsrf: true,
+        contentType: 'application/x-www-form-urlencoded',
+      );
+
+      if (response.statusCode == 200) {
+        logger.i(response.body);
+        final List<dynamic> jsonList = json.decode(response.body);
+        return jsonList.map((e) => MetadataSearchResult.fromJson(e)).toList();
+      }
+
+      logger.w('Search failed with status: ${response.statusCode}');
+      return [];
+    } catch (e) {
+      logger.e('Error searching metadata: $e');
+      throw Exception('Search failed: $e');
+    }
+  }
+
   Future<bool> updateBookMetadata(
     String bookId, {
     required String title,
@@ -183,6 +240,7 @@ class BookDetailsRemoteDatasource {
     required double rating,
     Uint8List? coverImageBytes,
     String? coverFileName,
+    String? coverUrl,
   }) async {
     try {
       final body = {
@@ -195,7 +253,7 @@ class BookDetailsRemoteDatasource {
         'pubdate': pubdate,
         'publisher': publisher,
         'languages': languages,
-        'cover_url': '',
+        'cover_url': coverUrl ?? '',
         'rating': rating.toString(),
         'detail_view': 'on',
       };

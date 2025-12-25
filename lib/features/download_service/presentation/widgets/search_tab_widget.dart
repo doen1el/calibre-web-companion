@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_state.dart';
-import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart'; // Import
-import 'package:calibre_web_companion/features/download_service/presentation/widgets/download_filter_sheet.dart'; // Import
+import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
+
+import 'package:calibre_web_companion/features/download_service/presentation/widgets/download_filter_sheet.dart';
 import 'package:calibre_web_companion/features/download_service/presentation/widgets/book_card_widget.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 class SearchTabWidget extends StatefulWidget {
   const SearchTabWidget({super.key});

@@ -1,7 +1,7 @@
 <p align="center">
     <img src="docs/icon/icon.png" alt="App Icon" width="100" />
     <br>
-    v1.7.3
+    v1.8.0
 </p>
 
 <p align="center">
@@ -52,6 +52,7 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 - Automatically download books to your collection with [calibre-web-automated-book-downloader](https://github.com/calibrain/calibre-web-automated-book-downloader).
 - Manage and customize your shelves.
 - Upload books to your Calibre Web server.
+- Edit your book's metadata and upload new covers.
 
 ## 🖼️ Impressions
 

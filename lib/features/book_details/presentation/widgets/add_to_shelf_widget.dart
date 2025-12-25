@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
@@ -9,6 +8,7 @@ import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_b
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_state.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 class AddToShelfWidget extends StatefulWidget {
   final BookDetailsModel book;

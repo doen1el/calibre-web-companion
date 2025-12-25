@@ -1,10 +1,12 @@
-import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:logger/logger.dart';
+
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
+
+import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_details_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_feed_model.dart';
-import 'package:logger/logger.dart';
 
 class DiscoverDetailsRemoteDatasource {
   final ApiService apiService;

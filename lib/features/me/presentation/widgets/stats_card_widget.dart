@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/me/presentation/widgets/animated_counter_widget.dart';
 import 'package:calibre_web_companion/features/me/data/models/stats_model.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 class StatsCard extends StatelessWidget {
   final StatsModel stats;

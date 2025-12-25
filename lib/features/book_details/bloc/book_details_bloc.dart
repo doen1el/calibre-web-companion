@@ -1,10 +1,10 @@
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
 
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/core/exceptions/cancellation_exception.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 

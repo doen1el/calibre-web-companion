@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 
 class BookCard extends StatelessWidget {
@@ -37,9 +38,7 @@ class BookCard extends StatelessWidget {
                   child: BookCoverWidget(
                     bookId:
                         int.tryParse(bookId) ??
-                        int.parse(
-                          bookId.split('/').last,
-                        ), // Since opds has only uuid -> i need to strip from the coverUrl
+                        int.parse(bookId.split('/').last),
                   ),
                 ),
                 Expanded(

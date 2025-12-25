@@ -2,7 +2,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
-
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_event.dart';
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_state.dart';
 

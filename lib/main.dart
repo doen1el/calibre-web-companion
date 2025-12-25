@@ -1,15 +1,15 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
-import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
-import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/core/di/injection_container.dart' as di;
 import 'package:logger/web.dart';
 
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/core/di/injection_container.dart' as di;
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
+import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_bloc.dart';
@@ -36,16 +36,13 @@ final GetIt getIt = GetIt.instance;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Setup dependency injection
   await di.init();
 
-  // Load theme settings
   final savedThemeMode = await AdaptiveTheme.getThemeMode();
 
   runApp(
     MultiBlocProvider(
       providers: [
-        // BLoC Providers for new features
         BlocProvider<LoginBloc>(create: (_) => getIt<LoginBloc>()),
         BlocProvider<LoginSettingsBloc>(
           create:
@@ -105,7 +102,6 @@ class _MyAppState extends State<MyApp> {
     super.didChangeDependencies();
   }
 
-  // Check if the user is logged in by looking for a session cookie
   Future<bool> _isLoggedIn() async {
     return await LoginRepository(
       dataSource: getIt<LoginRemoteDataSource>(),
@@ -126,13 +122,11 @@ class _MyAppState extends State<MyApp> {
       builder: (context, settingsState) {
         return DynamicColorBuilder(
           builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-            // Get the base seed color from settings
             final seedColor =
                 settingsState.themeSource == ThemeSource.custom
                     ? settingsState.selectedColor
                     : Colors.lightGreen;
 
-            // Create the color schemes
             final lightScheme =
                 settingsState.themeSource == ThemeSource.system &&
                         lightDynamic != null
@@ -151,7 +145,6 @@ class _MyAppState extends State<MyApp> {
                       brightness: Brightness.dark,
                     );
 
-            // Create the themes
             final lightTheme = ThemeData(
               useMaterial3: true,
               colorScheme: lightScheme,
@@ -171,12 +164,9 @@ class _MyAppState extends State<MyApp> {
               navigatorObservers: [routeObserver],
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              locale: Locale(
-                settingsState.languageCode ?? 'en', // Fallback to 'en' if null
-              ),
+              locale: Locale(settingsState.languageCode ?? 'en'),
               debugShowCheckedModeBanner: false,
               localeResolutionCallback: (locale, supportedLocales) {
-                // If the locale of the device is supported, use it
                 if (locale != null) {
                   for (final supportedLocale in supportedLocales) {
                     if (supportedLocale.languageCode == locale.languageCode) {
@@ -184,7 +174,6 @@ class _MyAppState extends State<MyApp> {
                     }
                   }
                 }
-                // else use the default one
                 return const Locale('en');
               },
               home: FutureBuilder<bool>(

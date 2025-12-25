@@ -1,21 +1,25 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:flutter_rating/flutter_rating.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/widgets/metadata_search_dialog.dart';
 
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:calibre_web_companion/shared/widgets/coming_soon_widget.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
 
 class EditBookMetadataWidget extends StatelessWidget {
   final BookDetailsModel book;
@@ -98,6 +102,8 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
 
   Uint8List? _selectedCoverBytes;
   String? _selectedCoverName;
+
+  String? _newCoverUrl;
 
   @override
   void didChangeDependencies() {
@@ -191,9 +197,26 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
         listenWhen:
             (previous, current) =>
                 previous.metadataUpdateState != current.metadataUpdateState,
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state.metadataUpdateState == MetadataUpdateState.success) {
-            Navigator.of(context).pop(true);
+            final apiService = ApiService();
+            final baseUrl = apiService.getBaseUrl();
+            final coverUrl = '$baseUrl/opds/cover/${widget.book.id}';
+
+            imageCache.clear();
+            imageCache.clearLiveImages();
+
+            await CachedNetworkImage.evictFromCache(coverUrl);
+
+            try {
+              await CustomCacheManager().removeFile(coverUrl);
+            } catch (e) {
+              debugPrint('Custom cache clear error: $e');
+            }
+
+            if (context.mounted) {
+              Navigator.of(context).pop(true);
+            }
           } else if (state.metadataUpdateState == MetadataUpdateState.error) {
             context.showSnackBar(
               state.errorMessage ?? localizations.updateFailed,
@@ -209,7 +232,23 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
               state.metadataUpdateState == MetadataUpdateState.loading;
 
           return AlertDialog(
-            title: Text(localizations.editBookMetadata),
+            title: Row(
+              children: [
+                Text(localizations.editBookMetadata),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.cloud_download),
+                  tooltip: "Fetch Metadata",
+                  // TODO: Fix metadata fetch feature
+                  // onPressed: isLoading ? null : _openMetadataSearch,
+                  onPressed:
+                      () => showComingSoonDialog(
+                        context,
+                        "The metadata search feature is coming soon!",
+                      ),
+                ),
+              ],
+            ),
             content: SingleChildScrollView(
               child: _buildMetadataForm(context, isLoading, localizations),
             ),
@@ -244,6 +283,7 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
                               coverImageBytes: _selectedCoverBytes,
                               coverFileName: _selectedCoverName ?? 'cover.jpg',
                               bookDetails: widget.book,
+                              coverUrl: _newCoverUrl,
                             ),
                           );
                         },
@@ -271,6 +311,57 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
     );
   }
 
+  Future<void> _openMetadataSearch() async {
+    final resultData = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder:
+          (context) => MetadataSearchDialog(
+            initialQuery: "${_titleController.text} ${_authorsController.text}",
+          ),
+    );
+
+    if (resultData != null) {
+      final result = resultData['result'] as MetadataSearchResult;
+      final selection = resultData['selection'] as Map<String, bool>;
+
+      setState(() {
+        if (selection['title'] == true && result.title.isNotEmpty) {
+          _titleController.text = result.title;
+        }
+        if (selection['authors'] == true && result.authors.isNotEmpty) {
+          _authorsController.text = result.authors;
+        }
+        if (selection['publisher'] == true && result.publisher.isNotEmpty) {
+          _publisherController.text = result.publisher;
+        }
+        if (selection['pubdate'] == true && result.pubdate.isNotEmpty) {
+          _pubdateController.text = result.pubdate;
+        }
+        if (selection['description'] == true && result.description.isNotEmpty) {
+          _commentsController.text = result.description;
+        }
+        if (selection['tags'] == true && result.tags.isNotEmpty) {
+          _tagsController.text = result.tags.join(', ');
+        }
+        if (selection['series'] == true && result.series.isNotEmpty) {
+          _seriesController.text = result.series;
+          _seriesIndexController.text = result.seriesIndex;
+        }
+        if (selection['rating'] == true && result.rating > 0) {
+          _currentRating = result.rating / 2;
+        }
+        if (selection['languages'] == true && result.languages.isNotEmpty) {
+          _languagesController.text = result.languages.join(', ');
+        }
+        if (selection['cover'] == true && result.coverUrl.isNotEmpty) {
+          _newCoverUrl = result.coverUrl;
+          _selectedCoverBytes = null;
+          _selectedCoverName = null;
+        }
+      });
+    }
+  }
+
   Widget _buildMetadataForm(
     BuildContext context,
     bool isLoading,
@@ -282,66 +373,63 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    width: 140,
-                    height: 200,
-                    color:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                    child:
-                        _selectedCoverBytes != null
-                            ? Image.memory(
-                              _selectedCoverBytes!,
-                              fit: BoxFit.cover,
-                            )
-                            : _buildCoverImage(
-                              context,
-                              widget.book.id,
-                              localizations,
-                            ),
-                  ),
-                ),
-                Positioned(
-                  right: 8,
-                  bottom: 8,
-                  child: CircleAvatar(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer,
-                    radius: 18,
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.edit,
-                        size: 18,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                      onPressed: isLoading ? null : _pickImage,
-                      tooltip: localizations.selectCover,
-                    ),
-                  ),
-                ),
-                if (_selectedCoverBytes != null)
-                  Positioned(
-                    left: 8,
-                    bottom: 8,
-                    child: CircleAvatar(
-                      backgroundColor:
-                          Theme.of(context).colorScheme.errorContainer,
-                      radius: 18,
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.delete,
-                          size: 18,
-                          color: Theme.of(context).colorScheme.onErrorContainer,
+            child: SizedBox(
+              width: 120,
+              height: 180,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 120,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: .1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
-                        onPressed: isLoading ? null : _confirmCoverRemoval,
-                        tooltip: localizations.removeCover,
-                      ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child:
+                          _selectedCoverBytes != null
+                              ? Image.memory(
+                                _selectedCoverBytes!,
+                                fit: BoxFit.cover,
+                              )
+                              : _newCoverUrl != null
+                              ? CachedNetworkImage(
+                                imageUrl: _newCoverUrl!,
+                                fit: BoxFit.cover,
+                                placeholder:
+                                    (_, _) => const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                errorWidget:
+                                    (_, _, _) => const Icon(Icons.broken_image),
+                              )
+                              : _buildCoverImage(
+                                context,
+                                widget.book.id,
+                                localizations,
+                              ),
                     ),
                   ),
-              ],
+                  Positioned(
+                    bottom: -12,
+                    right: -12,
+                    child: IconButton.filled(
+                      onPressed: isLoading ? null : _pickImage,
+                      icon: const Icon(Icons.edit),
+                      tooltip: localizations.newCover,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -445,21 +533,32 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
             helperText: localizations.separateWithCommas,
             enabled: !isLoading,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
-          Text(
-            localizations.rating,
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          const SizedBox(height: 8),
-          StarRating(
-            starCount: 5,
-            rating: _currentRating,
-            allowHalfRating: true,
-            color: Colors.amber,
-            borderColor: Theme.of(context).colorScheme.outline,
-            onRatingChanged:
-                (rating) => setState(() => _currentRating = rating),
+          InputDecorator(
+            decoration: InputDecoration(
+              labelText: localizations.rating,
+              prefixIcon: const Icon(Icons.star),
+              border: const OutlineInputBorder(),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+            ),
+            child: StarRating(
+              starCount: 5,
+              rating: _currentRating,
+              allowHalfRating: true,
+              color: Colors.amber,
+              borderColor: Theme.of(context).colorScheme.outline,
+              onRatingChanged:
+                  (rating) => setState(() => _currentRating = rating),
+            ),
           ),
 
           const SizedBox(height: 24),
@@ -521,36 +620,6 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
     );
   }
 
-  Future<void> _confirmCoverRemoval() async {
-    final localizations = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(localizations.removeCover),
-            content: Text(localizations.removeCoverConfirmation),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(localizations.cancel),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: TextButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.error,
-                ),
-                child: Text(localizations.remove),
-              ),
-            ],
-          ),
-    );
-
-    if (confirmed == true) {
-      _clearSelectedCover();
-      setState(() {});
-    }
-  }
-
   Future<void> _pickImage() async {
     try {
       final picker = ImagePicker();
@@ -570,13 +639,6 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
         ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
       }
     }
-  }
-
-  void _clearSelectedCover() {
-    setState(() {
-      _selectedCoverBytes = null;
-      _selectedCoverName = null;
-    });
   }
 
   Widget _buildCoverImage(

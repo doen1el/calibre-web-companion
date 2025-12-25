@@ -1,9 +1,10 @@
-import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
-import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:docman/docman.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 
 abstract class BookDetailsEvent extends Equatable {
   const BookDetailsEvent();
@@ -154,9 +155,9 @@ class UpdateBookMetadata extends BookDetailsEvent {
   final String publisher;
   final String languages;
   final double rating;
-
   final Uint8List? coverImageBytes;
   final String? coverFileName;
+  final String? coverUrl;
   final BookDetailsModel bookDetails;
 
   const UpdateBookMetadata({
@@ -171,10 +172,10 @@ class UpdateBookMetadata extends BookDetailsEvent {
     required this.publisher,
     required this.languages,
     required this.rating,
-
+    required this.bookDetails,
     this.coverImageBytes,
     this.coverFileName,
-    required this.bookDetails,
+    this.coverUrl,
   });
 
   @override
@@ -190,8 +191,8 @@ class UpdateBookMetadata extends BookDetailsEvent {
     publisher,
     languages,
     rating,
-
     coverImageBytes,
+    coverUrl,
     coverFileName,
     bookDetails,
   ];

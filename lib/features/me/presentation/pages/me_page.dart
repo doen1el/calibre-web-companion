@@ -1,13 +1,12 @@
-import 'package:calibre_web_companion/features/login/bloc/login_bloc.dart';
-import 'package:calibre_web_companion/features/login/bloc/login_event.dart';
 import 'package:calibre_web_companion/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 import 'package:calibre_web_companion/features/me/bloc/me_bloc.dart';
 import 'package:calibre_web_companion/features/me/bloc/me_event.dart';
 import 'package:calibre_web_companion/features/me/bloc/me_state.dart';
+import 'package:calibre_web_companion/features/login/bloc/login_bloc.dart';
+import 'package:calibre_web_companion/features/login/bloc/login_event.dart';
 
 import 'package:calibre_web_companion/features/me/data/models/stats_model.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
@@ -18,6 +17,7 @@ import 'package:calibre_web_companion/features/login/presentation/pages/login_pa
 import 'package:calibre_web_companion/features/settings/presentation/pages/settings_page.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/presentation/pages/shelf_view_page.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
 
 class MePage extends StatelessWidget {

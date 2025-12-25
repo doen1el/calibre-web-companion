@@ -1,9 +1,8 @@
-import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
 import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
 import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
 
 abstract class LoginFailure {}
 

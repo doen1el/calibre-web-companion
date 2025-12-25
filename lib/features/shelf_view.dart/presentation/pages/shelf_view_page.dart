@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
@@ -9,6 +8,7 @@ import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_s
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/main.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/presentation/widgets/create_shelf_dialog_widget.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/features/shelf_details/presentation/pages/shelf_details_page.dart';

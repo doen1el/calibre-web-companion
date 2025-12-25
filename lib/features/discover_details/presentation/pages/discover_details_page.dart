@@ -1,15 +1,15 @@
-import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
-import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
-import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_bloc.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_event.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_state.dart';
 
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
@@ -59,7 +59,8 @@ class DiscoverDetailsPage extends StatelessWidget {
       },
       child: BlocConsumer<DiscoverDetailsBloc, DiscoverDetailsState>(
         listener: (context, state) {
-          if (state.status == DiscoverDetailsStatus.error && !state.isNotFound) {
+          if (state.status == DiscoverDetailsStatus.error &&
+              !state.isNotFound) {
             context.showSnackBar(
               "${localizations.errorLoadingData}: ${state.errorMessage}",
               isError: true,
@@ -180,14 +181,16 @@ class DiscoverDetailsPage extends StatelessWidget {
             Icon(
               Icons.visibility_off_outlined,
               size: 80,
-              color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.secondary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 24),
             Text(
               localizations.sectionDisabledOrNotFound,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),

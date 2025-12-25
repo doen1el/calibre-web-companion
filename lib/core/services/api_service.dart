@@ -8,8 +8,8 @@ import 'package:xml2json/xml2json.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:http/io_client.dart';
-import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
 
+import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 
 enum AuthMethod { none, cookie, basic, auto }
