@@ -22,8 +22,8 @@ class AppTransitions {
     );
   }
 
-  static PageRouteBuilder createSlideRoute(Widget page) {
-    return PageRouteBuilder(
+  static PageRouteBuilder<T> createSlideRoute<T>(Widget page) {
+    return PageRouteBuilder<T>(
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: slideTransition,
     );

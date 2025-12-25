@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:docman/docman.dart';
 import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 import 'package:logger/logger.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
@@ -240,7 +239,6 @@ class BookDetailsRemoteDatasource {
         );
         return false;
       }
-      //}
     } catch (e) {
       logger.e('Error updating book metadata: $e');
       throw Exception('Failed to update book metadata: $e');

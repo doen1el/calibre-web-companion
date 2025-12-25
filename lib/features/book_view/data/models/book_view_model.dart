@@ -138,4 +138,54 @@ class BookViewModel extends Equatable {
       throw FormatException('Failed to parse book data: $e');
     }
   }
+
+  BookViewModel copyWith({
+    String? authorSort,
+    String? authors,
+    String? data,
+    bool? flags,
+    bool? hasCover,
+    int? id,
+    String? identifiers,
+    bool? isArchived,
+    String? isbn,
+    String? languages,
+    String? lastModified,
+    String? path,
+    String? pubdate,
+    String? publishers,
+    bool? readStatus,
+    String? registry,
+    String? series,
+    int? seriesIndex,
+    String? sort,
+    String? timestamp,
+    String? title,
+    String? uuid,
+  }) {
+    return BookViewModel(
+      id: id ?? this.id,
+      uuid: uuid ?? this.uuid,
+      title: title ?? this.title,
+      authors: authors ?? this.authors,
+      authorSort: authorSort ?? this.authorSort,
+      data: data ?? this.data,
+      flags: flags ?? this.flags,
+      hasCover: hasCover ?? this.hasCover,
+      identifiers: identifiers ?? this.identifiers,
+      isArchived: isArchived ?? this.isArchived,
+      isbn: isbn ?? this.isbn,
+      languages: languages ?? this.languages,
+      lastModified: lastModified ?? this.lastModified,
+      path: path ?? this.path,
+      pubdate: pubdate ?? this.pubdate,
+      publishers: publishers ?? this.publishers,
+      readStatus: readStatus ?? this.readStatus,
+      registry: registry ?? this.registry,
+      series: series ?? this.series,
+      seriesIndex: seriesIndex ?? this.seriesIndex,
+      sort: sort ?? this.sort,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
 }

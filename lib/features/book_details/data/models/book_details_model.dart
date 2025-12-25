@@ -174,6 +174,7 @@ class BookDetailsModel extends BookViewModel {
     };
   }
 
+  @override
   BookDetailsModel copyWith({
     int? id,
     String? uuid,

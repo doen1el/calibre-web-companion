@@ -61,6 +61,7 @@ dependencies:
   http_parser:
   docman:
   epub_view:
+  flutter_rating:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

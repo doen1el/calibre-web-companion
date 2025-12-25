@@ -10,7 +10,7 @@ import 'package:calibre_web_companion/features/book_view/bloc/book_view_state.da
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
 import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
-import 'package:calibre_web_companion/shared/widgets/book_list_tile_skeleton_widget.dart'; // NEU: Import hinzufügen
+import 'package:calibre_web_companion/shared/widgets/book_list_tile_skeleton_widget.dart';
 import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:calibre_web_companion/shared/widgets/book_list_tile_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -159,8 +159,8 @@ class _BookViewPageState extends State<BookViewPage> {
                   final book = state.books[index];
                   return BookListTile(
                     book: book,
-                    onTap: () {
-                      Navigator.of(context).push(
+                    onTap: () async {
+                      final changed = await Navigator.of(context).push<bool>(
                         AppTransitions.createSlideRoute(
                           BookDetailsPage(
                             bookViewModel: book,
@@ -168,6 +168,12 @@ class _BookViewPageState extends State<BookViewPage> {
                           ),
                         ),
                       );
+
+                      if (!context.mounted) return;
+
+                      if (changed == true) {
+                        context.read<BookViewBloc>().add(const RefreshBooks());
+                      }
                     },
                   );
                 },
@@ -194,8 +200,8 @@ class _BookViewPageState extends State<BookViewPage> {
                     bookId: book.id.toString(),
                     title: book.title,
                     authors: book.authors,
-                    onTap: () {
-                      Navigator.of(context).push(
+                    onTap: () async {
+                      final changed = await Navigator.of(context).push<bool>(
                         AppTransitions.createSlideRoute(
                           BookDetailsPage(
                             bookViewModel: book,
@@ -203,6 +209,12 @@ class _BookViewPageState extends State<BookViewPage> {
                           ),
                         ),
                       );
+
+                      if (!context.mounted) return;
+
+                      if (changed == true) {
+                        context.read<BookViewBloc>().add(const RefreshBooks());
+                      }
                     },
                   );
                 },

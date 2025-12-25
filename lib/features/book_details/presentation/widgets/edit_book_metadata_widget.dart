@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:flutter_rating/flutter_rating.dart';
+import 'package:intl/intl.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
@@ -59,10 +61,6 @@ class EditBookMetadataWidget extends StatelessWidget {
                     localizations.metadataUpdateSuccessfully,
                     isError: false,
                   );
-
-                  context.read<BookDetailsBloc>().add(
-                    ReloadBookDetails(bookViewModel, bookViewModel.uuid),
-                  );
                 }
               },
       tooltip: localizations.editBookMetadata,
@@ -94,18 +92,29 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
   late TextEditingController _pubdateController;
   late TextEditingController _publisherController;
   late TextEditingController _languagesController;
-  late TextEditingController _ratingController;
+
+  double _currentRating = 0.0;
+  bool _isInitialized = false;
 
   Uint8List? _selectedCoverBytes;
   String? _selectedCoverName;
 
   @override
-  void initState() {
-    super.initState();
-    _initControllers();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      final localizations = AppLocalizations.of(context)!;
+      _initControllers(localizations);
+      _isInitialized = true;
+    }
   }
 
-  void _initControllers() {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _initControllers(AppLocalizations localizations) {
     _titleController = TextEditingController(text: widget.book.title);
     _authorsController = TextEditingController(text: widget.book.authors);
     _commentsController = TextEditingController(text: widget.book.comments);
@@ -115,12 +124,47 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
     _seriesIndexController = TextEditingController(
       text: widget.book.seriesIndex.toString(),
     );
-    _pubdateController = TextEditingController(text: widget.book.pubdate);
+
+    String formattedDate = '';
+    if (widget.book.pubdate.isNotEmpty) {
+      try {
+        final parsed = DateTime.parse(widget.book.pubdate);
+        formattedDate = DateFormat('yyyy-MM-dd').format(parsed);
+      } catch (e) {
+        formattedDate = widget.book.pubdate;
+      }
+    }
+    _pubdateController = TextEditingController(text: formattedDate);
+
     _publisherController = TextEditingController(text: widget.book.publishers);
-    _languagesController = TextEditingController(text: widget.book.languages);
-    _ratingController = TextEditingController(
-      text: (widget.book.rating / 2).toString(),
-    );
+
+    final langMap = _getLanguageMap(localizations);
+    final rawLangs =
+        widget.book.languages.split(',').map((e) => e.trim()).toList();
+    final displayLangs = rawLangs
+        .map((code) {
+          return langMap[code.toLowerCase()] ?? code;
+        })
+        .join(', ');
+
+    _languagesController = TextEditingController(text: displayLangs);
+
+    _currentRating = widget.book.rating / 2;
+  }
+
+  Map<String, String> _getLanguageMap(AppLocalizations localizations) {
+    return {
+      'eng': localizations.english,
+      'deu': localizations.german,
+      'fra': localizations.french,
+      'spa': localizations.spanish,
+      'ita': localizations.italian,
+      'jpn': localizations.japanese,
+      'rus': localizations.russian,
+      'por': localizations.portuguese,
+      'chi': localizations.chineese,
+      'nld': localizations.dutch,
+    };
   }
 
   @override
@@ -134,7 +178,6 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
     _pubdateController.dispose();
     _publisherController.dispose();
     _languagesController.dispose();
-    _ratingController.dispose();
     super.dispose();
   }
 
@@ -177,6 +220,10 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
                 child: Text(localizations.cancel),
               ),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      Theme.of(context).colorScheme.primaryContainer,
+                ),
                 onPressed:
                     isLoading
                         ? null
@@ -188,16 +235,12 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
                               authors: _authorsController.text,
                               comments: _commentsController.text,
                               tags: _tagsController.text,
-
                               series: _seriesController.text,
                               seriesIndex: _seriesIndexController.text,
                               pubdate: _pubdateController.text,
                               publisher: _publisherController.text,
                               languages: _languagesController.text,
-                              rating:
-                                  double.tryParse(_ratingController.text) ??
-                                  0.0,
-
+                              rating: _currentRating,
                               coverImageBytes: _selectedCoverBytes,
                               coverFileName: _selectedCoverName ?? 'cover.jpg',
                               bookDetails: widget.book,
@@ -211,7 +254,15 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                        : Text(localizations.save),
+                        : Text(
+                          localizations.save,
+                          style: TextStyle(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                          ),
+                        ),
               ),
             ],
           );
@@ -230,27 +281,21 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            localizations.bookCover,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-
           Center(
             child: Stack(
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
-                    width: MediaQuery.of(context).size.width * 0.6,
-                    height: 220,
+                    width: 140,
+                    height: 200,
                     color:
                         Theme.of(context).colorScheme.surfaceContainerHighest,
                     child:
                         _selectedCoverBytes != null
                             ? Image.memory(
                               _selectedCoverBytes!,
-                              fit: BoxFit.contain,
+                              fit: BoxFit.cover,
                             )
                             : _buildCoverImage(
                               context,
@@ -259,17 +304,17 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
                             ),
                   ),
                 ),
-
                 Positioned(
                   right: 8,
                   bottom: 8,
                   child: CircleAvatar(
                     backgroundColor:
                         Theme.of(context).colorScheme.primaryContainer,
-                    radius: 20,
+                    radius: 18,
                     child: IconButton(
                       icon: Icon(
                         Icons.edit,
+                        size: 18,
                         color: Theme.of(context).colorScheme.onPrimaryContainer,
                       ),
                       onPressed: isLoading ? null : _pickImage,
@@ -277,7 +322,6 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
                     ),
                   ),
                 ),
-
                 if (_selectedCoverBytes != null)
                   Positioned(
                     left: 8,
@@ -285,10 +329,11 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
                     child: CircleAvatar(
                       backgroundColor:
                           Theme.of(context).colorScheme.errorContainer,
-                      radius: 20,
+                      radius: 18,
                       child: IconButton(
                         icon: Icon(
                           Icons.delete,
+                          size: 18,
                           color: Theme.of(context).colorScheme.onErrorContainer,
                         ),
                         onPressed: isLoading ? null : _confirmCoverRemoval,
@@ -301,36 +346,20 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
           ),
           const SizedBox(height: 24),
 
-          TextFormField(
+          _buildStyledTextField(
             controller: _titleController,
-            decoration: InputDecoration(labelText: localizations.title),
+            label: localizations.title,
+            icon: Icons.title,
             enabled: !isLoading,
           ),
           const SizedBox(height: 16),
 
-          TextFormField(
+          _buildStyledTextField(
             controller: _authorsController,
-            decoration: InputDecoration(labelText: localizations.authors),
+            label: localizations.authors,
+            icon: Icons.person,
             enabled: !isLoading,
-          ),
-          const SizedBox(height: 16),
-
-          TextFormField(
-            controller: _commentsController,
-            decoration: InputDecoration(labelText: localizations.description),
-            minLines: 3,
-            maxLines: 5,
-            enabled: !isLoading,
-          ),
-          const SizedBox(height: 16),
-
-          TextFormField(
-            controller: _tagsController,
-            decoration: InputDecoration(
-              labelText: localizations.tags,
-              helperText: localizations.separateWithCommas,
-            ),
-            enabled: !isLoading,
+            helperText: localizations.separateWithAnd,
           ),
           const SizedBox(height: 16),
 
@@ -338,31 +367,33 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
             children: [
               Expanded(
                 flex: 2,
-                child: TextFormField(
+                child: _buildStyledTextField(
                   controller: _seriesController,
-                  decoration: InputDecoration(labelText: localizations.series),
+                  label: localizations.series,
+                  icon: Icons.collections_bookmark,
                   enabled: !isLoading,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 flex: 1,
-                child: TextFormField(
+                child: _buildStyledTextField(
                   controller: _seriesIndexController,
-                  decoration: const InputDecoration(labelText: '#'),
+                  label: '#',
+                  enabled: !isLoading,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  enabled: !isLoading,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
 
-          TextFormField(
+          _buildStyledTextField(
             controller: _publisherController,
-            decoration: InputDecoration(labelText: localizations.publisher),
+            label: localizations.publisher,
+            icon: Icons.business,
             enabled: !isLoading,
           ),
           const SizedBox(height: 16),
@@ -370,14 +401,13 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
           Row(
             children: [
               Expanded(
-                child: TextFormField(
+                child: _buildStyledTextField(
                   controller: _pubdateController,
-                  decoration: InputDecoration(
-                    labelText: localizations.published,
-                    hintText: 'YYYY-MM-DD',
-                    suffixIcon: const Icon(Icons.calendar_today),
-                  ),
+                  label: localizations.published,
+                  hint: 'YYYY-MM-DD',
+                  icon: Icons.calendar_today,
                   enabled: !isLoading,
+                  readOnly: true,
                   onTap: () async {
                     DateTime? pickedDate = await showDatePicker(
                       context: context,
@@ -395,13 +425,12 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
                   },
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
-                child: TextFormField(
+                child: _buildStyledTextField(
                   controller: _languagesController,
-                  decoration: InputDecoration(
-                    labelText: localizations.language,
-                  ),
+                  label: localizations.language,
+                  icon: Icons.language,
                   enabled: !isLoading,
                 ),
               ),
@@ -409,17 +438,86 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
           ),
           const SizedBox(height: 16),
 
-          TextFormField(
-            controller: _ratingController,
-            decoration: InputDecoration(
-              labelText: localizations.rating,
-              helperText: localizations.ratingOneToTen,
-            ),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          _buildStyledTextField(
+            controller: _tagsController,
+            label: localizations.tags,
+            icon: Icons.label,
+            helperText: localizations.separateWithCommas,
+            enabled: !isLoading,
+          ),
+          const SizedBox(height: 24),
+
+          Text(
+            localizations.rating,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          StarRating(
+            starCount: 5,
+            rating: _currentRating,
+            allowHalfRating: true,
+            color: Colors.amber,
+            borderColor: Theme.of(context).colorScheme.outline,
+            onRatingChanged:
+                (rating) => setState(() => _currentRating = rating),
+          ),
+
+          const SizedBox(height: 24),
+
+          _buildStyledTextField(
+            controller: _commentsController,
+            label: localizations.description,
+            icon: Icons.description,
+            minLines: 4,
+            maxLines: 8,
             enabled: !isLoading,
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStyledTextField({
+    required TextEditingController controller,
+    required String label,
+    IconData? icon,
+    String? hint,
+    String? helperText,
+    bool enabled = true,
+    bool readOnly = false,
+    int minLines = 1,
+    int maxLines = 1,
+    TextInputType? keyboardType,
+    VoidCallback? onTap,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        helperText: helperText,
+        prefixIcon: icon != null ? Icon(icon) : null,
+        border: const OutlineInputBorder(),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2,
+          ),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      enabled: enabled,
+      readOnly: readOnly,
+      minLines: minLines,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      onTap: onTap,
     );
   }
 
@@ -447,40 +545,10 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
           ),
     );
 
-    // TODO: Handle the case where the user deletes the cover image
     if (confirmed == true) {
       _clearSelectedCover();
-
       setState(() {});
     }
-  }
-
-  // TODO: Implement a placeholder widget for when no cover is available
-  Widget _buildPlaceholder(BuildContext context) {
-    return Container(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.book,
-              size: 64,
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: .5),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              AppLocalizations.of(context)!.noCover,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _pickImage() async {
@@ -527,21 +595,17 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
 
     return CachedNetworkImage(
       imageUrl: coverUrl,
-      height: 150,
-      fit: BoxFit.contain,
+      fit: BoxFit.cover,
       httpHeaders: {'Authorization': authHeader},
-
       placeholder:
           (context, url) => Container(
-            height: 150,
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
             child: const Center(child: CircularProgressIndicator()),
           ),
       errorWidget:
           (context, url, error) => Container(
-            height: 150,
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            child: const Icon(Icons.error),
+            child: const Icon(Icons.broken_image),
           ),
     );
   }

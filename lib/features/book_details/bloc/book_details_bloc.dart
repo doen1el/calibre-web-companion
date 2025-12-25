@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
 
@@ -109,6 +110,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           bookDetails: bookDetails,
           isBookRead: event.bookViewModel.readStatus,
           isBookArchived: event.bookViewModel.isArchived,
+          bookViewModel: event.bookViewModel,
         ),
       );
     } catch (e) {
@@ -425,20 +427,55 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         publisher: event.publisher,
         languages: event.languages,
         rating: event.rating,
-
         coverImageBytes: event.coverImageBytes,
         coverFileName: event.coverFileName,
       );
 
-      if (result) {
-        emit(state.copyWith(metadataUpdateState: MetadataUpdateState.success));
-      } else {
+      if (!result) {
         emit(
           state.copyWith(
             metadataUpdateState: MetadataUpdateState.error,
             errorMessage: 'Update failed',
           ),
         );
+        return;
+      }
+
+      final currentVm = state.bookViewModel;
+      final currentDetails = state.bookDetails;
+
+      BookViewModel? patchedVm;
+      if (currentVm != null) {
+        final parsedSeriesIndex =
+            int.tryParse(event.seriesIndex) ?? currentVm.seriesIndex;
+
+        patchedVm = currentVm.copyWith(
+          title: event.title,
+          authors: event.authors,
+          series: event.series,
+          seriesIndex: parsedSeriesIndex,
+          pubdate: event.pubdate,
+          publishers: event.publisher,
+          languages: event.languages,
+        );
+
+        logger.i(
+          'Patched ViewModel created. New Publisher: ${patchedVm.publishers}',
+        );
+
+        emit(state.copyWith(bookViewModel: patchedVm));
+      }
+
+      emit(state.copyWith(metadataUpdateState: MetadataUpdateState.success));
+
+      if (currentDetails != null) {
+        final vmForReload = patchedVm ?? currentVm;
+
+        if (vmForReload != null) {
+          add(ReloadBookDetails(vmForReload, currentDetails.uuid));
+        } else {
+          logger.w('Cannot reload book details: bookViewModel is null');
+        }
       }
     } catch (e) {
       emit(
