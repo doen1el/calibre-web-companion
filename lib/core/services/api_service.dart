@@ -68,7 +68,19 @@ class ApiService {
   Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
     _baseUrl = prefs.getString('base_url');
-    _cookie = prefs.getString('calibre_web_session');
+
+    final storedCookie =
+        prefs.getString('calibre_web_cookie') ??
+        prefs.getString('calibre_web_session');
+
+    if (storedCookie != null) {
+      final normalized = buildCookieHeaderFromSetCookie(storedCookie);
+      _cookie = normalized.isEmpty ? storedCookie : normalized;
+      await prefs.setString('calibre_web_cookie', _cookie!);
+    } else {
+      _cookie = null;
+    }
+
     _username = prefs.getString('username');
     _password = prefs.getString('password');
     _basePath = prefs.getString('base_path') ?? '';
@@ -100,6 +112,98 @@ class ApiService {
     _client = null;
     _httpClient = null;
     await initialize();
+  }
+
+  /// Build a Cookie header value from a Set-Cookie header string.
+  /// Extracts all cookie-name=cookie-value pairs and joins them with '; '.
+  String buildCookieHeaderFromSetCookie(String? setCookieHeader) {
+    if (setCookieHeader == null || setCookieHeader.isEmpty) return '';
+    final cookiePairs = <String>[];
+    final regex = RegExp(r'(?:(?:^|, )\s*)([^=;,\s]+)=([^;,]+)');
+    for (final match in regex.allMatches(setCookieHeader)) {
+      final name = match.group(1);
+      final value = match.group(2);
+      if (name != null && value != null) {
+        final lower = name.toLowerCase();
+        if (lower == 'path' ||
+            lower == 'expires' ||
+            lower == 'max-age' ||
+            lower == 'domain' ||
+            lower == 'secure' ||
+            lower == 'httponly' ||
+            lower == 'samesite') {
+          continue;
+        }
+        cookiePairs.add('$name=$value');
+      }
+    }
+    return cookiePairs.join('; ');
+  }
+
+  /// Merge two Cookie header strings, deduplicating by cookie name
+  String _mergeCookieHeaders(String existingCookie, String newCookie) {
+    if ((existingCookie).trim().isEmpty) return newCookie.trim();
+    if ((newCookie).trim().isEmpty) return existingCookie.trim();
+    final map = <String, String>{};
+    void addAll(String cookie) {
+      for (final part in cookie.split(';')) {
+        final kv = part.trim();
+        if (kv.isEmpty) continue;
+        final idx = kv.indexOf('=');
+        if (idx <= 0) continue;
+        final k = kv.substring(0, idx).trim();
+        final v = kv.substring(idx + 1).trim();
+        if (k.isEmpty) continue;
+        map[k] = v;
+      }
+    }
+
+    addAll(existingCookie);
+    addAll(newCookie);
+    return map.entries.map((e) => '${e.key}=${e.value}').join('; ');
+  }
+
+  /// Extract CSRF token from HTML using multiple fallback selectors
+  String? _extractCsrfFromHtml(String html, String preferredSelector) {
+    try {
+      final document = parser.parse(html);
+      final preferred = document.querySelector(preferredSelector);
+      if (preferred != null) {
+        final value = preferred.attributes['value'];
+        if (value != null && value.trim().isNotEmpty) return value.trim();
+      }
+      const selectors = [
+        'input[name="csrf_token"]',
+        'input[name="csrf-token"]',
+        'input[name="_csrf"]',
+        'meta[name="csrf-token"]',
+        'meta[name="_csrf"]',
+      ];
+      for (final sel in selectors) {
+        final el = document.querySelector(sel);
+        if (el != null) {
+          final value = el.attributes['content'] ?? el.attributes['value'];
+          if (value != null && value.trim().isNotEmpty) return value.trim();
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Parse a Cookie header string into a map
+  Map<String, String> _parseCookieHeader(String cookieHeader) {
+    final map = <String, String>{};
+    for (final part in cookieHeader.split(';')) {
+      final kv = part.trim();
+      if (kv.isEmpty) continue;
+      final idx = kv.indexOf('=');
+      if (idx <= 0) continue;
+      final k = kv.substring(0, idx).trim();
+      final v = kv.substring(idx + 1).trim();
+      if (k.isEmpty) continue;
+      map[k] = v;
+    }
+    return map;
   }
 
   /// Makes an authenticated GET request
@@ -228,6 +332,19 @@ class ApiService {
       try {
         final response = await _client!.get(uri, headers: headers);
         _logger.i('Response status: ${response.statusCode}');
+
+        if (response.headers.containsKey('set-cookie')) {
+          final prefs = await SharedPreferences.getInstance();
+          final newCookie = buildCookieHeaderFromSetCookie(
+            response.headers['set-cookie'],
+          );
+          final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+          if (merged.trim().isNotEmpty) {
+            await prefs.setString('calibre_web_cookie', merged);
+            _cookie = merged;
+          }
+        }
+
         _checkResponseStatus(statusCode: response.statusCode);
         return response;
       } catch (e) {
@@ -367,7 +484,7 @@ class ApiService {
       getHeaders.addAll(customHeaders);
       getHeaders['Accept'] = 'text/html,application/xhtml+xml,application/xml';
 
-      final getResponse = await _client!.get(uri, headers: getHeaders);
+      http.Response getResponse = await _client!.get(uri, headers: getHeaders);
       _logger.d(
         'GET response status for CSRF fetch: ${getResponse.statusCode}',
       );
@@ -381,41 +498,77 @@ class ApiService {
         );
       }
 
-      final document = parser.parse(getResponse.body);
-      final csrfElement = document.querySelector(csrfSelector);
-      final csrfToken = csrfElement?.attributes['value'];
+      String? csrfToken;
+      String? csrfHeaderName;
+
+      csrfToken = _extractCsrfFromHtml(getResponse.body, csrfSelector);
+
+      // If not found, try a fallback URL variations that may contain the token
+      if (csrfToken == null) {
+        // Try /login?next=/
+        final altUri = _buildUri(
+          endpoint: endpoint.isNotEmpty ? '$endpoint?next=/' : '/login?next=/',
+          queryParams: queryParams,
+        );
+        _logger.d('Retrying CSRF GET at: $altUri');
+        getResponse = await _client!.get(altUri, headers: getHeaders);
+        if (getResponse.statusCode == 200) {
+          csrfToken = _extractCsrfFromHtml(getResponse.body, csrfSelector);
+        }
+      }
+
+      // If still not found, try root page
+      if (csrfToken == null) {
+        final rootUri = _buildUri(endpoint: '/', queryParams: {});
+        _logger.d('Retrying CSRF GET at root: $rootUri');
+        getResponse = await _client!.get(rootUri, headers: getHeaders);
+        if (getResponse.statusCode == 200) {
+          csrfToken = _extractCsrfFromHtml(getResponse.body, csrfSelector);
+        }
+      }
+
+      // If still not found, try from cookies commonly used for CSRF
+      if (csrfToken == null) {
+        final setCookieHeader = getResponse.headers['set-cookie'];
+        final cookieHeader = buildCookieHeaderFromSetCookie(setCookieHeader);
+        final cookieMap = _parseCookieHeader(cookieHeader);
+        final candidates = [
+          'csrftoken', // Django
+          'csrf_token', // Flask variants
+          'XSRF-TOKEN', // Angular convention
+          'xsrf-token',
+        ];
+        for (final name in candidates) {
+          if (cookieMap.containsKey(name)) {
+            csrfToken = cookieMap[name];
+            if (name.toLowerCase().contains('xsrf')) {
+              csrfHeaderName = 'X-XSRF-TOKEN';
+            } else {
+              csrfHeaderName = 'X-CSRFToken';
+            }
+            break;
+          }
+        }
+      }
 
       if (csrfToken == null) {
         _logger.e('Could not find CSRF token using selector: $csrfSelector');
         throw Exception('CSRF token not found');
       }
 
-      final cookies =
-          (getHeaders['Cookie'] ?? '')
-              .split(';')
-              .map((c) => c.trim())
-              .where((c) => c.isNotEmpty)
-              .toList();
-
+      // Merge any existing cookie with new cookies from CSRF GET response
+      String sessionCookie = _cookie ?? '';
       if (getResponse.headers.containsKey('set-cookie')) {
-        final setCookieHeader = getResponse.headers['set-cookie']!;
-        final sessionMatch = RegExp(
-          r'(session=[^;]+)',
-        ).firstMatch(setCookieHeader);
-        if (sessionMatch != null) {
-          final newSessionCookie = sessionMatch.group(1)!;
-          cookies.removeWhere((c) => c.startsWith('session='));
-          cookies.add(newSessionCookie);
-        }
+        final setCookieHeader = getResponse.headers['set-cookie'];
+        final newCookie = buildCookieHeaderFromSetCookie(setCookieHeader);
+        sessionCookie = _mergeCookieHeaders(sessionCookie, newCookie);
       }
-
-      final combinedCookieHeader = cookies.join('; ');
 
       if (files != null && files.isNotEmpty) {
         final request = http.MultipartRequest('POST', uri);
 
-        request.headers['Cookie'] = combinedCookieHeader;
-        request.headers['X-CSRFToken'] = csrfToken;
+        request.headers['Cookie'] = sessionCookie;
+        request.headers[csrfHeaderName ?? 'X-CSRFToken'] = csrfToken;
         request.headers['X-Requested-With'] = 'XMLHttpRequest';
         request.headers['Referer'] = uri.toString();
         request.headers['Origin'] =
@@ -446,6 +599,19 @@ class ApiService {
           final streamedResponse = await request.send();
           final response = await http.Response.fromStream(streamedResponse);
           _logger.i('Multipart POST response status: ${response.statusCode}');
+
+          if (response.headers.containsKey('set-cookie')) {
+            final prefs = await SharedPreferences.getInstance();
+            final newCookie = buildCookieHeaderFromSetCookie(
+              response.headers['set-cookie'],
+            );
+            final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+            if (merged.trim().isNotEmpty) {
+              await prefs.setString('calibre_web_cookie', merged);
+              _cookie = merged;
+            }
+          }
+
           _checkResponseStatus(statusCode: response.statusCode);
           return response;
         } catch (e) {
@@ -455,8 +621,8 @@ class ApiService {
       } else {
         final postHeaders = {
           'Content-Type': contentType,
-          'Cookie': combinedCookieHeader,
-          'X-CSRFToken': csrfToken,
+          'Cookie': sessionCookie,
+          (csrfHeaderName ?? 'X-CSRFToken'): csrfToken,
           'X-Requested-With': 'XMLHttpRequest',
           'Referer': uri.toString(),
           'Origin':
@@ -499,6 +665,19 @@ class ApiService {
           _logger.i(
             'CSRF-protected POST response status: ${response.statusCode}',
           );
+
+          if (response.headers.containsKey('set-cookie')) {
+            final prefs = await SharedPreferences.getInstance();
+            final newCookie = buildCookieHeaderFromSetCookie(
+              response.headers['set-cookie'],
+            );
+            final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+            if (merged.trim().isNotEmpty) {
+              await prefs.setString('calibre_web_cookie', merged);
+              _cookie = merged;
+            }
+          }
+
           _checkResponseStatus(statusCode: response.statusCode);
           return response;
         } catch (e) {
@@ -530,6 +709,19 @@ class ApiService {
           final streamedResponse = await request.send();
           final response = await http.Response.fromStream(streamedResponse);
           _logger.i('Multipart POST response status: ${response.statusCode}');
+
+          if (response.headers.containsKey('set-cookie')) {
+            final prefs = await SharedPreferences.getInstance();
+            final newCookie = buildCookieHeaderFromSetCookie(
+              response.headers['set-cookie'],
+            );
+            final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+            if (merged.trim().isNotEmpty) {
+              await prefs.setString('calibre_web_cookie', merged);
+              _cookie = merged;
+            }
+          }
+
           _checkResponseStatus(statusCode: response.statusCode);
           return response;
         } catch (e) {
@@ -553,6 +745,19 @@ class ApiService {
             body: encodedBody ?? "",
           );
           _logger.i('POST response status: ${response.statusCode}');
+
+          if (response.headers.containsKey('set-cookie')) {
+            final prefs = await SharedPreferences.getInstance();
+            final newCookie = buildCookieHeaderFromSetCookie(
+              response.headers['set-cookie'],
+            );
+            final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+            if (merged.trim().isNotEmpty) {
+              await prefs.setString('calibre_web_cookie', merged);
+              _cookie = merged;
+            }
+          }
+
           _checkResponseStatus(statusCode: response.statusCode);
           return response;
         } catch (e) {

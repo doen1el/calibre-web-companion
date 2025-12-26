@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_bloc.dart';
@@ -493,41 +494,97 @@ class ShelfDetailsPage extends StatelessWidget {
   }
 
   Widget _buildCoverImage(BuildContext context, String bookId) {
-    ApiService apiService = ApiService();
+    final apiService = ApiService();
     final baseUrl = apiService.getBaseUrl();
-    final username = apiService.getUsername();
-    final password = apiService.getPassword();
-
-    final authHeader =
-        'Basic ${base64.encode(utf8.encode('$username:$password'))}';
     final coverUrl = '$baseUrl/opds/cover/$bookId';
 
-    return CachedNetworkImage(
-      imageUrl: coverUrl,
-      httpHeaders: {'Authorization': authHeader},
-      fit: BoxFit.cover,
-      width: double.infinity,
-      placeholder:
-          (context, url) => Container(
-            color: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
-            child: Skeletonizer(
-              enabled: true,
-              effect: ShimmerEffect(
-                baseColor: Theme.of(
+    return FutureBuilder<Map<String, String>>(
+      future: () async {
+        final headers = <String, String>{};
+
+        final cookieHeaders = apiService.getAuthHeaders(
+          authMethod: AuthMethod.cookie,
+        );
+        if (cookieHeaders.containsKey('Cookie')) {
+          headers['Cookie'] = cookieHeaders['Cookie']!;
+        }
+
+        final username = apiService.getUsername();
+        final password = apiService.getPassword();
+        if (username.isNotEmpty && password.isNotEmpty) {
+          headers['Authorization'] =
+              'Basic ${base64.encode(utf8.encode('$username:$password'))}';
+        }
+
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final headersJson = prefs.getString('custom_login_headers') ?? '[]';
+          final List<dynamic> decodedList = jsonDecode(headersJson);
+
+          for (final dynamic item in decodedList) {
+            if (item is Map) {
+              final map = Map<String, dynamic>.from(item);
+              String? key = map['key']?.toString();
+              String? value = map['value']?.toString();
+
+              if (key == null && map.isNotEmpty) {
+                key = map.keys.first;
+                value = map.values.first;
+              }
+
+              if (key != null && value != null) {
+                if (value.contains('\${USERNAME}') && username.isNotEmpty) {
+                  value = value.replaceAll('\${USERNAME}', username);
+                }
+                headers[key] = value;
+              }
+            }
+          }
+        } catch (e) {
+          // Error loading custom headers; proceed without them
+        }
+
+        headers['Accept'] =
+            'image/avif;q=0,image/webp;q=0,image/jpeg,image/png,*/*;q=0.5';
+        headers['Cache-Control'] = 'no-transform';
+        return headers;
+      }(),
+      builder: (context, snapshot) {
+        final headers = snapshot.data ?? const <String, String>{};
+        return CachedNetworkImage(
+          imageUrl: coverUrl,
+          httpHeaders: headers,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          placeholder:
+              (context, url) => Container(
+                color: Theme.of(
                   context,
-                ).colorScheme.primary.withValues(alpha: .2),
-                highlightColor: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: .4),
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
+                child: Skeletonizer(
+                  enabled: true,
+                  effect: ShimmerEffect(
+                    baseColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: .2),
+                    highlightColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: .4),
+                  ),
+                  child: const SizedBox(),
+                ),
               ),
-              child: SizedBox(),
-            ),
-          ),
-      errorWidget: (context, url, error) => const SizedBox(),
-      memCacheWidth: 300,
-      memCacheHeight: 400,
+          errorWidget:
+              (context, url, error) => Image.network(
+                coverUrl,
+                headers: headers,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stack) => const SizedBox(),
+              ),
+          memCacheWidth: 300,
+          memCacheHeight: 400,
+        );
+      },
     );
   }
 }
