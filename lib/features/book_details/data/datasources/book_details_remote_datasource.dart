@@ -200,17 +200,20 @@ class BookDetailsRemoteDatasource {
     try {
       final body = {'query': query};
 
-      for (var id in activeProviderIds) {
-        body[id] = 'on';
-      }
+      // for (var id in activeProviderIds) {
+      //   body[id] = 'on';
+      // }
 
       final response = await apiService.post(
         endpoint: '/metadata/search',
         body: body,
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfOnlyInHeader: true,
         contentType: 'application/x-www-form-urlencoded',
       );
+
+      logger.i(response.body);
 
       if (response.statusCode == 200) {
         logger.i(response.body);

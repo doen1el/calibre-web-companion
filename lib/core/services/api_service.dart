@@ -287,6 +287,7 @@ class ApiService {
   /// - `authMethod`: The authentication method to use
   /// - `contentType`: The content type of the request
   /// - `useCsrf`: Whether to fetch and include CSRF token
+  /// - `csrfOnlyInHeader`: If true, CSRF token is only sent in headers, not in body
   /// - `csrfSelector`: CSS selector for the CSRF token input field
   /// - `files`: Optional list of files to upload as multipart/form-data
   /// - `followRedirects`: If false, will throw a [RedirectException] on 301/302 status codes.
@@ -298,6 +299,7 @@ class ApiService {
     String contentType = 'application/json',
     bool useCsrf = false,
     String csrfSelector = 'input[name="csrf_token"]',
+    bool csrfOnlyInHeader = false,
     List<http.MultipartFile>? files,
     bool followRedirects = true,
   }) async {
@@ -429,8 +431,9 @@ class ApiService {
           });
         }
 
-        request.fields['csrf_token'] = csrfToken;
-
+        if (!csrfOnlyInHeader) {
+          request.fields['csrf_token'] = csrfToken;
+        }
         request.files.addAll(files);
 
         _logger.d('Multipart POST request headers: ${request.headers}');
@@ -461,7 +464,7 @@ class ApiService {
         };
         postHeaders.addAll(customHeaders);
 
-        Map<String, dynamic> finalBody;
+        Map<String, dynamic> finalBody = {};
         if (body is Map) {
           if (body is Map<String, dynamic>) {
             finalBody = Map<String, dynamic>.from(body);
@@ -470,9 +473,13 @@ class ApiService {
               body.map((key, value) => MapEntry(key.toString(), value)),
             );
           }
-          finalBody['csrf_token'] = csrfToken;
+          if (!csrfOnlyInHeader) {
+            finalBody['csrf_token'] = csrfToken;
+          }
         } else {
-          finalBody = {'csrf_token': csrfToken};
+          if (!csrfOnlyInHeader) {
+            finalBody = {'csrf_token': csrfToken};
+          }
         }
 
         final encodedBody = _encodeBody(

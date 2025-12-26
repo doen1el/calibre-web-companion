@@ -43,7 +43,27 @@ class LoginRepository {
   }
 
   Future<bool> isLoggedIn() async {
-    return dataSource.canAccessWebsite();
+    final isSessionValid = await dataSource.canAccessWebsite();
+    if (isSessionValid) {
+      return true;
+    }
+
+    logger.i('Session invalid or expired. Attempting auto-relogin...');
+
+    try {
+      final credentials = await dataSource.getStoredCredentials();
+
+      if (credentials != null) {
+        await dataSource.login(credentials);
+
+        logger.i('Auto-relogin successful');
+        return true;
+      }
+    } catch (e) {
+      logger.w('Auto-relogin failed: $e');
+    }
+
+    return false;
   }
 
   Future<LoginCredentials?> getStoredCredentials() async {
