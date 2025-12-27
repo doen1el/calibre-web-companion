@@ -65,6 +65,14 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
     <img src="docs/feature_graphics/6.png" alt="OpenTracks" width="32%" />
 </p>
 
+## 🌍 l10n
+
+You can help translate Calibre Web Companion on [Weblate](https://hosted.weblate.org/projects/calibre-web-companion/app/).
+
+<a href="https://hosted.weblate.org/engage/calibre-web-companion/">
+<img src="https://hosted.weblate.org/widget/calibre-web-companion/app/multi-auto.svg" alt="Translation status" />
+</a>
+
 ## 🚀 Contributing
 
 You can of course open issues for bugs, feedback, and feature ideas. All suggestions are very welcome :)
@@ -79,7 +87,7 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 - [x] Add and remove from shelfs
 - [x] Code refactoring
 - [x] Better error handling
-- [ ] Integrate [Weblate](https://hosted.weblate.org/) for translations
+- [x] Integrate [Weblate](https://hosted.weblate.org/) for translations
 - [ ] Integrate a book recommendation system.
 - [ ] Add API and widget tests using [flutter_test](https://docs.flutter.dev/testing/overview)
 
