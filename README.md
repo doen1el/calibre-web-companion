@@ -14,6 +14,9 @@
     <a href="https://github.com/doen1el/calibre-web-companion/actions?query=workflow%3ABuild+branch%3Adev">
         <img src="https://img.shields.io/github/actions/workflow/status/doen1el/calibre-web-companion/main.yml?branch=dev" alt="GitHub Workflow Status">
     </a>
+    <a href="https://hosted.weblate.org/engage/calibre-web-companion/">
+        <img src="https://hosted.weblate.org/widget/calibre-web-companion/svg-badge.svg" alt="Translation status" />
+    </a>
 </p>
 
 # Calibre Web Companion
