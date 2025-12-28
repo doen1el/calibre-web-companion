@@ -23,8 +23,12 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
     LoadShelves event,
     Emitter<ShelfViewState> emit,
   ) async {
-    emit(state.copyWith(createShelfStatus: CreateShelfStatus.initial));
-    emit(state.copyWith(status: ShelfViewStatus.loading));
+    emit(
+      state.copyWith(
+        createShelfStatus: CreateShelfStatus.initial,
+        status: ShelfViewStatus.loading,
+      ),
+    );
 
     try {
       final shelves = await repository.loadShelves();

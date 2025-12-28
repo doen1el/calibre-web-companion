@@ -91,8 +91,6 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 - [x] Code refactoring
 - [x] Better error handling
 - [x] Integrate [Weblate](https://hosted.weblate.org/) for translations
-- [ ] Integrate a book recommendation system.
-- [ ] Add API and widget tests using [flutter_test](https://docs.flutter.dev/testing/overview)
 
 ## 📜 Credits
 

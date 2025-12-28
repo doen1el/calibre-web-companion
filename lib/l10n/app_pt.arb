@@ -323,5 +323,22 @@
   "loginWithSSO": "Entrar com SSO",
   "pleaseEnterSSOUrl": "Por favor, insira a URL do SSO",
   "openInInternalReader": "Abrir no Leitor Interno",
-  "errorOpeningBookInInternalReader": "Erro ao abrir livro no leitor interno"
+  "errorOpeningBookInInternalReader": "Erro ao abrir livro no leitor interno",
+  "readNow": "Ler agora",
+  "showReadNowButton": "Mostrar botão 'Ler agora'",
+  "showReadNowButtonDescription": "Substitui o botão 'Enviar para E-Reader' por um botão 'Ler agora' para abrir livros diretamente.",
+  "bookDetails": "Detalhes do livro",
+  "applyFilters": "Aplicar filtros",
+  "any": "Qualquer",
+  "contentType": "Tipo de conteúdo",
+  "author": "Autor",
+  "reset": "Redefinir",
+  "searchFilters": "Filtros de pesquisa",
+  "bookFiction": "Livro (Ficção)",
+  "bookNonFiction": "Livro (Não ficção)",
+  "magazine": "Revista",
+  "comic": "Quadrinho",
+  "audiobook": "Audiolivro",
+  "sectionDisabledOrNotFound": "Seção indisponível",
+  "sectionDisabledDescription": "Esta seção parece estar desativada nas configurações do seu servidor Calibre-Web ou não existe."
 }

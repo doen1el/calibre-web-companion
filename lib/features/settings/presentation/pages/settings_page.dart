@@ -231,7 +231,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       (value) => context.read<SettingsBloc>().add(
                         SetDownloaderEnabled(value),
                       ),
-                  activeColor: Theme.of(context).colorScheme.primary,
+                  activeThumbColor: Theme.of(context).colorScheme.primary,
                 ),
               ],
             ),
@@ -306,7 +306,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       (value) => context.read<SettingsBloc>().add(
                         SetCostumSend2EreaderEnabled(value),
                       ),
-                  activeColor: Theme.of(context).colorScheme.primary,
+                  activeThumbColor: Theme.of(context).colorScheme.primary,
                 ),
               ],
             ),
@@ -399,6 +399,7 @@ class _SettingsPageState extends State<SettingsPage> {
       {'code': 'de', 'name': 'Deutsch', 'flag': '🇩🇪'},
       {'code': 'fr', 'name': 'Français', 'flag': '🇫🇷'},
       {'code': 'es', 'name': 'Español', 'flag': '🇪🇸'},
+      {'code': 'pt', 'name': 'Português', 'flag': '🇵🇹'},
     ];
 
     return Card(
@@ -440,7 +441,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   vertical: 8,
                 ),
               ),
-              value: state.languageCode,
+              initialValue: state.languageCode,
               icon: const Icon(Icons.arrow_drop_down),
               elevation: 16,
               style: TextStyle(
@@ -551,7 +552,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       SetShowReadNowButton(value),
                     );
                   },
-                  activeColor: Theme.of(context).colorScheme.primary,
+                  activeThumbColor: Theme.of(context).colorScheme.primary,
                 ),
               ],
             ),
