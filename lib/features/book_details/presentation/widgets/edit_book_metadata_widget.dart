@@ -40,11 +40,8 @@ class EditBookMetadataWidget extends StatelessWidget {
 
     return IconButton(
       icon: CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        child: Icon(
-          Icons.edit,
-          color: Theme.of(context).colorScheme.onPrimaryContainer,
-        ),
+        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+        child: Icon(Icons.edit),
       ),
       onPressed:
           isLoading
