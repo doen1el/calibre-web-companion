@@ -909,14 +909,18 @@ class ApiService {
     Map<String, String> processedHeaders = {};
 
     for (var header in customHeaders) {
-      String key = header.keys.first;
-      String value = header.values.first;
+      String? headerName = header['key'];
+      String? headerValue = header['value'];
 
-      if (value.contains('\${USERNAME}') && _username != null) {
-        value = value.replaceAll('\${USERNAME}', _username!);
+      if (headerName == null || headerValue == null) {
+        continue;
       }
 
-      processedHeaders[key] = value;
+      if (headerValue.contains('\${USERNAME}') && _username != null) {
+        headerValue = headerValue.replaceAll('\${USERNAME}', _username!);
+      }
+
+      processedHeaders[headerName] = headerValue;
     }
 
     return processedHeaders;
