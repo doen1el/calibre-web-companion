@@ -11,12 +11,17 @@ abstract class ShelfDetailsEvent extends Equatable {
 
 class LoadShelfDetails extends ShelfDetailsEvent {
   final String shelfId;
+  final String shelfTitle;
   final bool isPublic;
 
-  const LoadShelfDetails(this.shelfId, {this.isPublic = false});
+  const LoadShelfDetails(
+    this.shelfId, {
+    required this.shelfTitle,
+    this.isPublic = false,
+  });
 
   @override
-  List<Object?> get props => [shelfId, isPublic];
+  List<Object?> get props => [shelfId, shelfTitle, isPublic];
 }
 
 class RemoveFromShelf extends ShelfDetailsEvent {

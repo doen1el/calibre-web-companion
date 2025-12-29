@@ -28,29 +28,46 @@ class SendToEreaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
 
-    return BlocBuilder<SettingsBloc, SettingsState>(
-      builder: (context, settingsState) {
-        final bool showReadNow = settingsState.showReadNowButton;
+    return BlocBuilder<BookDetailsBloc, BookDetailsState>(
+      builder: (context, bookDetailsState) {
+        return BlocBuilder<SettingsBloc, SettingsState>(
+          builder: (context, settingsState) {
+            final bool showReadNow = settingsState.showReadNowButton;
 
-        if (showReadNow) {
-          return FloatingActionButton.extended(
-            onPressed:
-                isLoading
-                    ? null
-                    : () =>
-                        _handleReadNow(context, localizations, settingsState),
-            icon: const Icon(Icons.open_in_new_rounded),
-            label: Text(localizations.readNow),
-          );
-        }
+            final bool isOpeningReader =
+                bookDetailsState.openInReaderState == OpenInReaderState.loading;
 
-        return FloatingActionButton.extended(
-          onPressed:
-              isLoading
-                  ? null
-                  : () => _showSendToReaderDialog(context, localizations),
-          icon: const Icon(Icons.send),
-          label: Text(localizations.sendToEReader),
+            if (showReadNow) {
+              return FloatingActionButton.extended(
+                onPressed:
+                    (isLoading || isOpeningReader)
+                        ? null
+                        : () => _handleReadNow(
+                          context,
+                          localizations,
+                          settingsState,
+                        ),
+                icon:
+                    isOpeningReader
+                        ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        )
+                        : const Icon(Icons.open_in_new_rounded),
+                label: Text(localizations.readNow),
+              );
+            }
+
+            return FloatingActionButton.extended(
+              onPressed:
+                  isLoading
+                      ? null
+                      : () => _showSendToReaderDialog(context, localizations),
+              icon: const Icon(Icons.send),
+              label: Text(localizations.sendToEReader),
+            );
+          },
         );
       },
     );

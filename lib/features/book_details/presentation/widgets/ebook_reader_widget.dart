@@ -99,7 +99,7 @@ class _EbookReaderWidgetState extends State<EbookReaderWidget> {
         onDocumentError: (error) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Fehler beim Laden des Buches: $error'),
+              content: Text('Error while loading the book: $error'),
               backgroundColor: Colors.red,
             ),
           );

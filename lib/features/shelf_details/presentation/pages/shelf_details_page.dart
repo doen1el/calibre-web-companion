@@ -24,11 +24,13 @@ import 'package:calibre_web_companion/features/book_view/data/models/book_view_m
 
 class ShelfDetailsPage extends StatelessWidget {
   final String shelfId;
+  final String shelfTitle;
   final bool isPublic;
 
   const ShelfDetailsPage({
     super.key,
     required this.shelfId,
+    required this.shelfTitle,
     required this.isPublic,
   });
 
@@ -39,8 +41,13 @@ class ShelfDetailsPage extends StatelessWidget {
     return BlocProvider(
       create:
           (context) =>
-              getIt<ShelfDetailsBloc>()
-                ..add(LoadShelfDetails(shelfId, isPublic: isPublic)),
+              getIt<ShelfDetailsBloc>()..add(
+                LoadShelfDetails(
+                  shelfId,
+                  shelfTitle: shelfTitle,
+                  isPublic: isPublic,
+                ),
+              ),
       child: BlocConsumer<ShelfDetailsBloc, ShelfDetailsState>(
         listener: (context, state) {
           if (state.actionDetailsStatus == ShelfDetailsActionStatus.success) {
@@ -63,11 +70,16 @@ class ShelfDetailsPage extends StatelessWidget {
         builder: (context, state) {
           final shelf = state.currentShelfDetail;
           final bool showPublic = shelf?.isPublic ?? isPublic;
-          final String title = shelf?.name ?? localizations.loading;
+
+          String displayTitle = shelf?.name ?? shelfTitle;
+
+          if (displayTitle.endsWith(' (Public)')) {
+            displayTitle = displayTitle.substring(0, displayTitle.length - 9);
+          }
 
           return Scaffold(
             appBar: AppBar(
-              title: Text(showPublic ? "$title (Public)" : title),
+              title: Text(showPublic ? "$displayTitle (Public)" : displayTitle),
               actions: [
                 IconButton(
                   icon: CircleAvatar(
@@ -77,7 +89,12 @@ class ShelfDetailsPage extends StatelessWidget {
                   ),
                   tooltip: localizations.editShelf,
                   onPressed:
-                      () => _showEditShelfDialog(context, state, localizations),
+                      () => _showEditShelfDialog(
+                        context,
+                        state,
+                        localizations,
+                        displayTitle,
+                      ),
                 ),
                 IconButton(
                   icon: CircleAvatar(
@@ -159,7 +176,9 @@ class ShelfDetailsPage extends StatelessWidget {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<ShelfDetailsBloc>().add(LoadShelfDetails(shelfId));
+        context.read<ShelfDetailsBloc>().add(
+          LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
+        );
       },
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -184,7 +203,7 @@ class ShelfDetailsPage extends StatelessWidget {
                 ElevatedButton(
                   onPressed:
                       () => context.read<ShelfDetailsBloc>().add(
-                        LoadShelfDetails(shelfId),
+                        LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
                       ),
                   child: Text(localizations.tryAgain),
                 ),
@@ -202,7 +221,9 @@ class ShelfDetailsPage extends StatelessWidget {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<ShelfDetailsBloc>().add(LoadShelfDetails(shelfId));
+        context.read<ShelfDetailsBloc>().add(
+          LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
+        );
       },
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -235,7 +256,9 @@ class ShelfDetailsPage extends StatelessWidget {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<ShelfDetailsBloc>().add(LoadShelfDetails(shelfId));
+        context.read<ShelfDetailsBloc>().add(
+          LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
+        );
       },
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -284,7 +307,9 @@ class ShelfDetailsPage extends StatelessWidget {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<ShelfDetailsBloc>().add(LoadShelfDetails(shelfId));
+        context.read<ShelfDetailsBloc>().add(
+          LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
+        );
       },
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -424,6 +449,7 @@ class ShelfDetailsPage extends StatelessWidget {
     BuildContext context,
     ShelfDetailsState state,
     AppLocalizations localizations,
+    String cleanTitle,
   ) {
     if (state.currentShelfDetail == null) return;
 
@@ -431,7 +457,7 @@ class ShelfDetailsPage extends StatelessWidget {
       context: context,
       builder:
           (dialogContext) => EditShelfDialog(
-            currentName: state.currentShelfDetail!.name,
+            currentName: cleanTitle,
             isPublic: state.currentShelfDetail!.isPublic,
             onEditShelf: (newName, isPublic) {
               context.read<ShelfDetailsBloc>().add(

@@ -183,25 +183,30 @@ class ShelfViewPage extends StatelessWidget {
             leading: const Icon(Icons.list_rounded),
             title: Text(shelf.title),
             trailing: const Icon(Icons.chevron_right_rounded),
-            onTap:
-                () => Navigator.of(context).push(
-                  AppTransitions.createSlideRoute(
-                    MultiBlocProvider(
-                      providers: [
-                        BlocProvider.value(
-                          value: context.read<ShelfViewBloc>(),
-                        ),
-                        BlocProvider(
-                          create: (context) => getIt<ShelfDetailsBloc>(),
-                        ),
-                      ],
-                      child: ShelfDetailsPage(
-                        shelfId: shelf.id,
-                        isPublic: shelf.isPublic,
+            onTap: () {
+              String cleanTitle = shelf.title;
+              if (shelf.isPublic && cleanTitle.endsWith(' (Public)')) {
+                cleanTitle = cleanTitle.substring(0, cleanTitle.length - 9);
+              }
+
+              Navigator.of(context).push(
+                AppTransitions.createSlideRoute(
+                  MultiBlocProvider(
+                    providers: [
+                      BlocProvider.value(value: context.read<ShelfViewBloc>()),
+                      BlocProvider(
+                        create: (context) => getIt<ShelfDetailsBloc>(),
                       ),
+                    ],
+                    child: ShelfDetailsPage(
+                      shelfId: shelf.id,
+                      shelfTitle: cleanTitle,
+                      isPublic: shelf.isPublic,
                     ),
                   ),
                 ),
+              );
+            },
           ),
         );
       },

@@ -1,0 +1,20 @@
+- Login credentials are now persisted across app restarts, and the app will attempt to automatically log in when the session expires.
+- More filetypes are now allowed when uploading books.
+- Ability to create public/non-public shelves.
+- Fixed a bug that occurred when there was only one shelf.
+- Series are now shown correctly in book details.
+- Updated build pipeline to support other APK types, iOS build and publishing to Play Store.
+- Fixed a problem when downloading books with multiple formats.
+- Calibre-Web-Automated-Book-Downloader integration updated to latest version.
+- HTML elements have been removed from book comments.
+- Added alphabetical sorting on the Discover page.
+- Added the ability to change 'Send to E-Reader' to 'Read Now'.
+- Added a list view to the home page.
+- Optimised loading of books from shelves and the Discover page.
+- Implemented the ability to change book metadata.
+- Implemented the ability to change book covers.
+- Added better feedback if a Discover category is disabled.
+- Enhanced custom header functionality.
+- Weblate translation support added.
+- Portuguese translation added.
+- Minor bug fixes

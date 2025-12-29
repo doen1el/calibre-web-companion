@@ -53,6 +53,8 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         event.bookUuid,
       );
 
+      logger.i(bookDetails.tags);
+
       emit(
         state.copyWith(
           status: BookDetailsStatus.loaded,
@@ -79,12 +81,15 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
   ) {
     emit(
       state.copyWith(
-        openInReaderState: OpenInReaderState.initial,
-        downloadState: DownloadState.initial,
-        sendToEReaderState: SendToEReaderState.initial,
-        metadataUpdateState: MetadataUpdateState.initial,
         readStatusState: ReadStatusState.initial,
         archiveStatusState: ArchiveStatusState.initial,
+        openInReaderState: OpenInReaderState.initial,
+        openInInternalReaderState: OpenInInternalReaderState.initial,
+        metadataUpdateState: MetadataUpdateState.initial,
+        sendToEReaderState: SendToEReaderState.initial,
+        seriesNavigationStatus: SeriesNavigationStatus.initial,
+        errorMessage: null,
+        downloadErrorMessage: null,
       ),
     );
   }

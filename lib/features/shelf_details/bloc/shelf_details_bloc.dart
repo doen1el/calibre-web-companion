@@ -29,6 +29,7 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
       final result = await repository.getShelfDetails(event.shelfId);
 
       final mergedResult = result.copyWith(
+        name: event.shelfTitle,
         isPublic: result.isPublic || event.isPublic,
       );
 
@@ -118,7 +119,14 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
           ),
         );
 
-        shelfViewBloc.add(EditShelfState(event.shelfId, event.newShelfName));
+        // Hier isPublic mit übergeben
+        shelfViewBloc.add(
+          EditShelfState(
+            event.shelfId,
+            event.newShelfName,
+            isPublic: event.isPublic,
+          ),
+        );
       } else {
         emit(
           state.copyWith(

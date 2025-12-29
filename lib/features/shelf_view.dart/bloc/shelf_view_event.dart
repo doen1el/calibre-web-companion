@@ -38,7 +38,7 @@ class EditShelfState extends ShelfViewEvent {
   const EditShelfState(
     this.shelfId,
     this.newShelfName, {
-    this.isPublic = false,
+    required this.isPublic,
   });
 
   @override

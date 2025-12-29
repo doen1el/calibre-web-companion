@@ -373,7 +373,7 @@ class BookDetailsRemoteDatasource {
           break;
       }
 
-      final existingFile = await targetDir.find(fileName);
+      final existingFile = await targetDir.find(fileName.replaceAll(' ', '_'));
 
       if (existingFile != null && existingFile.isFile) {
         logger.w('File already exists: $fileName');

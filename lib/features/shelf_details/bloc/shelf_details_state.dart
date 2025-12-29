@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
-enum ShelfDetailsStatus { initial, loading, loaded, error, success }
+enum ShelfDetailsStatus { initial, loading, loaded, error }
 
 enum ShelfDetailsActionStatus { initial, loading, success, error }
 

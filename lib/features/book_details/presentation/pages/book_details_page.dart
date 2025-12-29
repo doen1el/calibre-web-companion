@@ -144,6 +144,8 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
             if (state.openInInternalReaderState ==
                     OpenInInternalReaderState.success &&
                 state.downloadFilePath != null) {
+              context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
+
               _openInternalReader(
                 context,
                 state.downloadFilePath!,
@@ -193,6 +195,9 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                   previous.bookDetails != current.bookDetails ||
                   previous.isBookRead != current.isBookRead ||
                   previous.isBookArchived != current.isBookArchived ||
+                  previous.openInReaderState != current.openInReaderState ||
+                  previous.openInInternalReaderState !=
+                      current.openInInternalReaderState ||
                   previous.metadataUpdateState != current.metadataUpdateState ||
                   (previous.metadataUpdateState ==
                           MetadataUpdateState.success &&
@@ -597,7 +602,8 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
             icon: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
               child:
-                  state.openInReaderState == OpenInReaderState.loading
+                  state.openInInternalReaderState ==
+                          OpenInInternalReaderState.loading
                       ? SizedBox(
                         width: 20,
                         height: 20,
@@ -879,21 +885,23 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                 padding: const EdgeInsets.only(right: 8.0),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(8.0),
-                  onTap: () {
-                    TagModel? tagModel = tagModels.firstWhere(
-                      (tm) => tm.name == tag,
-                      orElse: () => TagModel(id: 0, name: tag),
-                    );
-                    Navigator.of(context).push(
-                      AppTransitions.createSlideRoute(
-                        DiscoverDetailsPage(
-                          title: tag,
-                          categoryType: CategoryType.category,
-                          fullPath: "/opds/category/${tagModel.id}",
-                        ),
-                      ),
-                    );
-                  },
+                  // Since the book information does not contain the tag IDs, the navigation
+                  // to the tag details page is currently disabled.
+                  // onTap: () {
+                  //   TagModel? tagModel = tagModels.firstWhere(
+                  //     (tm) => tm.name == tag,
+                  //     orElse: () => TagModel(id: 0, name: tag),
+                  //   );
+                  //   Navigator.of(context).push(
+                  //     AppTransitions.createSlideRoute(
+                  //       DiscoverDetailsPage(
+                  //         title: tag,
+                  //         categoryType: CategoryType.category,
+                  //         fullPath: "/opds/category/${tagModel.id}",
+                  //       ),
+                  //     ),
+                  //   );
+                  // },
                   child: Chip(
                     label: Text(tag),
                     backgroundColor:

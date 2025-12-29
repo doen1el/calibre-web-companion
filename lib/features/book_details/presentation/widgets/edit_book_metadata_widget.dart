@@ -40,8 +40,11 @@ class EditBookMetadataWidget extends StatelessWidget {
 
     return IconButton(
       icon: CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-        child: const Icon(Icons.edit),
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        child: Icon(
+          Icons.edit,
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
+        ),
       ),
       onPressed:
           isLoading
@@ -49,8 +52,11 @@ class EditBookMetadataWidget extends StatelessWidget {
               : () async {
                 final bloc = context.read<BookDetailsBloc>();
 
-                final result = await showDialog<bool>(
+                final result = await showModalBottomSheet<bool>(
                   context: context,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  showDragHandle: true,
                   builder:
                       (context) => BlocProvider.value(
                         value: bloc,
@@ -232,80 +238,78 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
           final isLoading =
               state.metadataUpdateState == MetadataUpdateState.loading;
 
-          return AlertDialog(
-            title: Row(
-              children: [
-                Text(localizations.editBookMetadata),
-                const Spacer(),
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(localizations.editBookMetadata),
+              actions: [
                 IconButton(
-                  icon: const Icon(Icons.cloud_download),
+                  icon: CircleAvatar(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                    child: const Icon(Icons.search),
+                  ),
                   tooltip: "Fetch Metadata",
-                  // TODO: Fix metadata fetch feature
-                  // onPressed: isLoading ? null : _openMetadataSearch,
                   onPressed:
-                      () => showComingSoonDialog(
-                        context,
-                        "The metadata search feature is coming soon!",
-                      ),
+                      isLoading
+                          ? null
+                          : () => showComingSoonDialog(
+                            context,
+                            "The metadata search feature is coming soon!",
+                          ),
                 ),
+                IconButton(
+                  icon: CircleAvatar(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                    child:
+                        isLoading
+                            ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 3),
+                            )
+                            : const Icon(Icons.save),
+                  ),
+                  tooltip: localizations.save,
+                  onPressed:
+                      isLoading
+                          ? null
+                          : () {
+                            context.read<BookDetailsBloc>().add(
+                              UpdateBookMetadata(
+                                bookId: widget.book.id.toString(),
+                                title: _titleController.text,
+                                authors: _authorsController.text,
+                                comments: _commentsController.text,
+                                tags: _tagsController.text,
+                                series: _seriesController.text,
+                                seriesIndex: _seriesIndexController.text,
+                                pubdate: _pubdateController.text,
+                                publisher: _publisherController.text,
+                                languages: _languagesController.text,
+                                rating: _currentRating,
+                                coverImageBytes: _selectedCoverBytes,
+                                coverFileName:
+                                    _selectedCoverName ?? 'cover.jpg',
+                                bookDetails: widget.book,
+                                coverUrl: _newCoverUrl,
+                              ),
+                            );
+                          },
+                ),
+
+                const SizedBox(width: 8),
               ],
             ),
-            content: SingleChildScrollView(
+            body: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 8,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
               child: _buildMetadataForm(context, isLoading, localizations),
             ),
-            actions: [
-              TextButton(
-                onPressed:
-                    isLoading ? null : () => Navigator.of(context).pop(false),
-                child: Text(localizations.cancel),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.primaryContainer,
-                ),
-                onPressed:
-                    isLoading
-                        ? null
-                        : () {
-                          context.read<BookDetailsBloc>().add(
-                            UpdateBookMetadata(
-                              bookId: widget.book.id.toString(),
-                              title: _titleController.text,
-                              authors: _authorsController.text,
-                              comments: _commentsController.text,
-                              tags: _tagsController.text,
-                              series: _seriesController.text,
-                              seriesIndex: _seriesIndexController.text,
-                              pubdate: _pubdateController.text,
-                              publisher: _publisherController.text,
-                              languages: _languagesController.text,
-                              rating: _currentRating,
-                              coverImageBytes: _selectedCoverBytes,
-                              coverFileName: _selectedCoverName ?? 'cover.jpg',
-                              bookDetails: widget.book,
-                              coverUrl: _newCoverUrl,
-                            ),
-                          );
-                        },
-                child:
-                    isLoading
-                        ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                        : Text(
-                          localizations.save,
-                          style: TextStyle(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-              ),
-            ],
           );
         },
       ),
@@ -423,10 +427,14 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
                   Positioned(
                     bottom: -12,
                     right: -12,
-                    child: IconButton.filled(
-                      onPressed: isLoading ? null : _pickImage,
-                      icon: const Icon(Icons.edit),
+                    child: IconButton(
+                      icon: CircleAvatar(
+                        backgroundColor:
+                            Theme.of(context).colorScheme.primaryContainer,
+                        child: const Icon(Icons.edit),
+                      ),
                       tooltip: localizations.newCover,
+                      onPressed: isLoading ? null : _pickImage,
                     ),
                   ),
                 ],
@@ -541,6 +549,7 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
               labelText: localizations.rating,
               prefixIcon: const Icon(Icons.star),
               border: const OutlineInputBorder(),
+              enabled: !isLoading,
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(
                   color: Theme.of(context).colorScheme.outline,
@@ -558,7 +567,9 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
               color: Colors.amber,
               borderColor: Theme.of(context).colorScheme.outline,
               onRatingChanged:
-                  (rating) => setState(() => _currentRating = rating),
+                  isLoading
+                      ? (rating) {}
+                      : (rating) => setState(() => _currentRating = rating),
             ),
           ),
 

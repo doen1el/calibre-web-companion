@@ -19,10 +19,14 @@ class ShelfViewModel extends Equatable {
     );
   }
 
-  ShelfViewModel copyWith({String? title, String? id}) {
-    return ShelfViewModel(title: title ?? this.title, id: id ?? this.id);
+  ShelfViewModel copyWith({String? title, String? id, bool? isPublic}) {
+    return ShelfViewModel(
+      title: title ?? this.title,
+      id: id ?? this.id,
+      isPublic: isPublic ?? this.isPublic,
+    );
   }
 
   @override
-  List<Object?> get props => [title, id];
+  List<Object?> get props => [title, id, isPublic];
 }
