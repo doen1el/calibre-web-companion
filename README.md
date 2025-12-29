@@ -100,3 +100,4 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 - [send2ereader](https://github.com/daniel-j/send2ereader)
 - [Flutter](https://github.com/flutter/flutter)
 - [IconKitchen](https://icon.kitchen)
+- [Weblate](https://hosted.weblate.org/)
