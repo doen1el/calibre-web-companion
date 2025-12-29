@@ -66,7 +66,6 @@ jobs:
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           track: production
           status: completed
-          changesNotSentForReview: true
           releaseName: 'Release ${{ github.run_number }}'
 
       # #8 Build iOS (.app)
