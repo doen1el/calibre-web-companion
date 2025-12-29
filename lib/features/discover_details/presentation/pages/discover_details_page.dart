@@ -1,13 +1,15 @@
-import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
-import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_bloc.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_event.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_state.dart';
 
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
@@ -57,7 +59,8 @@ class DiscoverDetailsPage extends StatelessWidget {
       },
       child: BlocConsumer<DiscoverDetailsBloc, DiscoverDetailsState>(
         listener: (context, state) {
-          if (state.status == DiscoverDetailsStatus.error) {
+          if (state.status == DiscoverDetailsStatus.error &&
+              !state.isNotFound) {
             context.showSnackBar(
               "${localizations.errorLoadingData}: ${state.errorMessage}",
               isError: true,
@@ -144,6 +147,9 @@ class DiscoverDetailsPage extends StatelessWidget {
     }
 
     if (state.status == DiscoverDetailsStatus.error) {
+      if (state.isNotFound) {
+        return _buildNotFoundWidget(context, localizations);
+      }
       return _buildErrorWidget(context, state, localizations);
     }
 
@@ -160,6 +166,51 @@ class DiscoverDetailsPage extends StatelessWidget {
     }
 
     return _buildEmptyState(context, localizations);
+  }
+
+  Widget _buildNotFoundWidget(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.visibility_off_outlined,
+              size: 80,
+              color: Theme.of(
+                context,
+              ).colorScheme.secondary.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              localizations.sectionDisabledOrNotFound,
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              localizations.sectionDisabledDescription,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            FilledButton.icon(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.arrow_back),
+              label: Text(localizations.goBack),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildBookGrid(BuildContext context, DiscoverFeedModel feed) {
@@ -179,12 +230,24 @@ class DiscoverDetailsPage extends StatelessWidget {
             return BookCard(
               bookId: book.coverUrl ?? '',
               title: book.title,
-              authors: book.author,
+              authors: book.authors,
               isLoading: state.loadingBookId == book.id,
-              onTap:
-                  () => context.read<DiscoverDetailsBloc>().add(
-                    LoadDiscoverBookDetails(book.id, context),
+              onTap: () async {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder:
+                        (context) => BookDetailsPage(
+                          bookViewModel: BookViewModel(
+                            id: int.parse(book.id),
+                            uuid: book.uuid,
+                            title: book.title,
+                            authors: book.authors.toString(),
+                          ),
+                          bookUuid: book.uuid,
+                        ),
                   ),
+                );
+              },
             );
           },
         );

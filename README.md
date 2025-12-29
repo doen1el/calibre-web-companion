@@ -1,7 +1,7 @@
 <p align="center">
     <img src="docs/icon/icon.png" alt="App Icon" width="100" />
     <br>
-    v1.7.3
+    v1.8.0
 </p>
 
 <p align="center">
@@ -13,6 +13,9 @@
     </a>
     <a href="https://github.com/doen1el/calibre-web-companion/actions?query=workflow%3ABuild+branch%3Adev">
         <img src="https://img.shields.io/github/actions/workflow/status/doen1el/calibre-web-companion/main.yml?branch=dev" alt="GitHub Workflow Status">
+    </a>
+    <a href="https://hosted.weblate.org/engage/calibre-web-companion/">
+        <img src="https://hosted.weblate.org/widget/calibre-web-companion/svg-badge.svg" alt="Translation status" />
     </a>
 </p>
 
@@ -52,6 +55,7 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 - Automatically download books to your collection with [calibre-web-automated-book-downloader](https://github.com/calibrain/calibre-web-automated-book-downloader).
 - Manage and customize your shelves.
 - Upload books to your Calibre Web server.
+- Edit your book's metadata and upload new covers.
 
 ## 🖼️ Impressions
 
@@ -63,6 +67,14 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
     <img src="docs/feature_graphics/5.png" alt="OpenTracks" width="32%" />
     <img src="docs/feature_graphics/6.png" alt="OpenTracks" width="32%" />
 </p>
+
+## 🌍 l10n
+
+You can help translate Calibre Web Companion on [Weblate](https://hosted.weblate.org/projects/calibre-web-companion/app/).
+
+<a href="https://hosted.weblate.org/engage/calibre-web-companion/">
+<img src="https://hosted.weblate.org/widget/calibre-web-companion/app/multi-auto.svg" alt="Translation status" />
+</a>
 
 ## 🚀 Contributing
 
@@ -78,9 +90,7 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 - [x] Add and remove from shelfs
 - [x] Code refactoring
 - [x] Better error handling
-- [ ] Integrate [Weblate](https://hosted.weblate.org/) for translations
-- [ ] Integrate a book recommendation system.
-- [ ] Add API and widget tests using [flutter_test](https://docs.flutter.dev/testing/overview)
+- [x] Integrate [Weblate](https://hosted.weblate.org/) for translations
 
 ## 📜 Credits
 
@@ -90,3 +100,4 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 - [send2ereader](https://github.com/daniel-j/send2ereader)
 - [Flutter](https://github.com/flutter/flutter)
 - [IconKitchen](https://icon.kitchen)
+- [Weblate](https://hosted.weblate.org/)

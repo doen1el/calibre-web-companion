@@ -1,6 +1,7 @@
-import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+
+import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 
 class BookCardSkeleton extends StatelessWidget {
   const BookCardSkeleton({super.key});

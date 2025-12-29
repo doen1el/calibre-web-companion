@@ -1,4 +1,4 @@
-name: "Build"
+name: 'Build & Release'
 
 on:
   pull_request:
@@ -15,29 +15,29 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-        #2 Setup Java
+      #2 Setup Java
       - name: Set Up Java
         uses: actions/setup-java@v3.12.0
         with:
-          distribution: "oracle"
-          java-version: "17"
+          distribution: 'oracle'
+          java-version: '17'
 
-        #3 Setup Flutter
+      #3 Setup Flutter
       - name: Set Up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.32.5"
-          channel: "stable"
+          flutter-version: '3.38.5'
+          channel: 'stable'
 
-        #4 Install Dependencies
+      #4 Install Dependencies
       - name: Install Dependencies
         run: flutter pub get
 
-        #4.5 Generate translation files
+      #4.5 Generate translation files
       - name: Generate Translation Files
         run: flutter gen-l10n
 
-        #5 Setup Keystore
+      #5 Setup Keystore
       - name: Decode Keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/keystore.jks
@@ -49,60 +49,58 @@ jobs:
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=../keystore.jks" >> android/key.properties
 
-      #6 Building APK
-      - name: Build APK
-        run: flutter build apk --release --target-platform="android-arm64" --no-tree-shake-icons
+      #6.1 Build App Bundle (AAB)
+      - name: Build App Bundle
+        run: flutter build appbundle --release --no-tree-shake-icons
 
-      #7 Building App Bundle (aab)
-      # - name: Build appBundle
-      #   run: flutter build appbundle
-      #8 Build IPA ( IOS Build )
-      # - name: Build IPA
-      #   run: flutter build ipa --no-codesign
-      # - name: Compress Archives and IPAs
+      #6.2 Building APK
+      - name: Build APKs (Split per ABI)
+        run: flutter build apk --release --split-per-abi --no-tree-shake-icons
+
+      #7 Upload to Play Store
+      - name: Upload to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: de.doen1el.calibreWebCompanion
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: production
+          status: completed
+          releaseName: 'Release ${{ github.run_number }}'
+
+      # #8 Build iOS (.app)
+      # - name: Build iOS (Unsigned)
+      #   run: flutter build ios --release --no-codesign
+
+      # #9 Create IPA for Sideloading
+      # - name: Package IPA
       #   run: |
-      #     cd build
-      #     tar -czf ios_build.tar.gz ios
-      #9 Upload Artifacts
+      #     mkdir Payload
+      #     mv build/ios/iphoneos/Runner.app Payload/
+      #     zip -qq -r release.ipa Payload
+
+      #10 Upload Artifacts (APK,IPA)
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Releases
           path: |
-            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/*.apk
 
-        #10 Extract Version
+      #11 Extract Version
       - name: Extract version from pubspec.yaml
         id: extract_version
         run: |
           version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r' | sed 's/+.*//')
           echo "VERSION=$version" >> $GITHUB_ENV
-          echo "Extracted version: $version"
 
-        #11 Check if Tag Exists
-      - name: Check if Tag Exists
-        id: check_tag
-        run: |
-          if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
-            echo "TAG_EXISTS=true" >> $GITHUB_ENV
-          else
-            echo "TAG_EXISTS=false" >> $GITHUB_ENV
-          fi
-
-        #12 Modify Tag if it Exists
-      - name: Modify Tag
-        if: env.TAG_EXISTS == 'true'
-        id: modify_tag
-        run: |
-          new_version="${{ env.VERSION }}-build-${{ github.run_number }}"
-          echo "VERSION=$new_version" >> $GITHUB_ENV
-
-        #13 Create Release Draft
+      #12 Create GitHub Release
       - name: Create Release Draft
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/app-release.apk"
-          tag: v${{ env.VERSION }}
+          artifacts: 'build/app/outputs/flutter-apk/*.apk'
+          tag: v${{ env.VERSION }}-b${{ github.run_number }}
           draft: true
           token: ${{ secrets.TOKEN }}
-          name: "Release v${{ env.VERSION }}"
+          name: 'Release v${{ env.VERSION }}'
+          generateReleaseNotes: true

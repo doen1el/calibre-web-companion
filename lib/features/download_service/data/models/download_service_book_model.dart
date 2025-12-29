@@ -35,16 +35,18 @@ class DownloadServiceBookModel extends Equatable {
     Map<String, dynamic> json,
   ) {
     return DownloadServiceBookModel(
-      id: json['id'],
-      title: json['title'],
-      author: json['author'],
-      format: json['format'],
-      size: json['size'],
-      preview: json['preview'],
-      publisher: json['publisher'],
-      year: json['year'],
-      language: json['language'],
-      downloadUrls: List<String>.from(json['download_urls']),
+      id: json['id'] ?? '',
+      title: json['title'] ?? '',
+      author: json['author'] ?? '',
+      format: json['format'] ?? '',
+      size: json['size'] ?? '',
+      preview: json['preview'] ?? '',
+      publisher: json['publisher'] ?? '',
+      year: json['year']?.toString() ?? '',
+      language: json['language'] ?? '',
+      downloadUrls: json['download_urls'] != null 
+          ? List<String>.from(json['download_urls']) 
+          : [],
     );
   }
 

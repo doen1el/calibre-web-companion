@@ -1,16 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_state.dart';
+import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
 
+import 'package:calibre_web_companion/features/download_service/presentation/widgets/download_filter_sheet.dart';
 import 'package:calibre_web_companion/features/download_service/presentation/widgets/book_card_widget.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
-class SearchTabWidget extends StatelessWidget {
+class SearchTabWidget extends StatefulWidget {
   const SearchTabWidget({super.key});
+
+  @override
+  State<SearchTabWidget> createState() => _SearchTabWidgetState();
+}
+
+class _SearchTabWidgetState extends State<SearchTabWidget> {
+  final TextEditingController _searchController = TextEditingController();
+  DownloadFilterModel _currentFilter = const DownloadFilterModel();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _performSearch() {
+    final query = _searchController.text.trim();
+    if (query.isNotEmpty) {
+      context.read<DownloadServiceBloc>().add(
+        SearchBooks(query, filter: _currentFilter),
+      );
+    }
+  }
+
+  void _openFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder:
+          (context) => DownloadFilterSheet(
+            currentFilter: _currentFilter,
+            onApply: (newFilter) {
+              setState(() {
+                _currentFilter = newFilter;
+              });
+              if (_searchController.text.trim().isNotEmpty) {
+                _performSearch();
+              }
+            },
+          ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +77,6 @@ class SearchTabWidget extends StatelessWidget {
   }
 
   Widget _buildSearchBar(BuildContext context, AppLocalizations localizations) {
-    final searchController = TextEditingController();
     final borderRadius = BorderRadius.circular(8.0);
 
     return Card(
@@ -45,7 +89,7 @@ class SearchTabWidget extends StatelessWidget {
           children: [
             Expanded(
               child: TextField(
-                controller: searchController,
+                controller: _searchController,
                 decoration: InputDecoration(
                   labelText: localizations.searchForABook,
                   border: OutlineInputBorder(
@@ -56,21 +100,23 @@ class SearchTabWidget extends StatelessWidget {
                     vertical: 14.0,
                   ),
                 ),
-                onSubmitted: (value) {
-                  if (value.trim().isNotEmpty) {
-                    context.read<DownloadServiceBloc>().add(SearchBooks(value));
-                  }
-                },
+                onSubmitted: (_) => _performSearch(),
               ),
             ),
             IconButton(
+              icon: Icon(
+                Icons.tune,
+                color:
+                    _currentFilter.hasActiveFilters
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+              ),
+              tooltip: 'Filter',
+              onPressed: _openFilterSheet,
+            ),
+            IconButton(
               icon: const Icon(Icons.search),
-              onPressed: () {
-                final value = searchController.text.trim();
-                if (value.isNotEmpty) {
-                  context.read<DownloadServiceBloc>().add(SearchBooks(value));
-                }
-              },
+              onPressed: _performSearch,
             ),
           ],
         ),

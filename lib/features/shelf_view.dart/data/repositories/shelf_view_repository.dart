@@ -16,9 +16,12 @@ class ShelfViewRepository {
     }
   }
 
-  Future<String> createShelf(String shelfName) async {
+  Future<String> createShelf(String shelfName, bool isPublic) async {
     try {
-      final result = await dataSource.createShelf(shelfName);
+      final result = await dataSource.createShelf(
+        shelfName,
+        isPublic: isPublic,
+      );
       return result;
     } catch (e) {
       rethrow;

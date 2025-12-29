@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
@@ -88,6 +88,14 @@ class _SettingsPageState extends State<SettingsPage> {
                         const SizedBox(height: 24),
                         _buildSectionTitle(context, localizations.language),
                         _buildLanguageSelector(context, state, localizations),
+
+                        const SizedBox(height: 24),
+                        _buildSectionTitle(context, localizations.bookDetails),
+                        _buildBookDetailsSettings(
+                          context,
+                          state,
+                          localizations,
+                        ),
 
                         const SizedBox(height: 24),
                         _buildSectionTitle(context, "Download Options"),
@@ -223,7 +231,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       (value) => context.read<SettingsBloc>().add(
                         SetDownloaderEnabled(value),
                       ),
-                  activeColor: Theme.of(context).colorScheme.primary,
+                  activeThumbColor: Theme.of(context).colorScheme.primary,
                 ),
               ],
             ),
@@ -298,7 +306,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       (value) => context.read<SettingsBloc>().add(
                         SetCostumSend2EreaderEnabled(value),
                       ),
-                  activeColor: Theme.of(context).colorScheme.primary,
+                  activeThumbColor: Theme.of(context).colorScheme.primary,
                 ),
               ],
             ),
@@ -391,6 +399,7 @@ class _SettingsPageState extends State<SettingsPage> {
       {'code': 'de', 'name': 'Deutsch', 'flag': '🇩🇪'},
       {'code': 'fr', 'name': 'Français', 'flag': '🇫🇷'},
       {'code': 'es', 'name': 'Español', 'flag': '🇪🇸'},
+      {'code': 'pt', 'name': 'Português', 'flag': '🇵🇹'},
     ];
 
     return Card(
@@ -432,7 +441,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   vertical: 8,
                 ),
               ),
-              value: state.languageCode,
+              initialValue: state.languageCode,
               icon: const Icon(Icons.arrow_drop_down),
               elevation: 16,
               style: TextStyle(
@@ -492,6 +501,62 @@ class _SettingsPageState extends State<SettingsPage> {
               Text(title, style: Theme.of(context).textTheme.titleMedium),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBookDetailsSettings(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.visibility_rounded,
+                  size: 28,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        localizations.showReadNowButton,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        localizations.showReadNowButtonDescription,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: state.showReadNowButton,
+                  onChanged: (value) {
+                    context.read<SettingsBloc>().add(
+                      SetShowReadNowButton(value),
+                    );
+                  },
+                  activeThumbColor: Theme.of(context).colorScheme.primary,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

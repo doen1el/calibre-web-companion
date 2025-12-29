@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
@@ -9,6 +8,7 @@ import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_s
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/main.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/presentation/widgets/create_shelf_dialog_widget.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/features/shelf_details/presentation/pages/shelf_details_page.dart';
@@ -183,22 +183,30 @@ class ShelfViewPage extends StatelessWidget {
             leading: const Icon(Icons.list_rounded),
             title: Text(shelf.title),
             trailing: const Icon(Icons.chevron_right_rounded),
-            onTap:
-                () => Navigator.of(context).push(
-                  AppTransitions.createSlideRoute(
-                    MultiBlocProvider(
-                      providers: [
-                        BlocProvider.value(
-                          value: context.read<ShelfViewBloc>(),
-                        ),
-                        BlocProvider(
-                          create: (context) => getIt<ShelfDetailsBloc>(),
-                        ),
-                      ],
-                      child: ShelfDetailsPage(shelfId: shelf.id),
+            onTap: () {
+              String cleanTitle = shelf.title;
+              if (shelf.isPublic && cleanTitle.endsWith(' (Public)')) {
+                cleanTitle = cleanTitle.substring(0, cleanTitle.length - 9);
+              }
+
+              Navigator.of(context).push(
+                AppTransitions.createSlideRoute(
+                  MultiBlocProvider(
+                    providers: [
+                      BlocProvider.value(value: context.read<ShelfViewBloc>()),
+                      BlocProvider(
+                        create: (context) => getIt<ShelfDetailsBloc>(),
+                      ),
+                    ],
+                    child: ShelfDetailsPage(
+                      shelfId: shelf.id,
+                      shelfTitle: cleanTitle,
+                      isPublic: shelf.isPublic,
                     ),
                   ),
                 ),
+              );
+            },
           ),
         );
       },
@@ -213,8 +221,10 @@ class ShelfViewPage extends StatelessWidget {
       context: context,
       builder:
           (dialogContext) => CreateShelfDialog(
-            onCreateShelf: (shelfName) {
-              context.read<ShelfViewBloc>().add(CreateShelf(shelfName));
+            onCreateShelf: (shelfName, isPublic) {
+              context.read<ShelfViewBloc>().add(
+                CreateShelf(shelfName, isPublic: isPublic),
+              );
             },
           ),
     );

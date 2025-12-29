@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_book_item_model.dart';
 
@@ -12,11 +11,17 @@ abstract class ShelfDetailsEvent extends Equatable {
 
 class LoadShelfDetails extends ShelfDetailsEvent {
   final String shelfId;
+  final String shelfTitle;
+  final bool isPublic;
 
-  const LoadShelfDetails(this.shelfId);
+  const LoadShelfDetails(
+    this.shelfId, {
+    required this.shelfTitle,
+    this.isPublic = false,
+  });
 
   @override
-  List<Object?> get props => [shelfId];
+  List<Object?> get props => [shelfId, shelfTitle, isPublic];
 }
 
 class RemoveFromShelf extends ShelfDetailsEvent {
@@ -32,11 +37,12 @@ class RemoveFromShelf extends ShelfDetailsEvent {
 class EditShelf extends ShelfDetailsEvent {
   final String shelfId;
   final String newShelfName;
+  final bool isPublic;
 
-  const EditShelf(this.shelfId, this.newShelfName);
+  const EditShelf(this.shelfId, this.newShelfName, {this.isPublic = false});
 
   @override
-  List<Object?> get props => [shelfId, newShelfName];
+  List<Object?> get props => [shelfId, newShelfName, isPublic];
 }
 
 class DeleteShelf extends ShelfDetailsEvent {
@@ -55,14 +61,4 @@ class NavigateToBook extends ShelfDetailsEvent {
 
   @override
   List<Object?> get props => [book];
-}
-
-class LoadShelfBookDetails extends ShelfDetailsEvent {
-  final String bookId;
-  final BuildContext context;
-
-  const LoadShelfBookDetails(this.bookId, this.context);
-
-  @override
-  List<Object?> get props => [bookId];
 }

@@ -1,10 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:docman/docman.dart';
 import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 import 'package:logger/logger.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
@@ -16,6 +16,7 @@ import 'package:calibre_web_companion/features/settings/data/models/download_sch
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart'; // Import hinzufügen
 
 class BookDetailsRemoteDatasource {
   final ApiService apiService;
@@ -148,8 +149,10 @@ class BookDetailsRemoteDatasource {
     try {
       logger.i('Getting download stream for book: $bookId, Format: $format');
 
+      final lowerFormat = format.toLowerCase();
+
       final response = await apiService.getStream(
-        endpoint: '/download/$bookId/$format/$bookId.$format',
+        endpoint: '/download/$bookId/$lowerFormat/$bookId.$lowerFormat',
         authMethod: AuthMethod.cookie,
       );
 
@@ -168,14 +171,79 @@ class BookDetailsRemoteDatasource {
     }
   }
 
+  Future<List<MetadataProvider>> getMetadataProviders() async {
+    try {
+      final response = await apiService.get(
+        endpoint: '/metadata/provider',
+        authMethod: AuthMethod.cookie,
+      );
+
+      if (response.statusCode == 200) {
+        logger.i(response.body);
+        final dynamic decoded = json.decode(response.body);
+        logger.i('Decoded metadata providers: $decoded');
+        if (decoded is List) {
+          return decoded.map((e) => MetadataProvider.fromJson(e)).toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      logger.e('Error fetching metadata providers: $e');
+      return [];
+    }
+  }
+
+  Future<List<MetadataSearchResult>> searchMetadata(
+    String query,
+    List<String> activeProviderIds,
+  ) async {
+    try {
+      final body = {'query': query};
+
+      // for (var id in activeProviderIds) {
+      //   body[id] = 'on';
+      // }
+
+      final response = await apiService.post(
+        endpoint: '/metadata/search',
+        body: body,
+        authMethod: AuthMethod.cookie,
+        useCsrf: true,
+        csrfOnlyInHeader: true,
+        contentType: 'application/x-www-form-urlencoded',
+      );
+
+      logger.i(response.body);
+
+      if (response.statusCode == 200) {
+        logger.i(response.body);
+        final List<dynamic> jsonList = json.decode(response.body);
+        return jsonList.map((e) => MetadataSearchResult.fromJson(e)).toList();
+      }
+
+      logger.w('Search failed with status: ${response.statusCode}');
+      return [];
+    } catch (e) {
+      logger.e('Error searching metadata: $e');
+      throw Exception('Search failed: $e');
+    }
+  }
+
   Future<bool> updateBookMetadata(
     String bookId, {
     required String title,
     required String authors,
     required String comments,
     required String tags,
+    required String series,
+    required String seriesIndex,
+    required String pubdate,
+    required String publisher,
+    required String languages,
+    required double rating,
     Uint8List? coverImageBytes,
     String? coverFileName,
+    String? coverUrl,
   }) async {
     try {
       final body = {
@@ -183,55 +251,54 @@ class BookDetailsRemoteDatasource {
         'authors': authors,
         'comments': comments,
         'tags': tags,
+        'series': series,
+        'series_index': seriesIndex,
+        'pubdate': pubdate,
+        'publisher': publisher,
+        'languages': languages,
+        'cover_url': coverUrl ?? '',
+        'rating': rating.toString(),
         'detail_view': 'on',
       };
 
+      http.MultipartFile multipartFile;
+
       if (coverImageBytes != null && coverFileName != null) {
         logger.i('Updating book metadata with cover for book: $bookId');
-
-        final multipartFile = http.MultipartFile.fromBytes(
+        multipartFile = http.MultipartFile.fromBytes(
           'btn-upload-cover',
           coverImageBytes,
           filename: coverFileName,
           contentType: MediaType('image', 'jpeg'),
         );
-
-        final response = await apiService.post(
-          endpoint: '/admin/book/$bookId',
-          body: body,
-          files: [multipartFile],
-          authMethod: AuthMethod.cookie,
-          useCsrf: true,
-          contentType: 'multipart/form-data',
-        );
-
-        if (response.statusCode == 302) {
-          logger.i('Successfully updated book metadata with cover');
-          return true;
-        } else {
-          logger.e(
-            'Failed to update book metadata with cover: ${response.statusCode}, ${response.body}',
-          );
-          return false;
-        }
       } else {
-        final response = await apiService.post(
-          endpoint: '/admin/book/$bookId',
-          body: body,
-          authMethod: AuthMethod.cookie,
-          useCsrf: true,
-          contentType: 'application/x-www-form-urlencoded',
+        logger.i(
+          'Updating book metadata (forcing multipart) for book: $bookId',
         );
+        multipartFile = http.MultipartFile.fromBytes(
+          'btn-upload-cover',
+          [],
+          filename: '',
+          contentType: MediaType('application', 'octet-stream'),
+        );
+      }
 
-        if (response.statusCode == 302) {
-          logger.i('Successfully updated book metadata');
-          return true;
-        } else {
-          logger.e(
-            'Failed to update book metadata: ${response.statusCode} - ${response.body}',
-          );
-          return false;
-        }
+      final response = await apiService.post(
+        endpoint: '/admin/book/$bookId',
+        body: body,
+        authMethod: AuthMethod.cookie,
+        files: [multipartFile],
+        useCsrf: true,
+      );
+
+      if (response.statusCode == 302) {
+        logger.i('Successfully updated book metadata');
+        return true;
+      } else {
+        logger.e(
+          'Failed to update book metadata: ${response.statusCode} - ${response.body}',
+        );
+        return false;
       }
     } catch (e) {
       logger.e('Error updating book metadata: $e');
@@ -262,15 +329,15 @@ class BookDetailsRemoteDatasource {
       logger.i(
         'Downloading book: ${book.title}, Format: $format, Schema: $schema, Directory: $selectedDirectory',
       );
-      final safeTitle = book.title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-      final safeAuthor = book.authors.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+      final safeTitle = book.title.replaceAll(RegExp(r'[\\/:*?"<>|.]'), '');
+      final safeAuthor = book.authors.replaceAll(RegExp(r'[\\/:*?"<>|]'), '');
       final fileName = '$safeTitle.$format';
 
       DocumentFile targetDir = selectedDirectory;
       String? safeSeries;
 
       if (book.series.isNotEmpty) {
-        safeSeries = book.series.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+        safeSeries = book.series.replaceAll(RegExp(r'[\\/:*?"<>|]'), '');
       }
 
       switch (schema) {
@@ -492,8 +559,10 @@ class BookDetailsRemoteDatasource {
         'Getting download stream with progress - BookId: $bookId, Format: $format',
       );
 
+      final lowerFormat = format.toLowerCase();
+
       final response = await apiService.getStream(
-        endpoint: '/download/$bookId/$format/$bookId.$format',
+        endpoint: '/download/$bookId/$lowerFormat/$bookId.$lowerFormat',
         authMethod: AuthMethod.cookie,
       );
 
@@ -549,10 +618,12 @@ class BookDetailsRemoteDatasource {
       }
 
       final tempDir = await getTemporaryDirectory();
+
       final safeFileName = safFile.name.replaceAll(
         RegExp(r'[^a-zA-Z0-9.\-_]'),
         '_',
       );
+
       final localFile = File('${tempDir.path}/$safeFileName');
       await localFile.writeAsBytes(bytes, flush: true);
 
@@ -629,6 +700,42 @@ class BookDetailsRemoteDatasource {
       if (progress < progressSteps.last) {
         await Future.delayed(const Duration(milliseconds: 200));
       }
+    }
+  }
+
+  Future<String?> getSeriesPath(String seriesName) async {
+    try {
+      if (seriesName.isEmpty) return null;
+
+      final response = await apiService.getXmlAsJson(
+        endpoint: '/opds/series/letter/00',
+        authMethod: AuthMethod.auto,
+      );
+
+      final entriesRaw = response["feed"]['entry'];
+
+      logger.d(entriesRaw);
+
+      List<dynamic> entries = [];
+
+      if (entriesRaw is List) {
+        entries = entriesRaw;
+      } else if (entriesRaw is Map) {
+        entries = [entriesRaw];
+      }
+
+      for (var entry in entries) {
+        final title = entry['title'] as String?;
+        logger.i(title);
+        if (title != null && title.toLowerCase() == seriesName.toLowerCase()) {
+          return entry['id'] as String?;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      logger.e('Error finding series path: $e');
+      return null;
     }
   }
 }

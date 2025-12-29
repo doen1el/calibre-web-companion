@@ -13,11 +13,12 @@ class LoadShelves extends ShelfViewEvent {
 
 class CreateShelf extends ShelfViewEvent {
   final String shelfName;
+  final bool isPublic;
 
-  const CreateShelf(this.shelfName);
+  const CreateShelf(this.shelfName, {this.isPublic = false});
 
   @override
-  List<Object?> get props => [shelfName];
+  List<Object?> get props => [shelfName, isPublic];
 }
 
 class RemoveShelfFromState extends ShelfViewEvent {
@@ -32,11 +33,16 @@ class RemoveShelfFromState extends ShelfViewEvent {
 class EditShelfState extends ShelfViewEvent {
   final String shelfId;
   final String newShelfName;
+  final bool isPublic;
 
-  const EditShelfState(this.shelfId, this.newShelfName);
+  const EditShelfState(
+    this.shelfId,
+    this.newShelfName, {
+    required this.isPublic,
+  });
 
   @override
-  List<Object?> get props => [shelfId, newShelfName];
+  List<Object?> get props => [shelfId, newShelfName, isPublic];
 }
 
 class FindShelvesContainingBook extends ShelfViewEvent {

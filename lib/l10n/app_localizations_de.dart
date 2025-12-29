@@ -610,6 +610,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get separateWithCommas => 'Mit Kommas trennen';
 
   @override
+  String get separateWithAnd => 'Mit \'&\' trennen';
+
+  @override
   String get ratingOneToTen => 'Bewertung (1-10)';
 
   @override
@@ -898,6 +901,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get columns => 'Spalten';
 
   @override
+  String get listView => 'Listenansicht';
+
+  @override
   String get uploadEbook => 'E-Book hochladen';
 
   @override
@@ -1001,4 +1007,55 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get errorOpeningBookInInternalReader => 'Fehler beim Öffnen des Buches im internen Reader';
+
+  @override
+  String get readNow => 'Jetzt lesen';
+
+  @override
+  String get showReadNowButton => '\'Jetzt lesen\' Button anzeigen';
+
+  @override
+  String get showReadNowButtonDescription => 'Ersetzt den \'An E-Reader senden\' Button durch \'Jetzt lesen\', um Bücher direkt zu öffnen.';
+
+  @override
+  String get bookDetails => 'Buchdetails';
+
+  @override
+  String get applyFilters => 'Filter anwenden';
+
+  @override
+  String get any => 'Beliebig';
+
+  @override
+  String get contentType => 'Inhaltstyp';
+
+  @override
+  String get author => 'Autor';
+
+  @override
+  String get reset => 'Zurücksetzen';
+
+  @override
+  String get searchFilters => 'Suchfilter';
+
+  @override
+  String get bookFiction => 'Buch (Fiktion)';
+
+  @override
+  String get bookNonFiction => 'Buch (Sachbuch)';
+
+  @override
+  String get magazine => 'Magazin';
+
+  @override
+  String get comic => 'Comic';
+
+  @override
+  String get audiobook => 'Hörbuch';
+
+  @override
+  String get sectionDisabledOrNotFound => 'Bereich nicht verfügbar';
+
+  @override
+  String get sectionDisabledDescription => 'Dieser Bereich scheint in deinen Calibre-Web Servereinstellungen deaktiviert zu sein oder existiert nicht.';
 }

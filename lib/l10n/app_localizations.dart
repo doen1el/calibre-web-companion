@@ -9,6 +9,7 @@ import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
 import 'app_localizations_fr.dart';
+import 'app_localizations_pt.dart';
 
 // ignore_for_file: type=lint
 
@@ -96,7 +97,8 @@ abstract class AppLocalizations {
     Locale('de'),
     Locale('en'),
     Locale('es'),
-    Locale('fr')
+    Locale('fr'),
+    Locale('pt')
   ];
 
   /// No description provided for @loginToCalibreWb.
@@ -1257,6 +1259,12 @@ abstract class AppLocalizations {
   /// **'Separate with commas'**
   String get separateWithCommas;
 
+  /// No description provided for @separateWithAnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate with \'&\''**
+  String get separateWithAnd;
+
   /// No description provided for @ratingOneToTen.
   ///
   /// In en, this message translates to:
@@ -1833,6 +1841,12 @@ abstract class AppLocalizations {
   /// **'Columns'**
   String get columns;
 
+  /// No description provided for @listView.
+  ///
+  /// In en, this message translates to:
+  /// **'List view'**
+  String get listView;
+
   /// No description provided for @uploadEbook.
   ///
   /// In en, this message translates to:
@@ -2042,6 +2056,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error opening book in internal reader'**
   String get errorOpeningBookInInternalReader;
+
+  /// No description provided for @readNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Read Now'**
+  String get readNow;
+
+  /// No description provided for @showReadNowButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Show \'Read Now\' button'**
+  String get showReadNowButton;
+
+  /// No description provided for @showReadNowButtonDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces the \'Send to E-Reader\' button with a \'Read Now\' button to open books directly.'**
+  String get showReadNowButtonDescription;
+
+  /// No description provided for @bookDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Book Details'**
+  String get bookDetails;
+
+  /// No description provided for @applyFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Filters'**
+  String get applyFilters;
+
+  /// No description provided for @any.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get any;
+
+  /// No description provided for @contentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Type'**
+  String get contentType;
+
+  /// No description provided for @author.
+  ///
+  /// In en, this message translates to:
+  /// **'Author'**
+  String get author;
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @searchFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Filters'**
+  String get searchFilters;
+
+  /// No description provided for @bookFiction.
+  ///
+  /// In en, this message translates to:
+  /// **'Book (Fiction)'**
+  String get bookFiction;
+
+  /// No description provided for @bookNonFiction.
+  ///
+  /// In en, this message translates to:
+  /// **'Book (Non-Fiction)'**
+  String get bookNonFiction;
+
+  /// No description provided for @magazine.
+  ///
+  /// In en, this message translates to:
+  /// **'Magazine'**
+  String get magazine;
+
+  /// No description provided for @comic.
+  ///
+  /// In en, this message translates to:
+  /// **'Comic'**
+  String get comic;
+
+  /// No description provided for @audiobook.
+  ///
+  /// In en, this message translates to:
+  /// **'Audiobook'**
+  String get audiobook;
+
+  /// No description provided for @sectionDisabledOrNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Section unavailable'**
+  String get sectionDisabledOrNotFound;
+
+  /// No description provided for @sectionDisabledDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This section appears to be disabled in your Calibre-Web server settings or does not exist.'**
+  String get sectionDisabledDescription;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -2053,7 +2169,7 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['de', 'en', 'es', 'fr'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['de', 'en', 'es', 'fr', 'pt'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -2068,6 +2184,7 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
     case 'en': return AppLocalizationsEn();
     case 'es': return AppLocalizationsEs();
     case 'fr': return AppLocalizationsFr();
+    case 'pt': return AppLocalizationsPt();
   }
 
   throw FlutterError(

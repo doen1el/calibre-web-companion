@@ -610,6 +610,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get separateWithCommas => 'Séparer par des virgules';
 
   @override
+  String get separateWithAnd => 'Séparer par \'&\'';
+
+  @override
   String get ratingOneToTen => 'Évaluation (1-10)';
 
   @override
@@ -898,6 +901,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get columns => 'Colonnes';
 
   @override
+  String get listView => 'Vue en liste';
+
+  @override
   String get uploadEbook => 'Télécharger un eBook';
 
   @override
@@ -1001,4 +1007,55 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get errorOpeningBookInInternalReader => 'Erreur lors de l\'ouverture du livre dans le lecteur interne';
+
+  @override
+  String get readNow => 'Lire maintenant';
+
+  @override
+  String get showReadNowButton => 'Afficher le bouton \'Lire maintenant\'';
+
+  @override
+  String get showReadNowButtonDescription => 'Affiche un bouton \'Lire maintenant\' sur les détails du livre pour ouvrir le livre dans le lecteur interne.';
+
+  @override
+  String get bookDetails => 'Détails du livre';
+
+  @override
+  String get applyFilters => 'Appliquer les filtres';
+
+  @override
+  String get any => 'N\'importe lequel';
+
+  @override
+  String get contentType => 'Type de contenu';
+
+  @override
+  String get author => 'Auteur';
+
+  @override
+  String get reset => 'Réinitialiser';
+
+  @override
+  String get searchFilters => 'Filtres de recherche';
+
+  @override
+  String get bookFiction => 'Fiction';
+
+  @override
+  String get bookNonFiction => 'Non-fiction';
+
+  @override
+  String get magazine => 'Magazine';
+
+  @override
+  String get comic => 'Bande dessinée';
+
+  @override
+  String get audiobook => 'Livre audio';
+
+  @override
+  String get sectionDisabledOrNotFound => 'Section non disponible';
+
+  @override
+  String get sectionDisabledDescription => 'Cette section semble être désactivée dans les paramètres de votre serveur Calibre-Web ou n\'existe pas.';
 }

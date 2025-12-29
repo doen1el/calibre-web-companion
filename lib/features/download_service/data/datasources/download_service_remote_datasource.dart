@@ -6,6 +6,7 @@ import 'package:logger/logger.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_status.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_status_response.dart';
+import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart'; // Import hinzufügen
 
 class DownloadServiceRemoteDataSource {
   final http.Client client;
@@ -22,12 +23,23 @@ class DownloadServiceRemoteDataSource {
     return sharedPreferences.getString('downloader_url') ?? '';
   }
 
-  Future<List<DownloadServiceBookModel>> searchBooks(String query) async {
+  Future<List<DownloadServiceBookModel>> searchBooks(
+    String query, {
+    DownloadFilterModel? filter,
+  }) async {
     try {
       final baseUrl = await _getBaseUrl();
-      final response = await client.get(
-        Uri.parse('$baseUrl/api/search?query=${Uri.encodeComponent(query)}'),
+
+      final uri = Uri.parse('$baseUrl/api/search').replace(
+        queryParameters: {
+          'query': query,
+          if (filter != null) ..._buildFilterParams(filter),
+        },
       );
+
+      logger.i('Searching with URI: $uri');
+
+      final response = await client.get(uri);
 
       if (response.statusCode == 200) {
         final List<dynamic> results = json.decode(response.body);
@@ -51,6 +63,32 @@ class DownloadServiceRemoteDataSource {
       logger.e(errorMessage);
       throw Exception(errorMessage);
     }
+  }
+
+  Map<String, dynamic> _buildFilterParams(DownloadFilterModel filter) {
+    final params = <String, dynamic>{};
+
+    if (filter.isbn != null && filter.isbn!.isNotEmpty) {
+      params['isbn'] = filter.isbn;
+    }
+    if (filter.author != null && filter.author!.isNotEmpty) {
+      params['author'] = filter.author;
+    }
+    if (filter.title != null && filter.title!.isNotEmpty) {
+      params['title'] = filter.title;
+    }
+    if (filter.content != null && filter.content!.isNotEmpty) {
+      params['content'] = filter.content;
+    }
+
+    if (filter.languages.isNotEmpty) {
+      params['lang'] = filter.languages;
+    }
+    if (filter.formats.isNotEmpty) {
+      params['format'] = filter.formats;
+    }
+
+    return params;
   }
 
   Future<bool> downloadBook(String bookId) async {

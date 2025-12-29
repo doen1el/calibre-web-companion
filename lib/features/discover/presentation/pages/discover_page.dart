@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 import 'package:calibre_web_companion/features/discover/blocs/discover_bloc.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_state.dart';
 
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/shared/widgets/long_button_widget.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
@@ -46,17 +46,6 @@ class DiscoverPage extends StatelessWidget {
   ) {
     return Column(
       children: [
-        // TODO: implement a recommendation system
-        // LongButton(
-        //   text: localizations.recommendations,
-        //   icon: Icons.star_rounded,
-        //   onPressed: () {
-        //     context.read<DiscoverBloc>().add(const NavigateToRecommendations());
-        //     // Navigator.of(context).push(
-        //     //   AppTransitions.createSlideRoute(const BookRecommendationPage()),
-        //     // );
-        //   },
-        // ),
         LongButton(
           text: localizations.discover,
           icon: Icons.search,

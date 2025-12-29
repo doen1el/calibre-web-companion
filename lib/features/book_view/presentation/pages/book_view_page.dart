@@ -1,17 +1,19 @@
 import 'dart:io';
-import 'package:calibre_web_companion/core/services/app_transition.dart';
-import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
-import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
-import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_state.dart';
 
+import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_list_tile_skeleton_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_list_tile_widget.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_view/presentation/widgets/search_dialog.dart';
 
@@ -97,7 +99,11 @@ class _BookViewPageState extends State<BookViewPage> {
     AppLocalizations localizations,
   ) {
     if (state.books.isEmpty && state.isLoading) {
-      return _buildBookGridSkeletons(state);
+      if (state.isListView) {
+        return _buildBookListSkeletons(context);
+      } else {
+        return _buildBookGridSkeletons(state);
+      }
     }
 
     if (state.books.isEmpty) {
@@ -134,36 +140,95 @@ class _BookViewPageState extends State<BookViewPage> {
         context.read<BookViewBloc>().add(const RefreshBooks());
         return Future.value();
       },
-      child: GridView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.all(16.0),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: state.columnCount,
-          childAspectRatio: state.columnCount <= 2 ? 0.7 : 0.9,
-          crossAxisSpacing: 16.0,
-          mainAxisSpacing: 16.0,
-        ),
-        itemCount:
-            state.hasMoreBooks ? state.books.length + 1 : state.books.length,
-        itemBuilder: (context, index) {
-          if (index == state.books.length) {
-            return const BookCardSkeleton();
-          }
-          final book = state.books[index];
-          return BookCard(
-            bookId: book.id.toString(),
-            title: book.title,
-            authors: book.authors,
-            onTap: () {
-              Navigator.of(context).push(
-                AppTransitions.createSlideRoute(
-                  BookDetailsPage(bookViewModel: book, bookUuid: book.uuid),
+      child:
+          state.isListView
+              ? ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16.0),
+                itemCount:
+                    state.hasMoreBooks
+                        ? state.books.length + 1
+                        : state.books.length,
+                itemBuilder: (context, index) {
+                  if (index == state.books.length) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  final book = state.books[index];
+                  return BookListTile(
+                    book: book,
+                    onTap: () async {
+                      final changed = await Navigator.of(context).push<bool>(
+                        AppTransitions.createSlideRoute(
+                          BookDetailsPage(
+                            bookViewModel: book,
+                            bookUuid: book.uuid,
+                          ),
+                        ),
+                      );
+
+                      if (!context.mounted) return;
+
+                      if (changed == true) {
+                        context.read<BookViewBloc>().add(const RefreshBooks());
+                      }
+                    },
+                  );
+                },
+              )
+              : GridView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16.0),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: state.columnCount,
+                  childAspectRatio: state.columnCount <= 2 ? 0.7 : 0.9,
+                  crossAxisSpacing: 16.0,
+                  mainAxisSpacing: 16.0,
                 ),
-              );
-            },
-          );
-        },
-      ),
+                itemCount:
+                    state.hasMoreBooks
+                        ? state.books.length + 1
+                        : state.books.length,
+                itemBuilder: (context, index) {
+                  if (index == state.books.length) {
+                    return const BookCardSkeleton();
+                  }
+                  final book = state.books[index];
+                  return BookCard(
+                    bookId: book.id.toString(),
+                    title: book.title,
+                    authors: book.authors,
+                    onTap: () async {
+                      final changed = await Navigator.of(context).push<bool>(
+                        AppTransitions.createSlideRoute(
+                          BookDetailsPage(
+                            bookViewModel: book,
+                            bookUuid: book.uuid,
+                          ),
+                        ),
+                      );
+
+                      if (!context.mounted) return;
+
+                      if (changed == true) {
+                        context.read<BookViewBloc>().add(const RefreshBooks());
+                      }
+                    },
+                  );
+                },
+              ),
+    );
+  }
+
+  Widget _buildBookListSkeletons(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemCount: 10,
+      itemBuilder: (context, index) {
+        return const BookListTileSkeleton();
+      },
     );
   }
 
@@ -190,14 +255,37 @@ class _BookViewPageState extends State<BookViewPage> {
     BookViewState state,
     AppLocalizations localizations,
   ) {
-    return PopupMenuButton<int>(
-      icon: const Icon(Icons.grid_view_rounded),
+    return PopupMenuButton<dynamic>(
+      icon: Icon(
+        state.isListView ? Icons.view_list_rounded : Icons.grid_view_rounded,
+      ),
       tooltip: localizations.columnsCount,
-      onSelected: (int value) {
-        context.read<BookViewBloc>().add(ChangeColumnCount(value));
+      onSelected: (dynamic value) {
+        if (value == 'list') {
+          context.read<BookViewBloc>().add(const SetViewMode(true));
+        } else if (value is int) {
+          context.read<BookViewBloc>().add(ChangeColumnCount(value));
+        }
       },
       itemBuilder:
           (context) => [
+            PopupMenuItem(
+              value: 'list',
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.view_list,
+                    color:
+                        state.isListView
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(localizations.listView),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
             for (int i = 1; i <= 5; i++)
               PopupMenuItem<int>(
                 value: i,
@@ -214,7 +302,7 @@ class _BookViewPageState extends State<BookViewPage> {
                           ? Icons.looks_4
                           : Icons.looks_5,
                       color:
-                          state.columnCount == i
+                          !state.isListView && state.columnCount == i
                               ? Theme.of(context).colorScheme.primary
                               : null,
                     ),
@@ -290,7 +378,7 @@ class _BookViewPageState extends State<BookViewPage> {
   ) async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['epub', 'mobi', 'pdf'],
+      allowedExtensions: ['pdf', 'epub', 'mobi', 'fb2', 'cbr', 'djvu', 'cbz'],
       allowMultiple: false,
     );
 

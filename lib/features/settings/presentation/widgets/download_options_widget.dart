@@ -1,7 +1,6 @@
 import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
@@ -10,6 +9,7 @@ import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 class DownloadOptionsWidget extends StatelessWidget {
   const DownloadOptionsWidget({super.key});

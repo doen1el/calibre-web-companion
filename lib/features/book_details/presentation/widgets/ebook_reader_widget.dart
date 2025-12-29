@@ -1,9 +1,9 @@
 import 'dart:io';
-
-import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:epub_view/epub_view.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 
 class EbookReaderWidget extends StatefulWidget {
   final String bookPath;
@@ -99,7 +99,7 @@ class _EbookReaderWidgetState extends State<EbookReaderWidget> {
         onDocumentError: (error) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Fehler beim Laden des Buches: $error'),
+              content: Text('Error while loading the book: $error'),
               backgroundColor: Colors.red,
             ),
           );

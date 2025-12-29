@@ -1,10 +1,7 @@
-import 'package:calibre_web_companion/features/book_details/presentation/widgets/ebook_reader_widget.dart';
-import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
@@ -24,8 +21,11 @@ import 'package:calibre_web_companion/features/discover/blocs/discover_event.dar
 import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/widgets/ebook_reader_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
-class BookDetailsPage extends StatelessWidget {
+class BookDetailsPage extends StatefulWidget {
   final BookViewModel bookViewModel;
   final String bookUuid;
 
@@ -34,6 +34,13 @@ class BookDetailsPage extends StatelessWidget {
     required this.bookViewModel,
     required this.bookUuid,
   });
+
+  @override
+  State<BookDetailsPage> createState() => _BookDetailsPageState();
+}
+
+class _BookDetailsPageState extends State<BookDetailsPage> {
+  bool _didUpdateMetadata = false;
 
   Future<void> _openInternalReader(
     BuildContext context,
@@ -63,189 +70,240 @@ class BookDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
 
-    return BlocProvider(
-      create:
-          (context) =>
-              getIt<BookDetailsBloc>()
-                ..add(LoadBookDetails(bookViewModel, bookUuid)),
-      child: BlocConsumer<BookDetailsBloc, BookDetailsState>(
-        listenWhen:
-            (previous, current) =>
-                previous.readStatusState != current.readStatusState ||
-                previous.archiveStatusState != current.archiveStatusState ||
-                previous.openInReaderState != current.openInReaderState ||
-                previous.openInInternalReaderState !=
-                    current.openInInternalReaderState ||
-                previous.metadataUpdateState != current.metadataUpdateState ||
-                previous.bookDetails != current.bookDetails,
-        listener: (context, state) {
-          if (state.readStatusState == ReadStatusState.success) {
-            context.showSnackBar(
-              state.isBookRead
-                  ? localizations.markedAsReadSuccessfully
-                  : localizations.markedAsUnreadSuccessfully,
-            );
-            context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
-          } else if (state.readStatusState == ReadStatusState.error) {
-            context.showSnackBar(
-              state.isBookRead
-                  ? localizations.markedAsReadFailed
-                  : localizations.markedAsUnreadFailed,
-              isError: true,
-            );
-            context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
-          }
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        Navigator.of(context).pop(_didUpdateMetadata);
+      },
+      child: BlocProvider(
+        create:
+            (context) =>
+                getIt<BookDetailsBloc>()
+                  ..add(LoadBookDetails(widget.bookViewModel, widget.bookUuid)),
+        child: BlocConsumer<BookDetailsBloc, BookDetailsState>(
+          listenWhen:
+              (previous, current) =>
+                  previous.readStatusState != current.readStatusState ||
+                  previous.archiveStatusState != current.archiveStatusState ||
+                  previous.openInReaderState != current.openInReaderState ||
+                  previous.openInInternalReaderState !=
+                      current.openInInternalReaderState ||
+                  previous.metadataUpdateState != current.metadataUpdateState ||
+                  previous.bookDetails != current.bookDetails ||
+                  previous.seriesNavigationStatus !=
+                      current.seriesNavigationStatus,
+          listener: (context, state) {
+            if (state.readStatusState == ReadStatusState.success) {
+              context.showSnackBar(
+                state.isBookRead
+                    ? localizations.markedAsReadSuccessfully
+                    : localizations.markedAsUnreadSuccessfully,
+              );
+              context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
+            } else if (state.readStatusState == ReadStatusState.error) {
+              context.showSnackBar(
+                state.isBookRead
+                    ? localizations.markedAsReadFailed
+                    : localizations.markedAsUnreadFailed,
+                isError: true,
+              );
+              context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
+            }
 
-          if (state.archiveStatusState == ArchiveStatusState.success) {
-            context.showSnackBar(
-              state.isBookArchived
-                  ? localizations.archivedBookSuccessfully
-                  : localizations.unarchivedBookSuccessfully,
-            );
-            context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
-          } else if (state.archiveStatusState == ArchiveStatusState.error) {
-            context.showSnackBar(
-              state.isBookArchived
-                  ? localizations.archivedBookFailed
-                  : localizations.unarchivedBookFailed,
-              isError: true,
-            );
-            context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
-          }
+            if (state.archiveStatusState == ArchiveStatusState.success) {
+              context.showSnackBar(
+                state.isBookArchived
+                    ? localizations.archivedBookSuccessfully
+                    : localizations.unarchivedBookSuccessfully,
+              );
+              context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
+            } else if (state.archiveStatusState == ArchiveStatusState.error) {
+              context.showSnackBar(
+                state.isBookArchived
+                    ? localizations.archivedBookFailed
+                    : localizations.unarchivedBookFailed,
+                isError: true,
+              );
+              context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
+            }
 
-          if (state.openInReaderState == OpenInReaderState.success) {
-            context.showSnackBar(
-              localizations.bookOpenedExternallySuccessfully,
-            );
-            context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
-          } else if (state.openInReaderState == OpenInReaderState.error) {
-            context.showSnackBar(
-              localizations.openBookExternallyFailed,
-              isError: true,
-            );
-            context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
-          }
+            if (state.openInReaderState == OpenInReaderState.success) {
+              context.showSnackBar(
+                localizations.bookOpenedExternallySuccessfully,
+              );
+              context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
+            } else if (state.openInReaderState == OpenInReaderState.error) {
+              context.showSnackBar(
+                localizations.openBookExternallyFailed,
+                isError: true,
+              );
+              context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
+            }
 
-          if (state.openInInternalReaderState ==
-                  OpenInInternalReaderState.success &&
-              state.downloadFilePath != null) {
-            _openInternalReader(
-              context,
-              state.downloadFilePath!,
-              state.bookDetails!,
-            );
-          }
+            if (state.openInInternalReaderState ==
+                    OpenInInternalReaderState.success &&
+                state.downloadFilePath != null) {
+              context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
 
-          if (state.openInInternalReaderState ==
-              OpenInInternalReaderState.error) {
-            context.showSnackBar(
-              '${localizations.errorOpeningBookInInternalReader} ${state.errorMessage}',
-              isError: true,
-            );
-          }
-        },
-        buildWhen:
-            (previous, current) =>
-                previous.status != current.status ||
-                previous.bookDetails != current.bookDetails ||
-                previous.isBookRead != current.isBookRead ||
-                previous.isBookArchived != current.isBookArchived ||
-                previous.metadataUpdateState != current.metadataUpdateState ||
-                (previous.metadataUpdateState == MetadataUpdateState.success &&
-                    current.metadataUpdateState == MetadataUpdateState.success),
-        builder: (context, state) {
-          final isLoading = state.status == BookDetailsStatus.loading;
-          final hasError = state.status == BookDetailsStatus.error;
+              _openInternalReader(
+                context,
+                state.downloadFilePath!,
+                state.bookDetails!,
+              );
+            }
 
-          if (hasError) {
-            return Scaffold(
-              appBar: AppBar(title: Text(localizations.error)),
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${localizations.errorLoadingData}: ${state.errorMessage}',
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        context.read<BookDetailsBloc>().add(
-                          ReloadBookDetails(bookViewModel, bookUuid),
-                        );
-                      },
-                      child: Text(localizations.tryAgain),
-                    ),
-                  ],
+            if (state.openInInternalReaderState ==
+                OpenInInternalReaderState.error) {
+              context.showSnackBar(
+                '${localizations.errorOpeningBookInInternalReader} ${state.errorMessage}',
+                isError: true,
+              );
+            }
+
+            if (state.seriesNavigationStatus ==
+                    SeriesNavigationStatus.success &&
+                state.seriesNavigationPath != null) {
+              Navigator.of(context).push(
+                AppTransitions.createSlideRoute(
+                  DiscoverDetailsPage(
+                    title: state.bookDetails?.series ?? '',
+                    categoryType: CategoryType.series,
+                    fullPath: state.seriesNavigationPath!,
+                  ),
                 ),
-              ),
-            );
-          }
+              );
+            }
 
-          final book = state.bookDetails ?? _createDummyBook(localizations);
+            if (state.seriesNavigationStatus == SeriesNavigationStatus.error) {
+              context.showSnackBar(
+                localizations.errorLoadingData,
+                isError: true,
+              );
+            }
 
-          return Scaffold(
-            appBar: AppBar(
-              title:
-                  isLoading
-                      ? Skeletonizer(
-                        enabled: true,
-                        effect: ShimmerEffect(
-                          baseColor: Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: .2),
-                          highlightColor: Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: .4),
-                        ),
-                        child: Container(
-                          height: 20,
-                          width: 300,
-                          color: Colors.black,
-                        ),
-                      )
-                      : Text(
-                        book.title.length > 30
-                            ? "${book.title.substring(0, 30)}..."
-                            : book.title,
+            if (state.metadataUpdateState == MetadataUpdateState.success) {
+              _didUpdateMetadata = true;
+
+              context.showSnackBar(localizations.metadataUpdateSuccessfully);
+              context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
+            }
+          },
+          buildWhen:
+              (previous, current) =>
+                  previous.status != current.status ||
+                  previous.bookDetails != current.bookDetails ||
+                  previous.isBookRead != current.isBookRead ||
+                  previous.isBookArchived != current.isBookArchived ||
+                  previous.openInReaderState != current.openInReaderState ||
+                  previous.openInInternalReaderState !=
+                      current.openInInternalReaderState ||
+                  previous.metadataUpdateState != current.metadataUpdateState ||
+                  (previous.metadataUpdateState ==
+                          MetadataUpdateState.success &&
+                      current.metadataUpdateState ==
+                          MetadataUpdateState.success),
+          builder: (context, state) {
+            final isLoading = state.status == BookDetailsStatus.loading;
+            final hasError = state.status == BookDetailsStatus.error;
+
+            if (hasError) {
+              return Scaffold(
+                appBar: AppBar(title: Text(localizations.error)),
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${localizations.errorLoadingData}: ${state.errorMessage}',
                       ),
-              leading: IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.arrow_back),
-              ),
-            ),
-            body: RefreshIndicator(
-              onRefresh: () async {
-                context.read<BookDetailsBloc>().add(
-                  ReloadBookDetails(bookViewModel, bookUuid),
-                );
-              },
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<BookDetailsBloc>().add(
+                            ReloadBookDetails(
+                              state.bookViewModel ?? widget.bookViewModel,
+                              widget.bookUuid,
+                            ),
+                          );
+                        },
+                        child: Text(localizations.tryAgain),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
 
-              child: Skeletonizer(
-                enabled: isLoading,
-                effect: ShimmerEffect(
-                  baseColor: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: .2),
-                  highlightColor: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: .4),
-                ),
-                child: _buildBookDetails(
-                  context,
-                  localizations,
-                  state,
-                  book,
-                  isLoading,
+            final book = state.bookDetails ?? _createDummyBook(localizations);
+
+            return Scaffold(
+              appBar: AppBar(
+                title:
+                    isLoading
+                        ? Skeletonizer(
+                          enabled: true,
+                          effect: ShimmerEffect(
+                            baseColor: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: .2),
+                            highlightColor: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: .4),
+                          ),
+                          child: Container(
+                            height: 20,
+                            width: 300,
+                            color: Colors.black,
+                          ),
+                        )
+                        : Text(
+                          book.title.length > 30
+                              ? "${book.title.substring(0, 30)}..."
+                              : book.title,
+                        ),
+                leading: IconButton(
+                  onPressed:
+                      () => Navigator.of(context).pop(_didUpdateMetadata),
+                  icon: const Icon(Icons.arrow_back),
                 ),
               ),
-            ),
-            floatingActionButton:
-                isLoading
-                    ? null
-                    : SendToEreaderWidget(book: book, isLoading: isLoading),
-          );
-        },
+              body: RefreshIndicator(
+                onRefresh: () async {
+                  context.read<BookDetailsBloc>().add(
+                    ReloadBookDetails(
+                      state.bookViewModel ?? widget.bookViewModel,
+                      widget.bookUuid,
+                    ),
+                  );
+                },
+
+                child: Skeletonizer(
+                  enabled: isLoading,
+                  effect: ShimmerEffect(
+                    baseColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: .2),
+                    highlightColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: .4),
+                  ),
+                  child: _buildBookDetails(
+                    context,
+                    localizations,
+                    state,
+                    book,
+                    isLoading,
+                  ),
+                ),
+              ),
+              floatingActionButton:
+                  isLoading
+                      ? null
+                      : SendToEreaderWidget(book: book, isLoading: isLoading),
+            );
+          },
+        ),
       ),
     );
   }
@@ -356,23 +414,30 @@ class BookDetailsPage extends StatelessWidget {
               InkWell(
                 borderRadius: BorderRadius.circular(8.0),
                 onTap: () {
-                  Navigator.of(context).push(
-                    AppTransitions.createSlideRoute(
-                      DiscoverDetailsPage(
-                        title: book.series,
-                        categoryType: CategoryType.series,
-                        fullPath: "/opds/series/${book.seriesIndex}",
-                      ),
-                    ),
-                  );
+                  context.read<BookDetailsBloc>().add(OpenSeries(book.series));
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     vertical: 4.0,
                     horizontal: 4.0,
                   ),
-                  child: Text(
-                    '${book.series} (${localizations.book} ${book.seriesIndex.toInt()})',
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${book.series} (${localizations.book} ${book.seriesIndex.toInt()})',
+                      ),
+                      if (state.seriesNavigationStatus ==
+                          SeriesNavigationStatus.loading)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 8.0),
+                          child: SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -527,7 +592,7 @@ class BookDetailsPage extends StatelessWidget {
           EditBookMetadataWidget(
             book: book,
             isLoading: isLoading,
-            bookViewModel: bookViewModel,
+            bookViewModel: state.bookViewModel ?? widget.bookViewModel,
           ),
           AddToShelfWidget(book: book, isLoading: isLoading),
 
@@ -537,7 +602,8 @@ class BookDetailsPage extends StatelessWidget {
             icon: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
               child:
-                  state.openInReaderState == OpenInReaderState.loading
+                  state.openInInternalReaderState ==
+                          OpenInInternalReaderState.loading
                       ? SizedBox(
                         width: 20,
                         height: 20,
@@ -819,21 +885,23 @@ class BookDetailsPage extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 8.0),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(8.0),
-                  onTap: () {
-                    TagModel? tagModel = tagModels.firstWhere(
-                      (tm) => tm.name == tag,
-                      orElse: () => TagModel(id: 0, name: tag),
-                    );
-                    Navigator.of(context).push(
-                      AppTransitions.createSlideRoute(
-                        DiscoverDetailsPage(
-                          title: tag,
-                          categoryType: CategoryType.category,
-                          fullPath: "/opds/category/${tagModel.id}",
-                        ),
-                      ),
-                    );
-                  },
+                  // Since the book information does not contain the tag IDs, the navigation
+                  // to the tag details page is currently disabled.
+                  // onTap: () {
+                  //   TagModel? tagModel = tagModels.firstWhere(
+                  //     (tm) => tm.name == tag,
+                  //     orElse: () => TagModel(id: 0, name: tag),
+                  //   );
+                  //   Navigator.of(context).push(
+                  //     AppTransitions.createSlideRoute(
+                  //       DiscoverDetailsPage(
+                  //         title: tag,
+                  //         categoryType: CategoryType.category,
+                  //         fullPath: "/opds/category/${tagModel.id}",
+                  //       ),
+                  //     ),
+                  //   );
+                  // },
                   child: Chip(
                     label: Text(tag),
                     backgroundColor:
@@ -851,9 +919,9 @@ class BookDetailsPage extends StatelessWidget {
   }
 
   Widget _buildRating(double rating) {
-    final int filledStars = rating.floor();
-    final bool hasHalfStar = (rating - filledStars) >= 0.5;
-    final int maxStars = 10;
+    final int filledStars = (rating / 2).floor();
+    final bool hasHalfStar = ((rating / 2) - filledStars) >= 0.5;
+    final int maxStars = 5;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -868,11 +936,6 @@ class BookDetailsPage extends StatelessWidget {
             color: Colors.amber,
             size: 20,
           ),
-        const SizedBox(width: 8),
-        Text(
-          '${rating.toStringAsFixed(1)} / $maxStars',
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
       ],
     );
   }

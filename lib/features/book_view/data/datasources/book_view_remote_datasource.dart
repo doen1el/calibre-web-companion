@@ -116,4 +116,12 @@ class BookViewRemoteDatasource {
     if (count > 5) count = 5;
     await _preferences.setInt('grid_column_count', count);
   }
+
+  Future<bool> getIsListView() async {
+    return _preferences.getBool('is_list_view') ?? false;
+  }
+
+  Future<void> setIsListView(bool isList) async {
+    await _preferences.setBool('is_list_view', isList);
+  }
 }

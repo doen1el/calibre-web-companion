@@ -20,6 +20,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     on<SearchBooks>(_onSearchBooks);
     on<UploadBook>(_onUploadBook);
     on<ChangeColumnCount>(_onChangeColumnCount);
+    on<SetViewMode>(_onSetViewMode);
     on<UploadCancel>(_onUploadCancel);
     on<ResetUploadStatus>(_onResetUploadStatus);
   }
@@ -30,7 +31,8 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
   ) async {
     try {
       final columnCount = await repository.getColumnCount();
-      emit(state.copyWith(columnCount: columnCount));
+      final isListView = await repository.getIsListView();
+      emit(state.copyWith(columnCount: columnCount, isListView: isListView));
     } catch (e) {
       logger.e('Error loading settings: $e');
     }
@@ -218,9 +220,22 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
   ) async {
     try {
       await repository.setColumnCount(event.count);
-      emit(state.copyWith(columnCount: event.count));
+      await repository.setIsListView(false);
+      emit(state.copyWith(columnCount: event.count, isListView: false));
     } catch (e) {
       logger.e('Error changing column count: $e');
+    }
+  }
+
+  Future<void> _onSetViewMode(
+    SetViewMode event,
+    Emitter<BookViewState> emit,
+  ) async {
+    try {
+      await repository.setIsListView(event.isListView);
+      emit(state.copyWith(isListView: event.isListView));
+    } catch (e) {
+      logger.e('Error changing view mode: $e');
     }
   }
 

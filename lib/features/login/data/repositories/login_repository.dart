@@ -1,9 +1,8 @@
-import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
 import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
 import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
 
 abstract class LoginFailure {}
 
@@ -44,7 +43,27 @@ class LoginRepository {
   }
 
   Future<bool> isLoggedIn() async {
-    return dataSource.canAccessWebsite();
+    final isSessionValid = await dataSource.canAccessWebsite();
+    if (isSessionValid) {
+      return true;
+    }
+
+    logger.i('Session invalid or expired. Attempting auto-relogin...');
+
+    try {
+      final credentials = await dataSource.getStoredCredentials();
+
+      if (credentials != null) {
+        await dataSource.login(credentials);
+
+        logger.i('Auto-relogin successful');
+        return true;
+      }
+    } catch (e) {
+      logger.w('Auto-relogin failed: $e');
+    }
+
+    return false;
   }
 
   Future<LoginCredentials?> getStoredCredentials() async {

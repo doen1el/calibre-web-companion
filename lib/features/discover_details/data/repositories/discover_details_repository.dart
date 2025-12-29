@@ -1,5 +1,5 @@
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
+
 import 'package:calibre_web_companion/features/discover_details/data/datasources/discover_details_remote_datasource.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_feed_model.dart';
@@ -40,15 +40,6 @@ class DiscoverDetailsRepository {
     try {
       final books = await dataSource.loadBooksFromPath(fullPath);
       return books;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<BookViewModel> loadBookDetails(String bookId) async {
-    try {
-      final bookDetails = await dataSource.loadBookDetails(bookId);
-      return bookDetails;
     } catch (e) {
       rethrow;
     }

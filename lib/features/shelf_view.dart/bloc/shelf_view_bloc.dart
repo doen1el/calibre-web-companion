@@ -48,12 +48,45 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
     CreateShelf event,
     Emitter<ShelfViewState> emit,
   ) async {
+    emit(
+      state.copyWith(
+        actionMessage: null,
+        errorMessage: null,
+        createShelfStatus: CreateShelfStatus.initial,
+      ),
+    );
+
+    final normalizedNewName = event.shelfName.trim();
+    final targetTitle =
+        event.isPublic ? '$normalizedNewName (Public)' : normalizedNewName;
+
+    final exists = state.shelves.any(
+      (shelf) => shelf.title.trim().toLowerCase() == targetTitle.toLowerCase(),
+    );
+
+    if (exists) {
+      emit(
+        state.copyWith(
+          createShelfStatus: CreateShelfStatus.error,
+          errorMessage: 'Shelf with this name already exists',
+        ),
+      );
+      return;
+    }
+
     emit(state.copyWith(createShelfStatus: CreateShelfStatus.loading));
 
     try {
-      final newShelfId = await repository.createShelf(event.shelfName);
+      final newShelfId = await repository.createShelf(
+        event.shelfName,
+        event.isPublic,
+      );
 
-      final newShelf = ShelfViewModel(id: newShelfId, title: event.shelfName);
+      final newShelf = ShelfViewModel(
+        id: newShelfId,
+        title: event.isPublic ? '${event.shelfName} (Public)' : event.shelfName,
+        isPublic: event.isPublic,
+      );
 
       final updatedShelves = List.of(state.shelves)..add(newShelf);
 
@@ -87,6 +120,7 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
         status: ShelfViewStatus.loaded,
         shelves: updatedShelves,
         actionMessage: 'Shelf removed successfully',
+        createShelfStatus: CreateShelfStatus.initial,
       ),
     );
   }
@@ -100,7 +134,15 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
     final updatedShelves =
         state.shelves.map((shelf) {
           if (shelf.id == event.shelfId) {
-            return shelf.copyWith(title: event.newShelfName);
+            final displayTitle =
+                event.isPublic
+                    ? '${event.newShelfName} (Public)'
+                    : event.newShelfName;
+
+            return shelf.copyWith(
+              title: displayTitle,
+              isPublic: event.isPublic,
+            );
           }
           return shelf;
         }).toList();
@@ -110,6 +152,7 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
         status: ShelfViewStatus.loaded,
         shelves: updatedShelves,
         actionMessage: 'Shelf updated successfully',
+        createShelfStatus: CreateShelfStatus.initial,
       ),
     );
   }

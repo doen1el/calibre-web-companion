@@ -1,11 +1,12 @@
+import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
 
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
@@ -27,18 +28,92 @@ class SendToEreaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
 
-    return BlocBuilder<SettingsBloc, SettingsState>(
-      builder: (context, settingsState) {
-        return FloatingActionButton.extended(
-          onPressed:
-              isLoading
-                  ? null
-                  : () => _showSendToReaderDialog(context, localizations),
-          icon: const Icon(Icons.send),
-          label: Text(localizations.sendToEReader),
+    return BlocBuilder<BookDetailsBloc, BookDetailsState>(
+      builder: (context, bookDetailsState) {
+        return BlocBuilder<SettingsBloc, SettingsState>(
+          builder: (context, settingsState) {
+            final bool showReadNow = settingsState.showReadNowButton;
+
+            final bool isOpeningReader =
+                bookDetailsState.openInReaderState == OpenInReaderState.loading;
+
+            if (showReadNow) {
+              return FloatingActionButton.extended(
+                onPressed:
+                    (isLoading || isOpeningReader)
+                        ? null
+                        : () => _handleReadNow(
+                          context,
+                          localizations,
+                          settingsState,
+                        ),
+                icon:
+                    isOpeningReader
+                        ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        )
+                        : const Icon(Icons.open_in_new_rounded),
+                label: Text(localizations.readNow),
+              );
+            }
+
+            return FloatingActionButton.extended(
+              onPressed:
+                  isLoading
+                      ? null
+                      : () => _showSendToReaderDialog(context, localizations),
+              icon: const Icon(Icons.send),
+              label: Text(localizations.sendToEReader),
+            );
+          },
         );
       },
     );
+  }
+
+  Future<void> _handleReadNow(
+    BuildContext context,
+    AppLocalizations localizations,
+    SettingsState settingsState,
+  ) async {
+    DocumentFile? selectedDirectory;
+
+    if (settingsState.defaultDownloadPath.isEmpty) {
+      selectedDirectory = await DocMan.pick.directory();
+      if (selectedDirectory == null) {
+        if (context.mounted) {
+          context.showSnackBar(
+            localizations.noFolderWasSelected,
+            isError: true,
+          );
+        }
+        return;
+      }
+    } else {
+      final uri = settingsState.defaultDownloadPath;
+      selectedDirectory =
+          uri.isNotEmpty ? await DocumentFile.fromUri(uri) : null;
+      if (selectedDirectory == null || !selectedDirectory.isDirectory) {
+        if (context.mounted) {
+          context.showSnackBar(
+            localizations.noFolderWasSelected,
+            isError: true,
+          );
+        }
+        return;
+      }
+    }
+
+    if (context.mounted) {
+      context.read<BookDetailsBloc>().add(
+        OpenBookInReader(
+          selectedDirectory: selectedDirectory,
+          schema: settingsState.downloadSchema,
+        ),
+      );
+    }
   }
 
   void _showSendToReaderDialog(

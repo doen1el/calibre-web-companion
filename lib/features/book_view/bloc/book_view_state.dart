@@ -16,6 +16,7 @@ class BookViewState extends Equatable {
   final String sortOrder;
   final String? searchQuery;
   final int columnCount;
+  final bool isListView;
   final UploadStatus uploadStatus;
 
   const BookViewState({
@@ -30,6 +31,7 @@ class BookViewState extends Equatable {
     this.sortOrder = '',
     this.searchQuery,
     this.columnCount = 2,
+    this.isListView = false, // Default false
     this.uploadStatus = UploadStatus.initial,
   });
 
@@ -45,6 +47,7 @@ class BookViewState extends Equatable {
     String? sortOrder,
     String? searchQuery,
     int? columnCount,
+    bool? isListView,
     UploadStatus? uploadStatus,
   }) {
     return BookViewState(
@@ -59,6 +62,7 @@ class BookViewState extends Equatable {
       sortOrder: sortOrder ?? this.sortOrder,
       searchQuery: searchQuery ?? this.searchQuery,
       columnCount: columnCount ?? this.columnCount,
+      isListView: isListView ?? this.isListView,
       uploadStatus: uploadStatus ?? this.uploadStatus,
     );
   }
@@ -76,6 +80,7 @@ class BookViewState extends Equatable {
     sortOrder,
     searchQuery,
     columnCount,
+    isListView,
     uploadStatus,
   ];
 }

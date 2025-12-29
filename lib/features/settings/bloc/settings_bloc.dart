@@ -22,6 +22,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SetDownloaderUrl>(_onSetDownloaderUrl);
     on<SubmitFeedback>(_onSubmitFeedback);
     on<SetLanguage>(_onSetLanguage);
+    on<SetShowReadNowButton>(_onSetShowReadNowButton);
     on<BuyMeACoffee>(_onBuyMeACoffee);
   }
 
@@ -47,6 +48,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           send2ereaderUrl: settings.send2ereaderUrl,
           defaultDownloadPath: settings.defaultDownloadPath,
           downloadSchema: settings.downloadSchema,
+          showReadNowButton: settings.showReadNowButton,
           appVersion: packageInfo.version,
           buildNumber: packageInfo.buildNumber,
           languageCode: settings.languageCode,
@@ -248,6 +250,23 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setLanguage(event.languageCode);
       emit(state.copyWith(languageCode: event.languageCode));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetShowReadNowButton(
+    SetShowReadNowButton event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      await repository.setShowReadNowButton(event.enabled);
+      emit(state.copyWith(showReadNowButton: event.enabled));
     } catch (e) {
       emit(
         state.copyWith(

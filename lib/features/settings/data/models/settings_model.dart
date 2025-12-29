@@ -15,6 +15,7 @@ class SettingsModel extends Equatable {
   final String defaultDownloadPath;
   final DownloadSchema downloadSchema;
   final String languageCode;
+  final bool showReadNowButton;
 
   const SettingsModel({
     required this.themeMode,
@@ -27,6 +28,7 @@ class SettingsModel extends Equatable {
     required this.defaultDownloadPath,
     required this.downloadSchema,
     required this.languageCode,
+    required this.showReadNowButton,
   });
 
   factory SettingsModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class SettingsModel extends Equatable {
       defaultDownloadPath: json['default_download_path'] ?? '',
       downloadSchema: DownloadSchema.values[json['download_schema'] ?? 0],
       languageCode: json['language_code'] ?? 'en',
+      showReadNowButton: json['show_read_now_button'] ?? false,
     );
   }
 
@@ -56,5 +59,6 @@ class SettingsModel extends Equatable {
     defaultDownloadPath,
     downloadSchema,
     languageCode,
+    showReadNowButton,
   ];
 }

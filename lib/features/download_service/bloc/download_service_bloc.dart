@@ -26,18 +26,20 @@ class DownloadServiceBloc
     emit(
       state.copyWith(
         searchStatus: DownloadServiceStatus.loading,
-        errorMessage: null,
         hasSearched: true,
-        searchResults: [],
       ),
     );
 
     try {
-      final searchResults = await repository.searchBooks(event.query);
+      final results = await repository.searchBooks(
+        event.query,
+        filter: event.filter,
+      );
+
       emit(
         state.copyWith(
+          searchResults: results,
           searchStatus: DownloadServiceStatus.loaded,
-          searchResults: searchResults,
         ),
       );
     } catch (e) {

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 
 class EditShelfDialog extends StatefulWidget {
   final String currentName;
-  final Function(String) onEditShelf;
+  final bool isPublic;
+  final Function(String, bool) onEditShelf;
 
   const EditShelfDialog({
     super.key,
     required this.currentName,
+    required this.isPublic,
     required this.onEditShelf,
   });
 
@@ -20,11 +22,13 @@ class EditShelfDialog extends StatefulWidget {
 class _EditShelfDialogState extends State<EditShelfDialog> {
   late final TextEditingController _controller;
   bool _isEditing = false;
+  bool _isPublic = false;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.currentName);
+    _isPublic = widget.isPublic;
   }
 
   @override
@@ -41,15 +45,34 @@ class _EditShelfDialogState extends State<EditShelfDialog> {
       title: Text(localizations.editShelf),
       content: SizedBox(
         width: double.maxFinite,
-        child: TextField(
-          controller: _controller,
-          decoration: InputDecoration(
-            labelText: localizations.shelfName,
-            border: const OutlineInputBorder(),
-            prefixIcon: const Icon(Icons.list_rounded),
-          ),
-          autofocus: true,
-          enabled: !_isEditing,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _controller,
+              decoration: InputDecoration(
+                labelText: localizations.shelfName,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.list_rounded),
+              ),
+              autofocus: true,
+              enabled: !_isEditing,
+            ),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: const Text('Public'),
+              value: _isPublic,
+              onChanged:
+                  _isEditing
+                      ? null
+                      : (value) {
+                        setState(() {
+                          _isPublic = value;
+                        });
+                      },
+              contentPadding: EdgeInsets.zero,
+            ),
+          ],
         ),
       ),
       actions: [
@@ -58,7 +81,7 @@ class _EditShelfDialogState extends State<EditShelfDialog> {
           child: Text(localizations.cancel),
         ),
         ElevatedButton(
-          onPressed: _isEditing ? null : _createShelf,
+          onPressed: _isEditing ? null : _editShelf,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -80,7 +103,7 @@ class _EditShelfDialogState extends State<EditShelfDialog> {
     );
   }
 
-  void _createShelf() {
+  void _editShelf() {
     final localizations = AppLocalizations.of(context)!;
 
     if (_controller.text.trim().isEmpty) {
@@ -92,7 +115,7 @@ class _EditShelfDialogState extends State<EditShelfDialog> {
       _isEditing = true;
     });
 
-    widget.onEditShelf(_controller.text.trim());
+    widget.onEditShelf(_controller.text.trim(), _isPublic);
     Navigator.of(context).pop();
   }
 }

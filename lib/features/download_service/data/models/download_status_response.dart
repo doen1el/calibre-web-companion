@@ -7,6 +7,9 @@ class DownloadStatusResponse {
   final Map<String, dynamic> downloading;
   final Map<String, dynamic> error;
   final Map<String, dynamic> queued;
+  final Map<String, dynamic> complete;
+  final Map<String, dynamic> cancelled;
+  final Map<String, dynamic> resolving;
 
   DownloadStatusResponse({
     required this.available,
@@ -14,6 +17,9 @@ class DownloadStatusResponse {
     required this.downloading,
     required this.error,
     required this.queued,
+    required this.complete,
+    required this.cancelled,
+    required this.resolving,
   });
 
   factory DownloadStatusResponse.fromJson(Map<String, dynamic> json) {
@@ -23,6 +29,9 @@ class DownloadStatusResponse {
       downloading: json['downloading'] ?? {},
       error: json['error'] ?? {},
       queued: json['queued'] ?? {},
+      complete: json['complete'] ?? {},
+      cancelled: json['cancelled'] ?? {},
+      resolving: json['resolving'] ?? {},
     );
   }
 
@@ -53,6 +62,19 @@ class DownloadStatusResponse {
       allBooks.add(_createBookFromData(id, bookData, DownloaderStatus.queued));
     });
 
+
+    complete.forEach((id, bookData) {
+      allBooks.add(_createBookFromData(id, bookData, DownloaderStatus.done));
+    });
+
+    cancelled.forEach((id, bookData) {
+      allBooks.add(_createBookFromData(id, bookData, DownloaderStatus.error));
+    });
+
+    resolving.forEach((id, bookData) {
+      allBooks.add(_createBookFromData(id, bookData, DownloaderStatus.queued));
+    });
+
     return allBooks;
   }
 
@@ -61,7 +83,6 @@ class DownloadStatusResponse {
     dynamic data,
     DownloaderStatus status,
   ) {
-    // Handle both string and map types for data
     if (data is! Map<String, dynamic>) {
       return DownloadServiceBookModel(
         id: id,

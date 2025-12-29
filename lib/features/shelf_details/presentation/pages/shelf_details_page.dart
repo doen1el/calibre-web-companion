@@ -3,27 +3,36 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_event.dart';
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_state.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/main.dart';
-import 'package:calibre_web_companion/features/shelf_details/data/models/book_author_model.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_book_item_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/presentation/widgets/edit_shelf_dialog_widget.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
 class ShelfDetailsPage extends StatelessWidget {
   final String shelfId;
+  final String shelfTitle;
+  final bool isPublic;
 
-  const ShelfDetailsPage({super.key, required this.shelfId});
+  const ShelfDetailsPage({
+    super.key,
+    required this.shelfId,
+    required this.shelfTitle,
+    required this.isPublic,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +41,13 @@ class ShelfDetailsPage extends StatelessWidget {
     return BlocProvider(
       create:
           (context) =>
-              getIt<ShelfDetailsBloc>()..add(LoadShelfDetails(shelfId)),
+              getIt<ShelfDetailsBloc>()..add(
+                LoadShelfDetails(
+                  shelfId,
+                  shelfTitle: shelfTitle,
+                  isPublic: isPublic,
+                ),
+              ),
       child: BlocConsumer<ShelfDetailsBloc, ShelfDetailsState>(
         listener: (context, state) {
           if (state.actionDetailsStatus == ShelfDetailsActionStatus.success) {
@@ -53,11 +68,18 @@ class ShelfDetailsPage extends StatelessWidget {
           }
         },
         builder: (context, state) {
+          final shelf = state.currentShelfDetail;
+          final bool showPublic = shelf?.isPublic ?? isPublic;
+
+          String displayTitle = shelf?.name ?? shelfTitle;
+
+          if (displayTitle.endsWith(' (Public)')) {
+            displayTitle = displayTitle.substring(0, displayTitle.length - 9);
+          }
+
           return Scaffold(
             appBar: AppBar(
-              title: Text(
-                state.currentShelfDetail?.name ?? localizations.loading,
-              ),
+              title: Text(showPublic ? "$displayTitle (Public)" : displayTitle),
               actions: [
                 IconButton(
                   icon: CircleAvatar(
@@ -67,7 +89,12 @@ class ShelfDetailsPage extends StatelessWidget {
                   ),
                   tooltip: localizations.editShelf,
                   onPressed:
-                      () => _showEditShelfDialog(context, state, localizations),
+                      () => _showEditShelfDialog(
+                        context,
+                        state,
+                        localizations,
+                        displayTitle,
+                      ),
                 ),
                 IconButton(
                   icon: CircleAvatar(
@@ -121,10 +148,9 @@ class ShelfDetailsPage extends StatelessWidget {
       6,
       (index) => ShelfBookItem(
         id: 'dummy-$index',
+        uuid: 'dummy-uuid-$index',
         title: 'Loading Book Title',
-        authors: [BookAuthor(name: 'Loading Author', id: 'author-id')],
-        seriesName: index % 2 == 0 ? 'Loading Series' : null,
-        seriesIndex: index % 2 == 0 ? '1' : null,
+        authors: 'Loading Author',
       ),
     );
 
@@ -150,7 +176,9 @@ class ShelfDetailsPage extends StatelessWidget {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<ShelfDetailsBloc>().add(LoadShelfDetails(shelfId));
+        context.read<ShelfDetailsBloc>().add(
+          LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
+        );
       },
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -175,7 +203,7 @@ class ShelfDetailsPage extends StatelessWidget {
                 ElevatedButton(
                   onPressed:
                       () => context.read<ShelfDetailsBloc>().add(
-                        LoadShelfDetails(shelfId),
+                        LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
                       ),
                   child: Text(localizations.tryAgain),
                 ),
@@ -193,7 +221,9 @@ class ShelfDetailsPage extends StatelessWidget {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<ShelfDetailsBloc>().add(LoadShelfDetails(shelfId));
+        context.read<ShelfDetailsBloc>().add(
+          LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
+        );
       },
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -226,7 +256,9 @@ class ShelfDetailsPage extends StatelessWidget {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<ShelfDetailsBloc>().add(LoadShelfDetails(shelfId));
+        context.read<ShelfDetailsBloc>().add(
+          LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
+        );
       },
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -275,7 +307,9 @@ class ShelfDetailsPage extends StatelessWidget {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<ShelfDetailsBloc>().add(LoadShelfDetails(shelfId));
+        context.read<ShelfDetailsBloc>().add(
+          LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
+        );
       },
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -332,12 +366,23 @@ class ShelfDetailsPage extends StatelessWidget {
           elevation: 4.0,
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap:
-                isLoading
-                    ? null
-                    : () => context.read<ShelfDetailsBloc>().add(
-                      LoadShelfBookDetails(book.id, context),
-                    ),
+            onTap: () async {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder:
+                      (context) => BookDetailsPage(
+                        bookViewModel: BookViewModel(
+                          id: int.parse(book.id),
+                          uuid: book.uuid,
+                          title: book.title,
+                          authors: book.authors.toString(),
+                        ),
+                        bookUuid: book.uuid,
+                      ),
+                ),
+              );
+            },
+
             child: Stack(
               children: [
                 Column(
@@ -360,7 +405,7 @@ class ShelfDetailsPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            book.authors.map((a) => a.name).join(', '),
+                            book.authors,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -368,17 +413,6 @@ class ShelfDetailsPage extends StatelessWidget {
                               color: Colors.grey[700],
                             ),
                           ),
-                          if (book.seriesName != null)
-                            Text(
-                              '${book.seriesName} ${book.seriesIndex ?? ""}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontStyle: FontStyle.italic,
-                                color: Theme.of(context).colorScheme.secondary,
-                              ),
-                            ),
                         ],
                       ),
                     ),
@@ -415,6 +449,7 @@ class ShelfDetailsPage extends StatelessWidget {
     BuildContext context,
     ShelfDetailsState state,
     AppLocalizations localizations,
+    String cleanTitle,
   ) {
     if (state.currentShelfDetail == null) return;
 
@@ -422,13 +457,16 @@ class ShelfDetailsPage extends StatelessWidget {
       context: context,
       builder:
           (dialogContext) => EditShelfDialog(
-            currentName: state.currentShelfDetail!.name,
-            onEditShelf: (newName) {
-              context.read<ShelfDetailsBloc>().add(EditShelf(shelfId, newName));
+            currentName: cleanTitle,
+            isPublic: state.currentShelfDetail!.isPublic,
+            onEditShelf: (newName, isPublic) {
+              context.read<ShelfDetailsBloc>().add(
+                EditShelf(shelfId, newName, isPublic: isPublic),
+              );
 
               if (context.read<ShelfViewBloc>().state.shelves.isNotEmpty) {
                 context.read<ShelfViewBloc>().add(
-                  EditShelfState(shelfId, newName),
+                  EditShelfState(shelfId, newName, isPublic: isPublic),
                 );
               }
             },
@@ -482,41 +520,97 @@ class ShelfDetailsPage extends StatelessWidget {
   }
 
   Widget _buildCoverImage(BuildContext context, String bookId) {
-    ApiService apiService = ApiService();
+    final apiService = ApiService();
     final baseUrl = apiService.getBaseUrl();
-    final username = apiService.getUsername();
-    final password = apiService.getPassword();
-
-    final authHeader =
-        'Basic ${base64.encode(utf8.encode('$username:$password'))}';
     final coverUrl = '$baseUrl/opds/cover/$bookId';
 
-    return CachedNetworkImage(
-      imageUrl: coverUrl,
-      httpHeaders: {'Authorization': authHeader},
-      fit: BoxFit.cover,
-      width: double.infinity,
-      placeholder:
-          (context, url) => Container(
-            color: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
-            child: Skeletonizer(
-              enabled: true,
-              effect: ShimmerEffect(
-                baseColor: Theme.of(
+    return FutureBuilder<Map<String, String>>(
+      future: () async {
+        final headers = <String, String>{};
+
+        final cookieHeaders = apiService.getAuthHeaders(
+          authMethod: AuthMethod.cookie,
+        );
+        if (cookieHeaders.containsKey('Cookie')) {
+          headers['Cookie'] = cookieHeaders['Cookie']!;
+        }
+
+        final username = apiService.getUsername();
+        final password = apiService.getPassword();
+        if (username.isNotEmpty && password.isNotEmpty) {
+          headers['Authorization'] =
+              'Basic ${base64.encode(utf8.encode('$username:$password'))}';
+        }
+
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final headersJson = prefs.getString('custom_login_headers') ?? '[]';
+          final List<dynamic> decodedList = jsonDecode(headersJson);
+
+          for (final dynamic item in decodedList) {
+            if (item is Map) {
+              final map = Map<String, dynamic>.from(item);
+              String? key = map['key']?.toString();
+              String? value = map['value']?.toString();
+
+              if (key == null && map.isNotEmpty) {
+                key = map.keys.first;
+                value = map.values.first;
+              }
+
+              if (key != null && value != null) {
+                if (value.contains('\${USERNAME}') && username.isNotEmpty) {
+                  value = value.replaceAll('\${USERNAME}', username);
+                }
+                headers[key] = value;
+              }
+            }
+          }
+        } catch (e) {
+          // Error loading custom headers; proceed without them
+        }
+
+        headers['Accept'] =
+            'image/avif;q=0,image/webp;q=0,image/jpeg,image/png,*/*;q=0.5';
+        headers['Cache-Control'] = 'no-transform';
+        return headers;
+      }(),
+      builder: (context, snapshot) {
+        final headers = snapshot.data ?? const <String, String>{};
+        return CachedNetworkImage(
+          imageUrl: coverUrl,
+          httpHeaders: headers,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          placeholder:
+              (context, url) => Container(
+                color: Theme.of(
                   context,
-                ).colorScheme.primary.withValues(alpha: .2),
-                highlightColor: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: .4),
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
+                child: Skeletonizer(
+                  enabled: true,
+                  effect: ShimmerEffect(
+                    baseColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: .2),
+                    highlightColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: .4),
+                  ),
+                  child: const SizedBox(),
+                ),
               ),
-              child: SizedBox(),
-            ),
-          ),
-      errorWidget: (context, url, error) => const SizedBox(),
-      memCacheWidth: 300,
-      memCacheHeight: 400,
+          errorWidget:
+              (context, url, error) => Image.network(
+                coverUrl,
+                headers: headers,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stack) => const SizedBox(),
+              ),
+          memCacheWidth: 300,
+          memCacheHeight: 400,
+        );
+      },
     );
   }
 }

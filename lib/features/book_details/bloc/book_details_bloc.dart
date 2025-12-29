@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
 
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/core/exceptions/cancellation_exception.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 
@@ -31,6 +32,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     on<UpdateSendToEReaderProgress>((event, emit) {
       emit(state.copyWith(sendToEReaderProgress: event.progress));
     });
+    on<OpenSeries>(_onOpenSeries);
   }
 
   bool _downloadCancelled = false;
@@ -50,6 +52,8 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         event.bookViewModel,
         event.bookUuid,
       );
+
+      logger.i(bookDetails.tags);
 
       emit(
         state.copyWith(
@@ -77,12 +81,15 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
   ) {
     emit(
       state.copyWith(
-        openInReaderState: OpenInReaderState.initial,
-        downloadState: DownloadState.initial,
-        sendToEReaderState: SendToEReaderState.initial,
-        metadataUpdateState: MetadataUpdateState.initial,
         readStatusState: ReadStatusState.initial,
         archiveStatusState: ArchiveStatusState.initial,
+        openInReaderState: OpenInReaderState.initial,
+        openInInternalReaderState: OpenInInternalReaderState.initial,
+        metadataUpdateState: MetadataUpdateState.initial,
+        sendToEReaderState: SendToEReaderState.initial,
+        seriesNavigationStatus: SeriesNavigationStatus.initial,
+        errorMessage: null,
+        downloadErrorMessage: null,
       ),
     );
   }
@@ -108,6 +115,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           bookDetails: bookDetails,
           isBookRead: event.bookViewModel.readStatus,
           isBookArchived: event.bookViewModel.isArchived,
+          bookViewModel: event.bookViewModel,
         ),
       );
     } catch (e) {
@@ -418,19 +426,61 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         authors: event.authors,
         comments: event.comments,
         tags: event.tags,
+        series: event.series,
+        seriesIndex: event.seriesIndex,
+        pubdate: event.pubdate,
+        publisher: event.publisher,
+        languages: event.languages,
+        rating: event.rating,
         coverImageBytes: event.coverImageBytes,
         coverFileName: event.coverFileName,
       );
 
-      if (result) {
-        emit(state.copyWith(metadataUpdateState: MetadataUpdateState.success));
-      } else {
+      if (!result) {
         emit(
           state.copyWith(
             metadataUpdateState: MetadataUpdateState.error,
             errorMessage: 'Update failed',
           ),
         );
+        return;
+      }
+
+      final currentVm = state.bookViewModel;
+      final currentDetails = state.bookDetails;
+
+      BookViewModel? patchedVm;
+      if (currentVm != null) {
+        final parsedSeriesIndex =
+            int.tryParse(event.seriesIndex) ?? currentVm.seriesIndex;
+
+        patchedVm = currentVm.copyWith(
+          title: event.title,
+          authors: event.authors,
+          series: event.series,
+          seriesIndex: parsedSeriesIndex,
+          pubdate: event.pubdate,
+          publishers: event.publisher,
+          languages: event.languages,
+        );
+
+        logger.i(
+          'Patched ViewModel created. New Publisher: ${patchedVm.publishers}',
+        );
+
+        emit(state.copyWith(bookViewModel: patchedVm));
+      }
+
+      emit(state.copyWith(metadataUpdateState: MetadataUpdateState.success));
+
+      if (currentDetails != null) {
+        final vmForReload = patchedVm ?? currentVm;
+
+        if (vmForReload != null) {
+          add(ReloadBookDetails(vmForReload, currentDetails.uuid));
+        } else {
+          logger.w('Cannot reload book details: bookViewModel is null');
+        }
       }
     } catch (e) {
       emit(
@@ -582,5 +632,41 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     Emitter<BookDetailsState> emit,
   ) {
     _sendToEReaderCancelled = true;
+  }
+
+  Future<void> _onOpenSeries(
+    OpenSeries event,
+    Emitter<BookDetailsState> emit,
+  ) async {
+    emit(
+      state.copyWith(seriesNavigationStatus: SeriesNavigationStatus.loading),
+    );
+
+    final path = await repository.getSeriesPath(event.seriesName);
+
+    if (path != null) {
+      emit(
+        state.copyWith(
+          seriesNavigationStatus: SeriesNavigationStatus.success,
+          seriesNavigationPath: path,
+        ),
+      );
+      emit(
+        state.copyWith(
+          seriesNavigationStatus: SeriesNavigationStatus.initial,
+          seriesNavigationPath: null,
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(
+          seriesNavigationStatus: SeriesNavigationStatus.error,
+          errorMessage: 'Series not found',
+        ),
+      );
+      emit(
+        state.copyWith(seriesNavigationStatus: SeriesNavigationStatus.initial),
+      );
+    }
   }
 }
