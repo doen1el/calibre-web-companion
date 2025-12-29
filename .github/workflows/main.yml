@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build & Release
-    runs-on: macos-lates
+    runs-on: ubuntu-latest
 
     steps:
       #1 Checkout Repository
@@ -69,16 +69,16 @@ jobs:
           changesNotSentForReview: true
           releaseName: 'Release ${{ github.run_number }}'
 
-      #8 Build iOS (.app)
-      - name: Build iOS (Unsigned)
-        run: flutter build ios --release --no-codesign
+      # #8 Build iOS (.app)
+      # - name: Build iOS (Unsigned)
+      #   run: flutter build ios --release --no-codesign
 
-      #9 Create IPA for Sideloading
-      - name: Package IPA
-        run: |
-          mkdir Payload
-          mv build/ios/iphoneos/Runner.app Payload/
-          zip -qq -r release.ipa Payload
+      # #9 Create IPA for Sideloading
+      # - name: Package IPA
+      #   run: |
+      #     mkdir Payload
+      #     mv build/ios/iphoneos/Runner.app Payload/
+      #     zip -qq -r release.ipa Payload
 
       #10 Upload Artifacts (APK,IPA)
       - name: Upload Artifacts
@@ -86,7 +86,6 @@ jobs:
         with:
           name: Releases
           path: |
-            release.ipa
             build/app/outputs/flutter-apk/*.apk
 
       #11 Extract Version
@@ -100,7 +99,7 @@ jobs:
       - name: Create Release Draft
         uses: ncipollo/release-action@v1
         with:
-          artifacts: 'build/app/outputs/flutter-apk/*.apk,release.ipa'
+          artifacts: 'build/app/outputs/flutter-apk/*.apk'
           tag: v${{ env.VERSION }}-b${{ github.run_number }}
           draft: true
           token: ${{ secrets.TOKEN }}
