@@ -24,6 +24,7 @@ class BookViewModel extends Equatable {
   final String timestamp;
   final String title;
   final String uuid;
+  final String? coverUrl;
 
   static final Logger _logger = Logger();
 
@@ -50,6 +51,7 @@ class BookViewModel extends Equatable {
     this.seriesIndex = 0,
     this.sort = '',
     this.timestamp = '',
+    this.coverUrl,
   });
 
   @override
@@ -76,6 +78,7 @@ class BookViewModel extends Equatable {
     seriesIndex,
     sort,
     timestamp,
+    coverUrl,
   ];
 
   Map<String, dynamic> toJson() {
@@ -102,6 +105,7 @@ class BookViewModel extends Equatable {
       'series_index': seriesIndex.toString(),
       'sort': sort,
       'timestamp': timestamp,
+      'cover_url': coverUrl,
     };
   }
 
@@ -132,6 +136,7 @@ class BookViewModel extends Equatable {
             0,
         sort: json['sort'],
         timestamp: json['timestamp'],
+        coverUrl: json['cover_url'],
       );
     } catch (e) {
       _logger.e('Error creating BookItem from JSON: $e');
@@ -162,6 +167,7 @@ class BookViewModel extends Equatable {
     String? timestamp,
     String? title,
     String? uuid,
+    String? coverUrl,
   }) {
     return BookViewModel(
       id: id ?? this.id,
@@ -186,6 +192,7 @@ class BookViewModel extends Equatable {
       seriesIndex: seriesIndex ?? this.seriesIndex,
       sort: sort ?? this.sort,
       timestamp: timestamp ?? this.timestamp,
+      coverUrl: coverUrl ?? this.coverUrl,
     );
   }
 }

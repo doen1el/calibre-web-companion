@@ -23,7 +23,10 @@ class BookListTile extends StatelessWidget {
             children: [
               AspectRatio(
                 aspectRatio: 2 / 3,
-                child: BookCoverWidget(bookId: book.id),
+                child: BookCoverWidget(
+                  bookId: book.id,
+                  coverUrl: book.coverUrl,
+                ),
               ),
               Expanded(
                 child: Padding(

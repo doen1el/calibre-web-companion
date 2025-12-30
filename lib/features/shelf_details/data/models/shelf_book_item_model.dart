@@ -5,12 +5,14 @@ class ShelfBookItem extends Equatable {
   final String uuid;
   final String title;
   final String authors;
+  final String? coverUrl;
 
   const ShelfBookItem({
     required this.id,
     required this.uuid,
     required this.title,
     required this.authors,
+    this.coverUrl,
   });
 
   factory ShelfBookItem.fromJson(Map<String, dynamic> json) {
@@ -19,27 +21,24 @@ class ShelfBookItem extends Equatable {
     String id = '';
     final rawId = json['id'] as String? ?? '';
 
+    if (rawId.startsWith('urn:booklore:book:')) {
+      id = rawId.replaceFirst('urn:booklore:book:', '');
+    } else {
+      id = rawId.replaceFirst('urn:uuid:', '');
+    }
+
     final uuid = rawId.replaceFirst('urn:uuid:', '');
+
+    String? coverUrl;
 
     final links = json['link'];
     if (links != null) {
       final linkList = links is List ? links : [links];
 
       for (var link in linkList) {
-        final href = link['_href'] as String?;
-        if (href != null) {
-          final uri = Uri.tryParse(href);
-          if (uri != null) {
-            final segments = uri.pathSegments;
-            for (var segment in segments) {
-              if (RegExp(r'^\d+$').hasMatch(segment)) {
-                id = segment;
-                break;
-              }
-            }
-          }
+        if (link is Map) {
+          coverUrl = link['_href'] as String?;
         }
-        if (id.isNotEmpty) break;
       }
     }
 
@@ -57,7 +56,13 @@ class ShelfBookItem extends Equatable {
       }
     }
 
-    return ShelfBookItem(id: id, uuid: uuid, title: title, authors: authors);
+    return ShelfBookItem(
+      id: id,
+      uuid: uuid,
+      title: title,
+      authors: authors,
+      coverUrl: coverUrl,
+    );
   }
 
   static String _parseAuthor(dynamic json) {
@@ -69,5 +74,5 @@ class ShelfBookItem extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, uuid, title, authors];
+  List<Object?> get props => [id, uuid, title, authors, coverUrl];
 }

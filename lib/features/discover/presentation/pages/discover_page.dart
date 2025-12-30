@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -18,25 +19,103 @@ class DiscoverPage extends StatelessWidget {
     final localizations = AppLocalizations.of(context)!;
 
     return BlocProvider(
-      create: (context) => DiscoverBloc(),
+      create: (context) => getIt<DiscoverBloc>(),
       child: BlocBuilder<DiscoverBloc, DiscoverState>(
         builder: (context, state) {
           return SafeArea(
             child: Scaffold(
               body: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _buildSectionHeader(context, localizations.discover),
-                    _buildDiscoverWidget(context, localizations),
-                    _buildSectionHeader(context, localizations.categories),
-                    _buildCategoryWidget(context, localizations),
-                  ],
-                ),
+                child:
+                    state.isOpds
+                        ? _buildOpdsBody(context, localizations)
+                        : Column(
+                          children: [
+                            _buildSectionHeader(
+                              context,
+                              localizations.discover,
+                            ),
+                            _buildDiscoverWidget(context, localizations),
+                            _buildSectionHeader(
+                              context,
+                              localizations.categories,
+                            ),
+                            _buildCategoryWidget(context, localizations),
+                          ],
+                        ),
               ),
             ),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildOpdsBody(BuildContext context, AppLocalizations localizations) {
+    return Column(
+      children: [
+        _buildSectionHeader(context, localizations.libraries),
+        LongButton(
+          text: localizations.browsLibraries,
+          icon: Icons.library_books_rounded,
+          onPressed: () {
+            context.read<DiscoverBloc>().add(
+              NavigateToBookList(
+                title: localizations.libraries,
+                categoryType: CategoryType.libraries,
+              ),
+            );
+            Navigator.of(context).push(
+              AppTransitions.createSlideRoute(
+                DiscoverDetailsPage(
+                  title: localizations.libraries,
+                  categoryType: CategoryType.libraries,
+                ),
+              ),
+            );
+          },
+        ),
+        _buildSectionHeader(context, localizations.discover),
+        LongButton(
+          text: localizations.showNewBooks,
+          icon: Icons.new_releases_rounded,
+          onPressed: () {
+            context.read<DiscoverBloc>().add(
+              NavigateToBookList(
+                title: localizations.newBooks,
+                discoverType: DiscoverType.newlyAdded,
+              ),
+            );
+            Navigator.of(context).push(
+              AppTransitions.createSlideRoute(
+                DiscoverDetailsPage(
+                  title: localizations.newBooks,
+                  discoverType: DiscoverType.newlyAdded,
+                ),
+              ),
+            );
+          },
+        ),
+        LongButton(
+          text: localizations.surpriseMe,
+          icon: Icons.shuffle_rounded,
+          onPressed: () {
+            context.read<DiscoverBloc>().add(
+              NavigateToBookList(
+                title: localizations.surpriseMe,
+                discoverType: DiscoverType.surprise,
+              ),
+            );
+            Navigator.of(context).push(
+              AppTransitions.createSlideRoute(
+                DiscoverDetailsPage(
+                  title: localizations.surpriseMe,
+                  discoverType: DiscoverType.surprise,
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 

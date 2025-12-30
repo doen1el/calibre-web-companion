@@ -7,7 +7,6 @@ import 'package:calibre_web_companion/features/discover_details/bloc/discover_de
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
 import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
@@ -19,6 +18,7 @@ import 'package:calibre_web_companion/features/discover_details/data/models/disc
 import 'package:calibre_web_companion/features/discover_details/presentation/widgets/category_list_item_skeleton_widget.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/widgets/category_list_item_widget.dart';
 import 'package:calibre_web_companion/main.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 
 class DiscoverDetailsPage extends StatelessWidget {
   final DiscoverType? discoverType;
@@ -228,20 +228,34 @@ class DiscoverDetailsPage extends StatelessWidget {
           itemBuilder: (context, index) {
             final book = feed.books[index];
             return BookCard(
-              bookId: book.coverUrl ?? '',
+              bookId: book.id,
+              coverUrl: book.coverUrl,
               title: book.title,
               authors: book.authors,
               isLoading: state.loadingBookId == book.id,
               onTap: () async {
+                final int parsedId = int.tryParse(book.id)!;
+
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder:
                         (context) => BookDetailsPage(
-                          bookViewModel: BookViewModel(
-                            id: int.parse(book.id),
+                          bookViewModel: BookDetailsModel(
+                            id: parsedId,
                             uuid: book.uuid,
                             title: book.title,
-                            authors: book.authors.toString(),
+                            authors: book.authors,
+                            cover: book.coverUrl ?? '',
+                            comments: book.summary ?? '',
+                            tags: book.tags,
+                            hasCover: book.coverUrl != null,
+                            path: '',
+                            pubdate: '',
+                            series: '',
+                            seriesIndex: 0,
+                            rating: 0,
+                            languages: '',
+                            publishers: '',
                           ),
                           bookUuid: book.uuid,
                         ),

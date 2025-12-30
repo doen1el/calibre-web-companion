@@ -209,6 +209,7 @@ class BookDetailsModel extends BookViewModel {
     String? comments,
     List<String>? tags,
     List<TagModel>? tagModels,
+    String? coverUrl,
   }) {
     return BookDetailsModel(
       id: id ?? this.id,

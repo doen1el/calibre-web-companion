@@ -342,5 +342,10 @@
   "comic": "Cómic",
   "audiobook": "Audiolibro",
   "sectionDisabledOrNotFound": "Sección no disponible",
-  "sectionDisabledDescription": "Esta sección parece estar deshabilitada en la configuración de tu servidor Calibre-Web o no existe."
+  "sectionDisabledDescription": "Esta sección parece estar deshabilitada en la configuración de tu servidor Calibre-Web o no existe.",
+  "or": "O",
+  "appAddsOPDSPath": "La aplicación añade automáticamente '/api/v1/opds' si no se especifica",
+  "libraries": "Bibliotecas",
+  "browsLibraries": "Explorar bibliotecas",
+  "surpriseMe": "Sorpréndeme"
 }

@@ -9,13 +9,32 @@ import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
 
 class BookCoverWidget extends StatelessWidget {
   final int bookId;
+  final String? coverUrl;
 
-  const BookCoverWidget({super.key, required this.bookId});
+  const BookCoverWidget({super.key, required this.bookId, this.coverUrl});
 
   @override
   Widget build(BuildContext context) {
     final apiService = ApiService();
-    final coverUrl = '${apiService.getBaseUrl()}/opds/cover/$bookId';
+    final baseUrl = apiService.getBaseUrl();
+
+    String imageUrl;
+    if (coverUrl != null && coverUrl!.isNotEmpty) {
+      if (coverUrl!.startsWith('http')) {
+        imageUrl = coverUrl!;
+      } else {
+        final cleanBaseUrl =
+            baseUrl.endsWith('/')
+                ? baseUrl.substring(0, baseUrl.length - 1)
+                : baseUrl;
+        final cleanCoverUrl =
+            coverUrl!.startsWith('/') ? coverUrl! : '/$coverUrl';
+
+        imageUrl = '$cleanBaseUrl$cleanCoverUrl';
+      }
+    } else {
+      imageUrl = '$baseUrl/opds/cover/$bookId';
+    }
 
     return FutureBuilder<Map<String, String>>(
       future: _getHeaders(apiService),
@@ -24,9 +43,9 @@ class BookCoverWidget extends StatelessWidget {
 
         return CachedNetworkImage(
           cacheManager: CustomCacheManager(),
-          imageUrl: coverUrl,
+          imageUrl: imageUrl,
           httpHeaders: headers,
-          key: ValueKey(bookId),
+          key: ValueKey('${bookId}_$imageUrl'),
           fit: BoxFit.cover,
           width: double.infinity,
           height: double.infinity,
@@ -40,14 +59,14 @@ class BookCoverWidget extends StatelessWidget {
   Future<Map<String, String>> _getHeaders(ApiService api) async {
     final headers = <String, String>{};
 
-    final cookieHeaders = api.getAuthHeaders(authMethod: AuthMethod.cookie);
-    if (cookieHeaders.containsKey('Cookie')) {
-      headers['Cookie'] = cookieHeaders['Cookie']!;
-    }
+    final authHeaders = api.getAuthHeaders(authMethod: AuthMethod.auto);
+    headers.addAll(authHeaders);
 
     final username = api.getUsername();
     final password = api.getPassword();
-    if (username.isNotEmpty && password.isNotEmpty) {
+    if (username.isNotEmpty &&
+        password.isNotEmpty &&
+        !headers.containsKey('Authorization')) {
       headers['Authorization'] =
           'Basic ${base64.encode(utf8.encode('$username:$password'))}';
     }
@@ -94,12 +113,16 @@ class BookCoverWidget extends StatelessWidget {
     return Container(
       color: Theme.of(
         context,
-      ).colorScheme.surfaceContainerHighest.withAlpha(77),
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
       child: Skeletonizer(
         enabled: true,
         effect: ShimmerEffect(
-          baseColor: Theme.of(context).colorScheme.primary.withAlpha(51),
-          highlightColor: Theme.of(context).colorScheme.primary.withAlpha(102),
+          baseColor: Theme.of(
+            context,
+          ).colorScheme.primary.withValues(alpha: .2),
+          highlightColor: Theme.of(
+            context,
+          ).colorScheme.primary.withValues(alpha: .4),
         ),
         child: const SizedBox.expand(),
       ),
@@ -110,7 +133,7 @@ class BookCoverWidget extends StatelessWidget {
     return Container(
       color: Theme.of(
         context,
-      ).colorScheme.surfaceContainerHighest.withAlpha(77),
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
       child: Center(
         child: Icon(
           Icons.broken_image_outlined,

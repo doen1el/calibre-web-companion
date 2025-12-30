@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class LoginEvent extends Equatable {
@@ -52,4 +53,12 @@ class LoginLogOut extends LoginEvent {
 
 class LoadStoredCredentials extends LoginEvent {
   const LoadStoredCredentials();
+}
+
+class ChangeServerType extends LoginEvent {
+  final ServerType serverType;
+  const ChangeServerType(this.serverType);
+
+  @override
+  List<Object?> get props => [serverType];
 }

@@ -8,6 +8,7 @@ class BookCard extends StatelessWidget {
   final String authors;
   final VoidCallback? onTap;
   final bool isLoading;
+  final String? coverUrl;
 
   const BookCard({
     super.key,
@@ -16,6 +17,7 @@ class BookCard extends StatelessWidget {
     required this.authors,
     this.onTap,
     this.isLoading = false,
+    this.coverUrl,
   });
 
   @override
@@ -39,6 +41,7 @@ class BookCard extends StatelessWidget {
                     bookId:
                         int.tryParse(bookId) ??
                         int.parse(bookId.split('/').last),
+                    coverUrl: coverUrl,
                   ),
                 ),
                 Expanded(

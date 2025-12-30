@@ -34,6 +34,16 @@ class BookViewRemoteDatasource {
     String sortOrder = '',
   }) async {
     try {
+      final serverType = _preferences.getString('server_type');
+
+      if (serverType == 'opds') {
+        return _fetchBooksOpds(
+          offset: offset,
+          limit: limit,
+          searchQuery: searchQuery,
+        );
+      }
+
       List<BookViewModel> books = [];
 
       final queryParams = {
@@ -62,7 +72,6 @@ class BookViewRemoteDatasource {
         for (var bookData in rows) {
           try {
             final book = BookViewModel.fromJson(bookData);
-
             books.add(book);
           } catch (e) {
             _logger.e('Error parsing book: $e');
@@ -75,6 +84,162 @@ class BookViewRemoteDatasource {
     } catch (e) {
       _logger.e('Error fetching books: $e');
       throw Exception('Failed to load books: $e');
+    }
+  }
+
+  Future<List<BookViewModel>> _fetchBooksOpds({
+    required int offset,
+    required int limit,
+    String? searchQuery,
+  }) async {
+    try {
+      final int page = (offset / limit).floor() + 1;
+
+      final queryParams = {'page': page.toString(), 'size': limit.toString()};
+
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        queryParams['q'] = searchQuery;
+      }
+
+      final response = await _apiService.getXmlAsJson(
+        endpoint: '/api/v1/opds/catalog',
+        authMethod: AuthMethod.basic,
+        queryParams: queryParams,
+      );
+
+      List<BookViewModel> books = [];
+
+      if (response.containsKey('feed') && response['feed'] != null) {
+        final feed = response['feed'];
+
+        if (feed.containsKey('entry')) {
+          final entries = feed['entry'];
+
+          if (entries is List) {
+            for (var entry in entries) {
+              final book = _mapOpdsEntryToViewModel(entry);
+              if (book != null) books.add(book);
+            }
+          } else if (entries is Map) {
+            final book = _mapOpdsEntryToViewModel(entries);
+            if (book != null) books.add(book);
+          }
+        }
+      }
+
+      _logger.i('Parsed ${books.length} OPDS books');
+      return books;
+    } catch (e) {
+      _logger.e('Error fetching OPDS books: $e');
+      throw Exception('Failed to load OPDS books: $e');
+    }
+  }
+
+  BookViewModel? _mapOpdsEntryToViewModel(dynamic entry) {
+    try {
+      if (entry is! Map) return null;
+
+      final title = entry['title'] ?? 'Unknown Title';
+
+      final rawId = entry['id'] ?? '';
+      final uuid = rawId.toString().replaceFirst('urn:uuid:', '');
+
+      int id = 0;
+
+      final parts = rawId.toString().split(':');
+      if (parts.isNotEmpty) {
+        final lastPart = parts.last;
+        final parsed = int.tryParse(lastPart);
+        if (parsed != null) {
+          id = parsed;
+        }
+      }
+
+      if (id == 0 && entry.containsKey('link')) {
+        final links = entry['link'];
+        final linkList = links is List ? links : [links];
+        for (var link in linkList) {
+          if (link is Map && link['_href'] != null) {
+            final href = link['_href'].toString();
+            final uri = Uri.tryParse(href);
+            if (uri != null) {
+              for (var segment in uri.pathSegments) {
+                if (RegExp(r'^\d+$').hasMatch(segment)) {
+                  id = int.parse(segment);
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      String authors = 'Unknown';
+      if (entry.containsKey('author')) {
+        final authorData = entry['author'];
+        if (authorData is Map && authorData.containsKey('name')) {
+          authors = authorData['name'];
+        } else if (authorData is List) {
+          authors = authorData.map((a) => a['name']).join(', ');
+        }
+      }
+
+      bool hasCover = false;
+      String? coverUrl;
+
+      if (entry.containsKey('link')) {
+        final links = entry['link'];
+        final linkList = links is List ? links : [links];
+
+        for (var link in linkList) {
+          if (link is Map) {
+            final rel = link['_rel'];
+            final type = link['_type'];
+            final href = link['_href'];
+
+            if (rel == 'http://opds-spec.org/image' ||
+                rel == 'http://opds-spec.org/image/thumbnail' ||
+                (type != null && type.toString().startsWith('image/'))) {
+              hasCover = true;
+              if (href != null) {
+                coverUrl = href.toString();
+              }
+
+              if (rel == 'http://opds-spec.org/image') break;
+            }
+          }
+        }
+      }
+
+      String pubdate = '';
+      if (entry.containsKey('published')) {
+        pubdate = entry['published'];
+      }
+
+      String description = '';
+      if (entry.containsKey('content')) {
+        description =
+            entry['content']['__cdata'] ?? entry['content'].toString();
+      } else if (entry.containsKey('summary')) {
+        description = entry['summary'].toString();
+      }
+
+      return BookViewModel(
+        id: id,
+        uuid: uuid,
+        title: title,
+        authors: authors,
+        hasCover: hasCover,
+        pubdate: pubdate,
+        data: description,
+        path: '',
+        series: '',
+        seriesIndex: 0,
+        coverUrl: coverUrl,
+      );
+    } catch (e) {
+      _logger.w('Error mapping OPDS entry: $e');
+      return null;
     }
   }
 
@@ -123,5 +288,9 @@ class BookViewRemoteDatasource {
 
   Future<void> setIsListView(bool isList) async {
     await _preferences.setBool('is_list_view', isList);
+  }
+
+  bool getIsOpds() {
+    return _preferences.getString('server_type') == 'opds';
   }
 }

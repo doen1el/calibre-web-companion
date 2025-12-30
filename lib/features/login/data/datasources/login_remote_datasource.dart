@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
 import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
+import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
 
 class LoginRemoteDataSource {
   final ApiService apiService;
@@ -13,71 +14,104 @@ class LoginRemoteDataSource {
 
   LoginRemoteDataSource({required this.apiService, required this.logger});
 
-  Future<bool> login(LoginCredentials credentials) async {
+  Future<bool> login(
+    LoginCredentials credentials,
+    ServerType serverType,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
+
       await prefs.setString('base_url', credentials.baseUrl);
       await prefs.setString('username', credentials.username);
       await prefs.setString('password', credentials.password);
+      await prefs.setString('server_type', serverType.name);
 
       await apiService.initialize();
 
-      if (credentials.username.isEmpty && credentials.password.isEmpty) {
-        logger.i('Attempting SSO login by triggering a redirect...');
-
-        await apiService.get(endpoint: '/', followRedirects: false);
-        logger.i('User is already logged in.');
-        return true;
-      }
-
-      Response response;
-
-      if (credentials.username.isEmpty && credentials.password.isEmpty) {
-        response = await apiService.post(
-          endpoint: '/login',
-          body: credentials.toFormData(),
-          followRedirects: false,
-        );
+      if (serverType == ServerType.opds) {
+        return _loginOpds(credentials);
       } else {
-        response = await apiService.post(
-          endpoint: '/login',
-          body: credentials.toFormData(),
-          authMethod: AuthMethod.none,
-          contentType: 'application/x-www-form-urlencoded',
-          useCsrf: true,
-        );
+        return _loginCalibreWeb(credentials);
       }
-
-      if (response.statusCode == 200 || response.statusCode == 302) {
-        final isSuccess = !response.body.contains('flash_danger');
-
-        if (isSuccess) {
-          if (response.headers.containsKey('set-cookie')) {
-            final cookie = response.headers['set-cookie']!;
-            await prefs.setString('calibre_web_session', cookie);
-            await apiService.initialize();
-            logger.i('Session cookie saved');
-          } else {
-            logger.w('No cookie received in login response');
-          }
-          logger.i('Login successful');
-          return true;
-        } else {
-          logger.w('Login failed - invalid credentials');
-          throw Exception('Invalid username or password');
-        }
-      }
-
-      logger.e(
-        'Login failed: ${response.reasonPhrase ?? response.body} ${response.statusCode}',
-      );
-      throw Exception(response.reasonPhrase ?? response.body);
     } on RedirectException {
       rethrow;
     } catch (e) {
       logger.e("Error during login: $e");
       throw Exception('Connection error: ${e.toString().split(': ').last}');
     }
+  }
+
+  Future<bool> _loginOpds(LoginCredentials credentials) async {
+    logger.i('Attempting OPDS login (Basic Auth check)...');
+
+    final response = await apiService.get(
+      endpoint: '/api/v1/opds',
+      authMethod: AuthMethod.basic,
+      followRedirects: true,
+    );
+
+    if (response.statusCode == 200) {
+      logger.i('OPDS Login successful');
+      return true;
+    } else if (response.statusCode == 401 || response.statusCode == 403) {
+      logger.w('OPDS Login failed - invalid credentials');
+      throw Exception('Invalid username or password');
+    } else {
+      throw Exception('Server returned ${response.statusCode}');
+    }
+  }
+
+  Future<bool> _loginCalibreWeb(LoginCredentials credentials) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (credentials.username.isEmpty && credentials.password.isEmpty) {
+      logger.i('Attempting SSO login by triggering a redirect...');
+      await apiService.get(endpoint: '/', followRedirects: false);
+      logger.i('User is already logged in.');
+      return true;
+    }
+
+    Response response;
+
+    if (credentials.username.isEmpty && credentials.password.isEmpty) {
+      response = await apiService.post(
+        endpoint: '/login',
+        body: credentials.toFormData(),
+        followRedirects: false,
+      );
+    } else {
+      response = await apiService.post(
+        endpoint: '/login',
+        body: credentials.toFormData(),
+        authMethod: AuthMethod.none,
+        contentType: 'application/x-www-form-urlencoded',
+        useCsrf: true,
+      );
+    }
+
+    if (response.statusCode == 200 || response.statusCode == 302) {
+      final isSuccess = !response.body.contains('flash_danger');
+
+      if (isSuccess) {
+        if (response.headers.containsKey('set-cookie')) {
+          final cookie = response.headers['set-cookie']!;
+          await prefs.setString('calibre_web_session', cookie);
+          await apiService.initialize();
+          logger.i('Session cookie saved');
+        } else {
+          logger.w('No cookie received in login response');
+        }
+        logger.i('Login successful');
+        return true;
+      } else {
+        logger.w('Login failed - invalid credentials');
+        throw Exception('Invalid username or password');
+      }
+    }
+
+    logger.e(
+      'Login failed: ${response.reasonPhrase ?? response.body} ${response.statusCode}',
+    );
+    throw Exception(response.reasonPhrase ?? response.body);
   }
 
   Future<bool> canAccessWebsite() async {
@@ -124,5 +158,14 @@ class LoginRemoteDataSource {
     }
 
     return null;
+  }
+
+  Future<ServerType> getStoredServerType() async {
+    final prefs = await SharedPreferences.getInstance();
+    final typeStr = prefs.getString('server_type');
+    if (typeStr == ServerType.opds.name) {
+      return ServerType.opds;
+    }
+    return ServerType.calibreWeb;
   }
 }

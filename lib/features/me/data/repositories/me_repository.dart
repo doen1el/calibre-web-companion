@@ -22,4 +22,6 @@ class MeRepository {
       rethrow;
     }
   }
+
+  bool getIsOpds() => dataSource.getIsOpds();
 }

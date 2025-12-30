@@ -1058,4 +1058,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sectionDisabledDescription => 'Dieser Bereich scheint in deinen Calibre-Web Servereinstellungen deaktiviert zu sein oder existiert nicht.';
+
+  @override
+  String get or => 'ODER';
+
+  @override
+  String get appAddsOPDSPath => 'Die App fügt \'/api/v1/opds\' automatisch hinzu, falls nicht angegeben';
+
+  @override
+  String get libraries => 'Bibliotheken';
+
+  @override
+  String get browsLibraries => 'Bibliotheken durchsuchen';
+
+  @override
+  String get surpriseMe => 'Überrasche mich';
 }

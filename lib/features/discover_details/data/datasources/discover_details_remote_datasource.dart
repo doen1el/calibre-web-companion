@@ -1,4 +1,5 @@
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 
@@ -11,10 +12,12 @@ import 'package:calibre_web_companion/features/discover_details/data/models/disc
 class DiscoverDetailsRemoteDatasource {
   final ApiService apiService;
   final Logger logger;
+  final SharedPreferences preferences;
 
   DiscoverDetailsRemoteDatasource({
     required this.apiService,
     required this.logger,
+    required this.preferences,
   });
 
   Future<DiscoverFeedModel> loadBooks(
@@ -73,14 +76,35 @@ class DiscoverDetailsRemoteDatasource {
 
       final dynamic entryData = jsonData['feed']["entry"];
       final List<dynamic> items = entryData is List ? entryData : [entryData];
+
       final categories =
-          items.map((item) => CategoryModel.fromJson(item)).toList();
+          items.map((item) {
+            if (type == CategoryType.libraries) {
+              String id = '';
+              final links = item['link'];
+              if (links != null) {
+                final linkList = links is List ? links : [links];
+                for (var link in linkList) {
+                  if (link['_rel'] == 'subsection' ||
+                      link['_rel'] == 'http://opds-spec.org/acquisition') {
+                    id = link['_href'];
+                    break;
+                  }
+                }
+              }
+              if (id.isEmpty) id = item['id'] ?? '';
+
+              return CategoryModel(id: id, title: item['title'] ?? 'Unknown');
+            }
+            return CategoryModel.fromJson(item);
+          }).toList();
 
       bool shouldSort = true;
       if (subPath == null &&
           (type == CategoryType.author ||
               type == CategoryType.category ||
-              type == CategoryType.series)) {
+              type == CategoryType.series ||
+              type == CategoryType.libraries)) {
         shouldSort = false;
       }
 
@@ -140,16 +164,20 @@ class DiscoverDetailsRemoteDatasource {
   }
 
   String _getBookListPath(DiscoverType type, String? subPath) {
+    final isOpds = preferences.getString('server_type') == 'opds';
+
     final Map<DiscoverType, String> paths = {
       DiscoverType.discover: '/opds/discover',
       DiscoverType.hot: '/opds/hot',
-      DiscoverType.newlyAdded: '/opds/new',
+      DiscoverType.newlyAdded: isOpds ? '/api/v1/opds/recent' : '/opds/new',
       DiscoverType.rated: '/opds/rated',
       DiscoverType.readbooks: '/opds/readbooks',
       DiscoverType.unreadbooks: '/opds/unreadbooks',
+      DiscoverType.surprise: '/api/v1/opds/surprise',
     };
 
     String basePath = paths[type] ?? '/opds/discover';
+
     return subPath != null ? '$basePath/$subPath' : basePath;
   }
 
@@ -162,6 +190,7 @@ class DiscoverDetailsRemoteDatasource {
       CategoryType.language: '/opds/language',
       CategoryType.formats: '/opds/formats',
       CategoryType.ratings: '/opds/ratings',
+      CategoryType.libraries: '/api/v1/opds/libraries',
     };
 
     String basePath = paths[type] ?? '/opds/category';

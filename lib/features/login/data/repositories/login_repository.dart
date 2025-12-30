@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
 import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
 import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
+import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
 
 abstract class LoginFailure {}
 
@@ -25,6 +26,7 @@ class LoginRepository {
     String username,
     String password,
     String baseUrl,
+    ServerType serverType,
   ) async {
     try {
       final credentials = LoginCredentials(
@@ -33,7 +35,7 @@ class LoginRepository {
         baseUrl: baseUrl,
       );
 
-      await dataSource.login(credentials);
+      await dataSource.login(credentials, serverType);
       return LoginResult.success();
     } on RedirectException catch (e) {
       return LoginResult.redirect(e.location);
@@ -54,7 +56,7 @@ class LoginRepository {
       final credentials = await dataSource.getStoredCredentials();
 
       if (credentials != null) {
-        await dataSource.login(credentials);
+        await dataSource.login(credentials, await getStoredServerType());
 
         logger.i('Auto-relogin successful');
         return true;
@@ -68,6 +70,10 @@ class LoginRepository {
 
   Future<LoginCredentials?> getStoredCredentials() async {
     return dataSource.getStoredCredentials();
+  }
+
+  Future<ServerType> getStoredServerType() async {
+    return dataSource.getStoredServerType();
   }
 }
 

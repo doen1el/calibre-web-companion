@@ -342,5 +342,10 @@
   "comic": "Bande dessinée",
   "audiobook": "Livre audio",
   "sectionDisabledOrNotFound": "Section non disponible",
-  "sectionDisabledDescription": "Cette section semble être désactivée dans les paramètres de votre serveur Calibre-Web ou n'existe pas."
+  "sectionDisabledDescription": "Cette section semble être désactivée dans les paramètres de votre serveur Calibre-Web ou n'existe pas.",
+  "or": "OU",
+  "appAddsOPDSPath": "L'application ajoute automatiquement '/api/v1/opds' si non spécifié",
+  "libraries": "Bibliothèques",
+  "browsLibraries": "Parcourir les bibliothèques",
+  "surpriseMe": "Surprenez-moi"
 }

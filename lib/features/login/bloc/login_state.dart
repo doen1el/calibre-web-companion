@@ -1,5 +1,19 @@
 import 'package:equatable/equatable.dart';
 
+enum ServerType {
+  calibreWeb,
+  opds;
+
+  String get label {
+    switch (this) {
+      case ServerType.calibreWeb:
+        return 'Calibre Web';
+      case ServerType.opds:
+        return 'Booklore / OPDS';
+    }
+  }
+}
+
 enum LoginStatus { initial, success, loading, failure, redirect }
 
 enum LoginLoadingType { initial, standard, sso }
@@ -12,6 +26,7 @@ class LoginState extends Equatable {
   final LoginStatus status;
   final String? errorMessage;
   final LoginLoadingType loadingType;
+  final ServerType serverType;
 
   const LoginState({
     this.url = '',
@@ -21,6 +36,7 @@ class LoginState extends Equatable {
     this.status = LoginStatus.initial,
     this.errorMessage,
     this.loadingType = LoginLoadingType.initial,
+    this.serverType = ServerType.calibreWeb,
   });
 
   LoginState copyWith({
@@ -31,6 +47,7 @@ class LoginState extends Equatable {
     LoginStatus? status,
     String? errorMessage,
     LoginLoadingType? loadingType,
+    ServerType? serverType,
   }) {
     return LoginState(
       url: url ?? this.url,
@@ -40,6 +57,7 @@ class LoginState extends Equatable {
       status: status ?? this.status,
       errorMessage: errorMessage,
       loadingType: loadingType ?? this.loadingType,
+      serverType: serverType ?? this.serverType,
     );
   }
 
@@ -52,5 +70,6 @@ class LoginState extends Equatable {
     status,
     errorMessage,
     loadingType,
+    serverType,
   ];
 }

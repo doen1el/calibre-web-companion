@@ -6,6 +6,8 @@ class DiscoverDetailsModel extends Equatable {
   final String title;
   final String authors;
   final String? coverUrl;
+  final String? summary;
+  final List<String> tags;
 
   const DiscoverDetailsModel({
     required this.id,
@@ -13,6 +15,8 @@ class DiscoverDetailsModel extends Equatable {
     required this.title,
     required this.authors,
     this.coverUrl,
+    this.summary,
+    this.tags = const [],
   });
 
   factory DiscoverDetailsModel.fromJson(
@@ -23,13 +27,11 @@ class DiscoverDetailsModel extends Equatable {
 
     String id = '';
     final rawId = json['id'] as String? ?? '';
-
     final uuid = rawId.replaceFirst('urn:uuid:', '');
 
     final links = json['link'];
     if (links != null) {
       final linkList = links is List ? links : [links];
-
       for (var link in linkList) {
         final href = link['_href'] as String?;
         if (href != null) {
@@ -47,9 +49,13 @@ class DiscoverDetailsModel extends Equatable {
         if (id.isNotEmpty) break;
       }
     }
-
     if (id.isEmpty) {
-      id = rawId;
+      final parts = rawId.split(':');
+      if (parts.isNotEmpty && int.tryParse(parts.last) != null) {
+        id = parts.last;
+      } else {
+        id = rawId;
+      }
     }
 
     String authors = '';
@@ -62,22 +68,49 @@ class DiscoverDetailsModel extends Equatable {
       }
     }
 
-    // FIX: Clean logic to extract cover URL
     String? coverUrl;
     if (links != null) {
       final linkList = links is List ? links : [links];
-
       final imageLink = linkList.firstWhere(
-        (link) => link is Map && link['_rel'] == 'http://opds-spec.org/image',
+        (link) =>
+            link is Map &&
+            (link['_rel'] == 'http://opds-spec.org/image' ||
+                link['_rel'] == 'http://opds-spec.org/image/thumbnail'),
         orElse: () => null,
       );
 
       if (imageLink != null && imageLink['_href'] != null) {
-        final href = imageLink['_href'].toString();
-        if (href.startsWith('http')) {
-          coverUrl = href;
-        } else {
-          coverUrl = '$baseUrl$href';
+        coverUrl = imageLink['_href'].toString();
+      }
+    }
+
+    String? summary;
+    if (json['summary'] != null) {
+      if (json['summary'] is String) {
+        summary = json['summary'];
+      } else if (json['summary'] is Map) {
+        summary = json['summary']['#text'] ?? json['summary']['content'];
+      }
+    } else if (json['content'] != null) {
+      if (json['content'] is String) {
+        summary = json['content'];
+      } else if (json['content'] is Map) {
+        summary = json['content']['#text'];
+      }
+    }
+
+    List<String> tags = [];
+    if (json['category'] != null) {
+      final cats =
+          json['category'] is List ? json['category'] : [json['category']];
+      for (var c in cats) {
+        if (c is Map) {
+          final term = c['term'] ?? c['_term'] ?? c['label'] ?? c['@term'];
+          if (term != null && term.toString().isNotEmpty) {
+            tags.add(term.toString());
+          }
+        } else if (c is String) {
+          tags.add(c);
         }
       }
     }
@@ -88,6 +121,8 @@ class DiscoverDetailsModel extends Equatable {
       title: title,
       authors: authors,
       coverUrl: coverUrl,
+      summary: summary,
+      tags: tags,
     );
   }
 
@@ -100,5 +135,5 @@ class DiscoverDetailsModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, title, authors, coverUrl];
+  List<Object?> get props => [id, title, authors, coverUrl, summary, tags];
 }

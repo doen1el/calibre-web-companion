@@ -153,7 +153,9 @@ Future<void> init() async {
 
   //? Discover Feature
   // BLoCs
-  getIt.registerFactory<DiscoverBloc>(() => DiscoverBloc());
+  getIt.registerFactory<DiscoverBloc>(
+    () => DiscoverBloc(sharedPreferences: getIt<SharedPreferences>()),
+  );
 
   //? Discover Details Feature
   // DataSources
@@ -161,6 +163,7 @@ Future<void> init() async {
     () => DiscoverDetailsRemoteDatasource(
       apiService: getIt<ApiService>(),
       logger: getIt<Logger>(),
+      preferences: getIt<SharedPreferences>(),
     ),
   );
 
@@ -180,6 +183,7 @@ Future<void> init() async {
   // DataSources
   getIt.registerLazySingleton<ShelfViewRemoteDataSource>(
     () => ShelfViewRemoteDataSource(
+      preferences: getIt<SharedPreferences>(),
       apiService: getIt<ApiService>(),
       logger: getIt<Logger>(),
       shelfDetailsRemoteDataSource: getIt<ShelfDetailsRemoteDataSource>(),
@@ -202,6 +206,7 @@ Future<void> init() async {
     () => ShelfDetailsRemoteDataSource(
       apiService: getIt<ApiService>(),
       logger: getIt<Logger>(),
+      preferences: getIt<SharedPreferences>(), // NEU
     ),
   );
 

@@ -26,6 +26,7 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
     emit(state.copyWith(status: ShelfDetailsStatus.loading));
 
     try {
+      final isOpds = repository.getIsOpds();
       final result = await repository.getShelfDetails(event.shelfId);
 
       final mergedResult = result.copyWith(
@@ -38,6 +39,7 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
           status: ShelfDetailsStatus.loaded,
           currentShelfDetail: mergedResult,
           errorMessage: null,
+          isOpds: isOpds,
         ),
       );
     } catch (e) {
@@ -119,7 +121,6 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
           ),
         );
 
-        // Hier isPublic mit übergeben
         shelfViewBloc.add(
           EditShelfState(
             event.shelfId,

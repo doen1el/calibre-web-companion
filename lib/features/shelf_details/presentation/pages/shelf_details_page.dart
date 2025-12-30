@@ -80,34 +80,44 @@ class ShelfDetailsPage extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               title: Text(showPublic ? "$displayTitle (Public)" : displayTitle),
-              actions: [
-                IconButton(
-                  icon: CircleAvatar(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.secondaryContainer,
-                    child: const Icon(Icons.edit_rounded),
-                  ),
-                  tooltip: localizations.editShelf,
-                  onPressed:
-                      () => _showEditShelfDialog(
-                        context,
-                        state,
-                        localizations,
-                        displayTitle,
-                      ),
-                ),
-                IconButton(
-                  icon: CircleAvatar(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.secondaryContainer,
-                    child: const Icon(Icons.delete_rounded),
-                  ),
-                  tooltip: localizations.deleteShelf,
-                  onPressed:
-                      () =>
-                          _showDeleteShelfDialog(context, state, localizations),
-                ),
-              ],
+              actions:
+                  state.isOpds
+                      ? []
+                      : [
+                        IconButton(
+                          icon: CircleAvatar(
+                            backgroundColor:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.secondaryContainer,
+                            child: const Icon(Icons.edit_rounded),
+                          ),
+                          tooltip: localizations.editShelf,
+                          onPressed:
+                              () => _showEditShelfDialog(
+                                context,
+                                state,
+                                localizations,
+                                displayTitle,
+                              ),
+                        ),
+                        IconButton(
+                          icon: CircleAvatar(
+                            backgroundColor:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.secondaryContainer,
+                            child: const Icon(Icons.delete_rounded),
+                          ),
+                          tooltip: localizations.deleteShelf,
+                          onPressed:
+                              () => _showDeleteShelfDialog(
+                                context,
+                                state,
+                                localizations,
+                              ),
+                        ),
+                      ],
             ),
             body: _buildBody(context, state, localizations),
           );
@@ -376,6 +386,7 @@ class ShelfDetailsPage extends StatelessWidget {
                           uuid: book.uuid,
                           title: book.title,
                           authors: book.authors.toString(),
+                          coverUrl: book.coverUrl,
                         ),
                         bookUuid: book.uuid,
                       ),
@@ -385,10 +396,14 @@ class ShelfDetailsPage extends StatelessWidget {
 
             child: Stack(
               children: [
+                _buildCoverImage(context, book.id, book.coverUrl),
+
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _buildCoverImage(context, book.id)),
+                    Expanded(
+                      child: _buildCoverImage(context, book.id, book.coverUrl),
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
@@ -519,25 +534,41 @@ class ShelfDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCoverImage(BuildContext context, String bookId) {
+  Widget _buildCoverImage(
+    BuildContext context,
+    String bookId,
+    String? coverUrl,
+  ) {
     final apiService = ApiService();
     final baseUrl = apiService.getBaseUrl();
-    final coverUrl = '$baseUrl/opds/cover/$bookId';
+
+    String imageUrl;
+    if (coverUrl != null && coverUrl.isNotEmpty) {
+      if (coverUrl.startsWith('http')) {
+        imageUrl = coverUrl;
+      } else {
+        final cleanBaseUrl =
+            baseUrl.endsWith('/')
+                ? baseUrl.substring(0, baseUrl.length - 1)
+                : baseUrl;
+        final cleanCoverUrl =
+            coverUrl.startsWith('/') ? coverUrl : '/$coverUrl';
+
+        imageUrl = '$cleanBaseUrl$cleanCoverUrl';
+      }
+    } else {
+      imageUrl = '$baseUrl/opds/cover/$bookId';
+    }
 
     return FutureBuilder<Map<String, String>>(
       future: () async {
-        final headers = <String, String>{};
-
-        final cookieHeaders = apiService.getAuthHeaders(
-          authMethod: AuthMethod.cookie,
-        );
-        if (cookieHeaders.containsKey('Cookie')) {
-          headers['Cookie'] = cookieHeaders['Cookie']!;
-        }
+        final headers = apiService.getAuthHeaders(authMethod: AuthMethod.auto);
 
         final username = apiService.getUsername();
         final password = apiService.getPassword();
-        if (username.isNotEmpty && password.isNotEmpty) {
+        if (username.isNotEmpty &&
+            password.isNotEmpty &&
+            !headers.containsKey('Authorization')) {
           headers['Authorization'] =
               'Basic ${base64.encode(utf8.encode('$username:$password'))}';
         }
@@ -578,7 +609,7 @@ class ShelfDetailsPage extends StatelessWidget {
       builder: (context, snapshot) {
         final headers = snapshot.data ?? const <String, String>{};
         return CachedNetworkImage(
-          imageUrl: coverUrl,
+          imageUrl: imageUrl,
           httpHeaders: headers,
           fit: BoxFit.cover,
           width: double.infinity,
@@ -600,13 +631,12 @@ class ShelfDetailsPage extends StatelessWidget {
                   child: const SizedBox(),
                 ),
               ),
-          errorWidget:
-              (context, url, error) => Image.network(
-                coverUrl,
-                headers: headers,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stack) => const SizedBox(),
-              ),
+          errorWidget: (context, url, error) {
+            return Container(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: const Center(child: Icon(Icons.broken_image_rounded)),
+            );
+          },
           memCacheWidth: 300,
           memCacheHeight: 400,
         );

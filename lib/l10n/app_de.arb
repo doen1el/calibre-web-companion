@@ -342,5 +342,10 @@
   "comic": "Comic",
   "audiobook": "Hörbuch",
   "sectionDisabledOrNotFound": "Bereich nicht verfügbar",
-  "sectionDisabledDescription": "Dieser Bereich scheint in deinen Calibre-Web Servereinstellungen deaktiviert zu sein oder existiert nicht."
+  "sectionDisabledDescription": "Dieser Bereich scheint in deinen Calibre-Web Servereinstellungen deaktiviert zu sein oder existiert nicht.",
+  "or": "ODER",
+  "appAddsOPDSPath": "Die App fügt '/api/v1/opds' automatisch hinzu, falls nicht angegeben",
+  "libraries": "Bibliotheken",
+  "browsLibraries": "Bibliotheken durchsuchen",
+  "surpriseMe": "Überrasche mich"
 }

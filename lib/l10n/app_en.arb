@@ -342,5 +342,10 @@
   "comic": "Comic",
   "audiobook": "Audiobook",
   "sectionDisabledOrNotFound": "Section unavailable",
-  "sectionDisabledDescription": "This section appears to be disabled in your Calibre-Web server settings or does not exist."
+  "sectionDisabledDescription": "This section appears to be disabled in your Calibre-Web server settings or does not exist.",
+  "or": "OR",
+  "appAddsOPDSPath": "The app automatically appends '/api/v1/opds' if not specified",
+  "libraries": "Libraries",
+  "browsLibraries": "Browse Libraries",
+  "surpriseMe": "Surprise Me"
 }

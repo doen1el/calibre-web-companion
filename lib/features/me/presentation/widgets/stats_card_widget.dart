@@ -10,6 +10,7 @@ class StatsCard extends StatelessWidget {
   final bool isLoading;
   final String? errorMessage;
   final VoidCallback onRetry;
+  final bool isOpds;
 
   const StatsCard({
     super.key,
@@ -17,6 +18,7 @@ class StatsCard extends StatelessWidget {
     required this.isLoading,
     this.errorMessage,
     required this.onRetry,
+    this.isOpds = false,
   });
 
   @override
@@ -64,27 +66,30 @@ class StatsCard extends StatelessWidget {
                     localizations.books,
                     stats.books.toString(),
                   ),
-                  const Divider(),
-                  _buildStatRow(
-                    context,
-                    Icons.person,
-                    localizations.authors,
-                    stats.authors.toString(),
-                  ),
-                  const Divider(),
-                  _buildStatRow(
-                    context,
-                    Icons.category,
-                    localizations.categories,
-                    stats.categories.toString(),
-                  ),
-                  const Divider(),
-                  _buildStatRow(
-                    context,
-                    Icons.collections_bookmark,
-                    localizations.series,
-                    stats.series.toString(),
-                  ),
+
+                  if (!isOpds) ...[
+                    const Divider(),
+                    _buildStatRow(
+                      context,
+                      Icons.person,
+                      localizations.authors,
+                      stats.authors.toString(),
+                    ),
+                    const Divider(),
+                    _buildStatRow(
+                      context,
+                      Icons.category,
+                      localizations.categories,
+                      stats.categories.toString(),
+                    ),
+                    const Divider(),
+                    _buildStatRow(
+                      context,
+                      Icons.collections_bookmark,
+                      localizations.series,
+                      stats.series.toString(),
+                    ),
+                  ],
                 ],
               ),
             ),

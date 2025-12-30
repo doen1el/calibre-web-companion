@@ -8,9 +8,7 @@ import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/features/login/presentation/widgets/login_text_field.dart';
-import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -81,9 +79,42 @@ class _LoginFormState extends State<LoginForm> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 24),
+                        child: SegmentedButton<ServerType>(
+                          segments: const [
+                            ButtonSegment<ServerType>(
+                              value: ServerType.calibreWeb,
+                              label: Text('Calibre Web'),
+                            ),
+                            ButtonSegment<ServerType>(
+                              value: ServerType.opds,
+                              label: Text('Booklore / OPDS'),
+                            ),
+                          ],
+                          selected: {state.serverType},
+                          onSelectionChanged: (Set<ServerType> newSelection) {
+                            context.read<LoginBloc>().add(
+                              ChangeServerType(newSelection.first),
+                            );
+                          },
+                          style: ButtonStyle(
+                            visualDensity: VisualDensity.comfortable,
+                            shape: WidgetStateProperty.all(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
                       Center(
                         child: Icon(
-                          Icons.menu_book_rounded,
+                          state.serverType == ServerType.opds
+                              ? Icons.library_books_rounded
+                              : Icons.menu_book_rounded,
                           size: 64,
                           color: Theme.of(context).colorScheme.primary,
                         ),
@@ -92,8 +123,14 @@ class _LoginFormState extends State<LoginForm> {
 
                       LoginTextField(
                         controller: _urlController,
-                        labelText: localizations.calibreWebUrl,
-                        hintText: localizations.enterCalibreWebUrl,
+                        labelText:
+                            state.serverType == ServerType.opds
+                                ? 'Booklore / OPDSURL'
+                                : 'Calibre Web URL',
+                        hintText:
+                            state.serverType == ServerType.opds
+                                ? 'https://your-booklore.com'
+                                : 'https://your-calibre-web.com',
                         prefixIcon: Icons.link_rounded,
                         autofillHint: AutofillHints.url,
                         keyboardType: TextInputType.url,
@@ -101,6 +138,23 @@ class _LoginFormState extends State<LoginForm> {
                             (value) =>
                                 context.read<LoginBloc>().add(EnterUrl(value)),
                       ),
+
+                      if (state.serverType == ServerType.opds)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            top: 8.0,
+                            left: 4,
+                            bottom: 8,
+                          ),
+                          child: Text(
+                            localizations.appAddsOPDSPath,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                          ),
+                        ),
+
                       const SizedBox(height: 16),
 
                       LoginTextField(
@@ -108,7 +162,7 @@ class _LoginFormState extends State<LoginForm> {
                         labelText: localizations.username,
                         hintText: localizations.enterYourUsername,
                         prefixIcon: Icons.person_rounded,
-                        autofillHints: [
+                        autofillHints: const [
                           AutofillHints.username,
                           AutofillHints.email,
                         ],
@@ -150,178 +204,73 @@ class _LoginFormState extends State<LoginForm> {
 
                       const SizedBox(height: 24),
 
-                      Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
+                      ElevatedButton(
+                        onPressed:
+                            state.status == LoginStatus.loading
+                                ? null
+                                : () => _handleLogin(context, localizations),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        child: Row(
+                        child:
+                            state.status == LoginStatus.loading &&
+                                    state.loadingType ==
+                                        LoginLoadingType.standard
+                                ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : Text(
+                                  localizations.login,
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                  ),
+                                ),
+                      ),
+
+                      if (state.serverType == ServerType.calibreWeb) ...[
+                        const SizedBox(height: 16),
+                        Row(
                           children: [
-                            Expanded(
-                              flex: 5,
-                              child: Material(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.primaryContainer,
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(12.0),
-                                  bottomLeft: Radius.circular(12.0),
-                                ),
-                                child: InkWell(
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(12.0),
-                                    bottomLeft: Radius.circular(12.0),
-                                  ),
-                                  onTap:
-                                      state.status == LoginStatus.loading
-                                          ? null
-                                          : () => _handleLogin(
-                                            context,
-                                            localizations,
-                                          ),
-                                  child: Container(
-                                    height: 50,
-                                    alignment: Alignment.center,
-                                    child:
-                                        state.status == LoginStatus.loading &&
-                                                state.loadingType ==
-                                                    LoginLoadingType.standard
-                                            ? const Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            )
-                                            : Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  Icons.login_rounded,
-                                                  color:
-                                                      Theme.of(context)
-                                                          .colorScheme
-                                                          .onPrimaryContainer,
-                                                ),
-                                                const SizedBox(width: 12),
-                                                Text(
-                                                  localizations.login,
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
-                                                    color:
-                                                        Theme.of(context)
-                                                            .colorScheme
-                                                            .onPrimaryContainer,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                  ),
-                                ),
+                            const Expanded(child: Divider()),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: Text(
+                                localizations.or,
+                                style: Theme.of(context).textTheme.labelSmall,
                               ),
                             ),
-                            Container(
-                              height: 50,
-                              width: 1,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onPrimaryContainer.withAlpha(80),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Material(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.primaryContainer,
-                                borderRadius: const BorderRadius.only(
-                                  topRight: Radius.circular(12.0),
-                                  bottomRight: Radius.circular(12.0),
-                                ),
-                                child: InkWell(
-                                  borderRadius: const BorderRadius.only(
-                                    topRight: Radius.circular(12.0),
-                                    bottomRight: Radius.circular(12.0),
-                                  ),
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      AppTransitions.createSlideRoute(
-                                        const LoginSettingsPage(),
-                                      ),
-                                    );
-                                  },
-                                  child: Container(
-                                    height: 50,
-                                    alignment: Alignment.center,
-                                    child: Icon(
-                                      Icons.settings,
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimaryContainer,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            const Expanded(child: Divider()),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: Material(
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(12.0),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12.0),
-                            onTap:
-                                state.status == LoginStatus.loading
-                                    ? null
-                                    : () =>
-                                        _handleSsoLogin(context, localizations),
-                            child: Container(
-                              height: 50,
-                              alignment: Alignment.center,
-                              child:
-                                  state.status == LoginStatus.loading &&
-                                          state.loadingType ==
-                                              LoginLoadingType.sso
-                                      ? const Center(
-                                        child: CircularProgressIndicator(),
-                                      )
-                                      : Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.shield_outlined,
-                                            color:
-                                                Theme.of(context)
-                                                    .colorScheme
-                                                    .onPrimaryContainer,
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Text(
-                                            localizations.loginWithSSO,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color:
-                                                  Theme.of(context)
-                                                      .colorScheme
-                                                      .onPrimaryContainer,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                        const SizedBox(height: 16),
+                        OutlinedButton.icon(
+                          onPressed:
+                              state.status == LoginStatus.loading
+                                  ? null
+                                  : () =>
+                                      _handleSsoLogin(context, localizations),
+                          icon: const Icon(Icons.login),
+                          label: Text(localizations.ssoLogin),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),

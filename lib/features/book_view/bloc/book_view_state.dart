@@ -18,6 +18,7 @@ class BookViewState extends Equatable {
   final int columnCount;
   final bool isListView;
   final UploadStatus uploadStatus;
+  final bool isOpds;
 
   const BookViewState({
     this.books = const [],
@@ -31,8 +32,9 @@ class BookViewState extends Equatable {
     this.sortOrder = '',
     this.searchQuery,
     this.columnCount = 2,
-    this.isListView = false, // Default false
+    this.isListView = false,
     this.uploadStatus = UploadStatus.initial,
+    this.isOpds = false,
   });
 
   BookViewState copyWith({
@@ -49,6 +51,7 @@ class BookViewState extends Equatable {
     int? columnCount,
     bool? isListView,
     UploadStatus? uploadStatus,
+    bool? isOpds,
   }) {
     return BookViewState(
       books: books ?? this.books,
@@ -64,6 +67,7 @@ class BookViewState extends Equatable {
       columnCount: columnCount ?? this.columnCount,
       isListView: isListView ?? this.isListView,
       uploadStatus: uploadStatus ?? this.uploadStatus,
+      isOpds: isOpds ?? this.isOpds,
     );
   }
 
@@ -82,5 +86,6 @@ class BookViewState extends Equatable {
     columnCount,
     isListView,
     uploadStatus,
+    isOpds,
   ];
 }

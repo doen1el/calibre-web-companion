@@ -2158,6 +2158,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This section appears to be disabled in your Calibre-Web server settings or does not exist.'**
   String get sectionDisabledDescription;
+
+  /// No description provided for @or.
+  ///
+  /// In en, this message translates to:
+  /// **'OR'**
+  String get or;
+
+  /// No description provided for @appAddsOPDSPath.
+  ///
+  /// In en, this message translates to:
+  /// **'The app automatically appends \'/api/v1/opds\' if not specified'**
+  String get appAddsOPDSPath;
+
+  /// No description provided for @libraries.
+  ///
+  /// In en, this message translates to:
+  /// **'Libraries'**
+  String get libraries;
+
+  /// No description provided for @browsLibraries.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse Libraries'**
+  String get browsLibraries;
+
+  /// No description provided for @surpriseMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Surprise Me'**
+  String get surpriseMe;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

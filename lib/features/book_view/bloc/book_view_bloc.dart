@@ -42,30 +42,25 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     LoadBooks event,
     Emitter<BookViewState> emit,
   ) async {
-    if (state.isLoading) return;
-
-    emit(state.copyWith(isLoading: true, hasError: false, errorMessage: ''));
-
+    emit(state.copyWith(isLoading: true, hasError: false));
     try {
+      final isOpds = repository.getIsOpds();
+
       final books = await repository.fetchBooks(
-        offset: state.offset,
+        offset: 0,
         limit: state.limit,
         searchQuery: state.searchQuery,
         sortBy: state.sortBy,
         sortOrder: state.sortOrder,
       );
 
-      final hasMoreBooks = books.length == state.limit;
-      // Special case for authors sorting which has pagination issues
-      final adjustedHasMoreBooks =
-          state.sortBy == 'authors' ? true : hasMoreBooks;
-
       emit(
         state.copyWith(
-          books: books,
           isLoading: false,
-          hasMoreBooks: adjustedHasMoreBooks,
-          offset: state.offset + books.length,
+          books: books,
+          offset: 0,
+          hasMoreBooks: books.length >= state.limit,
+          isOpds: isOpds,
         ),
       );
     } catch (e) {
@@ -99,7 +94,6 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
 
       final allBooks = [...state.books, ...moreBooks];
       final hasMoreBooks = moreBooks.length == state.limit;
-      // Special case for authors sorting which has pagination issues
       final adjustedHasMoreBooks =
           state.sortBy == 'authors' ? true : hasMoreBooks;
 

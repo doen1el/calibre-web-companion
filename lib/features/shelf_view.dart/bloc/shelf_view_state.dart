@@ -15,6 +15,7 @@ class ShelfViewState extends Equatable {
   final String? errorMessage;
   final List<ShelfViewModel> bookInShelves;
   final CheckBookInShelfStatus checkBookInShelfStatus;
+  final bool isOpds; // NEU
 
   const ShelfViewState({
     this.status = ShelfViewStatus.initial,
@@ -23,6 +24,7 @@ class ShelfViewState extends Equatable {
     this.errorMessage,
     this.bookInShelves = const [],
     this.checkBookInShelfStatus = CheckBookInShelfStatus.initial,
+    this.isOpds = false, // NEU
   });
 
   ShelfViewState copyWith({
@@ -33,6 +35,7 @@ class ShelfViewState extends Equatable {
     String? actionMessage,
     List<ShelfViewModel>? bookInShelves,
     CheckBookInShelfStatus? checkBookInShelfStatus,
+    bool? isOpds, // NEU
   }) {
     return ShelfViewState(
       status: status ?? this.status,
@@ -42,6 +45,7 @@ class ShelfViewState extends Equatable {
       bookInShelves: bookInShelves ?? this.bookInShelves,
       checkBookInShelfStatus:
           checkBookInShelfStatus ?? this.checkBookInShelfStatus,
+      isOpds: isOpds ?? this.isOpds, // NEU
     );
   }
 
@@ -53,5 +57,6 @@ class ShelfViewState extends Equatable {
     createShelfStatus,
     bookInShelves,
     checkBookInShelfStatus,
+    isOpds, // NEU
   ];
 }

@@ -10,6 +10,9 @@ import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
@@ -34,6 +37,63 @@ class BookDetailsRemoteDatasource {
     String bookUuid,
   ) async {
     try {
+      final prefs = GetIt.instance<SharedPreferences>();
+      final isOpds = prefs.getString('server_type') == 'opds';
+
+      if (isOpds) {
+        String comments = '';
+        List<String> tags = [];
+        String? coverUrl;
+
+        try {
+          final dynamic dynamicModel = bookListModel;
+
+          try {
+            if (dynamicModel.comments != null) {
+              comments = dynamicModel.comments.toString();
+            } else if (dynamicModel.summary != null) {
+              comments = dynamicModel.summary.toString();
+            } else if (dynamicModel.data != null) {
+              comments = dynamicModel.data.toString();
+            }
+          } catch (_) {}
+
+          try {
+            String? c;
+            try {
+              c = dynamicModel.cover?.toString();
+            } catch (_) {}
+
+            if (c == null || c.isEmpty) {
+              try {
+                c = dynamicModel.coverUrl?.toString();
+              } catch (_) {}
+            }
+
+            if (c != null && c.trim().isNotEmpty) {
+              coverUrl = c.trim();
+            }
+          } catch (_) {}
+        } catch (e) {
+          logger.w('Could not extract extra OPDS details: $e');
+        }
+
+        if (comments.isNotEmpty) {
+          comments = _removeHtmlTags(comments);
+        }
+
+        return BookDetailsModel(
+          id: bookListModel.id,
+          uuid: bookListModel.uuid,
+          title: bookListModel.title,
+          authors: bookListModel.authors,
+          cover: coverUrl ?? '',
+          formats: const ['epub'],
+          comments: comments,
+          tags: tags,
+        );
+      }
+
       if (!tagService.isInitialized) {
         await tagService.initialize();
       }
@@ -52,6 +112,21 @@ class BookDetailsRemoteDatasource {
       logger.e("Error fetching book details: $e");
       throw Exception("Failed to fetch book details: $e");
     }
+  }
+
+  String _removeHtmlTags(String htmlString) {
+    final RegExp exp = RegExp(r"<[^>]*>", multiLine: true, caseSensitive: true);
+    String parsedString = htmlString.replaceAll(exp, '');
+
+    parsedString = parsedString
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'");
+
+    return parsedString.trim();
   }
 
   Future<bool> toggleReadStatus(int bookId) async {
@@ -149,12 +224,18 @@ class BookDetailsRemoteDatasource {
     try {
       logger.i('Getting download stream for book: $bookId, Format: $format');
 
-      final lowerFormat = format.toLowerCase();
+      final prefs = GetIt.instance<SharedPreferences>();
+      final isOpds = prefs.getString('server_type') == 'opds';
 
-      final response = await apiService.getStream(
-        endpoint: '/download/$bookId/$lowerFormat/$bookId.$lowerFormat',
-        authMethod: AuthMethod.cookie,
-      );
+      String endpoint;
+      if (isOpds) {
+        endpoint = '/api/v1/opds/$bookId/download';
+      } else {
+        final lowerFormat = format.toLowerCase();
+        endpoint = '/get/download/$bookId/$lowerFormat';
+      }
+
+      final response = await apiService.getStream(endpoint: endpoint);
 
       if (response.statusCode == 200) {
         logger.i('Successfully got download stream');

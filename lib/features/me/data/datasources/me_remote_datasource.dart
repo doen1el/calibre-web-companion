@@ -11,6 +11,12 @@ class MeRemoteDataSource {
 
   Future<StatsModel> getStats() async {
     try {
+      final serverType = preferences.getString('server_type');
+
+      if (serverType == 'opds') {
+        return _getOpdsStats();
+      }
+
       final jsonData = await apiService.getJson(
         endpoint: '/opds/stats',
         authMethod: AuthMethod.auto,
@@ -19,6 +25,30 @@ class MeRemoteDataSource {
     } catch (e) {
       throw Exception('Failed to load stats: $e');
     }
+  }
+
+  Future<StatsModel> _getOpdsStats() async {
+    final json = await apiService.getXmlAsJson(
+      endpoint: '/api/v1/opds/catalog',
+      authMethod: AuthMethod.basic,
+      queryParams: {'page': '1', 'size': '1'},
+    );
+
+    int totalBooks = 0;
+
+    if (json.containsKey('feed')) {
+      final feed = json['feed'];
+      if (feed is Map) {
+        if (feed.containsKey('opensearch:totalResults')) {
+          totalBooks =
+              int.tryParse(feed['opensearch:totalResults'].toString()) ?? 0;
+        } else if (feed.containsKey('totalResults')) {
+          totalBooks = int.tryParse(feed['totalResults'].toString()) ?? 0;
+        }
+      }
+    }
+
+    return StatsModel(books: totalBooks);
   }
 
   Future<void> logOut() async {
@@ -32,5 +62,9 @@ class MeRemoteDataSource {
     } catch (e) {
       throw Exception('Failed to logout: $e');
     }
+  }
+
+  bool getIsOpds() {
+    return preferences.getString('server_type') == 'opds';
   }
 }

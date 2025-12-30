@@ -56,4 +56,6 @@ class BookViewRepository {
   Future<void> setIsListView(bool isList) async {
     await datasource.setIsListView(isList);
   }
+
+  bool getIsOpds() => datasource.getIsOpds();
 }
