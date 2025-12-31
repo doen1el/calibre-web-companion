@@ -8,28 +8,50 @@ import 'package:calibre_web_companion/features/download_service/data/models/down
 import 'package:calibre_web_companion/features/download_service/data/models/download_status_response.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_config_model.dart';
+import 'package:calibre_web_companion/features/login_settings/data/repositories/login_settings_repository.dart';
 
 class DownloadServiceRemoteDataSource {
   final http.Client client;
   final SharedPreferences sharedPreferences;
   final Logger logger;
+  final LoginSettingsRepository loginSettingsRepository;
 
   DownloadServiceRemoteDataSource({
     required this.client,
     required this.sharedPreferences,
     required this.logger,
+    required this.loginSettingsRepository,
   });
 
   Future<String> _getBaseUrl() async {
     return sharedPreferences.getString('downloader_url') ?? '';
   }
 
-  Map<String, String> _getHeaders() {
-    final cookie = sharedPreferences.getString('downloader_cookie');
+  Future<Map<String, String>> _getHeaders({bool includeCookie = true}) async {
     final headers = {'Content-Type': 'application/json'};
-    if (cookie != null && cookie.isNotEmpty) {
-      headers['Cookie'] = cookie;
+
+    try {
+      final customHeaders = await loginSettingsRepository.getCustomHeaders();
+      for (var header in customHeaders) {
+        if (header.key.trim().isNotEmpty) {
+          headers[header.key] = header.value;
+        }
+      }
+    } catch (e) {
+      logger.w('Failed to load custom headers for downloader: $e');
     }
+
+    if (includeCookie) {
+      final cookie = sharedPreferences.getString('downloader_cookie');
+      if (cookie != null && cookie.isNotEmpty) {
+        if (headers.containsKey('Cookie')) {
+          headers['Cookie'] = '${headers['Cookie']}; $cookie';
+        } else {
+          headers['Cookie'] = cookie;
+        }
+      }
+    }
+
     return headers;
   }
 
@@ -47,9 +69,11 @@ class DownloadServiceRemoteDataSource {
 
     logger.i('Attempting to login to downloader service...');
 
+    final headers = await _getHeaders(includeCookie: false);
+
     final response = await client.post(
       Uri.parse('$baseUrl/api/auth/login'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: jsonEncode({
         'username': username,
         'password': password,
@@ -76,12 +100,14 @@ class DownloadServiceRemoteDataSource {
     Future<http.Response> Function(Map<String, String> headers) requestFn,
   ) async {
     try {
-      final response = await requestFn(_getHeaders());
+      var headers = await _getHeaders();
+      final response = await requestFn(headers);
 
       if (response.statusCode == 401) {
         logger.w('Received 401, attempting re-login...');
         await _login();
-        return await requestFn(_getHeaders());
+        headers = await _getHeaders();
+        return await requestFn(headers);
       }
 
       return response;
