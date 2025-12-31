@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,6 +27,13 @@ class _SettingsPageState extends State<SettingsPage> {
       TextEditingController();
   final TextEditingController _downloaderUrlController =
       TextEditingController();
+  final TextEditingController _downloaderUsernameController =
+      TextEditingController();
+  final TextEditingController _downloaderPasswordController =
+      TextEditingController();
+
+  bool _isTestingConnection = false;
+  bool _isConnectionVerified = false;
 
   @override
   void initState() {
@@ -32,12 +41,16 @@ class _SettingsPageState extends State<SettingsPage> {
     final settingsState = context.read<SettingsBloc>().state;
     _send2ereaderUrlController.text = settingsState.send2ereaderUrl;
     _downloaderUrlController.text = settingsState.downloaderUrl;
+    _downloaderUsernameController.text = settingsState.downloaderUsername;
+    _downloaderPasswordController.text = settingsState.downloaderPassword;
   }
 
   @override
   void dispose() {
     _send2ereaderUrlController.dispose();
     _downloaderUrlController.dispose();
+    _downloaderUsernameController.dispose();
+    _downloaderPasswordController.dispose();
     super.dispose();
   }
 
@@ -49,10 +62,86 @@ class _SettingsPageState extends State<SettingsPage> {
     if (_send2ereaderUrlController.text != settingsState.send2ereaderUrl) {
       _send2ereaderUrlController.text = settingsState.send2ereaderUrl;
     }
+  }
 
-    if (_downloaderUrlController.text != settingsState.downloaderUrl) {
-      _downloaderUrlController.text = settingsState.downloaderUrl;
+  void _resetVerification() {
+    if (_isConnectionVerified) {
+      setState(() {
+        _isConnectionVerified = false;
+      });
     }
+  }
+
+  Future<void> _testConnection() async {
+    final url = _downloaderUrlController.text.trim();
+    final username = _downloaderUsernameController.text.trim();
+    final password = _downloaderPasswordController.text;
+
+    if (url.isEmpty || username.isEmpty || password.isEmpty) {
+      context.showSnackBar("Please fill in all fields", isError: true);
+      return;
+    }
+
+    setState(() {
+      _isTestingConnection = true;
+    });
+
+    try {
+      final uri = Uri.parse('$url/api/auth/login');
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': username,
+          'password': password,
+          'remember_me': true,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _isConnectionVerified = true;
+        });
+        if (mounted) {
+          context.showSnackBar(
+            "Connection successful! Click Save to persist.",
+            isError: false,
+          );
+        }
+      } else {
+        if (mounted) {
+          context.showSnackBar(
+            "Login failed: ${response.statusCode}",
+            isError: true,
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        context.showSnackBar("Connection error: $e", isError: true);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isTestingConnection = false;
+        });
+      }
+    }
+  }
+
+  void _saveDownloaderSettings() {
+    context.read<SettingsBloc>().add(
+      SetDownloaderUrl(_downloaderUrlController.text.trim()),
+    );
+    context.read<SettingsBloc>().add(
+      SetDownloaderCredentials(
+        _downloaderUsernameController.text.trim(),
+        _downloaderPasswordController.text,
+      ),
+    );
+    context.showSnackBar("Credentials saved successfully.");
+
+    FocusScope.of(context).unfocus();
   }
 
   @override
@@ -98,11 +187,17 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
 
                         const SizedBox(height: 24),
-                        _buildSectionTitle(context, "Download Options"),
+                        _buildSectionTitle(
+                          context,
+                          localizations.downloadOptions,
+                        ),
                         const DownloadOptionsWidget(),
 
                         const SizedBox(height: 24),
-                        _buildSectionTitle(context, "Custom send2ereader"),
+                        _buildSectionTitle(
+                          context,
+                          localizations.customSend2EReader,
+                        ),
                         _buildSend2EreaderToggle(context, state, localizations),
 
                         const SizedBox(height: 24),
@@ -254,10 +349,81 @@ class _SettingsPageState extends State<SettingsPage> {
                     vertical: 14.0,
                   ),
                 ),
-                onChanged:
-                    (value) => context.read<SettingsBloc>().add(
-                      SetDownloaderUrl(value),
-                    ),
+                onChanged: (_) => _resetVerification(),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _downloaderUsernameController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  labelText: localizations.username,
+                  prefixIcon: const Icon(Icons.person),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surface,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 14.0,
+                  ),
+                ),
+                onChanged: (_) => _resetVerification(),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _downloaderPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  labelText: localizations.password,
+                  prefixIcon: const Icon(Icons.lock),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surface,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 14.0,
+                  ),
+                ),
+                onChanged: (_) => _resetVerification(),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed:
+                      _isTestingConnection
+                          ? null
+                          : (_isConnectionVerified
+                              ? _saveDownloaderSettings
+                              : _testConnection),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                  ),
+                  icon:
+                      _isTestingConnection
+                          ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                          )
+                          : Icon(
+                            _isConnectionVerified
+                                ? Icons.check_circle
+                                : Icons.wifi_find,
+                          ),
+                  label: Text(
+                    _isTestingConnection
+                        ? localizations.testing
+                        : (_isConnectionVerified
+                            ? localizations.saveCredentials
+                            : localizations.testConnection),
+                  ),
+                ),
               ),
               const SizedBox(height: 8),
               Text(

@@ -2182,6 +2182,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Surprise Me'**
   String get surpriseMe;
+
+  /// No description provided for @downloadOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Options'**
+  String get downloadOptions;
+
+  /// No description provided for @customSend2EReader.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Send2Ereader'**
+  String get customSend2EReader;
+
+  /// No description provided for @testing.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing...'**
+  String get testing;
+
+  /// No description provided for @saveCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Credentials'**
+  String get saveCredentials;
+
+  /// No description provided for @testConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Connection'**
+  String get testConnection;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

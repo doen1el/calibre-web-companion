@@ -10,6 +10,8 @@ class SettingsModel extends Equatable {
   final String selectedColorKey;
   final bool isDownloaderEnabled;
   final String downloaderUrl;
+  final String downloaderUsername;
+  final String downloaderPassword;
   final bool isSend2ereaderEnabled;
   final String send2ereaderUrl;
   final String defaultDownloadPath;
@@ -23,6 +25,8 @@ class SettingsModel extends Equatable {
     required this.selectedColorKey,
     required this.isDownloaderEnabled,
     required this.downloaderUrl,
+    required this.downloaderUsername,
+    required this.downloaderPassword,
     required this.isSend2ereaderEnabled,
     required this.send2ereaderUrl,
     required this.defaultDownloadPath,
@@ -38,6 +42,8 @@ class SettingsModel extends Equatable {
       selectedColorKey: json['theme_color_key'] ?? 'lightGreen',
       isDownloaderEnabled: json['downloader_enabled'] ?? false,
       downloaderUrl: json['downloader_url'] ?? '',
+      downloaderUsername: json['downloader_username'] ?? '',
+      downloaderPassword: json['downloader_password'] ?? '',
       isSend2ereaderEnabled: json['send2ereader_enabled'] ?? false,
       send2ereaderUrl: json['send2ereader_url'] ?? 'https://send.djazz.se',
       defaultDownloadPath: json['default_download_path'] ?? '',
@@ -54,6 +60,8 @@ class SettingsModel extends Equatable {
     selectedColorKey,
     isDownloaderEnabled,
     downloaderUrl,
+    downloaderUsername,
+    downloaderPassword,
     isSend2ereaderEnabled,
     send2ereaderUrl,
     defaultDownloadPath,

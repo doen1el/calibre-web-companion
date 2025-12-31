@@ -20,6 +20,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SetCostumSend2EreaderUrl>(_onSetSend2EreaderUrl);
     on<SetDownloaderEnabled>(_onSetDownloaderEnabled);
     on<SetDownloaderUrl>(_onSetDownloaderUrl);
+    on<SetDownloaderCredentials>(_onSetDownloaderCredentials);
     on<SubmitFeedback>(_onSubmitFeedback);
     on<SetLanguage>(_onSetLanguage);
     on<SetShowReadNowButton>(_onSetShowReadNowButton);
@@ -44,6 +45,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           selectedColorKey: settings.selectedColorKey,
           isDownloaderEnabled: settings.isDownloaderEnabled,
           downloaderUrl: settings.downloaderUrl,
+          downloaderUsername: settings.downloaderUsername,
+          downloaderPassword: settings.downloaderPassword,
           isSend2ereaderEnabled: settings.isSend2ereaderEnabled,
           send2ereaderUrl: settings.send2ereaderUrl,
           defaultDownloadPath: settings.defaultDownloadPath,
@@ -211,6 +214,28 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setDownloaderUrl(event.url);
       emit(state.copyWith(downloaderUrl: event.url));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetDownloaderCredentials(
+    SetDownloaderCredentials event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      await repository.setDownloaderCredentials(event.username, event.password);
+      emit(
+        state.copyWith(
+          downloaderUsername: event.username,
+          downloaderPassword: event.password,
+        ),
+      );
     } catch (e) {
       emit(
         state.copyWith(

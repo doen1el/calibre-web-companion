@@ -26,6 +26,10 @@ class SettingsLocalDataSource {
         'downloader_enabled':
             sharedPreferences.getBool('downloader_enabled') ?? false,
         'downloader_url': sharedPreferences.getString('downloader_url') ?? '',
+        'downloader_username':
+            sharedPreferences.getString('downloader_username') ?? '',
+        'downloader_password':
+            sharedPreferences.getString('downloader_password') ?? '',
         'send2ereader_enabled':
             sharedPreferences.getBool('send2ereader_enabled') ?? false,
         'send2ereader_url':
@@ -87,6 +91,27 @@ class SettingsLocalDataSource {
       logger.e('Error saving downloader URL: $e');
       throw Exception('Failed to save downloader URL: $e');
     }
+  }
+
+  Future<void> saveDownloaderCredentials(
+    String username,
+    String password,
+  ) async {
+    try {
+      await sharedPreferences.setString('downloader_username', username);
+      await sharedPreferences.setString('downloader_password', password);
+    } catch (e) {
+      logger.e('Error saving downloader credentials: $e');
+      throw Exception('Failed to save downloader credentials: $e');
+    }
+  }
+
+  Future<void> saveDownloaderCookie(String cookie) async {
+    await sharedPreferences.setString('downloader_cookie', cookie);
+  }
+
+  String? getDownloaderCookie() {
+    return sharedPreferences.getString('downloader_cookie');
   }
 
   Future<void> saveSend2ereaderEnabled(bool enabled) async {

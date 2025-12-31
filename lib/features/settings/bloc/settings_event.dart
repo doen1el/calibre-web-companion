@@ -94,6 +94,16 @@ class SetDownloaderUrl extends SettingsEvent {
   List<Object?> get props => [url];
 }
 
+class SetDownloaderCredentials extends SettingsEvent {
+  final String username;
+  final String password;
+
+  const SetDownloaderCredentials(this.username, this.password);
+
+  @override
+  List<Object?> get props => [username, password];
+}
+
 class SubmitFeedback extends SettingsEvent {
   final String? title;
   final String? description;

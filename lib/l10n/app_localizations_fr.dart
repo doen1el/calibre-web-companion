@@ -1070,4 +1070,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get surpriseMe => 'Surprenez-moi';
+
+  @override
+  String get downloadOptions => 'Options de téléchargement';
+
+  @override
+  String get customSend2EReader => 'Send2Ereader personnalisé';
+
+  @override
+  String get testing => 'Test en cours...';
+
+  @override
+  String get saveCredentials => 'Enregistrer les identifiants';
+
+  @override
+  String get testConnection => 'Tester la connexion';
 }

@@ -58,6 +58,17 @@ class SettingsRepository {
     }
   }
 
+  Future<void> setDownloaderCredentials(
+    String username,
+    String password,
+  ) async {
+    try {
+      await dataSource.saveDownloaderCredentials(username, password);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> setSend2ereaderEnabled(bool enabled) async {
     try {
       await dataSource.saveSend2ereaderEnabled(enabled);

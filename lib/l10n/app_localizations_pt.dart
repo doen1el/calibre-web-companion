@@ -1070,4 +1070,19 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get surpriseMe => 'Me surpreenda';
+
+  @override
+  String get downloadOptions => 'Opções de Download';
+
+  @override
+  String get customSend2EReader => 'Send2Ereader Personalizado';
+
+  @override
+  String get testing => 'Testando...';
+
+  @override
+  String get saveCredentials => 'Salvar Credenciais';
+
+  @override
+  String get testConnection => 'Testar Conexão';
 }

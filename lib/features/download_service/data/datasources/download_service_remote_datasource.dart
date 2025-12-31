@@ -6,7 +6,7 @@ import 'package:logger/logger.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_status.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_status_response.dart';
-import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart'; // Import hinzufügen
+import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
 
 class DownloadServiceRemoteDataSource {
   final http.Client client;
@@ -21,6 +21,72 @@ class DownloadServiceRemoteDataSource {
 
   Future<String> _getBaseUrl() async {
     return sharedPreferences.getString('downloader_url') ?? '';
+  }
+
+  Map<String, String> _getHeaders() {
+    final cookie = sharedPreferences.getString('downloader_cookie');
+    final headers = {'Content-Type': 'application/json'};
+    if (cookie != null && cookie.isNotEmpty) {
+      headers['Cookie'] = cookie;
+    }
+    return headers;
+  }
+
+  Future<void> _login() async {
+    final baseUrl = await _getBaseUrl();
+    final username = sharedPreferences.getString('downloader_username');
+    final password = sharedPreferences.getString('downloader_password');
+
+    if (username == null ||
+        username.isEmpty ||
+        password == null ||
+        password.isEmpty) {
+      throw Exception('No credentials provided for downloader service');
+    }
+
+    logger.i('Attempting to login to downloader service...');
+
+    final response = await client.post(
+      Uri.parse('$baseUrl/api/auth/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'username': username,
+        'password': password,
+        'remember_me': true,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final rawCookie = response.headers['set-cookie'];
+      if (rawCookie != null) {
+        final cookieValue = rawCookie.split(';').first;
+        await sharedPreferences.setString('downloader_cookie', cookieValue);
+        logger.i('Login successful, cookie stored: $cookieValue');
+      } else {
+        logger.w('Login successful but no Set-Cookie header found');
+      }
+    } else {
+      logger.e('Login failed: ${response.statusCode} ${response.body}');
+      throw Exception('Login failed: ${response.statusCode}');
+    }
+  }
+
+  Future<http.Response> _executeWithRetry(
+    Future<http.Response> Function(Map<String, String> headers) requestFn,
+  ) async {
+    try {
+      final response = await requestFn(_getHeaders());
+
+      if (response.statusCode == 401) {
+        logger.w('Received 401, attempting re-login...');
+        await _login();
+        return await requestFn(_getHeaders());
+      }
+
+      return response;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<List<DownloadServiceBookModel>> searchBooks(
@@ -39,7 +105,9 @@ class DownloadServiceRemoteDataSource {
 
       logger.i('Searching with URI: $uri');
 
-      final response = await client.get(uri);
+      final response = await _executeWithRetry(
+        (headers) => client.get(uri, headers: headers),
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> results = json.decode(response.body);
@@ -94,11 +162,13 @@ class DownloadServiceRemoteDataSource {
   Future<bool> downloadBook(String bookId) async {
     try {
       final baseUrl = await _getBaseUrl();
-      final response = await client.get(
-        Uri.parse('$baseUrl/api/download?id=$bookId'),
-      );
+      final uri = Uri.parse('$baseUrl/api/download?id=$bookId');
 
       logger.i('Making download request for $bookId');
+
+      final response = await _executeWithRetry(
+        (headers) => client.get(uri, headers: headers),
+      );
 
       if (response.statusCode == 200) {
         final status = json.decode(response.body);
@@ -119,7 +189,11 @@ class DownloadServiceRemoteDataSource {
   Future<List<DownloadServiceBookModel>> getDownloadStatus() async {
     try {
       final baseUrl = await _getBaseUrl();
-      final response = await client.get(Uri.parse('$baseUrl/api/status'));
+      final uri = Uri.parse('$baseUrl/api/status');
+
+      final response = await _executeWithRetry(
+        (headers) => client.get(uri, headers: headers),
+      );
 
       if (response.statusCode == 200) {
         final status = json.decode(response.body);

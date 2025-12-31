@@ -1070,4 +1070,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get surpriseMe => 'Überrasche mich';
+
+  @override
+  String get downloadOptions => 'Download-Optionen';
+
+  @override
+  String get customSend2EReader => 'Benutzerdefinierters Send2Ereader';
+
+  @override
+  String get testing => 'Testen...';
+
+  @override
+  String get saveCredentials => 'Anmeldeinformationen speichern';
+
+  @override
+  String get testConnection => 'Verbindung testen';
 }

@@ -17,6 +17,8 @@ class SettingsState extends Equatable {
   final String selectedColorKey;
   final bool isDownloaderEnabled;
   final String downloaderUrl;
+  final String downloaderUsername;
+  final String downloaderPassword;
   final bool isSend2ereaderEnabled;
   final String send2ereaderUrl;
   final String defaultDownloadPath;
@@ -35,6 +37,8 @@ class SettingsState extends Equatable {
     this.selectedColorKey = 'lightGreen',
     this.isDownloaderEnabled = false,
     this.downloaderUrl = '',
+    this.downloaderUsername = '',
+    this.downloaderPassword = '',
     this.isSend2ereaderEnabled = false,
     this.send2ereaderUrl = 'https://send.djazz.se',
     this.defaultDownloadPath = '',
@@ -57,6 +61,8 @@ class SettingsState extends Equatable {
     String? selectedColorKey,
     bool? isDownloaderEnabled,
     String? downloaderUrl,
+    String? downloaderUsername,
+    String? downloaderPassword,
     bool? isSend2ereaderEnabled,
     String? send2ereaderUrl,
     String? defaultDownloadPath,
@@ -75,6 +81,8 @@ class SettingsState extends Equatable {
       selectedColorKey: selectedColorKey ?? this.selectedColorKey,
       isDownloaderEnabled: isDownloaderEnabled ?? this.isDownloaderEnabled,
       downloaderUrl: downloaderUrl ?? this.downloaderUrl,
+      downloaderUsername: downloaderUsername ?? this.downloaderUsername,
+      downloaderPassword: downloaderPassword ?? this.downloaderPassword,
       isSend2ereaderEnabled:
           isSend2ereaderEnabled ?? this.isSend2ereaderEnabled,
       send2ereaderUrl: send2ereaderUrl ?? this.send2ereaderUrl,
@@ -97,6 +105,8 @@ class SettingsState extends Equatable {
     selectedColorKey,
     isDownloaderEnabled,
     downloaderUrl,
+    downloaderUsername,
+    downloaderPassword,
     isSend2ereaderEnabled,
     send2ereaderUrl,
     defaultDownloadPath,

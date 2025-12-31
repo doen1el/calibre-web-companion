@@ -346,5 +346,10 @@
   "or": "OR",
   "libraries": "Libraries",
   "browsLibraries": "Browse Libraries",
-  "surpriseMe": "Surprise Me"
+  "surpriseMe": "Surprise Me",
+  "downloadOptions": "Download Options",
+  "customSend2EReader": "Custom Send2Ereader",
+  "testing": "Testing...",
+  "saveCredentials": "Save Credentials",
+  "testConnection": "Test Connection"
 }
