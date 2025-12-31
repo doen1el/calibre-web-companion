@@ -37,7 +37,7 @@ class ShelfDetailsRemoteDataSource {
 
   Future<ShelfDetailsModel> _getOpdsShelfDetails(String shelfId) async {
     final response = await apiService.getXmlAsJson(
-      endpoint: '/api/v1/opds/catalog',
+      endpoint: '/catalog',
       authMethod: AuthMethod.basic,
       queryParams: {'shelfId': shelfId},
     );

@@ -139,22 +139,6 @@ class _LoginFormState extends State<LoginForm> {
                                 context.read<LoginBloc>().add(EnterUrl(value)),
                       ),
 
-                      if (state.serverType == ServerType.opds)
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            top: 8.0,
-                            left: 4,
-                            bottom: 8,
-                          ),
-                          child: Text(
-                            localizations.appAddsOPDSPath,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                          ),
-                        ),
-
                       const SizedBox(height: 16),
 
                       LoginTextField(
@@ -171,6 +155,7 @@ class _LoginFormState extends State<LoginForm> {
                               EnterUsername(value),
                             ),
                       ),
+
                       const SizedBox(height: 16),
 
                       LoginTextField(

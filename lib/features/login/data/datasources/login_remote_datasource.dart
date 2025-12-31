@@ -45,7 +45,7 @@ class LoginRemoteDataSource {
     logger.i('Attempting OPDS login (Basic Auth check)...');
 
     final response = await apiService.get(
-      endpoint: '/api/v1/opds',
+      endpoint: '/catalog',
       authMethod: AuthMethod.basic,
       followRedirects: true,
     );

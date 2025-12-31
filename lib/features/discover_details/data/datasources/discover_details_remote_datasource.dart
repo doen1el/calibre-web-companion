@@ -169,11 +169,11 @@ class DiscoverDetailsRemoteDatasource {
     final Map<DiscoverType, String> paths = {
       DiscoverType.discover: '/opds/discover',
       DiscoverType.hot: '/opds/hot',
-      DiscoverType.newlyAdded: isOpds ? '/api/v1/opds/recent' : '/opds/new',
+      DiscoverType.newlyAdded: isOpds ? '/recent' : '/opds/new',
       DiscoverType.rated: '/opds/rated',
       DiscoverType.readbooks: '/opds/readbooks',
       DiscoverType.unreadbooks: '/opds/unreadbooks',
-      DiscoverType.surprise: '/api/v1/opds/surprise',
+      DiscoverType.surprise: '/surprise',
     };
 
     String basePath = paths[type] ?? '/opds/discover';
@@ -190,7 +190,7 @@ class DiscoverDetailsRemoteDatasource {
       CategoryType.language: '/opds/language',
       CategoryType.formats: '/opds/formats',
       CategoryType.ratings: '/opds/ratings',
-      CategoryType.libraries: '/api/v1/opds/libraries',
+      CategoryType.libraries: '/libraries',
     };
 
     String basePath = paths[type] ?? '/opds/category';

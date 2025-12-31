@@ -1063,9 +1063,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get or => 'O';
 
   @override
-  String get appAddsOPDSPath => 'La aplicación añade automáticamente \'/api/v1/opds\' si no se especifica';
-
-  @override
   String get libraries => 'Bibliotecas';
 
   @override

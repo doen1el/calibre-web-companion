@@ -229,7 +229,7 @@ class BookDetailsRemoteDatasource {
 
       String endpoint;
       if (isOpds) {
-        endpoint = '/api/v1/opds/$bookId/download';
+        endpoint = '/$bookId/download';
       } else {
         final lowerFormat = format.toLowerCase();
         endpoint = '/get/download/$bookId/$lowerFormat';

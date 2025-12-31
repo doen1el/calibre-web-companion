@@ -2165,12 +2165,6 @@ abstract class AppLocalizations {
   /// **'OR'**
   String get or;
 
-  /// No description provided for @appAddsOPDSPath.
-  ///
-  /// In en, this message translates to:
-  /// **'The app automatically appends \'/api/v1/opds\' if not specified'**
-  String get appAddsOPDSPath;
-
   /// No description provided for @libraries.
   ///
   /// In en, this message translates to:

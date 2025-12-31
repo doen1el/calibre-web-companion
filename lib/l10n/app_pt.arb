@@ -342,7 +342,6 @@
   "sectionDisabledOrNotFound": "Seção indisponível",
   "sectionDisabledDescription": "Esta seção parece estar desativada nas configurações do seu servidor Calibre-Web ou não existe.",
   "or": "OU",
-  "appAddsOPDSPath": "O app adiciona automaticamente '/api/v1/opds' se não for especificado",
   "libraries": "Bibliotecas",
   "browsLibraries": "Navegar pelas Bibliotecas",
   "surpriseMe": "Me surpreenda"

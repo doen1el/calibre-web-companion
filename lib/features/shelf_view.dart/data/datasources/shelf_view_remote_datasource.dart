@@ -41,7 +41,7 @@ class ShelfViewRemoteDataSource {
 
   Future<ShelfListViewModel> _loadOpdsShelves() async {
     final res = await apiService.getXmlAsJson(
-      endpoint: '/api/v1/opds/shelves',
+      endpoint: '/shelves',
       authMethod: AuthMethod.basic,
     );
     return ShelfListViewModel.fromFeedJson(res);

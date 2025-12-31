@@ -29,7 +29,7 @@ class MeRemoteDataSource {
 
   Future<StatsModel> _getOpdsStats() async {
     final json = await apiService.getXmlAsJson(
-      endpoint: '/api/v1/opds/catalog',
+      endpoint: '/catalog',
       authMethod: AuthMethod.basic,
       queryParams: {'page': '1', 'size': '1'},
     );

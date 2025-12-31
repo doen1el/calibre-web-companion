@@ -102,7 +102,7 @@ class BookViewRemoteDatasource {
       }
 
       final response = await _apiService.getXmlAsJson(
-        endpoint: '/api/v1/opds/catalog',
+        endpoint: '/catalog',
         authMethod: AuthMethod.basic,
         queryParams: queryParams,
       );
