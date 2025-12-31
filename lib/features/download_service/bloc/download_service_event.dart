@@ -31,3 +31,5 @@ class DownloadBook extends DownloadServiceEvent {
 class GetDownloadStatus extends DownloadServiceEvent {}
 
 class ClearSearchResults extends DownloadServiceEvent {}
+
+class LoadDownloadConfig extends DownloadServiceEvent {}

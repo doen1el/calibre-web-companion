@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
+import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart'; // Import
 
 class DownloadFilterSheet extends StatefulWidget {
   final DownloadFilterModel currentFilter;
@@ -25,17 +27,6 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
   late List<String> _selectedLanguages;
   late List<String> _selectedFormats;
   String? _selectedContent;
-
-  final List<String> _availableLanguages = [
-    'de',
-    'en',
-    'fr',
-    'es',
-    'it',
-    'ru',
-    'zh',
-  ];
-  final List<String> _availableFormats = DownloadFilterModel.allFormats;
 
   @override
   void initState() {
@@ -62,6 +53,20 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+    final config = context.read<DownloadServiceBloc>().state.config;
+
+    final availableFormats =
+        config.supportedFormats.isNotEmpty
+            ? config.supportedFormats
+            : DownloadFilterModel.allFormats;
+
+    final availableLanguages =
+        config.languages.isNotEmpty
+            ? config.languages
+            : [
+              {'code': 'de', 'language': 'German'},
+              {'code': 'en', 'language': 'English'},
+            ];
 
     final Map<String, String> contentTypes = {
       'book_fiction': localizations.bookFiction,
@@ -94,9 +99,19 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
                   localizations.searchFilters,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                TextButton(
+
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                  ),
                   onPressed: _resetFilters,
-                  child: Text(localizations.reset),
+                  child: Text(
+                    localizations.reset,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -113,7 +128,7 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
             const SizedBox(height: 20),
 
             DropdownButtonFormField<String>(
-              value: _selectedContent,
+              initialValue: _selectedContent,
               decoration: InputDecoration(
                 labelText: localizations.contentType,
                 border: OutlineInputBorder(),
@@ -137,17 +152,19 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
             Wrap(
               spacing: 8,
               children:
-                  _availableLanguages.map((lang) {
-                    final isSelected = _selectedLanguages.contains(lang);
+                  availableLanguages.map((langMap) {
+                    final code = langMap['code']!;
+                    final name = langMap['language']!;
+                    final isSelected = _selectedLanguages.contains(code);
                     return FilterChip(
-                      label: Text(lang.toUpperCase()),
+                      label: Text(name),
                       selected: isSelected,
                       onSelected: (selected) {
                         setState(() {
                           if (selected) {
-                            _selectedLanguages.add(lang);
+                            _selectedLanguages.add(code);
                           } else {
-                            _selectedLanguages.remove(lang);
+                            _selectedLanguages.remove(code);
                           }
                         });
                       },
@@ -165,7 +182,7 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
             Wrap(
               spacing: 8,
               children:
-                  _availableFormats.map((fmt) {
+                  availableFormats.map((fmt) {
                     final isSelected = _selectedFormats.contains(fmt);
                     return FilterChip(
                       label: Text(fmt.toUpperCase()),
@@ -222,13 +239,23 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
   }
 
   void _resetFilters() {
+    final config = context.read<DownloadServiceBloc>().state.config;
+
     setState(() {
       _isbnController.clear();
       _authorController.clear();
       _titleController.clear();
       _selectedContent = null;
-      _selectedLanguages = ['de'];
-      _selectedFormats = List.from(DownloadFilterModel.allFormats);
+
+      _selectedLanguages =
+          config.defaultLanguage.isNotEmpty
+              ? List.from(config.defaultLanguage)
+              : ['de'];
+
+      _selectedFormats =
+          config.supportedFormats.isNotEmpty
+              ? List.from(config.supportedFormats)
+              : List.from(DownloadFilterModel.allFormats);
     });
   }
 }

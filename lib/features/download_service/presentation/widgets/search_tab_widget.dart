@@ -42,6 +42,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      showDragHandle: true,
       builder:
           (context) => DownloadFilterSheet(
             currentFilter: _currentFilter,

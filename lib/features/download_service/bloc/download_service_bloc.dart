@@ -17,6 +17,19 @@ class DownloadServiceBloc
     on<DownloadBook>(_onDownloadBook);
     on<GetDownloadStatus>(_onGetDownloadStatus);
     on<ClearSearchResults>(_onClearSearchResults);
+    on<LoadDownloadConfig>(_onLoadDownloadConfig);
+  }
+
+  Future<void> _onLoadDownloadConfig(
+    LoadDownloadConfig event,
+    Emitter<DownloadServiceState> emit,
+  ) async {
+    try {
+      final config = await repository.getConfig();
+      emit(state.copyWith(config: config));
+    } catch (e) {
+      logger.e('Failed to load config: $e');
+    }
   }
 
   Future<void> _onSearchBooks(

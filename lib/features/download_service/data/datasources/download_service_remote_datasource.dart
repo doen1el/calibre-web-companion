@@ -7,6 +7,7 @@ import 'package:calibre_web_companion/features/download_service/data/models/down
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_status.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_status_response.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
+import 'package:calibre_web_companion/features/download_service/data/models/download_config_model.dart';
 
 class DownloadServiceRemoteDataSource {
   final http.Client client;
@@ -229,6 +230,28 @@ class DownloadServiceRemoteDataSource {
       final errorMessage = 'Error fetching download status: $e';
       logger.e(errorMessage);
       throw Exception(errorMessage);
+    }
+  }
+
+  Future<DownloadConfigModel> getConfig() async {
+    try {
+      final baseUrl = await _getBaseUrl();
+      final uri = Uri.parse('$baseUrl/api/config');
+
+      final response = await _executeWithRetry(
+        (headers) => client.get(uri, headers: headers),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonMap = json.decode(response.body);
+        return DownloadConfigModel.fromJson(jsonMap);
+      } else {
+        logger.w('Failed to load config: ${response.statusCode}');
+        return const DownloadConfigModel();
+      }
+    } catch (e) {
+      logger.e('Error fetching config: $e');
+      return const DownloadConfigModel();
     }
   }
 }
