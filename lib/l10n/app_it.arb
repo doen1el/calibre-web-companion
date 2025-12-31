@@ -672,5 +672,7 @@
     "sectionDisabledOrNotFound": "Sezione non disponibile",
     "@sectionDisabledOrNotFound": {},
     "sectionDisabledDescription": "Questa sezione sembra disabilitata nelle impostazioni del tuo server Calibre-Web o non esiste.",
-    "@sectionDisabledDescription": {}
+    "@sectionDisabledDescription": {},
+    "password": "Password",
+    "@password": {}
 }
