@@ -85,17 +85,19 @@ class DiscoverDetailsModel extends Equatable {
     }
 
     String? summary;
-    if (json['summary'] != null) {
-      if (json['summary'] is String) {
-        summary = json['summary'];
-      } else if (json['summary'] is Map) {
-        summary = json['summary']['#text'] ?? json['summary']['content'];
+    if (json.containsKey('content')) {
+      final content = json['content'];
+      if (content is Map) {
+        summary = content['__cdata'] ?? content['#text'] ?? content.toString();
+      } else {
+        summary = content.toString();
       }
-    } else if (json['content'] != null) {
-      if (json['content'] is String) {
-        summary = json['content'];
-      } else if (json['content'] is Map) {
-        summary = json['content']['#text'];
+    } else if (json.containsKey('summary')) {
+      final sum = json['summary'];
+      if (sum is Map) {
+        summary = sum['__cdata'] ?? sum['#text'] ?? sum.toString();
+      } else {
+        summary = sum.toString();
       }
     }
 

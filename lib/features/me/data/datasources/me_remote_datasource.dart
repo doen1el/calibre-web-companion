@@ -53,11 +53,25 @@ class MeRemoteDataSource {
 
   Future<void> logOut() async {
     try {
-      await apiService.get(endpoint: '/logout', authMethod: AuthMethod.cookie);
+      final serverType = preferences.getString('server_type');
+
+      if (serverType != 'opds') {
+        try {
+          await apiService.get(
+            endpoint: '/logout',
+            authMethod: AuthMethod.cookie,
+          );
+        } catch (e) {
+          throw Exception('Failed to logout from server: $e');
+        }
+      }
+
       await preferences.remove('base_url');
       await preferences.remove('username');
       await preferences.remove('password');
       await preferences.remove('calibre_web_session');
+      await preferences.remove('server_type');
+
       await apiService.reset();
     } catch (e) {
       throw Exception('Failed to logout: $e');

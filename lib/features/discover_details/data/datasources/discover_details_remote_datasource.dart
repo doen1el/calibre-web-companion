@@ -126,8 +126,18 @@ class DiscoverDetailsRemoteDatasource {
   Future<DiscoverFeedModel> loadBooksFromPath(String fullPath) async {
     logger.d('Loading books from path: $fullPath');
     try {
+      String endpoint = fullPath;
+      final baseUrl = apiService.getBaseUrl();
+
+      if (endpoint.startsWith(baseUrl)) {
+        endpoint = endpoint.substring(baseUrl.length);
+      } else if (baseUrl.endsWith('/api/v1/opds') &&
+          endpoint.startsWith('/api/v1/opds')) {
+        endpoint = endpoint.replaceFirst('/api/v1/opds', '');
+      }
+
       final jsonData = await apiService.getXmlAsJson(
-        endpoint: fullPath,
+        endpoint: endpoint,
         authMethod: AuthMethod.auto,
       );
 

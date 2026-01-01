@@ -1,5 +1,5 @@
 import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // NEU
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
@@ -23,7 +23,7 @@ class ShelfDetailsRemoteDataSource {
         return _getOpdsShelfDetails(shelfId);
       }
 
-      final response = await apiService.getJson(
+      final response = await apiService.getXmlAsJson(
         endpoint: '/opds/shelf/$shelfId',
         authMethod: AuthMethod.auto,
       );

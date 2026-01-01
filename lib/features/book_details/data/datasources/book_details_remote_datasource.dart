@@ -41,42 +41,7 @@ class BookDetailsRemoteDatasource {
       final isOpds = prefs.getString('server_type') == 'opds';
 
       if (isOpds) {
-        String comments = '';
-        List<String> tags = [];
-        String? coverUrl;
-
-        try {
-          final dynamic dynamicModel = bookListModel;
-
-          try {
-            if (dynamicModel.comments != null) {
-              comments = dynamicModel.comments.toString();
-            } else if (dynamicModel.summary != null) {
-              comments = dynamicModel.summary.toString();
-            } else if (dynamicModel.data != null) {
-              comments = dynamicModel.data.toString();
-            }
-          } catch (_) {}
-
-          try {
-            String? c;
-            try {
-              c = dynamicModel.cover?.toString();
-            } catch (_) {}
-
-            if (c == null || c.isEmpty) {
-              try {
-                c = dynamicModel.coverUrl?.toString();
-              } catch (_) {}
-            }
-
-            if (c != null && c.trim().isNotEmpty) {
-              coverUrl = c.trim();
-            }
-          } catch (_) {}
-        } catch (e) {
-          logger.w('Could not extract extra OPDS details: $e');
-        }
+        String comments = bookListModel.data;
 
         if (comments.isNotEmpty) {
           comments = _removeHtmlTags(comments);
@@ -87,10 +52,13 @@ class BookDetailsRemoteDatasource {
           uuid: bookListModel.uuid,
           title: bookListModel.title,
           authors: bookListModel.authors,
-          cover: coverUrl ?? '',
-          formats: const ['epub'],
+          cover: bookListModel.coverUrl ?? '',
+          formats:
+              bookListModel.formats.isNotEmpty
+                  ? bookListModel.formats
+                  : const ['epub'],
           comments: comments,
-          tags: tags,
+          tags: bookListModel.tags,
         );
       }
 
@@ -228,14 +196,21 @@ class BookDetailsRemoteDatasource {
       final isOpds = prefs.getString('server_type') == 'opds';
 
       String endpoint;
+      AuthMethod authMethod;
+
       if (isOpds) {
         endpoint = '/$bookId/download';
+        authMethod = AuthMethod.basic;
       } else {
         final lowerFormat = format.toLowerCase();
-        endpoint = '/get/download/$bookId/$lowerFormat';
+        endpoint = '/download/$bookId/$lowerFormat';
+        authMethod = AuthMethod.cookie;
       }
 
-      final response = await apiService.getStream(endpoint: endpoint);
+      final response = await apiService.getStream(
+        endpoint: endpoint,
+        authMethod: authMethod,
+      );
 
       if (response.statusCode == 200) {
         logger.i('Successfully got download stream');
@@ -280,10 +255,6 @@ class BookDetailsRemoteDatasource {
   ) async {
     try {
       final body = {'query': query};
-
-      // for (var id in activeProviderIds) {
-      //   body[id] = 'on';
-      // }
 
       final response = await apiService.post(
         endpoint: '/metadata/search',

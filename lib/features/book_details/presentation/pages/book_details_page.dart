@@ -312,10 +312,13 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
   BookDetailsModel _createDummyBook(AppLocalizations localizations) {
     return BookDetailsModel(
-      id: 0,
-      uuid: 'dummy-uuid',
-      title: localizations.loading,
-      authors: 'Author Name',
+      id: widget.bookViewModel.id,
+      uuid: widget.bookViewModel.uuid,
+      title: widget.bookViewModel.title,
+      authors: widget.bookViewModel.authors,
+      cover: widget.bookViewModel.coverUrl ?? '',
+      formats: widget.bookViewModel.formats,
+      tags: widget.bookViewModel.tags,
     );
   }
 

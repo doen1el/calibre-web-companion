@@ -186,6 +186,7 @@ class BookViewRemoteDatasource {
 
       bool hasCover = false;
       String? coverUrl;
+      List<String> formats = [];
 
       if (entry.containsKey('link')) {
         final links = entry['link'];
@@ -193,9 +194,9 @@ class BookViewRemoteDatasource {
 
         for (var link in linkList) {
           if (link is Map) {
-            final rel = link['_rel'];
-            final type = link['_type'];
-            final href = link['_href'];
+            final rel = link['_rel'] ?? link['rel'];
+            final type = link['_type'] ?? link['type'];
+            final href = link['_href'] ?? link['href'];
 
             if (rel == 'http://opds-spec.org/image' ||
                 rel == 'http://opds-spec.org/image/thumbnail' ||
@@ -204,8 +205,32 @@ class BookViewRemoteDatasource {
               if (href != null) {
                 coverUrl = href.toString();
               }
+            }
 
-              if (rel == 'http://opds-spec.org/image') break;
+            if (rel == 'http://opds-spec.org/acquisition' && type != null) {
+              final mimeType = type.toString().toLowerCase();
+              if (mimeType.contains('application/epub+zip')) {
+                formats.add('epub');
+              } else if (mimeType.contains('application/pdf')) {
+                formats.add('pdf');
+              } else if (mimeType.contains('application/x-mobipocket-ebook') ||
+                  mimeType.contains('application/mobi')) {
+                formats.add('mobi');
+              } else if (mimeType.contains(
+                'application/vnd.amazon.mobi8-ebook',
+              )) {
+                formats.add('azw3');
+              } else if (mimeType.contains('application/fb2')) {
+                formats.add('fb2');
+              } else if (mimeType.contains('application/vnd.comicbook+zip') ||
+                  mimeType.contains('application/x-cbz')) {
+                formats.add('cbz');
+              } else if (mimeType.contains('application/vnd.comicbook-rar') ||
+                  mimeType.contains('application/x-cbr')) {
+                formats.add('cbr');
+              } else if (mimeType.contains('text/plain')) {
+                formats.add('txt');
+              }
             }
           }
         }
@@ -216,12 +241,38 @@ class BookViewRemoteDatasource {
         pubdate = entry['published'];
       }
 
+      List<String> tags = [];
+      if (entry.containsKey('category')) {
+        final categories = entry['category'];
+        final categoryList = categories is List ? categories : [categories];
+        for (var cat in categoryList) {
+          if (cat is Map) {
+            final term =
+                cat['term'] ?? cat['_term'] ?? cat['label'] ?? cat['_label'];
+            if (term != null && term.toString().isNotEmpty) {
+              tags.add(term.toString());
+            }
+          }
+        }
+      }
+
       String description = '';
       if (entry.containsKey('content')) {
-        description =
-            entry['content']['__cdata'] ?? entry['content'].toString();
+        final content = entry['content'];
+        if (content is Map) {
+          description =
+              content['__cdata'] ?? content['#text'] ?? content.toString();
+        } else {
+          description = content.toString();
+        }
       } else if (entry.containsKey('summary')) {
-        description = entry['summary'].toString();
+        final summary = entry['summary'];
+        if (summary is Map) {
+          description =
+              summary['__cdata'] ?? summary['#text'] ?? summary.toString();
+        } else {
+          description = summary.toString();
+        }
       }
 
       return BookViewModel(
@@ -236,6 +287,8 @@ class BookViewRemoteDatasource {
         series: '',
         seriesIndex: 0,
         coverUrl: coverUrl,
+        formats: formats.isNotEmpty ? formats : const [],
+        tags: tags,
       );
     } catch (e) {
       _logger.w('Error mapping OPDS entry: $e');

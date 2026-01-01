@@ -246,7 +246,11 @@ class DiscoverDetailsPage extends StatelessWidget {
                             title: book.title,
                             authors: book.authors,
                             cover: book.coverUrl ?? '',
+                            coverUrl: book.coverUrl,
                             comments: book.summary ?? '',
+                            data:
+                                book.summary ??
+                                '', // <--- DAS HIER HAT GEFEHLT!
                             tags: book.tags,
                             hasCover: book.coverUrl != null,
                             path: '',
@@ -353,6 +357,16 @@ class DiscoverDetailsPage extends StatelessWidget {
   ) {
     final String url = category.id;
     if (url.isEmpty) return;
+
+    // FIX: Wenn wir in der Library-Liste sind, immer direkt den Pfad laden!
+    // Wir wollen hier keine URL-Analyse machen, da Library-Links oft generisch sind.
+    if (categoryType == CategoryType.libraries) {
+      _navigateToPage(
+        context,
+        DiscoverDetailsPage(title: category.title, fullPath: category.id),
+      );
+      return;
+    }
 
     final pathParts = url.split('/').where((p) => p.isNotEmpty).toList();
 

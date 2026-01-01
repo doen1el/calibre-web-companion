@@ -14,13 +14,13 @@ import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_e
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/main.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_book_item_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/presentation/widgets/edit_shelf_dialog_widget.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
 class ShelfDetailsPage extends StatelessWidget {
   final String shelfId;
@@ -381,12 +381,25 @@ class ShelfDetailsPage extends StatelessWidget {
                 MaterialPageRoute(
                   builder:
                       (context) => BookDetailsPage(
-                        bookViewModel: BookViewModel(
-                          id: int.parse(book.id),
+                        bookViewModel: BookDetailsModel(
+                          id: int.tryParse(book.id) ?? 0,
                           uuid: book.uuid,
                           title: book.title,
-                          authors: book.authors.toString(),
+                          authors: book.authors,
+                          cover: book.coverUrl ?? '',
                           coverUrl: book.coverUrl,
+                          comments: book.summary,
+                          data: book.summary,
+                          tags: book.tags,
+                          formats: book.formats,
+                          hasCover: book.coverUrl != null,
+                          path: '',
+                          pubdate: '',
+                          series: '',
+                          seriesIndex: 0,
+                          rating: 0,
+                          languages: '',
+                          publishers: '',
                         ),
                         bookUuid: book.uuid,
                       ),
@@ -396,14 +409,13 @@ class ShelfDetailsPage extends StatelessWidget {
 
             child: Stack(
               children: [
-                _buildCoverImage(context, book.id, book.coverUrl),
-
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: _buildCoverImage(context, book.id, book.coverUrl),
                     ),
+
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
@@ -544,7 +556,10 @@ class ShelfDetailsPage extends StatelessWidget {
 
     String imageUrl;
     if (coverUrl != null && coverUrl.isNotEmpty) {
-      final cleanCoverURL = coverUrl.split("/api/v1/opds/").last;
+      var cleanCoverURL = coverUrl.split("/api/v1/opds/").last;
+      if (cleanCoverURL.startsWith('/')) {
+        cleanCoverURL = cleanCoverURL.substring(1);
+      }
       imageUrl = '$baseUrl/$cleanCoverURL';
     } else {
       imageUrl = '$baseUrl/opds/cover/$bookId';
