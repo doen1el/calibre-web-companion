@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:epub_view/epub_view.dart';
+import 'package:vocsy_epub_viewer/epub_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

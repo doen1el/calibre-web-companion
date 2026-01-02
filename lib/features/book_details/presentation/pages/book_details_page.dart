@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,6 +28,7 @@ import 'package:calibre_web_companion/features/book_details/data/models/book_det
 import 'package:calibre_web_companion/features/book_details/presentation/widgets/ebook_reader_widget.dart';
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:vocsy_epub_viewer/epub_viewer.dart';
 
 class BookDetailsPage extends StatefulWidget {
   final BookViewModel bookViewModel;
@@ -50,17 +53,41 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     BookDetailsModel bookDetailsModel,
   ) async {
     try {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder:
-              (context) => EbookReaderWidget(
-                bookPath: filePath,
-                bookDetailsModel: bookDetailsModel,
-              ),
-        ),
+      final prefs = await SharedPreferences.getInstance();
+      final String progressKey = 'book_progress_${bookDetailsModel.uuid}';
+
+      EpubLocator? lastLocation;
+      final String? savedLocationJson = prefs.getString(progressKey);
+
+      if (savedLocationJson != null && savedLocationJson.isNotEmpty) {
+        try {
+          final Map<String, dynamic> decodedMap = jsonDecode(savedLocationJson);
+          lastLocation = EpubLocator.fromJson(decodedMap);
+        } catch (e) {
+          throw Exception('Error loading progress: $e');
+        }
+      }
+
+      VocsyEpub.setConfig(
+        // ignore: use_build_context_synchronously
+        themeColor: Theme.of(context).primaryColor,
+        identifier: "book_${bookDetailsModel.uuid}",
+        scrollDirection: EpubScrollDirection.ALLDIRECTIONS,
+        allowSharing: true,
+        enableTts: true,
+        // ignore: use_build_context_synchronously
+        nightMode: Theme.of(context).brightness == Brightness.dark,
       );
+
+      VocsyEpub.locatorStream.listen((locator) {
+        prefs.setString(progressKey, locator);
+      });
+
+      VocsyEpub.open(filePath, lastLocation: lastLocation);
     } catch (e) {
+      // ignore: use_build_context_synchronously
       final localizations = AppLocalizations.of(context)!;
+      // ignore: use_build_context_synchronously
       context.showSnackBar(
         '${localizations.errorOpeningBookInInternalReader}: $e',
         isError: true,
