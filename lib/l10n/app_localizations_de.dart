@@ -1097,4 +1097,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get webDavSync => 'WebDAV-Synchronisierung';
+
+  @override
+  String get pleaseFillInAllRequiredFields => 'Please fill in all required fields.';
+
+  @override
+  String get connectionTestSuccessful => 'Connection test successful. Press Save to apply the credentials.';
+
+  @override
+  String get loginFailed => 'Login failed:';
+
+  @override
+  String get connectionError => 'Connection error';
+
+  @override
+  String get pleaseEnterWebDavUrl => 'Please enter a valid WebDAV URL';
 }

@@ -160,3 +160,35 @@ class SetWebDavCredentials extends SettingsEvent {
   @override
   List<Object?> get props => [username, password];
 }
+
+class TestDownloaderConnection extends SettingsEvent {
+  final String url;
+  final String username;
+  final String password;
+
+  const TestDownloaderConnection({
+    required this.url,
+    required this.username,
+    required this.password,
+  });
+
+  @override
+  List<Object?> get props => [url, username, password];
+}
+
+class TestWebDavConnection extends SettingsEvent {
+  final String url;
+  final String username;
+  final String password;
+
+  const TestWebDavConnection({
+    required this.url,
+    required this.username,
+    required this.password,
+  });
+
+  @override
+  List<Object?> get props => [url, username, password];
+}
+
+class ResetConnectionTestStatus extends SettingsEvent {}

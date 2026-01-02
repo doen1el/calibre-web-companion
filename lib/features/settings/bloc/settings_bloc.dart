@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
@@ -29,6 +28,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SetWebDavSyncEnabled>(_onSetWebDavSyncEnabled);
     on<SetWebDavUrl>(_onSetWebDavUrl);
     on<SetWebDavCredentials>(_onSetWebDavCredentials);
+    on<TestDownloaderConnection>(_onTestDownloaderConnection);
+    on<TestWebDavConnection>(_onTestWebDavConnection);
+    on<ResetConnectionTestStatus>(_onResetConnectionTestStatus);
   }
 
   Future<void> _onLoadSettings(
@@ -331,8 +333,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     Emitter<SettingsState> emit,
   ) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('webdav_enabled', event.enabled);
+      await repository.setWebDavSyncEnabled(event.enabled);
 
       emit(state.copyWith(isWebDavSyncEnabled: event.enabled));
     } catch (e) {
@@ -350,8 +351,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     Emitter<SettingsState> emit,
   ) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('webdav_url', event.url);
+      await repository.setWebDavUrl(event.url);
+
       emit(state.copyWith(webDavUrl: event.url));
     } catch (e) {
       emit(
@@ -368,9 +369,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     Emitter<SettingsState> emit,
   ) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('webdav_username', event.username);
-      await prefs.setString('webdav_password', event.password);
+      await repository.setWebDavCredentials(event.username, event.password);
 
       emit(
         state.copyWith(
@@ -386,5 +385,74 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         ),
       );
     }
+  }
+
+  Future<void> _onTestDownloaderConnection(
+    TestDownloaderConnection event,
+    Emitter<SettingsState> emit,
+  ) async {
+    emit(state.copyWith(downloaderTestStatus: ConnectionTestStatus.loading));
+    try {
+      final success = await repository.testDownloaderConnection(
+        event.url,
+        event.username,
+        event.password,
+      );
+
+      if (success) {
+        emit(
+          state.copyWith(downloaderTestStatus: ConnectionTestStatus.success),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            downloaderTestStatus: ConnectionTestStatus.error,
+            testErrorMessage: "Login failed (Invalid credentials or URL)",
+          ),
+        );
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          downloaderTestStatus: ConnectionTestStatus.error,
+          testErrorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onTestWebDavConnection(
+    TestWebDavConnection event,
+    Emitter<SettingsState> emit,
+  ) async {
+    emit(state.copyWith(webDavTestStatus: ConnectionTestStatus.loading));
+    try {
+      await repository.testWebDavConnection(
+        event.url,
+        event.username,
+        event.password,
+      );
+      emit(state.copyWith(webDavTestStatus: ConnectionTestStatus.success));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          webDavTestStatus: ConnectionTestStatus.error,
+          testErrorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  void _onResetConnectionTestStatus(
+    ResetConnectionTestStatus event,
+    Emitter<SettingsState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        downloaderTestStatus: ConnectionTestStatus.initial,
+        webDavTestStatus: ConnectionTestStatus.initial,
+        testErrorMessage: null,
+      ),
+    );
   }
 }

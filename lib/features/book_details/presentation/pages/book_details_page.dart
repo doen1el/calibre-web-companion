@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:async';
 
 import 'package:docman/docman.dart';
@@ -82,77 +81,27 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     String filePath,
     BookDetailsModel bookDetailsModel,
   ) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final String progressKey = 'book_progress_${bookDetailsModel.uuid}';
-      final String timestampKey = 'book_timestamp_${bookDetailsModel.uuid}';
+    final lastLocation = context.read<BookDetailsBloc>().state.startLocation;
 
-      EpubLocator? lastLocation;
-      String? locationJsonToUse;
-      int localTimestamp = prefs.getInt(timestampKey) ?? 0;
+    VocsyEpub.setConfig(
+      themeColor: Theme.of(context).primaryColor,
+      identifier: "book_${bookDetailsModel.uuid}",
+      scrollDirection: EpubScrollDirection.ALLDIRECTIONS,
+      allowSharing: true,
+      enableTts: true,
+      nightMode: Theme.of(context).brightness == Brightness.dark,
+    );
 
-      final webDavEnabled = prefs.getBool('webdav_enabled') ?? false;
+    await _locatorSubscription?.cancel();
 
-      if (webDavEnabled) {
-        try {
-          final serverData = await _webDavService.fetchProgress();
-          if (serverData.containsKey(bookDetailsModel.uuid)) {
-            final bookData = serverData[bookDetailsModel.uuid];
-            final int serverTimestamp = bookData['timestamp'] ?? 0;
-
-            if (serverTimestamp > localTimestamp) {
-              locationJsonToUse = bookData['locator'];
-            }
-          }
-        } catch (e) {
-          throw Exception('WebDAV sync error: $e');
-        }
-      }
-
-      locationJsonToUse ??= prefs.getString(progressKey);
-
-      if (locationJsonToUse != null && locationJsonToUse.isNotEmpty) {
-        try {
-          final Map<String, dynamic> decodedMap = jsonDecode(locationJsonToUse);
-          lastLocation = EpubLocator.fromJson(decodedMap);
-        } catch (e) {
-          throw Exception('Error decoding last location: $e');
-        }
-      }
-
-      VocsyEpub.setConfig(
-        // ignore: use_build_context_synchronously
-        themeColor: Theme.of(context).primaryColor,
-        identifier: "book_${bookDetailsModel.uuid}",
-        scrollDirection: EpubScrollDirection.ALLDIRECTIONS,
-        allowSharing: true,
-        enableTts: true,
-        // ignore: use_build_context_synchronously
-        nightMode: Theme.of(context).brightness == Brightness.dark,
-      );
-
-      await _locatorSubscription?.cancel();
-
-      _locatorSubscription = VocsyEpub.locatorStream.listen((locator) {
-        final now = DateTime.now().millisecondsSinceEpoch;
-        prefs.setString(progressKey, locator);
-        prefs.setInt(timestampKey, now);
-
-        if (webDavEnabled) {
-          _webDavService.saveProgress(bookDetailsModel.uuid, locator, now);
-        }
-      });
-
-      VocsyEpub.open(filePath, lastLocation: lastLocation);
-    } catch (e) {
+    _locatorSubscription = VocsyEpub.locatorStream.listen((locator) {
       // ignore: use_build_context_synchronously
-      final localizations = AppLocalizations.of(context)!;
-      // ignore: use_build_context_synchronously
-      context.showSnackBar(
-        '${localizations.errorOpeningBookInInternalReader}: $e',
-        isError: true,
+      context.read<BookDetailsBloc>().add(
+        SyncReadingProgress(bookDetailsModel.uuid, locator),
       );
-    }
+    });
+
+    VocsyEpub.open(filePath, lastLocation: lastLocation);
   }
 
   @override

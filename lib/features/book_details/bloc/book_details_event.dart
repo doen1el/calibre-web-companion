@@ -246,3 +246,18 @@ class OpenSeries extends BookDetailsEvent {
   @override
   List<Object> get props => [seriesName];
 }
+
+class LoadReadingProgress extends BookDetailsEvent {
+  final String bookUuid;
+  const LoadReadingProgress(this.bookUuid);
+  @override
+  List<Object> get props => [bookUuid];
+}
+
+class SyncReadingProgress extends BookDetailsEvent {
+  final String bookUuid;
+  final String locatorJson;
+  const SyncReadingProgress(this.bookUuid, this.locatorJson);
+  @override
+  List<Object> get props => [bookUuid, locatorJson];
+}

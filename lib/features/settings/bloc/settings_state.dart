@@ -9,6 +9,8 @@ enum SettingsStatus { initial, loading, loaded, error }
 
 enum SettingsFeedbackStatus { initial, loading, success, error }
 
+enum ConnectionTestStatus { initial, loading, success, error }
+
 class SettingsState extends Equatable {
   final SettingsStatus status;
   final SettingsFeedbackStatus feedbackStatus;
@@ -33,6 +35,11 @@ class SettingsState extends Equatable {
   final String webDavUsername;
   final String webDavPassword;
 
+  // Neue Felder für Test-Status
+  final ConnectionTestStatus downloaderTestStatus;
+  final ConnectionTestStatus webDavTestStatus;
+  final String? testErrorMessage; // Für spezifische Fehler beim Testen
+
   const SettingsState({
     this.status = SettingsStatus.initial,
     this.feedbackStatus = SettingsFeedbackStatus.initial,
@@ -56,6 +63,9 @@ class SettingsState extends Equatable {
     this.webDavUrl = '',
     this.webDavUsername = '',
     this.webDavPassword = '',
+    this.downloaderTestStatus = ConnectionTestStatus.initial,
+    this.webDavTestStatus = ConnectionTestStatus.initial,
+    this.testErrorMessage,
   });
 
   MaterialColor get selectedColor =>
@@ -84,6 +94,9 @@ class SettingsState extends Equatable {
     String? webDavUrl,
     String? webDavUsername,
     String? webDavPassword,
+    ConnectionTestStatus? downloaderTestStatus,
+    ConnectionTestStatus? webDavTestStatus,
+    String? testErrorMessage,
   }) {
     return SettingsState(
       status: status ?? this.status,
@@ -109,6 +122,9 @@ class SettingsState extends Equatable {
       webDavUrl: webDavUrl ?? this.webDavUrl,
       webDavUsername: webDavUsername ?? this.webDavUsername,
       webDavPassword: webDavPassword ?? this.webDavPassword,
+      downloaderTestStatus: downloaderTestStatus ?? this.downloaderTestStatus,
+      webDavTestStatus: webDavTestStatus ?? this.webDavTestStatus,
+      testErrorMessage: testErrorMessage,
     );
   }
 
@@ -136,5 +152,8 @@ class SettingsState extends Equatable {
     webDavUrl,
     webDavUsername,
     webDavPassword,
+    downloaderTestStatus,
+    webDavTestStatus,
+    testErrorMessage,
   ];
 }

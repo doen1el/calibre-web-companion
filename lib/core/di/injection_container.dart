@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
+import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
@@ -38,6 +39,7 @@ import 'package:calibre_web_companion/features/shelf_details/data/repositories/s
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/datasources/shelf_view_remote_datasource.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
+import 'package:calibre_web_companion/features/book_details/data/repositories/reading_progress_repository.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -58,6 +60,10 @@ Future<void> init() async {
     () => TagService(apiService: getIt<ApiService>(), logger: logger),
   );
 
+  getIt.registerLazySingleton<WebDavSyncService>(
+    () => WebDavSyncService(logger: getIt()),
+  );
+
   //! Features
 
   //? Login Feature
@@ -75,6 +81,10 @@ Future<void> init() async {
       dataSource: getIt<LoginRemoteDataSource>(),
       logger: getIt<Logger>(),
     ),
+  );
+
+  getIt.registerLazySingleton<ReadingProgressRepository>(
+    () => ReadingProgressRepository(webDavService: getIt()),
   );
 
   // BLoCs
@@ -299,6 +309,7 @@ Future<void> init() async {
     () => BookDetailsBloc(
       repository: getIt<BookDetailsRepository>(),
       logger: logger,
+      progressRepository: getIt<ReadingProgressRepository>(),
     ),
   );
 }

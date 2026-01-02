@@ -1,10 +1,6 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logger/logger.dart';
 
-import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
@@ -38,11 +34,6 @@ class _SettingsPageState extends State<SettingsPage> {
       TextEditingController();
   final TextEditingController _webDavPasswordController =
       TextEditingController();
-
-  bool _isTestingConnection = false;
-  bool _isConnectionVerified = false;
-  bool _isTestingWebDav = false;
-  bool _isWebDavVerified = false;
 
   @override
   void initState() {
@@ -79,236 +70,139 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  void _resetVerification() {
-    if (_isConnectionVerified) {
-      setState(() {
-        _isConnectionVerified = false;
-      });
-    }
-  }
-
-  void _resetWebDavVerification() {
-    if (_isWebDavVerified) {
-      setState(() {
-        _isWebDavVerified = false;
-      });
-    }
-  }
-
-  Future<void> _testConnection() async {
-    final url = _downloaderUrlController.text.trim();
-    final username = _downloaderUsernameController.text.trim();
-    final password = _downloaderPasswordController.text;
-
-    if (url.isEmpty || username.isEmpty || password.isEmpty) {
-      context.showSnackBar("Please fill in all fields", isError: true);
-      return;
-    }
-
-    setState(() {
-      _isTestingConnection = true;
-    });
-
-    try {
-      final uri = Uri.parse('$url/api/auth/login');
-      final response = await http.post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': username,
-          'password': password,
-          'remember_me': true,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          _isConnectionVerified = true;
-        });
-        if (mounted) {
-          context.showSnackBar(
-            "Connection successful! Click Save to persist.",
-            isError: false,
-          );
-        }
-      } else {
-        if (mounted) {
-          context.showSnackBar(
-            "Login failed: ${response.statusCode}",
-            isError: true,
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        context.showSnackBar("Connection error: $e", isError: true);
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isTestingConnection = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _testWebDavConnection() async {
-    final url = _webDavUrlController.text.trim();
-    final username = _webDavUsernameController.text.trim();
-    final password = _webDavPasswordController.text;
-
-    if (url.isEmpty) {
-      context.showSnackBar("Please enter a WebDAV URL", isError: true);
-      return;
-    }
-
-    setState(() {
-      _isTestingWebDav = true;
-    });
-
-    try {
-      final tempService = WebDavSyncService(logger: Logger());
-
-      tempService.init(url, username, password);
-
-      await tempService.fetchProgress();
-
-      if (mounted) {
-        setState(() {
-          _isWebDavVerified = true;
-        });
-        context.showSnackBar(
-          "WebDAV connection successful! Click Save to persist.",
-          isError: false,
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        context.showSnackBar("WebDAV Connection error: $e", isError: true);
-        setState(() {
-          _isWebDavVerified = false;
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isTestingWebDav = false;
-        });
-      }
-    }
-  }
-
-  void _saveDownloaderSettings() {
-    context.read<SettingsBloc>().add(
-      SetDownloaderUrl(_downloaderUrlController.text.trim()),
-    );
-    context.read<SettingsBloc>().add(
-      SetDownloaderCredentials(
-        _downloaderUsernameController.text.trim(),
-        _downloaderPasswordController.text,
-      ),
-    );
-    context.showSnackBar("Credentials saved successfully.");
-
-    FocusScope.of(context).unfocus();
-  }
-
-  void _saveWebDavSettings() {
-    context.read<SettingsBloc>().add(
-      SetWebDavUrl(_webDavUrlController.text.trim()),
-    );
-    context.read<SettingsBloc>().add(
-      SetWebDavCredentials(
-        _webDavUsernameController.text.trim(),
-        _webDavPasswordController.text,
-      ),
-    );
-    context.showSnackBar("WebDAV settings saved.");
-    FocusScope.of(context).unfocus();
-  }
-
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
 
-    return BlocConsumer<SettingsBloc, SettingsState>(
-      listener: (context, state) {
-        if (state.status == SettingsStatus.error) {
-          context.showSnackBar(
-            state.errorMessage ?? localizations.unknownError,
-            isError: true,
-          );
-        }
-      },
-      builder: (context, state) {
-        return Scaffold(
-          appBar: AppBar(title: Text(localizations.settings)),
-          body:
-              state.status == SettingsStatus.loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle(context, localizations.appearance),
-                        const ThemeSelectorWidget(),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<SettingsBloc, SettingsState>(
+          listenWhen: (previous, current) => previous.status != current.status,
+          listener: (context, state) {
+            if (state.status == SettingsStatus.error) {
+              context.showSnackBar(
+                state.errorMessage ?? localizations.unknownError,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<SettingsBloc, SettingsState>(
+          listenWhen:
+              (previous, current) =>
+                  previous.downloaderTestStatus != current.downloaderTestStatus,
+          listener: (context, state) {
+            if (state.downloaderTestStatus == ConnectionTestStatus.success) {
+              context.showSnackBar(
+                localizations.connectionTestSuccessful,
+                isError: false,
+              );
+            } else if (state.downloaderTestStatus ==
+                ConnectionTestStatus.error) {
+              context.showSnackBar(
+                state.testErrorMessage ?? localizations.connectionError,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<SettingsBloc, SettingsState>(
+          listenWhen:
+              (previous, current) =>
+                  previous.webDavTestStatus != current.webDavTestStatus,
+          listener: (context, state) {
+            if (state.webDavTestStatus == ConnectionTestStatus.success) {
+              context.showSnackBar(
+                localizations.connectionTestSuccessful,
+                isError: false,
+              );
+            } else if (state.webDavTestStatus == ConnectionTestStatus.error) {
+              context.showSnackBar(
+                state.testErrorMessage ?? localizations.connectionError,
+                isError: true,
+              );
+            }
+          },
+        ),
+      ],
+      child: BlocBuilder<SettingsBloc, SettingsState>(
+        builder: (context, state) {
+          return Scaffold(
+            appBar: AppBar(title: Text(localizations.settings)),
+            body:
+                state.status == SettingsStatus.loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionTitle(context, localizations.appearance),
+                          const ThemeSelectorWidget(),
 
-                        const SizedBox(height: 24),
-                        _buildSectionTitle(context, localizations.connection),
-                        _buildLoginSettingsCard(context, localizations),
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(context, localizations.connection),
+                          _buildLoginSettingsCard(context, localizations),
 
-                        const SizedBox(height: 24),
-                        _buildSectionTitle(context, localizations.language),
-                        _buildLanguageSelector(context, state, localizations),
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(context, localizations.language),
+                          _buildLanguageSelector(context, state, localizations),
 
-                        const SizedBox(height: 24),
-                        _buildSectionTitle(context, localizations.bookDetails),
-                        _buildBookDetailsSettings(
-                          context,
-                          state,
-                          localizations,
-                        ),
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(
+                            context,
+                            localizations.bookDetails,
+                          ),
+                          _buildBookDetailsSettings(
+                            context,
+                            state,
+                            localizations,
+                          ),
 
-                        const SizedBox(height: 24),
-                        _buildSectionTitle(
-                          context,
-                          localizations.downloadOptions,
-                        ),
-                        const DownloadOptionsWidget(),
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(
+                            context,
+                            localizations.downloadOptions,
+                          ),
+                          const DownloadOptionsWidget(),
 
-                        const SizedBox(height: 24),
-                        _buildSectionTitle(
-                          context,
-                          localizations.customSend2EReader,
-                        ),
-                        _buildSend2EreaderToggle(context, state, localizations),
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(
+                            context,
+                            localizations.customSend2EReader,
+                          ),
+                          _buildSend2EreaderToggle(
+                            context,
+                            state,
+                            localizations,
+                          ),
 
-                        const SizedBox(height: 24),
-                        _buildSectionTitle(
-                          context,
-                          "Calibre Web Automated Downloader",
-                        ),
-                        _buildDownloaderToggle(context, state, localizations),
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(
+                            context,
+                            "Calibre Web Automated Downloader",
+                          ),
+                          _buildDownloaderToggle(context, state, localizations),
 
-                        const SizedBox(height: 24),
-                        _buildSectionTitle(context, "Sync"),
-                        _buildWebDavSettings(context, state, localizations),
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(context, localizations.webDavSync),
+                          _buildWebDavSettings(context, state, localizations),
 
-                        const SizedBox(height: 24),
-                        _buildSectionTitle(context, localizations.feedback),
-                        const FeedbackWidget(),
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(context, localizations.feedback),
+                          const FeedbackWidget(),
 
-                        const SizedBox(height: 24),
-                        _buildSectionTitle(context, localizations.about),
-                        _buyMeACoffeeButton(context, "Buy Me a Coffee"),
-                        _buildLicensesButton(context, state, localizations),
-                        _buildVersionCard(context, state, localizations),
-                        const SizedBox(height: 24),
-                      ],
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(context, localizations.about),
+                          _buyMeACoffeeButton(context, "Buy Me a Coffee"),
+                          _buildLicensesButton(context, state, localizations),
+                          _buildVersionCard(context, state, localizations),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
                     ),
-                  ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -436,7 +330,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     vertical: 14.0,
                   ),
                 ),
-                onChanged: (_) => _resetVerification(),
+                onChanged:
+                    (_) => context.read<SettingsBloc>().add(
+                      ResetConnectionTestStatus(),
+                    ),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -454,7 +351,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     vertical: 14.0,
                   ),
                 ),
-                onChanged: (_) => _resetVerification(),
+                onChanged:
+                    (_) => context.read<SettingsBloc>().add(
+                      ResetConnectionTestStatus(),
+                    ),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -473,40 +373,62 @@ class _SettingsPageState extends State<SettingsPage> {
                     vertical: 14.0,
                   ),
                 ),
-                onChanged: (_) => _resetVerification(),
+                onChanged:
+                    (_) => context.read<SettingsBloc>().add(
+                      ResetConnectionTestStatus(),
+                    ),
               ),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed:
-                      _isTestingConnection
-                          ? null
-                          : (_isConnectionVerified
-                              ? _saveDownloaderSettings
-                              : _testConnection),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                  ),
+                  onPressed: () {
+                    if (state.downloaderTestStatus ==
+                        ConnectionTestStatus.loading) {
+                      return;
+                    }
+
+                    if (state.downloaderTestStatus ==
+                        ConnectionTestStatus.success) {
+                      context.read<SettingsBloc>().add(
+                        SetDownloaderUrl(_downloaderUrlController.text.trim()),
+                      );
+                      context.read<SettingsBloc>().add(
+                        SetDownloaderCredentials(
+                          _downloaderUsernameController.text.trim(),
+                          _downloaderPasswordController.text,
+                        ),
+                      );
+                      context.showSnackBar(localizations.settingsSaved);
+                      FocusScope.of(context).unfocus();
+                    } else {
+                      context.read<SettingsBloc>().add(
+                        TestDownloaderConnection(
+                          url: _downloaderUrlController.text.trim(),
+                          username: _downloaderUsernameController.text.trim(),
+                          password: _downloaderPasswordController.text,
+                        ),
+                      );
+                    }
+                  },
                   icon:
-                      _isTestingConnection
-                          ? SizedBox(
+                      state.downloaderTestStatus == ConnectionTestStatus.loading
+                          ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Theme.of(context).colorScheme.onPrimary,
-                            ),
+                            child: CircularProgressIndicator(),
                           )
                           : Icon(
-                            _isConnectionVerified
+                            state.downloaderTestStatus ==
+                                    ConnectionTestStatus.success
                                 ? Icons.check_circle
                                 : Icons.wifi_find,
                           ),
                   label: Text(
-                    _isTestingConnection
+                    state.downloaderTestStatus == ConnectionTestStatus.loading
                         ? localizations.testing
-                        : (_isConnectionVerified
+                        : (state.downloaderTestStatus ==
+                                ConnectionTestStatus.success
                             ? localizations.saveCredentials
                             : localizations.testConnection),
                   ),
@@ -920,7 +842,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   prefixIcon: const Icon(Icons.link),
                 ),
-                onChanged: (_) => _resetWebDavVerification(),
+                onChanged:
+                    (_) => context.read<SettingsBloc>().add(
+                      ResetConnectionTestStatus(),
+                    ),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -932,7 +857,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   prefixIcon: const Icon(Icons.person),
                 ),
-                onChanged: (_) => _resetWebDavVerification(),
+                onChanged:
+                    (_) => context.read<SettingsBloc>().add(
+                      ResetConnectionTestStatus(),
+                    ),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -945,23 +873,49 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   prefixIcon: const Icon(Icons.lock),
                 ),
-                onChanged: (_) => _resetWebDavVerification(),
+                onChanged:
+                    (_) => context.read<SettingsBloc>().add(
+                      ResetConnectionTestStatus(),
+                    ),
               ),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed:
-                      _isTestingWebDav
-                          ? null
-                          : (_isWebDavVerified
-                              ? _saveWebDavSettings
-                              : _testWebDavConnection),
+                  onPressed: () {
+                    if (state.webDavTestStatus ==
+                        ConnectionTestStatus.loading) {
+                      return;
+                    }
+
+                    if (state.webDavTestStatus ==
+                        ConnectionTestStatus.success) {
+                      context.read<SettingsBloc>().add(
+                        SetWebDavUrl(_webDavUrlController.text.trim()),
+                      );
+                      context.read<SettingsBloc>().add(
+                        SetWebDavCredentials(
+                          _webDavUsernameController.text.trim(),
+                          _webDavPasswordController.text,
+                        ),
+                      );
+                      context.showSnackBar(localizations.settingsSaved);
+                      FocusScope.of(context).unfocus();
+                    } else {
+                      context.read<SettingsBloc>().add(
+                        TestWebDavConnection(
+                          url: _webDavUrlController.text.trim(),
+                          username: _webDavUsernameController.text.trim(),
+                          password: _webDavPasswordController.text,
+                        ),
+                      );
+                    }
+                  },
                   style: FilledButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                   ),
                   icon:
-                      _isTestingWebDav
+                      state.webDavTestStatus == ConnectionTestStatus.loading
                           ? SizedBox(
                             width: 20,
                             height: 20,
@@ -971,14 +925,16 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           )
                           : Icon(
-                            _isWebDavVerified
+                            state.webDavTestStatus ==
+                                    ConnectionTestStatus.success
                                 ? Icons.check_circle
                                 : Icons.wifi_find,
                           ),
                   label: Text(
-                    _isTestingWebDav
+                    state.webDavTestStatus == ConnectionTestStatus.loading
                         ? localizations.testing
-                        : (_isWebDavVerified
+                        : (state.webDavTestStatus ==
+                                ConnectionTestStatus.success
                             ? localizations.save
                             : localizations.testConnection),
                   ),

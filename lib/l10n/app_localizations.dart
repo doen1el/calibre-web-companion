@@ -2240,6 +2240,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'WebDAV Sync'**
   String get webDavSync;
+
+  /// No description provided for @pleaseFillInAllRequiredFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill in all required fields.'**
+  String get pleaseFillInAllRequiredFields;
+
+  /// No description provided for @connectionTestSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection test successful. Press Save to apply the credentials.'**
+  String get connectionTestSuccessful;
+
+  /// No description provided for @loginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Login failed:'**
+  String get loginFailed;
+
+  /// No description provided for @connectionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection error'**
+  String get connectionError;
+
+  /// No description provided for @pleaseEnterWebDavUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid WebDAV URL'**
+  String get pleaseEnterWebDavUrl;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

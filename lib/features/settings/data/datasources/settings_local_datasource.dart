@@ -224,4 +224,32 @@ class SettingsLocalDataSource {
       throw Exception('Failed to save show read now button: $e');
     }
   }
+
+  Future<void> saveWebDavSyncEnabled(bool enabled) async {
+    try {
+      await sharedPreferences.setBool('webdav_enabled', enabled);
+    } catch (e) {
+      logger.e('Error saving WebDav sync enabled: $e');
+      throw Exception('Failed to save WebDav sync enabled: $e');
+    }
+  }
+
+  Future<void> saveWebDavUrl(String url) async {
+    try {
+      await sharedPreferences.setString('webdav_url', url);
+    } catch (e) {
+      logger.e('Error saving WebDav URL: $e');
+      throw Exception('Failed to save WebDav URL: $e');
+    }
+  }
+
+  Future<void> saveWebDavCredentials(String username, String password) async {
+    try {
+      await sharedPreferences.setString('webdav_username', username);
+      await sharedPreferences.setString('webdav_password', password);
+    } catch (e) {
+      logger.e('Error saving WebDav credentials: $e');
+      throw Exception('Failed to save WebDav credentials: $e');
+    }
+  }
 }

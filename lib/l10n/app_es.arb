@@ -355,5 +355,10 @@
   "appendsBookLorePath": "Se añade '/api/v1/opds' automáticamente a la URL de BookLore si no está presente.",
   "licenses": "Licencias",
   "syncsReadingProgress": "Sincroniza el progreso de lectura entre dispositivos a través de un archivo JSON en tu almacenamiento WebDAV.",
-  "webDavSync": "Sincronización WebDAV"
+  "webDavSync": "Sincronización WebDAV",
+  "pleaseFillInAllRequiredFields": "Por favor, rellena todos los campos obligatorios.",
+  "connectionTestSuccessful": "Prueba de conexión exitosa. Pulsa Guardar para aplicar las credenciales.",
+  "loginFailed": "Inicio de sesión fallido:",
+  "connectionError": "Error de conexión:",
+  "pleaseEnterWebDavUrl": "Por favor, introduce una URL de WebDAV válida"
 }
