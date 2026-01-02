@@ -214,8 +214,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         const SizedBox(height: 24),
                         _buildSectionTitle(context, localizations.about),
                         _buyMeACoffeeButton(context, "Buy Me a Coffee"),
+                        _buildLicensesButton(context, state, localizations),
                         _buildVersionCard(context, state, localizations),
-
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -725,6 +725,58 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLicensesButton(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8.0),
+        onTap: () {
+          showLicensePage(
+            context: context,
+            applicationName: 'Calibre Web Companion',
+            applicationVersion:
+                "${state.appVersion ?? ''} (${state.buildNumber ?? ''})",
+            applicationIcon: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Image.asset('assets/icon.png', width: 60, height: 60),
+            ),
+            useRootNavigator: true,
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(
+                Icons.description_outlined,
+                size: 28,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  localizations.licenses,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1088,4 +1088,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get appendsBookLorePath => 'Adiciona /book/lore ao final da URL do livro';
+
+  @override
+  String get licenses => 'Licenças';
 }

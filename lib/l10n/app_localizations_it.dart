@@ -1088,4 +1088,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get appendsBookLorePath => 'Aggiunge /booklore al percorso di base';
+
+  @override
+  String get licenses => 'Licenze';
 }

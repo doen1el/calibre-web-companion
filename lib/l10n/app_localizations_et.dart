@@ -1088,4 +1088,7 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get appendsBookLorePath => 'BookLore URL-le lisatakse automaatselt \'/api/v1/opds\', kui see pole olemas.';
+
+  @override
+  String get licenses => 'Litsentsid';
 }

@@ -118,5 +118,7 @@
   "removing": "Eemaldan",
   "@removing": {},
   "appendsBookLorePath": "BookLore URL-le lisatakse automaatselt '/api/v1/opds', kui see pole olemas.",
-  "@appendsBookLorePath": {}
+  "@appendsBookLorePath": {},
+  "licenses": "Litsentsid",
+  "@licenses": {}
 }

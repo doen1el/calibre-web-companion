@@ -705,5 +705,7 @@
   "listView": "Listar",
   "@listView": {},
   "appendsBookLorePath": "Adiciona /book/lore ao final da URL do livro",
-  "@appendsBookLorePath": {}
+  "@appendsBookLorePath": {},
+  "licenses": "Licenças",
+  "@licenses": {}
 }

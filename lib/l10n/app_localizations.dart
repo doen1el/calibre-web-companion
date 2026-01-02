@@ -2222,6 +2222,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Appends \'/api/v1/opds\' to the BookLore URL if not present.'**
   String get appendsBookLorePath;
+
+  /// No description provided for @licenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Licenses'**
+  String get licenses;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

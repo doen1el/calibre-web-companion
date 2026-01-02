@@ -1088,4 +1088,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appendsBookLorePath => 'Appends \'/api/v1/opds\' to the BookLore URL if not present.';
+
+  @override
+  String get licenses => 'Licenses';
 }

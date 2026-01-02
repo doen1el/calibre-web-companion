@@ -352,5 +352,6 @@
   "testing": "Testing...",
   "saveCredentials": "Save Credentials",
   "testConnection": "Test Connection",
-  "appendsBookLorePath": "Appends '/api/v1/opds' to the BookLore URL if not present."
+  "appendsBookLorePath": "Appends '/api/v1/opds' to the BookLore URL if not present.",
+  "licenses": "Licenses"
 }

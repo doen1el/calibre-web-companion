@@ -704,5 +704,7 @@
   "testConnection": "Testa la Connessione",
   "@testConnection": {},
   "appendsBookLorePath": "Aggiunge /booklore al percorso di base",
-  "@appendsBookLorePath": {}
+  "@appendsBookLorePath": {},
+  "licenses": "Licenze",
+  "@licenses": {}
 }
