@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
@@ -25,6 +26,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SetLanguage>(_onSetLanguage);
     on<SetShowReadNowButton>(_onSetShowReadNowButton);
     on<BuyMeACoffee>(_onBuyMeACoffee);
+    on<SetWebDavSyncEnabled>(_onSetWebDavSyncEnabled);
+    on<SetWebDavUrl>(_onSetWebDavUrl);
+    on<SetWebDavCredentials>(_onSetWebDavCredentials);
   }
 
   Future<void> _onLoadSettings(
@@ -55,6 +59,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           appVersion: packageInfo.version,
           buildNumber: packageInfo.buildNumber,
           languageCode: settings.languageCode,
+          webDavUrl: settings.webDavUrl,
+          webDavUsername: settings.webDavUsername,
+          webDavPassword: settings.webDavPassword,
+          isWebDavSyncEnabled: settings.isWebDavSyncEnabled,
         ),
       );
     } catch (e) {
@@ -308,6 +316,68 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   ) async {
     try {
       await repository.buyMeACoffee();
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetWebDavSyncEnabled(
+    SetWebDavSyncEnabled event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('webdav_enabled', event.enabled);
+
+      emit(state.copyWith(isWebDavSyncEnabled: event.enabled));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetWebDavUrl(
+    SetWebDavUrl event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('webdav_url', event.url);
+      emit(state.copyWith(webDavUrl: event.url));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetWebDavCredentials(
+    SetWebDavCredentials event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('webdav_username', event.username);
+      await prefs.setString('webdav_password', event.password);
+
+      emit(
+        state.copyWith(
+          webDavUsername: event.username,
+          webDavPassword: event.password,
+        ),
+      );
     } catch (e) {
       emit(
         state.copyWith(

@@ -28,6 +28,10 @@ class SettingsState extends Equatable {
   final String? buildNumber;
   final String? languageCode;
   final bool showReadNowButton;
+  final bool isWebDavSyncEnabled;
+  final String webDavUrl;
+  final String webDavUsername;
+  final String webDavPassword;
 
   const SettingsState({
     this.status = SettingsStatus.initial,
@@ -48,6 +52,10 @@ class SettingsState extends Equatable {
     this.buildNumber,
     this.languageCode = 'en',
     this.showReadNowButton = false,
+    this.isWebDavSyncEnabled = false,
+    this.webDavUrl = '',
+    this.webDavUsername = '',
+    this.webDavPassword = '',
   });
 
   MaterialColor get selectedColor =>
@@ -72,6 +80,10 @@ class SettingsState extends Equatable {
     String? buildNumber,
     String? languageCode,
     bool? showReadNowButton,
+    bool? isWebDavSyncEnabled,
+    String? webDavUrl,
+    String? webDavUsername,
+    String? webDavPassword,
   }) {
     return SettingsState(
       status: status ?? this.status,
@@ -93,6 +105,10 @@ class SettingsState extends Equatable {
       buildNumber: buildNumber ?? this.buildNumber,
       languageCode: languageCode ?? this.languageCode,
       showReadNowButton: showReadNowButton ?? this.showReadNowButton,
+      isWebDavSyncEnabled: isWebDavSyncEnabled ?? this.isWebDavSyncEnabled,
+      webDavUrl: webDavUrl ?? this.webDavUrl,
+      webDavUsername: webDavUsername ?? this.webDavUsername,
+      webDavPassword: webDavPassword ?? this.webDavPassword,
     );
   }
 
@@ -116,5 +132,9 @@ class SettingsState extends Equatable {
     buildNumber,
     languageCode,
     showReadNowButton,
+    isWebDavSyncEnabled,
+    webDavUrl,
+    webDavUsername,
+    webDavPassword,
   ];
 }

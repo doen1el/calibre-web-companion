@@ -138,3 +138,25 @@ class BuyMeACoffee extends SettingsEvent {
   @override
   List<Object?> get props => [];
 }
+
+class SetWebDavSyncEnabled extends SettingsEvent {
+  final bool enabled;
+  const SetWebDavSyncEnabled(this.enabled);
+  @override
+  List<Object?> get props => [enabled];
+}
+
+class SetWebDavUrl extends SettingsEvent {
+  final String url;
+  const SetWebDavUrl(this.url);
+  @override
+  List<Object?> get props => [url];
+}
+
+class SetWebDavCredentials extends SettingsEvent {
+  final String username;
+  final String password;
+  const SetWebDavCredentials(this.username, this.password);
+  @override
+  List<Object?> get props => [username, password];
+}

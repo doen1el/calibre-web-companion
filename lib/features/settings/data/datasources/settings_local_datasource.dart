@@ -41,6 +41,10 @@ class SettingsLocalDataSource {
         'language_code': sharedPreferences.getString('language_code') ?? 'en',
         'show_read_now_button':
             sharedPreferences.getBool('show_read_now_button') ?? false,
+        'webdav_url': sharedPreferences.getString('webdav_url') ?? '',
+        'webdav_username': sharedPreferences.getString('webdav_username') ?? '',
+        'webdav_password': sharedPreferences.getString('webdav_password') ?? '',
+        'webdav_enabled': sharedPreferences.getBool('webdav_enabled') ?? false,
       });
     } catch (e) {
       logger.e('Error getting settings: $e');

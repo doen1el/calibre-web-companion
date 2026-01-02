@@ -1091,4 +1091,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get licenses => 'Licences';
+
+  @override
+  String get syncsReadingProgress => 'Synchronise la progression de lecture entre les appareils via un fichier JSON sur votre stockage WebDAV.';
+
+  @override
+  String get webDavSync => 'Synchronisation WebDAV';
 }

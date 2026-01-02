@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:logger/logger.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,6 +30,7 @@ import 'package:calibre_web_companion/features/book_details/data/models/book_det
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:vocsy_epub_viewer/epub_viewer.dart';
+import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 
 class BookDetailsPage extends StatefulWidget {
   final BookViewModel bookViewModel;
@@ -45,6 +48,34 @@ class BookDetailsPage extends StatefulWidget {
 
 class _BookDetailsPageState extends State<BookDetailsPage> {
   bool _didUpdateMetadata = false;
+  StreamSubscription<dynamic>? _locatorSubscription;
+  late final WebDavSyncService _webDavService;
+
+  @override
+  void initState() {
+    super.initState();
+    _webDavService = WebDavSyncService(logger: GetIt.instance<Logger>());
+    _initWebDav();
+  }
+
+  Future<void> _initWebDav() async {
+    final prefs = await SharedPreferences.getInstance();
+    final enabled = prefs.getBool('webdav_enabled') ?? false;
+    if (enabled) {
+      _webDavService.init(
+        prefs.getString('webdav_url') ?? '',
+        prefs.getString('webdav_username') ?? '',
+        prefs.getString('webdav_password') ?? '',
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _locatorSubscription?.cancel();
+    VocsyEpub.closeReader();
+    super.dispose();
+  }
 
   Future<void> _openInternalReader(
     BuildContext context,
@@ -54,16 +85,38 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String progressKey = 'book_progress_${bookDetailsModel.uuid}';
+      final String timestampKey = 'book_timestamp_${bookDetailsModel.uuid}';
 
       EpubLocator? lastLocation;
-      final String? savedLocationJson = prefs.getString(progressKey);
+      String? locationJsonToUse;
+      int localTimestamp = prefs.getInt(timestampKey) ?? 0;
 
-      if (savedLocationJson != null && savedLocationJson.isNotEmpty) {
+      final webDavEnabled = prefs.getBool('webdav_enabled') ?? false;
+
+      if (webDavEnabled) {
         try {
-          final Map<String, dynamic> decodedMap = jsonDecode(savedLocationJson);
+          final serverData = await _webDavService.fetchProgress();
+          if (serverData.containsKey(bookDetailsModel.uuid)) {
+            final bookData = serverData[bookDetailsModel.uuid];
+            final int serverTimestamp = bookData['timestamp'] ?? 0;
+
+            if (serverTimestamp > localTimestamp) {
+              locationJsonToUse = bookData['locator'];
+            }
+          }
+        } catch (e) {
+          throw Exception('WebDAV sync error: $e');
+        }
+      }
+
+      locationJsonToUse ??= prefs.getString(progressKey);
+
+      if (locationJsonToUse != null && locationJsonToUse.isNotEmpty) {
+        try {
+          final Map<String, dynamic> decodedMap = jsonDecode(locationJsonToUse);
           lastLocation = EpubLocator.fromJson(decodedMap);
         } catch (e) {
-          throw Exception('Error loading progress: $e');
+          throw Exception('Error decoding last location: $e');
         }
       }
 
@@ -78,8 +131,16 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
         nightMode: Theme.of(context).brightness == Brightness.dark,
       );
 
-      VocsyEpub.locatorStream.listen((locator) {
+      await _locatorSubscription?.cancel();
+
+      _locatorSubscription = VocsyEpub.locatorStream.listen((locator) {
+        final now = DateTime.now().millisecondsSinceEpoch;
         prefs.setString(progressKey, locator);
+        prefs.setInt(timestampKey, now);
+
+        if (webDavEnabled) {
+          _webDavService.saveProgress(bookDetailsModel.uuid, locator, now);
+        }
       });
 
       VocsyEpub.open(filePath, lastLocation: lastLocation);

@@ -353,5 +353,7 @@
   "saveCredentials": "Anmeldeinformationen speichern",
   "testConnection": "Verbindung testen",
   "appendsBookLorePath": "Es wird automatisch '/api/v1/opds' an die BookLore-URL angehängt, falls nicht vorhanden.",
-  "licenses": "Lizenzen"
+  "licenses": "Lizenzen",
+  "syncsReadingProgress": "Synchronisiert den Lesefortschritt über Geräte hinweg über eine JSON-Datei auf deinem WebDAV-Speicher.",
+  "webDavSync": "WebDAV-Synchronisierung"
 }

@@ -353,5 +353,7 @@
   "saveCredentials": "Save Credentials",
   "testConnection": "Test Connection",
   "appendsBookLorePath": "Appends '/api/v1/opds' to the BookLore URL if not present.",
-  "licenses": "Licenses"
+  "licenses": "Licenses",
+  "syncsReadingProgress": "Syncs reading progress across devices via a JSON file on your WebDAV storage.",
+  "webDavSync": "WebDAV Sync"
 }

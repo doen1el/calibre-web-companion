@@ -18,6 +18,10 @@ class SettingsModel extends Equatable {
   final DownloadSchema downloadSchema;
   final String languageCode;
   final bool showReadNowButton;
+  final String webDavUrl;
+  final String webDavUsername;
+  final String webDavPassword;
+  final bool isWebDavSyncEnabled;
 
   const SettingsModel({
     required this.themeMode,
@@ -33,6 +37,10 @@ class SettingsModel extends Equatable {
     required this.downloadSchema,
     required this.languageCode,
     required this.showReadNowButton,
+    required this.webDavUrl,
+    required this.webDavUsername,
+    required this.webDavPassword,
+    required this.isWebDavSyncEnabled,
   });
 
   factory SettingsModel.fromJson(Map<String, dynamic> json) {
@@ -50,6 +58,10 @@ class SettingsModel extends Equatable {
       downloadSchema: DownloadSchema.values[json['download_schema'] ?? 0],
       languageCode: json['language_code'] ?? 'en',
       showReadNowButton: json['show_read_now_button'] ?? false,
+      webDavUrl: json['webdav_url'] ?? '',
+      webDavUsername: json['webdav_username'] ?? '',
+      webDavPassword: json['webdav_password'] ?? '',
+      isWebDavSyncEnabled: json['webdav_enabled'] ?? false,
     );
   }
 
@@ -68,5 +80,9 @@ class SettingsModel extends Equatable {
     downloadSchema,
     languageCode,
     showReadNowButton,
+    webDavUrl,
+    webDavUsername,
+    webDavPassword,
+    isWebDavSyncEnabled,
   ];
 }

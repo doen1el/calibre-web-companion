@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
 
+import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
@@ -31,9 +33,16 @@ class _SettingsPageState extends State<SettingsPage> {
       TextEditingController();
   final TextEditingController _downloaderPasswordController =
       TextEditingController();
+  final TextEditingController _webDavUrlController = TextEditingController();
+  final TextEditingController _webDavUsernameController =
+      TextEditingController();
+  final TextEditingController _webDavPasswordController =
+      TextEditingController();
 
   bool _isTestingConnection = false;
   bool _isConnectionVerified = false;
+  bool _isTestingWebDav = false;
+  bool _isWebDavVerified = false;
 
   @override
   void initState() {
@@ -43,6 +52,9 @@ class _SettingsPageState extends State<SettingsPage> {
     _downloaderUrlController.text = settingsState.downloaderUrl;
     _downloaderUsernameController.text = settingsState.downloaderUsername;
     _downloaderPasswordController.text = settingsState.downloaderPassword;
+    _webDavUrlController.text = settingsState.webDavUrl;
+    _webDavUsernameController.text = settingsState.webDavUsername;
+    _webDavPasswordController.text = settingsState.webDavPassword;
   }
 
   @override
@@ -51,6 +63,9 @@ class _SettingsPageState extends State<SettingsPage> {
     _downloaderUrlController.dispose();
     _downloaderUsernameController.dispose();
     _downloaderPasswordController.dispose();
+    _webDavUrlController.dispose();
+    _webDavUsernameController.dispose();
+    _webDavPasswordController.dispose();
     super.dispose();
   }
 
@@ -68,6 +83,14 @@ class _SettingsPageState extends State<SettingsPage> {
     if (_isConnectionVerified) {
       setState(() {
         _isConnectionVerified = false;
+      });
+    }
+  }
+
+  void _resetWebDavVerification() {
+    if (_isWebDavVerified) {
+      setState(() {
+        _isWebDavVerified = false;
       });
     }
   }
@@ -129,6 +152,52 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  Future<void> _testWebDavConnection() async {
+    final url = _webDavUrlController.text.trim();
+    final username = _webDavUsernameController.text.trim();
+    final password = _webDavPasswordController.text;
+
+    if (url.isEmpty) {
+      context.showSnackBar("Please enter a WebDAV URL", isError: true);
+      return;
+    }
+
+    setState(() {
+      _isTestingWebDav = true;
+    });
+
+    try {
+      final tempService = WebDavSyncService(logger: Logger());
+
+      tempService.init(url, username, password);
+
+      await tempService.fetchProgress();
+
+      if (mounted) {
+        setState(() {
+          _isWebDavVerified = true;
+        });
+        context.showSnackBar(
+          "WebDAV connection successful! Click Save to persist.",
+          isError: false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        context.showSnackBar("WebDAV Connection error: $e", isError: true);
+        setState(() {
+          _isWebDavVerified = false;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isTestingWebDav = false;
+        });
+      }
+    }
+  }
+
   void _saveDownloaderSettings() {
     context.read<SettingsBloc>().add(
       SetDownloaderUrl(_downloaderUrlController.text.trim()),
@@ -141,6 +210,20 @@ class _SettingsPageState extends State<SettingsPage> {
     );
     context.showSnackBar("Credentials saved successfully.");
 
+    FocusScope.of(context).unfocus();
+  }
+
+  void _saveWebDavSettings() {
+    context.read<SettingsBloc>().add(
+      SetWebDavUrl(_webDavUrlController.text.trim()),
+    );
+    context.read<SettingsBloc>().add(
+      SetWebDavCredentials(
+        _webDavUsernameController.text.trim(),
+        _webDavPasswordController.text,
+      ),
+    );
+    context.showSnackBar("WebDAV settings saved.");
     FocusScope.of(context).unfocus();
   }
 
@@ -206,6 +289,10 @@ class _SettingsPageState extends State<SettingsPage> {
                           "Calibre Web Automated Downloader",
                         ),
                         _buildDownloaderToggle(context, state, localizations),
+
+                        const SizedBox(height: 24),
+                        _buildSectionTitle(context, "Sync"),
+                        _buildWebDavSettings(context, state, localizations),
 
                         const SizedBox(height: 24),
                         _buildSectionTitle(context, localizations.feedback),
@@ -777,6 +864,135 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWebDavSettings(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.cloud_sync_rounded,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    localizations.webDavSync,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Switch(
+                  value: state.isWebDavSyncEnabled,
+                  activeThumbColor: Theme.of(context).colorScheme.primary,
+                  onChanged: (value) {
+                    context.read<SettingsBloc>().add(
+                      SetWebDavSyncEnabled(value),
+                    );
+                  },
+                ),
+              ],
+            ),
+
+            if (state.isWebDavSyncEnabled) ...[
+              const SizedBox(height: 16),
+              TextField(
+                controller: _webDavUrlController,
+                decoration: InputDecoration(
+                  labelText: "WebDAV URL (e.g. Nextcloud)",
+                  hintText:
+                      "https://cloud.example.com/remote.php/dav/files/user/",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  prefixIcon: const Icon(Icons.link),
+                ),
+                onChanged: (_) => _resetWebDavVerification(),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _webDavUsernameController,
+                decoration: InputDecoration(
+                  labelText: localizations.username,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  prefixIcon: const Icon(Icons.person),
+                ),
+                onChanged: (_) => _resetWebDavVerification(),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _webDavPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: localizations.password,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  prefixIcon: const Icon(Icons.lock),
+                ),
+                onChanged: (_) => _resetWebDavVerification(),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed:
+                      _isTestingWebDav
+                          ? null
+                          : (_isWebDavVerified
+                              ? _saveWebDavSettings
+                              : _testWebDavConnection),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                  ),
+                  icon:
+                      _isTestingWebDav
+                          ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                          )
+                          : Icon(
+                            _isWebDavVerified
+                                ? Icons.check_circle
+                                : Icons.wifi_find,
+                          ),
+                  label: Text(
+                    _isTestingWebDav
+                        ? localizations.testing
+                        : (_isWebDavVerified
+                            ? localizations.save
+                            : localizations.testConnection),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                localizations.syncsReadingProgress,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

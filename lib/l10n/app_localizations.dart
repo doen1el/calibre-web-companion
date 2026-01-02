@@ -2228,6 +2228,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Licenses'**
   String get licenses;
+
+  /// No description provided for @syncsReadingProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncs reading progress across devices via a JSON file on your WebDAV storage.'**
+  String get syncsReadingProgress;
+
+  /// No description provided for @webDavSync.
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV Sync'**
+  String get webDavSync;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
