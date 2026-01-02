@@ -60,7 +60,6 @@ dependencies:
   path_provider:
   http_parser:
   docman:
-  epub_view:
   flutter_rating:
   html_unescape:
   vocsy_epub_viewer:
