@@ -2,19 +2,22 @@ import 'package:equatable/equatable.dart';
 
 enum ServerType {
   calibreWeb,
+  booklore,
   opds;
 
   String get label {
     switch (this) {
       case ServerType.calibreWeb:
         return 'Calibre Web';
+      case ServerType.booklore:
+        return 'Booklore';
       case ServerType.opds:
-        return 'Booklore / OPDS';
+        return 'OPDS';
     }
   }
 }
 
-enum LoginStatus { initial, success, loading, failure, redirect }
+enum LoginStatus { initial, loading, success, failure, redirect }
 
 enum LoginLoadingType { initial, standard, sso }
 
@@ -35,7 +38,7 @@ class LoginState extends Equatable {
     this.redirectUrl,
     this.status = LoginStatus.initial,
     this.errorMessage,
-    this.loadingType = LoginLoadingType.initial,
+    this.loadingType = LoginLoadingType.standard,
     this.serverType = ServerType.calibreWeb,
   });
 

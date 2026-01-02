@@ -13,7 +13,7 @@ class MeRemoteDataSource {
     try {
       final serverType = preferences.getString('server_type');
 
-      if (serverType == 'opds') {
+      if (serverType == 'opds' || serverType == 'booklore') {
         return _getOpdsStats();
       }
 
@@ -55,7 +55,7 @@ class MeRemoteDataSource {
     try {
       final serverType = preferences.getString('server_type');
 
-      if (serverType != 'opds') {
+      if (serverType != 'opds' && serverType != 'booklore') {
         try {
           await apiService.get(
             endpoint: '/logout',
@@ -79,6 +79,7 @@ class MeRemoteDataSource {
   }
 
   bool getIsOpds() {
-    return preferences.getString('server_type') == 'opds';
+    return preferences.getString('server_type') == 'opds' ||
+        preferences.getString('server_type') == 'booklore';
   }
 }

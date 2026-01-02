@@ -351,5 +351,6 @@
   "customSend2EReader": "Send2Ereader personalizado",
   "testing": "Probando...",
   "saveCredentials": "Guardar credenciales",
-  "testConnection": "Probar conexión"
+  "testConnection": "Probar conexión",
+  "appendsBookLorePath": "Se añade '/api/v1/opds' automáticamente a la URL de BookLore si no está presente."
 }

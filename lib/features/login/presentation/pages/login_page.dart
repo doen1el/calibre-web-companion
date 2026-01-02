@@ -19,7 +19,7 @@ class LoginPage extends StatelessWidget {
     final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(localizations.loginToCalibreWb)),
+      appBar: AppBar(title: Text(localizations.login)),
       body: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
           if (state.status == LoginStatus.success) {

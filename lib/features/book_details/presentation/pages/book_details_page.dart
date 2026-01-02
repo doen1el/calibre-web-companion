@@ -542,7 +542,10 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     bool isLoading,
   ) {
     final isOpds =
-        GetIt.instance<SharedPreferences>().getString('server_type') == 'opds';
+        GetIt.instance<SharedPreferences>().getString('server_type') ==
+            'opds' ||
+        GetIt.instance<SharedPreferences>().getString('server_type') ==
+            'booklore';
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,

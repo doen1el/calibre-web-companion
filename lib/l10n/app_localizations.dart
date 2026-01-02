@@ -2216,6 +2216,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Test Connection'**
   String get testConnection;
+
+  /// No description provided for @appendsBookLorePath.
+  ///
+  /// In en, this message translates to:
+  /// **'Appends \'/api/v1/opds\' to the BookLore URL if not present.'**
+  String get appendsBookLorePath;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

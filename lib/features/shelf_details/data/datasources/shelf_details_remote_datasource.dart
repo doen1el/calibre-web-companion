@@ -19,7 +19,7 @@ class ShelfDetailsRemoteDataSource {
     try {
       final serverType = preferences.getString('server_type');
 
-      if (serverType == 'opds') {
+      if (serverType == 'opds' || serverType == 'booklore') {
         return _getOpdsShelfDetails(shelfId);
       }
 
@@ -99,6 +99,7 @@ class ShelfDetailsRemoteDataSource {
   }
 
   bool getIsOpds() {
-    return preferences.getString('server_type') == 'opds';
+    return preferences.getString('server_type') == 'opds' ||
+        preferences.getString('server_type') == 'booklore';
   }
 }

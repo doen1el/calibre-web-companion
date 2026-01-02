@@ -1085,4 +1085,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get testConnection => 'Probar conexión';
+
+  @override
+  String get appendsBookLorePath => 'Se añade \'/api/v1/opds\' automáticamente a la URL de BookLore si no está presente.';
 }

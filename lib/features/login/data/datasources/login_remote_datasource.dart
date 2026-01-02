@@ -26,11 +26,30 @@ class LoginRemoteDataSource {
       await prefs.setString('password', credentials.password);
       await prefs.setString('server_type', serverType.name);
 
-      await apiService.initialize();
+      if (serverType == ServerType.opds || serverType == ServerType.booklore) {
+        try {
+          final uri = Uri.parse(credentials.baseUrl);
+          final origin = uri.origin;
+          final path = uri.path + (uri.hasQuery ? '?${uri.query}' : '');
 
-      if (serverType == ServerType.opds) {
-        return _loginOpds(credentials);
+          await prefs.setString('base_url', origin);
+          await apiService.initialize();
+
+          await _loginOpds(credentials, path);
+
+          await prefs.setString('base_url', credentials.baseUrl);
+          await apiService.initialize();
+
+          return true;
+        } catch (e) {
+          logger.w(
+            'Error parsing OPDS URL, falling back to standard method: $e',
+          );
+          await apiService.initialize();
+          return _loginOpds(credentials, '');
+        }
       } else {
+        await apiService.initialize();
         return _loginCalibreWeb(credentials);
       }
     } on RedirectException {
@@ -41,12 +60,15 @@ class LoginRemoteDataSource {
     }
   }
 
-  Future<bool> _loginOpds(LoginCredentials credentials) async {
-    logger.i('Attempting OPDS login (Basic Auth check)...');
+  Future<bool> _loginOpds(LoginCredentials credentials, String endpoint) async {
+    logger.i('Attempting OPDS login to endpoint: "$endpoint"...');
+
+    final hasCredentials =
+        credentials.username.isNotEmpty || credentials.password.isNotEmpty;
 
     final response = await apiService.get(
-      endpoint: '/catalog',
-      authMethod: AuthMethod.basic,
+      endpoint: endpoint,
+      authMethod: hasCredentials ? AuthMethod.basic : AuthMethod.none,
       followRedirects: true,
     );
 
@@ -54,7 +76,7 @@ class LoginRemoteDataSource {
       logger.i('OPDS Login successful');
       return true;
     } else if (response.statusCode == 401 || response.statusCode == 403) {
-      logger.w('OPDS Login failed - invalid credentials');
+      logger.w('OPDS Login failed - invalid credentials or auth required');
       throw Exception('Invalid username or password');
     } else {
       throw Exception('Server returned ${response.statusCode}');
@@ -165,6 +187,8 @@ class LoginRemoteDataSource {
     final typeStr = prefs.getString('server_type');
     if (typeStr == ServerType.opds.name) {
       return ServerType.opds;
+    } else if (typeStr == ServerType.booklore.name) {
+      return ServerType.booklore;
     }
     return ServerType.calibreWeb;
   }

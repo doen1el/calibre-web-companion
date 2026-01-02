@@ -36,12 +36,14 @@ class BookViewRemoteDatasource {
     try {
       final serverType = _preferences.getString('server_type');
 
-      if (serverType == 'opds') {
-        return _fetchBooksOpds(
+      if (serverType == 'booklore') {
+        return _fetchBooksBooklore(
           offset: offset,
           limit: limit,
           searchQuery: searchQuery,
         );
+      } else if (serverType == 'opds') {
+        return _fetchBooksOpds();
       }
 
       List<BookViewModel> books = [];
@@ -87,7 +89,42 @@ class BookViewRemoteDatasource {
     }
   }
 
-  Future<List<BookViewModel>> _fetchBooksOpds({
+  Future<List<BookViewModel>> _fetchBooksOpds() async {
+    try {
+      final response = await _apiService.getXmlAsJson(
+        endpoint: '',
+        authMethod: AuthMethod.none,
+      );
+
+      List<BookViewModel> books = [];
+
+      if (response.containsKey('feed') && response['feed'] != null) {
+        final feed = response['feed'];
+
+        if (feed.containsKey('entry')) {
+          final entries = feed['entry'];
+
+          if (entries is List) {
+            for (var entry in entries) {
+              final book = _mapOpdsEntryToViewModel(entry);
+              if (book != null) books.add(book);
+            }
+          } else if (entries is Map) {
+            final book = _mapOpdsEntryToViewModel(entries);
+            if (book != null) books.add(book);
+          }
+        }
+      }
+
+      _logger.i('Parsed ${books.length} OPDS books');
+      return books;
+    } catch (e) {
+      _logger.e('Error fetching OPDS books: $e');
+      throw Exception('Failed to load OPDS books: $e');
+    }
+  }
+
+  Future<List<BookViewModel>> _fetchBooksBooklore({
     required int offset,
     required int limit,
     String? searchQuery,

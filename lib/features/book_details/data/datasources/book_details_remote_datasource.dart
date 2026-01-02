@@ -38,7 +38,9 @@ class BookDetailsRemoteDatasource {
   ) async {
     try {
       final prefs = GetIt.instance<SharedPreferences>();
-      final isOpds = prefs.getString('server_type') == 'opds';
+      final isOpds =
+          prefs.getString('server_type') == 'opds' ||
+          prefs.getString('server_type') == 'booklore';
 
       if (isOpds) {
         String comments = bookListModel.data;
@@ -193,7 +195,9 @@ class BookDetailsRemoteDatasource {
       logger.i('Getting download stream for book: $bookId, Format: $format');
 
       final prefs = GetIt.instance<SharedPreferences>();
-      final isOpds = prefs.getString('server_type') == 'opds';
+      final isOpds =
+          prefs.getString('server_type') == 'opds' ||
+          prefs.getString('server_type') == 'booklore';
 
       String endpoint;
       AuthMethod authMethod;

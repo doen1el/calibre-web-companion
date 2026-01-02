@@ -610,7 +610,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get separateWithCommas => 'Separar com vírgulas';
 
   @override
-  String get separateWithAnd => 'Separate with \'&\'';
+  String get separateWithAnd => 'Separar com \"&\"';
 
   @override
   String get ratingOneToTen => 'Avaliação (1-10)';
@@ -784,7 +784,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get webViewAuth => 'Autenticação via WebView';
 
   @override
-  String get basePath => 'Caminho Base (Base Path)';
+  String get basePath => 'Caminho de base (Base Path)';
 
   @override
   String get authSystem => 'Sistema de Autenticação';
@@ -901,7 +901,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get columns => 'Colunas';
 
   @override
-  String get listView => 'List view';
+  String get listView => 'Listar';
 
   @override
   String get uploadEbook => 'Enviar eBook';
@@ -1085,4 +1085,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get testConnection => 'Testar Conexão';
+
+  @override
+  String get appendsBookLorePath => 'Adiciona /book/lore ao final da URL do livro';
 }

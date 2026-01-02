@@ -1085,4 +1085,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get testConnection => 'Testa la Connessione';
+
+  @override
+  String get appendsBookLorePath => 'Aggiunge /booklore al percorso di base';
 }
