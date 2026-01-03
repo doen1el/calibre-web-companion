@@ -192,9 +192,13 @@ class SettingsRepository {
     String username,
     String password,
   ) async {
-    final service = WebDavSyncService(logger: Logger());
-    service.init(url, username, password);
-    await service.fetchProgress();
-    return true;
+    try {
+      final service = WebDavSyncService(logger: Logger());
+      service.init(url, username, password);
+      await service.testConnection();
+      return true;
+    } catch (e) {
+      rethrow;
+    }
   }
 }

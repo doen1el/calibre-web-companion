@@ -27,6 +27,13 @@ class WebDavSyncService {
     }
   }
 
+  Future<void> testConnection() async {
+    if (_client == null) {
+      throw Exception('WebDAV client not initialized');
+    }
+    await _client!.ping();
+  }
+
   Future<Map<String, dynamic>> fetchProgress() async {
     if (_client == null) return {};
 
