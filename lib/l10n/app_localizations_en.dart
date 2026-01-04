@@ -1112,4 +1112,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pleaseEnterWebDavUrl => 'Please enter a valid WebDAV URL';
+
+  @override
+  String get loginSuccessfull => 'Login successful';
+
+  @override
+  String get enterUsernamePasswordForSSO => 'Since Calibre Web Companion uses many OPDS endpoints to provide different features, and OPDS currently only works with username/password authentication, you need to provide your credentials, even when using SSO. We know that this goes against the purpose of SSO, but it is necessary for the app to function correctly. Hopefully, future versions will offer a better solution.';
+
+  @override
+  String get credentialsRequiredForSSO => 'Credentials required for SSO';
 }

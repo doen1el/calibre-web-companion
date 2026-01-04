@@ -508,10 +508,46 @@ class _LoginFormState extends State<LoginForm> {
       context.showSnackBar(localizations.pleaseEnterSSOUrl, isError: true);
       return;
     }
+
+    if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: Text(localizations.credentialsRequiredForSSO),
+              content: Text(localizations.enterUsernamePasswordForSSO),
+              actions: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    if (_usernameController.text.isEmpty) {}
+                  },
+                  child: Text(
+                    localizations.ok,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+      );
+      return;
+    }
+
+    _submitSso(context);
+  }
+
+  void _submitSso(BuildContext context) {
     String fullUrl =
         '${_isHttps ? "https://" : "http://"}${_urlController.text.trim()}';
 
     context.read<LoginBloc>().add(EnterUrl(fullUrl));
+    context.read<LoginBloc>().add(EnterUsername(_usernameController.text));
+    context.read<LoginBloc>().add(EnterPassword(_passwordController.text));
     context.read<LoginBloc>().add(const SubmitSsoLogin());
   }
 

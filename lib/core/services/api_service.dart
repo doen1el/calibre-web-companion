@@ -23,6 +23,7 @@ class ApiService {
   String? _username;
   String? _password;
   String? _basePath;
+  String? _userAgent;
 
   bool _allowSelfSigned = false;
 
@@ -84,6 +85,7 @@ class ApiService {
     _username = prefs.getString('username');
     _password = prefs.getString('password');
     _basePath = prefs.getString('base_path') ?? '';
+    _userAgent = prefs.getString('user_agent'); // User Agent laden
     _allowSelfSigned = prefs.getBool('allow_self_signed') ?? false;
 
     _httpClient = HttpClient();
@@ -107,6 +109,7 @@ class ApiService {
     _username = null;
     _password = null;
     _basePath = null;
+    _userAgent = null; // Reset User Agent
     _client?.close();
     _httpClient?.close(force: true);
     _client = null;
@@ -322,6 +325,10 @@ class ApiService {
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
     final headers = getAuthHeaders(authMethod: authMethod);
 
+    if (_userAgent != null) {
+      headers['User-Agent'] = _userAgent!;
+    }
+
     final customHeaders = await _processCustomHeaders();
     headers.addAll(customHeaders);
 
@@ -364,6 +371,10 @@ class ApiService {
         _logger.d('GET (no-redirect) request to: $uri');
         final request = await httpClient.getUrl(uri);
         request.followRedirects = false;
+
+        if (_userAgent != null) {
+          headers['User-Agent'] = _userAgent!;
+        }
 
         headers.forEach((key, value) {
           request.headers.set(key, value);
@@ -437,6 +448,11 @@ class ApiService {
 
         final headers = getAuthHeaders(authMethod: authMethod);
         headers['Content-Type'] = contentType;
+
+        if (_userAgent != null) {
+          headers['User-Agent'] = _userAgent!;
+        }
+
         final customHeaders = await _processCustomHeaders();
         headers.addAll(customHeaders);
 
@@ -481,6 +497,11 @@ class ApiService {
       _logger.i('Making CSRF-protected POST request to: $uri');
 
       final getHeaders = getAuthHeaders(authMethod: authMethod);
+
+      if (_userAgent != null) {
+        getHeaders['User-Agent'] = _userAgent!;
+      }
+
       getHeaders.addAll(customHeaders);
       getHeaders['Accept'] = 'text/html,application/xhtml+xml,application/xml';
 
@@ -575,6 +596,10 @@ class ApiService {
             '${uri.scheme}://${uri.host}${uri.port != 80 && uri.port != 443 ? ":${uri.port}" : ""}';
         request.headers['Connection'] = 'close';
 
+        if (_userAgent != null) {
+          request.headers['User-Agent'] = _userAgent!;
+        }
+
         request.headers.addAll(customHeaders);
 
         if (body is Map) {
@@ -620,14 +645,19 @@ class ApiService {
         }
       } else {
         final postHeaders = {
-          'Content-Type': contentType,
           'Cookie': sessionCookie,
-          (csrfHeaderName ?? 'X-CSRFToken'): csrfToken,
           'X-Requested-With': 'XMLHttpRequest',
           'Referer': uri.toString(),
           'Origin':
               '${uri.scheme}://${uri.host}${uri.port != 80 && uri.port != 443 ? ":${uri.port}" : ""}',
+          'Content-Type': contentType,
+          csrfHeaderName ?? 'X-CSRFToken': csrfToken,
         };
+
+        if (_userAgent != null) {
+          postHeaders['User-Agent'] = _userAgent!;
+        }
+
         postHeaders.addAll(customHeaders);
 
         Map<String, dynamic> finalBody = {};
@@ -690,6 +720,12 @@ class ApiService {
         final request = http.MultipartRequest('POST', uri);
 
         final headers = getAuthHeaders(authMethod: authMethod);
+
+        if (_userAgent != null) {
+          headers['User-Agent'] = _userAgent!;
+          request.headers['User-Agent'] = _userAgent!;
+        }
+
         headers.addAll(customHeaders);
         request.headers.addAll(headers);
 
@@ -731,6 +767,11 @@ class ApiService {
       } else {
         final headers = getAuthHeaders(authMethod: authMethod);
         headers['Content-Type'] = contentType;
+
+        if (_userAgent != null) {
+          headers['User-Agent'] = _userAgent!;
+        }
+
         headers.addAll(customHeaders);
 
         _logger.d('POST request to: $uri');
@@ -785,6 +826,10 @@ class ApiService {
 
     final request = http.Request('GET', uri);
     final headers = getAuthHeaders(authMethod: authMethod);
+
+    if (_userAgent != null) {
+      headers['User-Agent'] = _userAgent!;
+    }
 
     final customHeaders = await _processCustomHeaders();
     headers.addAll(customHeaders);
@@ -938,16 +983,10 @@ class ApiService {
     AuthMethod resolvedAuthMethod = authMethod;
 
     if (resolvedAuthMethod == AuthMethod.auto) {
-      // NEUE LOGIK:
-      // Wenn Username/Passwort vorhanden sind, ist es eine Basic-Auth-Sitzung.
-      // OPDS-Endpunkte benötigen Basic Auth, auch wenn ein Cookie existiert.
-      // Daher wird Basic Auth bevorzugt, wenn die Credentials vorhanden sind.
       if (_username != null && _username!.isNotEmpty && _password != null) {
         resolvedAuthMethod = AuthMethod.basic;
         _logger.d('Auto-Auth: Resolved to Basic (Credentials available)');
-      }
-      // Nur wenn KEINE Credentials, aber ein Cookie da ist, ist es eine reine SSO-Sitzung.
-      else if (_cookie != null && _cookie!.isNotEmpty) {
+      } else if (_cookie != null && _cookie!.isNotEmpty) {
         resolvedAuthMethod = AuthMethod.cookie;
         _logger.d('Auto-Auth: Resolved to Cookie (No credentials)');
       } else {

@@ -1099,17 +1099,26 @@ class AppLocalizationsEs extends AppLocalizations {
   String get webDavSync => 'Sincronización WebDAV';
 
   @override
-  String get pleaseFillInAllRequiredFields => 'Please fill in all required fields.';
+  String get pleaseFillInAllRequiredFields => 'Por favor, rellena todos los campos obligatorios.';
 
   @override
-  String get connectionTestSuccessful => 'Connection test successful. Press Save to apply the credentials.';
+  String get connectionTestSuccessful => 'Prueba de conexión exitosa. Pulsa Guardar para aplicar las credenciales.';
 
   @override
-  String get loginFailed => 'Login failed:';
+  String get loginFailed => 'Inicio de sesión fallido:';
 
   @override
-  String get connectionError => 'Connection error';
+  String get connectionError => 'Error de conexión:';
 
   @override
-  String get pleaseEnterWebDavUrl => 'Please enter a valid WebDAV URL';
+  String get pleaseEnterWebDavUrl => 'Por favor, introduce una URL de WebDAV válida';
+
+  @override
+  String get loginSuccessfull => 'Inicio de sesión exitoso';
+
+  @override
+  String get enterUsernamePasswordForSSO => 'Dado que Calibre Web Companion utiliza muchos puntos finales OPDS para proporcionar diferentes funciones, y OPDS actualmente solo funciona con autenticación de nombre de usuario/contraseña, necesitas proporcionar tus credenciales, incluso cuando uses SSO. Sabemos que esto va en contra del propósito de SSO, pero es necesario para que la aplicación funcione correctamente. Esperamos que las versiones futuras ofrezcan una mejor solución.';
+
+  @override
+  String get credentialsRequiredForSSO => 'Se requieren credenciales para SSO';
 }

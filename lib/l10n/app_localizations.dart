@@ -2270,6 +2270,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter a valid WebDAV URL'**
   String get pleaseEnterWebDavUrl;
+
+  /// No description provided for @loginSuccessfull.
+  ///
+  /// In en, this message translates to:
+  /// **'Login successful'**
+  String get loginSuccessfull;
+
+  /// No description provided for @enterUsernamePasswordForSSO.
+  ///
+  /// In en, this message translates to:
+  /// **'Since Calibre Web Companion uses many OPDS endpoints to provide different features, and OPDS currently only works with username/password authentication, you need to provide your credentials, even when using SSO. We know that this goes against the purpose of SSO, but it is necessary for the app to function correctly. Hopefully, future versions will offer a better solution.'**
+  String get enterUsernamePasswordForSSO;
+
+  /// No description provided for @credentialsRequiredForSSO.
+  ///
+  /// In en, this message translates to:
+  /// **'Credentials required for SSO'**
+  String get credentialsRequiredForSSO;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

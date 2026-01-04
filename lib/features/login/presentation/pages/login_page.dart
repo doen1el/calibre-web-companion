@@ -36,6 +36,8 @@ class LoginPage extends StatelessWidget {
                     (context) => WebViewLoginPage(
                       redirectUrl: state.redirectUrl!,
                       baseUrl: state.url,
+                      username: state.username,
+                      password: state.password,
                     ),
               ),
             );

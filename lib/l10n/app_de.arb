@@ -360,5 +360,8 @@
   "connectionTestSuccessful": "Verbindungstest erfolgreich. Drücke Speichern, um die Anmeldeinformationen zu übernehmen.",
   "loginFailed": "Anmeldung fehlgeschlagen:",
   "connectionError": "Verbindungsfehler:",
-  "pleaseEnterWebDavUrl": "Bitte gib eine gültige WebDAV-URL ein"
+  "pleaseEnterWebDavUrl": "Bitte gib eine gültige WebDAV-URL ein",
+  "loginSuccessfull": "Anmeldung erfolgreich",
+  "enterUsernamePasswordForSSO": "Da Calibre Web Companion viele OPDS-Endpunkte verwendet, um verschiedene Funktionen bereitzustellen, und OPDS derzeit nur mit Benutzername/Passwort-Authentifizierung funktioniert, musst du deine Anmeldeinformationen angeben, auch wenn du SSO verwendest. Wir wissen, dass dies dem Zweck von SSO widerspricht, aber es ist notwendig, damit die App korrekt funktioniert. Hoffentlich bieten zukünftige Versionen eine bessere Lösung.",
+  "credentialsRequiredForSSO": "Credentials required for SSO"
 }

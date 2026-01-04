@@ -62,3 +62,28 @@ class ChangeServerType extends LoginEvent {
   @override
   List<Object?> get props => [serverType];
 }
+
+class FinalizeSsoLogin extends LoginEvent {
+  final String cookieHeader;
+  final String userAgent;
+  final String baseUrl;
+  final String? username;
+  final String? password;
+
+  const FinalizeSsoLogin({
+    required this.cookieHeader,
+    required this.userAgent,
+    required this.baseUrl,
+    this.username,
+    this.password,
+  });
+
+  @override
+  List<Object?> get props => [
+    cookieHeader,
+    userAgent,
+    baseUrl,
+    username,
+    password,
+  ];
+}

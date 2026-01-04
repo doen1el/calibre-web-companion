@@ -18,7 +18,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<SubmitSsoLogin>(_onSubmitSsoLogin);
     on<ResetLoginStatus>(_onResetLoginStatus);
     on<LoginLogOut>(_onLogOut);
-    on<ChangeServerType>(_onChangeServerType); // Neu
+    on<ChangeServerType>(_onChangeServerType);
+    on<FinalizeSsoLogin>(_onFinalizeSsoLogin); // NEU
     on<LoadStoredCredentials>(_onLoadStoredCredentials);
   }
 
@@ -189,6 +190,54 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       }
     } catch (e) {
       logger.e('Error loading stored credentials: $e');
+    }
+  }
+
+  Future<void> _onFinalizeSsoLogin(
+    FinalizeSsoLogin event,
+    Emitter<LoginState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        status: LoginStatus.loading,
+        loadingType: LoginLoadingType.sso,
+      ),
+    );
+
+    try {
+      final result = await loginRepository.finalizeSso(
+        event.cookieHeader,
+        event.userAgent,
+        event.baseUrl,
+        event.username,
+        event.password,
+      );
+
+      if (result.isSuccess) {
+        logger.i('SSO Finalization successful');
+        emit(
+          state.copyWith(
+            status: LoginStatus.success,
+            loadingType: LoginLoadingType.initial,
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            status: LoginStatus.failure,
+            errorMessage: result.errorMessage,
+            loadingType: LoginLoadingType.initial,
+          ),
+        );
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: LoginStatus.failure,
+          errorMessage: e.toString(),
+          loadingType: LoginLoadingType.initial,
+        ),
+      );
     }
   }
 }
