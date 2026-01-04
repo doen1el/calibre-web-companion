@@ -10,6 +10,9 @@ import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
@@ -34,6 +37,33 @@ class BookDetailsRemoteDatasource {
     String bookUuid,
   ) async {
     try {
+      final prefs = GetIt.instance<SharedPreferences>();
+      final isOpds =
+          prefs.getString('server_type') == 'opds' ||
+          prefs.getString('server_type') == 'booklore';
+
+      if (isOpds) {
+        String comments = bookListModel.data;
+
+        if (comments.isNotEmpty) {
+          comments = _removeHtmlTags(comments);
+        }
+
+        return BookDetailsModel(
+          id: bookListModel.id,
+          uuid: bookListModel.uuid,
+          title: bookListModel.title,
+          authors: bookListModel.authors,
+          cover: bookListModel.coverUrl ?? '',
+          formats:
+              bookListModel.formats.isNotEmpty
+                  ? bookListModel.formats
+                  : const ['epub'],
+          comments: comments,
+          tags: bookListModel.tags,
+        );
+      }
+
       if (!tagService.isInitialized) {
         await tagService.initialize();
       }
@@ -52,6 +82,21 @@ class BookDetailsRemoteDatasource {
       logger.e("Error fetching book details: $e");
       throw Exception("Failed to fetch book details: $e");
     }
+  }
+
+  String _removeHtmlTags(String htmlString) {
+    final RegExp exp = RegExp(r"<[^>]*>", multiLine: true, caseSensitive: true);
+    String parsedString = htmlString.replaceAll(exp, '');
+
+    parsedString = parsedString
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'");
+
+    return parsedString.trim();
   }
 
   Future<bool> toggleReadStatus(int bookId) async {
@@ -149,11 +194,26 @@ class BookDetailsRemoteDatasource {
     try {
       logger.i('Getting download stream for book: $bookId, Format: $format');
 
-      final lowerFormat = format.toLowerCase();
+      final prefs = GetIt.instance<SharedPreferences>();
+      final isOpds =
+          prefs.getString('server_type') == 'opds' ||
+          prefs.getString('server_type') == 'booklore';
+
+      String endpoint;
+      AuthMethod authMethod;
+
+      if (isOpds) {
+        endpoint = '/$bookId/download';
+        authMethod = AuthMethod.basic;
+      } else {
+        final lowerFormat = format.toLowerCase();
+        endpoint = '/download/$bookId/$lowerFormat';
+        authMethod = AuthMethod.cookie;
+      }
 
       final response = await apiService.getStream(
-        endpoint: '/download/$bookId/$lowerFormat/$bookId.$lowerFormat',
-        authMethod: AuthMethod.cookie,
+        endpoint: endpoint,
+        authMethod: authMethod,
       );
 
       if (response.statusCode == 200) {
@@ -199,10 +259,6 @@ class BookDetailsRemoteDatasource {
   ) async {
     try {
       final body = {'query': query};
-
-      // for (var id in activeProviderIds) {
-      //   body[id] = 'on';
-      // }
 
       final response = await apiService.post(
         endpoint: '/metadata/search',

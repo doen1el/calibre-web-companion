@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:logger/logger.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
@@ -21,9 +26,10 @@ import 'package:calibre_web_companion/features/discover/blocs/discover_event.dar
 import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
-import 'package:calibre_web_companion/features/book_details/presentation/widgets/ebook_reader_widget.dart';
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:vocsy_epub_viewer/epub_viewer.dart';
+import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 
 class BookDetailsPage extends StatefulWidget {
   final BookViewModel bookViewModel;
@@ -41,29 +47,61 @@ class BookDetailsPage extends StatefulWidget {
 
 class _BookDetailsPageState extends State<BookDetailsPage> {
   bool _didUpdateMetadata = false;
+  StreamSubscription<dynamic>? _locatorSubscription;
+  late final WebDavSyncService _webDavService;
+
+  @override
+  void initState() {
+    super.initState();
+    _webDavService = WebDavSyncService(logger: GetIt.instance<Logger>());
+    _initWebDav();
+  }
+
+  Future<void> _initWebDav() async {
+    final prefs = await SharedPreferences.getInstance();
+    final enabled = prefs.getBool('webdav_enabled') ?? false;
+    if (enabled) {
+      _webDavService.init(
+        prefs.getString('webdav_url') ?? '',
+        prefs.getString('webdav_username') ?? '',
+        prefs.getString('webdav_password') ?? '',
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _locatorSubscription?.cancel();
+    VocsyEpub.closeReader();
+    super.dispose();
+  }
 
   Future<void> _openInternalReader(
     BuildContext context,
     String filePath,
     BookDetailsModel bookDetailsModel,
   ) async {
-    try {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder:
-              (context) => EbookReaderWidget(
-                bookPath: filePath,
-                bookDetailsModel: bookDetailsModel,
-              ),
-        ),
+    final lastLocation = context.read<BookDetailsBloc>().state.startLocation;
+
+    VocsyEpub.setConfig(
+      themeColor: Theme.of(context).primaryColor,
+      identifier: "book_${bookDetailsModel.uuid}",
+      scrollDirection: EpubScrollDirection.ALLDIRECTIONS,
+      allowSharing: true,
+      enableTts: true,
+      nightMode: Theme.of(context).brightness == Brightness.dark,
+    );
+
+    await _locatorSubscription?.cancel();
+
+    _locatorSubscription = VocsyEpub.locatorStream.listen((locator) {
+      // ignore: use_build_context_synchronously
+      context.read<BookDetailsBloc>().add(
+        SyncReadingProgress(bookDetailsModel.uuid, locator),
       );
-    } catch (e) {
-      final localizations = AppLocalizations.of(context)!;
-      context.showSnackBar(
-        '${localizations.errorOpeningBookInInternalReader}: $e',
-        isError: true,
-      );
-    }
+    });
+
+    VocsyEpub.open(filePath, lastLocation: lastLocation);
   }
 
   @override
@@ -310,10 +348,13 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
   BookDetailsModel _createDummyBook(AppLocalizations localizations) {
     return BookDetailsModel(
-      id: 0,
-      uuid: 'dummy-uuid',
-      title: localizations.loading,
-      authors: 'Author Name',
+      id: widget.bookViewModel.id,
+      uuid: widget.bookViewModel.uuid,
+      title: widget.bookViewModel.title,
+      authors: widget.bookViewModel.authors,
+      cover: widget.bookViewModel.coverUrl ?? '',
+      formats: widget.bookViewModel.formats,
+      tags: widget.bookViewModel.tags,
     );
   }
 
@@ -331,7 +372,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
           Stack(
             alignment: Alignment.bottomLeft,
             children: [
-              _buildCoverImage(context, book.id),
+              _buildCoverImage(context, book.id, book.cover),
 
               Container(
                 decoration: BoxDecoration(
@@ -536,65 +577,79 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     BookDetailsModel book,
     bool isLoading,
   ) {
+    final isOpds =
+        GetIt.instance<SharedPreferences>().getString('server_type') ==
+            'opds' ||
+        GetIt.instance<SharedPreferences>().getString('server_type') ==
+            'booklore';
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          IconButton(
-            icon: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-              child:
-                  state.readStatusState == ReadStatusState.loading
-                      ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 3),
-                      )
-                      : Icon(
-                        state.isBookRead
-                            ? Icons.visibility
-                            : Icons.visibility_off,
+          if (!isOpds)
+            IconButton(
+              icon: CircleAvatar(
+                backgroundColor:
+                    Theme.of(context).colorScheme.secondaryContainer,
+                child:
+                    state.readStatusState == ReadStatusState.loading
+                        ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        )
+                        : Icon(
+                          state.isBookRead
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+              ),
+              onPressed:
+                  isLoading
+                      ? null
+                      : () => context.read<BookDetailsBloc>().add(
+                        ToggleReadStatus(book.id),
                       ),
+              tooltip: localizations.markAsReadUnread,
             ),
-            onPressed:
-                isLoading
-                    ? null
-                    : () => context.read<BookDetailsBloc>().add(
-                      ToggleReadStatus(book.id),
-                    ),
-            tooltip: localizations.markAsReadUnread,
-          ),
 
-          IconButton(
-            icon: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-              child:
-                  state.archiveStatusState == ArchiveStatusState.loading
-                      ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 3),
-                      )
-                      : Icon(
-                        state.isBookArchived ? Icons.archive : Icons.unarchive,
+          if (!isOpds)
+            IconButton(
+              icon: CircleAvatar(
+                backgroundColor:
+                    Theme.of(context).colorScheme.secondaryContainer,
+                child:
+                    state.archiveStatusState == ArchiveStatusState.loading
+                        ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        )
+                        : Icon(
+                          state.isBookArchived
+                              ? Icons.archive
+                              : Icons.unarchive,
+                        ),
+              ),
+              onPressed:
+                  isLoading
+                      ? null
+                      : () => context.read<BookDetailsBloc>().add(
+                        ToggleArchiveStatus(book.id),
                       ),
+              tooltip: localizations.archiveUnarchive,
             ),
-            onPressed:
-                isLoading
-                    ? null
-                    : () => context.read<BookDetailsBloc>().add(
-                      ToggleArchiveStatus(book.id),
-                    ),
-            tooltip: localizations.archiveUnarchive,
-          ),
 
-          EditBookMetadataWidget(
-            book: book,
-            isLoading: isLoading,
-            bookViewModel: state.bookViewModel ?? widget.bookViewModel,
-          ),
-          AddToShelfWidget(book: book, isLoading: isLoading),
+          if (!isOpds)
+            EditBookMetadataWidget(
+              book: book,
+              isLoading: isLoading,
+              bookViewModel: state.bookViewModel ?? widget.bookViewModel,
+            ),
+
+          if (!isOpds) AddToShelfWidget(book: book, isLoading: isLoading),
 
           DownloadToDeviceWidget(book: book, isLoading: isLoading),
 
@@ -717,15 +772,18 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
             tooltip: localizations.openInReader,
           ),
 
-          IconButton(
-            icon: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-              child: Icon(Icons.open_in_browser_rounded),
+          if (!isOpds)
+            IconButton(
+              icon: CircleAvatar(
+                backgroundColor:
+                    Theme.of(context).colorScheme.secondaryContainer,
+                child: Icon(Icons.open_in_browser_rounded),
+              ),
+              onPressed:
+                  () =>
+                      context.read<BookDetailsBloc>().add(OpenBookInBrowser()),
+              tooltip: localizations.openBookInBrowser,
             ),
-            onPressed:
-                () => context.read<BookDetailsBloc>().add(OpenBookInBrowser()),
-            tooltip: localizations.openBookInBrowser,
-          ),
         ],
       ),
     );
@@ -863,11 +921,11 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     return '${(sizeInBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
-  Widget _buildCoverImage(BuildContext context, int bookId) {
+  Widget _buildCoverImage(BuildContext context, int bookId, String? coverUrl) {
     return SizedBox(
       height: 300,
       width: double.infinity,
-      child: BookCoverWidget(bookId: bookId),
+      child: BookCoverWidget(bookId: bookId, coverUrl: coverUrl),
     );
   }
 

@@ -1058,4 +1058,67 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sectionDisabledDescription => 'Cette section semble être désactivée dans les paramètres de votre serveur Calibre-Web ou n\'existe pas.';
+
+  @override
+  String get or => 'OU';
+
+  @override
+  String get libraries => 'Bibliothèques';
+
+  @override
+  String get browsLibraries => 'Parcourir les bibliothèques';
+
+  @override
+  String get surpriseMe => 'Surprenez-moi';
+
+  @override
+  String get downloadOptions => 'Options de téléchargement';
+
+  @override
+  String get customSend2EReader => 'Send2Ereader personnalisé';
+
+  @override
+  String get testing => 'Test en cours...';
+
+  @override
+  String get saveCredentials => 'Enregistrer les identifiants';
+
+  @override
+  String get testConnection => 'Tester la connexion';
+
+  @override
+  String get appendsBookLorePath => 'Ajoute \'/api/v1/opds\' à l\'URL de BookLore si elle n\'est pas présente.';
+
+  @override
+  String get licenses => 'Licences';
+
+  @override
+  String get syncsReadingProgress => 'Synchronise la progression de lecture entre les appareils via un fichier JSON sur votre stockage WebDAV.';
+
+  @override
+  String get webDavSync => 'Synchronisation WebDAV';
+
+  @override
+  String get pleaseFillInAllRequiredFields => 'Veuillez remplir tous les champs requis.';
+
+  @override
+  String get connectionTestSuccessful => 'Test de connexion réussi. Appuyez sur Enregistrer pour appliquer les identifiants.';
+
+  @override
+  String get loginFailed => 'Échec de la connexion:';
+
+  @override
+  String get connectionError => 'Erreur de connexion:';
+
+  @override
+  String get pleaseEnterWebDavUrl => 'Veuillez entrer une URL WebDAV valide';
+
+  @override
+  String get loginSuccessfull => 'Connexion réussie';
+
+  @override
+  String get enterUsernamePasswordForSSO => 'Étant donné que Calibre Web Companion utilise de nombreux points de terminaison OPDS pour fournir différentes fonctionnalités, et que l\'OPDS fonctionne actuellement uniquement avec une authentification par nom d\'utilisateur/mot de passe, vous devez fournir vos identifiants, même lorsque vous utilisez SSO. Nous savons que cela va à l\'encontre de l\'objectif du SSO, mais c\'est nécessaire pour que l\'application fonctionne correctement. Espérons que les futures versions offriront une meilleure solution.';
+
+  @override
+  String get credentialsRequiredForSSO => 'Identifiants requis pour SSO';
 }

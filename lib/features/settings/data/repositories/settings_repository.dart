@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/features/settings/data/datasources/settings_local_datasource.dart';
 import 'package:calibre_web_companion/features/settings/data/models/settings_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
+import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 
 class SettingsRepository {
   final SettingsLocalDataSource dataSource;
@@ -53,6 +57,17 @@ class SettingsRepository {
   Future<void> setDownloaderUrl(String url) async {
     try {
       await dataSource.saveDownloaderUrl(url);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setDownloaderCredentials(
+    String username,
+    String password,
+  ) async {
+    try {
+      await dataSource.saveDownloaderCredentials(username, password);
     } catch (e) {
       rethrow;
     }
@@ -121,6 +136,67 @@ class SettingsRepository {
   Future<void> buyMeACoffee() async {
     try {
       return await dataSource.buyMeACoffe();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setWebDavSyncEnabled(bool enabled) async {
+    try {
+      await dataSource.saveWebDavSyncEnabled(enabled);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setWebDavUrl(String url) async {
+    try {
+      await dataSource.saveWebDavUrl(url);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setWebDavCredentials(String username, String password) async {
+    try {
+      await dataSource.saveWebDavCredentials(username, password);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<bool> testDownloaderConnection(
+    String url,
+    String username,
+    String password,
+  ) async {
+    try {
+      final uri = Uri.parse('$url/api/auth/login');
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': username,
+          'password': password,
+          'remember_me': true,
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      throw Exception("Connection failed: $e");
+    }
+  }
+
+  Future<bool> testWebDavConnection(
+    String url,
+    String username,
+    String password,
+  ) async {
+    try {
+      final service = WebDavSyncService(logger: Logger());
+      service.init(url, username, password);
+      await service.testConnection();
+      return true;
     } catch (e) {
       rethrow;
     }

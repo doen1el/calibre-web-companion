@@ -1058,4 +1058,67 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sectionDisabledDescription => 'Esta sección parece estar deshabilitada en la configuración de tu servidor Calibre-Web o no existe.';
+
+  @override
+  String get or => 'O';
+
+  @override
+  String get libraries => 'Bibliotecas';
+
+  @override
+  String get browsLibraries => 'Explorar bibliotecas';
+
+  @override
+  String get surpriseMe => 'Sorpréndeme';
+
+  @override
+  String get downloadOptions => 'Opciones de descarga';
+
+  @override
+  String get customSend2EReader => 'Send2Ereader personalizado';
+
+  @override
+  String get testing => 'Probando...';
+
+  @override
+  String get saveCredentials => 'Guardar credenciales';
+
+  @override
+  String get testConnection => 'Probar conexión';
+
+  @override
+  String get appendsBookLorePath => 'Se añade \'/api/v1/opds\' automáticamente a la URL de BookLore si no está presente.';
+
+  @override
+  String get licenses => 'Licencias';
+
+  @override
+  String get syncsReadingProgress => 'Sincroniza el progreso de lectura entre dispositivos a través de un archivo JSON en tu almacenamiento WebDAV.';
+
+  @override
+  String get webDavSync => 'Sincronización WebDAV';
+
+  @override
+  String get pleaseFillInAllRequiredFields => 'Por favor, rellena todos los campos obligatorios.';
+
+  @override
+  String get connectionTestSuccessful => 'Prueba de conexión exitosa. Pulsa Guardar para aplicar las credenciales.';
+
+  @override
+  String get loginFailed => 'Inicio de sesión fallido:';
+
+  @override
+  String get connectionError => 'Error de conexión:';
+
+  @override
+  String get pleaseEnterWebDavUrl => 'Por favor, introduce una URL de WebDAV válida';
+
+  @override
+  String get loginSuccessfull => 'Inicio de sesión exitoso';
+
+  @override
+  String get enterUsernamePasswordForSSO => 'Dado que Calibre Web Companion utiliza muchos puntos finales OPDS para proporcionar diferentes funciones, y OPDS actualmente solo funciona con autenticación de nombre de usuario/contraseña, necesitas proporcionar tus credenciales, incluso cuando uses SSO. Sabemos que esto va en contra del propósito de SSO, pero es necesario para que la aplicación funcione correctamente. Esperamos que las versiones futuras ofrezcan una mejor solución.';
+
+  @override
+  String get credentialsRequiredForSSO => 'Se requieren credenciales para SSO';
 }

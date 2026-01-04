@@ -10,12 +10,18 @@ class SettingsModel extends Equatable {
   final String selectedColorKey;
   final bool isDownloaderEnabled;
   final String downloaderUrl;
+  final String downloaderUsername;
+  final String downloaderPassword;
   final bool isSend2ereaderEnabled;
   final String send2ereaderUrl;
   final String defaultDownloadPath;
   final DownloadSchema downloadSchema;
   final String languageCode;
   final bool showReadNowButton;
+  final String webDavUrl;
+  final String webDavUsername;
+  final String webDavPassword;
+  final bool isWebDavSyncEnabled;
 
   const SettingsModel({
     required this.themeMode,
@@ -23,12 +29,18 @@ class SettingsModel extends Equatable {
     required this.selectedColorKey,
     required this.isDownloaderEnabled,
     required this.downloaderUrl,
+    required this.downloaderUsername,
+    required this.downloaderPassword,
     required this.isSend2ereaderEnabled,
     required this.send2ereaderUrl,
     required this.defaultDownloadPath,
     required this.downloadSchema,
     required this.languageCode,
     required this.showReadNowButton,
+    required this.webDavUrl,
+    required this.webDavUsername,
+    required this.webDavPassword,
+    required this.isWebDavSyncEnabled,
   });
 
   factory SettingsModel.fromJson(Map<String, dynamic> json) {
@@ -38,12 +50,18 @@ class SettingsModel extends Equatable {
       selectedColorKey: json['theme_color_key'] ?? 'lightGreen',
       isDownloaderEnabled: json['downloader_enabled'] ?? false,
       downloaderUrl: json['downloader_url'] ?? '',
+      downloaderUsername: json['downloader_username'] ?? '',
+      downloaderPassword: json['downloader_password'] ?? '',
       isSend2ereaderEnabled: json['send2ereader_enabled'] ?? false,
       send2ereaderUrl: json['send2ereader_url'] ?? 'https://send.djazz.se',
       defaultDownloadPath: json['default_download_path'] ?? '',
       downloadSchema: DownloadSchema.values[json['download_schema'] ?? 0],
       languageCode: json['language_code'] ?? 'en',
       showReadNowButton: json['show_read_now_button'] ?? false,
+      webDavUrl: json['webdav_url'] ?? '',
+      webDavUsername: json['webdav_username'] ?? '',
+      webDavPassword: json['webdav_password'] ?? '',
+      isWebDavSyncEnabled: json['webdav_enabled'] ?? false,
     );
   }
 
@@ -54,11 +72,17 @@ class SettingsModel extends Equatable {
     selectedColorKey,
     isDownloaderEnabled,
     downloaderUrl,
+    downloaderUsername,
+    downloaderPassword,
     isSend2ereaderEnabled,
     send2ereaderUrl,
     defaultDownloadPath,
     downloadSchema,
     languageCode,
     showReadNowButton,
+    webDavUrl,
+    webDavUsername,
+    webDavPassword,
+    isWebDavSyncEnabled,
   ];
 }

@@ -9,6 +9,8 @@ enum SettingsStatus { initial, loading, loaded, error }
 
 enum SettingsFeedbackStatus { initial, loading, success, error }
 
+enum ConnectionTestStatus { initial, loading, success, error }
+
 class SettingsState extends Equatable {
   final SettingsStatus status;
   final SettingsFeedbackStatus feedbackStatus;
@@ -17,6 +19,8 @@ class SettingsState extends Equatable {
   final String selectedColorKey;
   final bool isDownloaderEnabled;
   final String downloaderUrl;
+  final String downloaderUsername;
+  final String downloaderPassword;
   final bool isSend2ereaderEnabled;
   final String send2ereaderUrl;
   final String defaultDownloadPath;
@@ -26,6 +30,15 @@ class SettingsState extends Equatable {
   final String? buildNumber;
   final String? languageCode;
   final bool showReadNowButton;
+  final bool isWebDavSyncEnabled;
+  final String webDavUrl;
+  final String webDavUsername;
+  final String webDavPassword;
+
+  // Neue Felder für Test-Status
+  final ConnectionTestStatus downloaderTestStatus;
+  final ConnectionTestStatus webDavTestStatus;
+  final String? testErrorMessage; // Für spezifische Fehler beim Testen
 
   const SettingsState({
     this.status = SettingsStatus.initial,
@@ -35,6 +48,8 @@ class SettingsState extends Equatable {
     this.selectedColorKey = 'lightGreen',
     this.isDownloaderEnabled = false,
     this.downloaderUrl = '',
+    this.downloaderUsername = '',
+    this.downloaderPassword = '',
     this.isSend2ereaderEnabled = false,
     this.send2ereaderUrl = 'https://send.djazz.se',
     this.defaultDownloadPath = '',
@@ -44,6 +59,13 @@ class SettingsState extends Equatable {
     this.buildNumber,
     this.languageCode = 'en',
     this.showReadNowButton = false,
+    this.isWebDavSyncEnabled = false,
+    this.webDavUrl = '',
+    this.webDavUsername = '',
+    this.webDavPassword = '',
+    this.downloaderTestStatus = ConnectionTestStatus.initial,
+    this.webDavTestStatus = ConnectionTestStatus.initial,
+    this.testErrorMessage,
   });
 
   MaterialColor get selectedColor =>
@@ -57,6 +79,8 @@ class SettingsState extends Equatable {
     String? selectedColorKey,
     bool? isDownloaderEnabled,
     String? downloaderUrl,
+    String? downloaderUsername,
+    String? downloaderPassword,
     bool? isSend2ereaderEnabled,
     String? send2ereaderUrl,
     String? defaultDownloadPath,
@@ -66,6 +90,13 @@ class SettingsState extends Equatable {
     String? buildNumber,
     String? languageCode,
     bool? showReadNowButton,
+    bool? isWebDavSyncEnabled,
+    String? webDavUrl,
+    String? webDavUsername,
+    String? webDavPassword,
+    ConnectionTestStatus? downloaderTestStatus,
+    ConnectionTestStatus? webDavTestStatus,
+    String? testErrorMessage,
   }) {
     return SettingsState(
       status: status ?? this.status,
@@ -75,6 +106,8 @@ class SettingsState extends Equatable {
       selectedColorKey: selectedColorKey ?? this.selectedColorKey,
       isDownloaderEnabled: isDownloaderEnabled ?? this.isDownloaderEnabled,
       downloaderUrl: downloaderUrl ?? this.downloaderUrl,
+      downloaderUsername: downloaderUsername ?? this.downloaderUsername,
+      downloaderPassword: downloaderPassword ?? this.downloaderPassword,
       isSend2ereaderEnabled:
           isSend2ereaderEnabled ?? this.isSend2ereaderEnabled,
       send2ereaderUrl: send2ereaderUrl ?? this.send2ereaderUrl,
@@ -85,6 +118,13 @@ class SettingsState extends Equatable {
       buildNumber: buildNumber ?? this.buildNumber,
       languageCode: languageCode ?? this.languageCode,
       showReadNowButton: showReadNowButton ?? this.showReadNowButton,
+      isWebDavSyncEnabled: isWebDavSyncEnabled ?? this.isWebDavSyncEnabled,
+      webDavUrl: webDavUrl ?? this.webDavUrl,
+      webDavUsername: webDavUsername ?? this.webDavUsername,
+      webDavPassword: webDavPassword ?? this.webDavPassword,
+      downloaderTestStatus: downloaderTestStatus ?? this.downloaderTestStatus,
+      webDavTestStatus: webDavTestStatus ?? this.webDavTestStatus,
+      testErrorMessage: testErrorMessage,
     );
   }
 
@@ -97,6 +137,8 @@ class SettingsState extends Equatable {
     selectedColorKey,
     isDownloaderEnabled,
     downloaderUrl,
+    downloaderUsername,
+    downloaderPassword,
     isSend2ereaderEnabled,
     send2ereaderUrl,
     defaultDownloadPath,
@@ -106,5 +148,12 @@ class SettingsState extends Equatable {
     buildNumber,
     languageCode,
     showReadNowButton,
+    isWebDavSyncEnabled,
+    webDavUrl,
+    webDavUsername,
+    webDavPassword,
+    downloaderTestStatus,
+    webDavTestStatus,
+    testErrorMessage,
   ];
 }

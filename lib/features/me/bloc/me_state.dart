@@ -11,12 +11,14 @@ class MeState extends Equatable {
   final LogoutStatus logoutStatus;
   final StatsModel? stats;
   final String? errorMessage;
+  final bool isOpds;
 
   const MeState({
     this.status = MeStatus.initial,
     this.logoutStatus = LogoutStatus.initial,
     this.stats,
     this.errorMessage,
+    this.isOpds = false,
   });
 
   MeState copyWith({
@@ -24,15 +26,17 @@ class MeState extends Equatable {
     StatsModel? stats,
     String? errorMessage,
     LogoutStatus? logoutStatus,
+    bool? isOpds,
   }) {
     return MeState(
       status: status ?? this.status,
       logoutStatus: logoutStatus ?? this.logoutStatus,
       stats: stats ?? this.stats,
       errorMessage: errorMessage,
+      isOpds: isOpds ?? this.isOpds,
     );
   }
 
   @override
-  List<Object?> get props => [status, logoutStatus, stats, errorMessage];
+  List<Object?> get props => [status, logoutStatus, stats, errorMessage, isOpds];
 }

@@ -27,11 +27,13 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
     emit(state.copyWith(status: ShelfViewStatus.loading));
 
     try {
+      final isOpds = repository.getIsOpds();
       final shelves = await repository.loadShelves();
       emit(
         state.copyWith(
           status: ShelfViewStatus.loaded,
           shelves: shelves.shelves,
+          isOpds: isOpds,
         ),
       );
     } catch (e) {

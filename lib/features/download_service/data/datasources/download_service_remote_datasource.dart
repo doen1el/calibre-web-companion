@@ -6,21 +6,114 @@ import 'package:logger/logger.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_status.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_status_response.dart';
-import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart'; // Import hinzufügen
+import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
+import 'package:calibre_web_companion/features/download_service/data/models/download_config_model.dart';
+import 'package:calibre_web_companion/features/login_settings/data/repositories/login_settings_repository.dart';
 
 class DownloadServiceRemoteDataSource {
   final http.Client client;
   final SharedPreferences sharedPreferences;
   final Logger logger;
+  final LoginSettingsRepository loginSettingsRepository;
 
   DownloadServiceRemoteDataSource({
     required this.client,
     required this.sharedPreferences,
     required this.logger,
+    required this.loginSettingsRepository,
   });
 
   Future<String> _getBaseUrl() async {
     return sharedPreferences.getString('downloader_url') ?? '';
+  }
+
+  Future<Map<String, String>> _getHeaders({bool includeCookie = true}) async {
+    final headers = {'Content-Type': 'application/json'};
+
+    try {
+      final customHeaders = await loginSettingsRepository.getCustomHeaders();
+      for (var header in customHeaders) {
+        if (header.key.trim().isNotEmpty) {
+          headers[header.key] = header.value;
+        }
+      }
+    } catch (e) {
+      logger.w('Failed to load custom headers for downloader: $e');
+    }
+
+    if (includeCookie) {
+      final cookie = sharedPreferences.getString('downloader_cookie');
+      if (cookie != null && cookie.isNotEmpty) {
+        if (headers.containsKey('Cookie')) {
+          headers['Cookie'] = '${headers['Cookie']}; $cookie';
+        } else {
+          headers['Cookie'] = cookie;
+        }
+      }
+    }
+
+    return headers;
+  }
+
+  Future<void> _login() async {
+    final baseUrl = await _getBaseUrl();
+    final username = sharedPreferences.getString('downloader_username');
+    final password = sharedPreferences.getString('downloader_password');
+
+    if (username == null ||
+        username.isEmpty ||
+        password == null ||
+        password.isEmpty) {
+      throw Exception('No credentials provided for downloader service');
+    }
+
+    logger.i('Attempting to login to downloader service...');
+
+    final headers = await _getHeaders(includeCookie: false);
+
+    final response = await client.post(
+      Uri.parse('$baseUrl/api/auth/login'),
+      headers: headers,
+      body: jsonEncode({
+        'username': username,
+        'password': password,
+        'remember_me': true,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final rawCookie = response.headers['set-cookie'];
+      if (rawCookie != null) {
+        final cookieValue = rawCookie.split(';').first;
+        await sharedPreferences.setString('downloader_cookie', cookieValue);
+        logger.i('Login successful, cookie stored: $cookieValue');
+      } else {
+        logger.w('Login successful but no Set-Cookie header found');
+      }
+    } else {
+      logger.e('Login failed: ${response.statusCode} ${response.body}');
+      throw Exception('Login failed: ${response.statusCode}');
+    }
+  }
+
+  Future<http.Response> _executeWithRetry(
+    Future<http.Response> Function(Map<String, String> headers) requestFn,
+  ) async {
+    try {
+      var headers = await _getHeaders();
+      final response = await requestFn(headers);
+
+      if (response.statusCode == 401) {
+        logger.w('Received 401, attempting re-login...');
+        await _login();
+        headers = await _getHeaders();
+        return await requestFn(headers);
+      }
+
+      return response;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<List<DownloadServiceBookModel>> searchBooks(
@@ -39,7 +132,9 @@ class DownloadServiceRemoteDataSource {
 
       logger.i('Searching with URI: $uri');
 
-      final response = await client.get(uri);
+      final response = await _executeWithRetry(
+        (headers) => client.get(uri, headers: headers),
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> results = json.decode(response.body);
@@ -94,11 +189,13 @@ class DownloadServiceRemoteDataSource {
   Future<bool> downloadBook(String bookId) async {
     try {
       final baseUrl = await _getBaseUrl();
-      final response = await client.get(
-        Uri.parse('$baseUrl/api/download?id=$bookId'),
-      );
+      final uri = Uri.parse('$baseUrl/api/download?id=$bookId');
 
       logger.i('Making download request for $bookId');
+
+      final response = await _executeWithRetry(
+        (headers) => client.get(uri, headers: headers),
+      );
 
       if (response.statusCode == 200) {
         final status = json.decode(response.body);
@@ -119,7 +216,11 @@ class DownloadServiceRemoteDataSource {
   Future<List<DownloadServiceBookModel>> getDownloadStatus() async {
     try {
       final baseUrl = await _getBaseUrl();
-      final response = await client.get(Uri.parse('$baseUrl/api/status'));
+      final uri = Uri.parse('$baseUrl/api/status');
+
+      final response = await _executeWithRetry(
+        (headers) => client.get(uri, headers: headers),
+      );
 
       if (response.statusCode == 200) {
         final status = json.decode(response.body);
@@ -155,6 +256,28 @@ class DownloadServiceRemoteDataSource {
       final errorMessage = 'Error fetching download status: $e';
       logger.e(errorMessage);
       throw Exception(errorMessage);
+    }
+  }
+
+  Future<DownloadConfigModel> getConfig() async {
+    try {
+      final baseUrl = await _getBaseUrl();
+      final uri = Uri.parse('$baseUrl/api/config');
+
+      final response = await _executeWithRetry(
+        (headers) => client.get(uri, headers: headers),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonMap = json.decode(response.body);
+        return DownloadConfigModel.fromJson(jsonMap);
+      } else {
+        logger.w('Failed to load config: ${response.statusCode}');
+        return const DownloadConfigModel();
+      }
+    } catch (e) {
+      logger.e('Error fetching config: $e');
+      return const DownloadConfigModel();
     }
   }
 }

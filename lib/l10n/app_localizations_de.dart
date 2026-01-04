@@ -1058,4 +1058,67 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sectionDisabledDescription => 'Dieser Bereich scheint in deinen Calibre-Web Servereinstellungen deaktiviert zu sein oder existiert nicht.';
+
+  @override
+  String get or => 'ODER';
+
+  @override
+  String get libraries => 'Bibliotheken';
+
+  @override
+  String get browsLibraries => 'Bibliotheken durchsuchen';
+
+  @override
+  String get surpriseMe => 'Überrasche mich';
+
+  @override
+  String get downloadOptions => 'Download-Optionen';
+
+  @override
+  String get customSend2EReader => 'Benutzerdefinierters Send2Ereader';
+
+  @override
+  String get testing => 'Testen...';
+
+  @override
+  String get saveCredentials => 'Anmeldeinformationen speichern';
+
+  @override
+  String get testConnection => 'Verbindung testen';
+
+  @override
+  String get appendsBookLorePath => 'Es wird automatisch \'/api/v1/opds\' an die BookLore-URL angehängt, falls nicht vorhanden.';
+
+  @override
+  String get licenses => 'Lizenzen';
+
+  @override
+  String get syncsReadingProgress => 'Synchronisiert den Lesefortschritt über Geräte hinweg über eine JSON-Datei auf deinem WebDAV-Speicher.';
+
+  @override
+  String get webDavSync => 'WebDAV-Synchronisierung';
+
+  @override
+  String get pleaseFillInAllRequiredFields => 'Bitte fülle alle erforderlichen Felder aus.';
+
+  @override
+  String get connectionTestSuccessful => 'Verbindungstest erfolgreich. Drücke Speichern, um die Anmeldeinformationen zu übernehmen.';
+
+  @override
+  String get loginFailed => 'Anmeldung fehlgeschlagen:';
+
+  @override
+  String get connectionError => 'Verbindungsfehler:';
+
+  @override
+  String get pleaseEnterWebDavUrl => 'Bitte gib eine gültige WebDAV-URL ein';
+
+  @override
+  String get loginSuccessfull => 'Anmeldung erfolgreich';
+
+  @override
+  String get enterUsernamePasswordForSSO => 'Da Calibre Web Companion viele OPDS-Endpunkte verwendet, um verschiedene Funktionen bereitzustellen, und OPDS derzeit nur mit Benutzername/Passwort-Authentifizierung funktioniert, musst du deine Anmeldeinformationen angeben, auch wenn du SSO verwendest. Wir wissen, dass dies dem Zweck von SSO widerspricht, aber es ist notwendig, damit die App korrekt funktioniert. Hoffentlich bieten zukünftige Versionen eine bessere Lösung.';
+
+  @override
+  String get credentialsRequiredForSSO => 'Credentials required for SSO';
 }

@@ -4,6 +4,7 @@ import 'package:calibre_web_companion/features/download_service/data/datasources
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_status.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart'; // Import hinzufügen
+import 'package:calibre_web_companion/features/download_service/data/models/download_config_model.dart'; // Import
 
 class DownloadServiceRepository {
   final DownloadServiceRemoteDataSource remoteDataSource;
@@ -39,6 +40,10 @@ class DownloadServiceRepository {
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<DownloadConfigModel> getConfig() async {
+    return await remoteDataSource.getConfig();
   }
 
   List<DownloadServiceBookModel> getBooksByStatus(

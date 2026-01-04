@@ -14,13 +14,13 @@ import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_e
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/main.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_book_item_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/presentation/widgets/edit_shelf_dialog_widget.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
 class ShelfDetailsPage extends StatelessWidget {
   final String shelfId;
@@ -80,34 +80,44 @@ class ShelfDetailsPage extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               title: Text(showPublic ? "$displayTitle (Public)" : displayTitle),
-              actions: [
-                IconButton(
-                  icon: CircleAvatar(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.secondaryContainer,
-                    child: const Icon(Icons.edit_rounded),
-                  ),
-                  tooltip: localizations.editShelf,
-                  onPressed:
-                      () => _showEditShelfDialog(
-                        context,
-                        state,
-                        localizations,
-                        displayTitle,
-                      ),
-                ),
-                IconButton(
-                  icon: CircleAvatar(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.secondaryContainer,
-                    child: const Icon(Icons.delete_rounded),
-                  ),
-                  tooltip: localizations.deleteShelf,
-                  onPressed:
-                      () =>
-                          _showDeleteShelfDialog(context, state, localizations),
-                ),
-              ],
+              actions:
+                  state.isOpds
+                      ? []
+                      : [
+                        IconButton(
+                          icon: CircleAvatar(
+                            backgroundColor:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.secondaryContainer,
+                            child: const Icon(Icons.edit_rounded),
+                          ),
+                          tooltip: localizations.editShelf,
+                          onPressed:
+                              () => _showEditShelfDialog(
+                                context,
+                                state,
+                                localizations,
+                                displayTitle,
+                              ),
+                        ),
+                        IconButton(
+                          icon: CircleAvatar(
+                            backgroundColor:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.secondaryContainer,
+                            child: const Icon(Icons.delete_rounded),
+                          ),
+                          tooltip: localizations.deleteShelf,
+                          onPressed:
+                              () => _showDeleteShelfDialog(
+                                context,
+                                state,
+                                localizations,
+                              ),
+                        ),
+                      ],
             ),
             body: _buildBody(context, state, localizations),
           );
@@ -371,11 +381,25 @@ class ShelfDetailsPage extends StatelessWidget {
                 MaterialPageRoute(
                   builder:
                       (context) => BookDetailsPage(
-                        bookViewModel: BookViewModel(
-                          id: int.parse(book.id),
+                        bookViewModel: BookDetailsModel(
+                          id: int.tryParse(book.id) ?? 0,
                           uuid: book.uuid,
                           title: book.title,
-                          authors: book.authors.toString(),
+                          authors: book.authors,
+                          cover: book.coverUrl ?? '',
+                          coverUrl: book.coverUrl,
+                          comments: book.summary,
+                          data: book.summary,
+                          tags: book.tags,
+                          formats: book.formats,
+                          hasCover: book.coverUrl != null,
+                          path: '',
+                          pubdate: '',
+                          series: '',
+                          seriesIndex: 0,
+                          rating: 0,
+                          languages: '',
+                          publishers: '',
                         ),
                         bookUuid: book.uuid,
                       ),
@@ -388,7 +412,10 @@ class ShelfDetailsPage extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _buildCoverImage(context, book.id)),
+                    Expanded(
+                      child: _buildCoverImage(context, book.id, book.coverUrl),
+                    ),
+
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
@@ -519,25 +546,34 @@ class ShelfDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCoverImage(BuildContext context, String bookId) {
+  Widget _buildCoverImage(
+    BuildContext context,
+    String bookId,
+    String? coverUrl,
+  ) {
     final apiService = ApiService();
     final baseUrl = apiService.getBaseUrl();
-    final coverUrl = '$baseUrl/opds/cover/$bookId';
+
+    String imageUrl;
+    if (coverUrl != null && coverUrl.isNotEmpty) {
+      var cleanCoverURL = coverUrl.split("/api/v1/opds/").last;
+      if (cleanCoverURL.startsWith('/')) {
+        cleanCoverURL = cleanCoverURL.substring(1);
+      }
+      imageUrl = '$baseUrl/$cleanCoverURL';
+    } else {
+      imageUrl = '$baseUrl/opds/cover/$bookId';
+    }
 
     return FutureBuilder<Map<String, String>>(
       future: () async {
-        final headers = <String, String>{};
-
-        final cookieHeaders = apiService.getAuthHeaders(
-          authMethod: AuthMethod.cookie,
-        );
-        if (cookieHeaders.containsKey('Cookie')) {
-          headers['Cookie'] = cookieHeaders['Cookie']!;
-        }
+        final headers = apiService.getAuthHeaders(authMethod: AuthMethod.auto);
 
         final username = apiService.getUsername();
         final password = apiService.getPassword();
-        if (username.isNotEmpty && password.isNotEmpty) {
+        if (username.isNotEmpty &&
+            password.isNotEmpty &&
+            !headers.containsKey('Authorization')) {
           headers['Authorization'] =
               'Basic ${base64.encode(utf8.encode('$username:$password'))}';
         }
@@ -578,7 +614,7 @@ class ShelfDetailsPage extends StatelessWidget {
       builder: (context, snapshot) {
         final headers = snapshot.data ?? const <String, String>{};
         return CachedNetworkImage(
-          imageUrl: coverUrl,
+          imageUrl: imageUrl,
           httpHeaders: headers,
           fit: BoxFit.cover,
           width: double.infinity,
@@ -600,13 +636,12 @@ class ShelfDetailsPage extends StatelessWidget {
                   child: const SizedBox(),
                 ),
               ),
-          errorWidget:
-              (context, url, error) => Image.network(
-                coverUrl,
-                headers: headers,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stack) => const SizedBox(),
-              ),
+          errorWidget: (context, url, error) {
+            return Container(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: const Center(child: Icon(Icons.broken_image_rounded)),
+            );
+          },
           memCacheWidth: 300,
           memCacheHeight: 400,
         );

@@ -4,7 +4,8 @@ class LoginTextField extends StatelessWidget {
   final TextEditingController controller;
   final String labelText;
   final String? hintText;
-  final IconData? prefixIcon;
+  final String? helperText;
+  final Widget? prefix;
   final bool obscureText;
   final String? autofillHint;
   final List<String>? autofillHints;
@@ -18,7 +19,8 @@ class LoginTextField extends StatelessWidget {
     required this.controller,
     required this.labelText,
     this.hintText,
-    this.prefixIcon,
+    this.helperText,
+    this.prefix,
     this.obscureText = false,
     this.autofillHint,
     this.autofillHints,
@@ -52,7 +54,9 @@ class LoginTextField extends StatelessWidget {
             ),
             labelText: labelText,
             hintText: hintText,
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+            helperText: helperText,
+            helperMaxLines: 2,
+            prefixIcon: prefix,
             suffixIcon:
                 obscureText
                     ? IconButton(

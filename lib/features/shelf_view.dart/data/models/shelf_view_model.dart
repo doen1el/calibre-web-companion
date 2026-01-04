@@ -12,9 +12,17 @@ class ShelfViewModel extends Equatable {
   });
 
   factory ShelfViewModel.fromJson(Map<String, dynamic> json) {
+    String id = json['id'].toString();
+
+    if (id.startsWith('urn:booklore:shelf:')) {
+      id = id.replaceFirst('urn:booklore:shelf:', '');
+    } else {
+      id = id.split('/').last;
+    }
+
     return ShelfViewModel(
       title: json['title'],
-      id: json['id'].split('/').last,
+      id: id,
       isPublic: json['title'].toString().contains('(Public)'),
     );
   }

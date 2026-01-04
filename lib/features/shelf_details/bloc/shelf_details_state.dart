@@ -15,6 +15,7 @@ class ShelfDetailsState extends Equatable {
   final String? actionMessage;
   final BookViewModel? bookDetails;
   final String? loadingBookId;
+  final bool isOpds;
 
   const ShelfDetailsState({
     this.status = ShelfDetailsStatus.initial,
@@ -24,6 +25,7 @@ class ShelfDetailsState extends Equatable {
     this.actionMessage,
     this.bookDetails,
     this.loadingBookId,
+    this.isOpds = false,
   });
 
   ShelfDetailsState copyWith({
@@ -34,6 +36,7 @@ class ShelfDetailsState extends Equatable {
     String? actionMessage,
     BookViewModel? bookDetails,
     String? loadingBookId,
+    bool? isOpds,
   }) {
     return ShelfDetailsState(
       status: status ?? this.status,
@@ -43,6 +46,7 @@ class ShelfDetailsState extends Equatable {
       actionMessage: actionMessage,
       bookDetails: bookDetails ?? this.bookDetails,
       loadingBookId: loadingBookId ?? this.loadingBookId,
+      isOpds: isOpds ?? this.isOpds,
     );
   }
 
@@ -55,5 +59,6 @@ class ShelfDetailsState extends Equatable {
     actionMessage,
     bookDetails,
     loadingBookId,
+    isOpds,
   ];
 }

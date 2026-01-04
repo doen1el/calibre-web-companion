@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
@@ -11,7 +12,7 @@ import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_status.dart';
 
-class BookCardWidget extends StatelessWidget {
+class BookCardWidget extends StatefulWidget {
   final DownloadServiceBookModel book;
   final bool isSearchResult;
 
@@ -20,6 +21,32 @@ class BookCardWidget extends StatelessWidget {
     required this.book,
     required this.isSearchResult,
   });
+
+  @override
+  State<BookCardWidget> createState() => _BookCardWidgetState();
+}
+
+class _BookCardWidgetState extends State<BookCardWidget> {
+  late Future<Map<String, dynamic>> _imageContextFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _imageContextFuture = _getImageContext();
+  }
+
+  Future<Map<String, dynamic>> _getImageContext() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cookie = prefs.getString('downloader_cookie');
+    final baseUrl = prefs.getString('downloader_url') ?? '';
+
+    final headers = <String, String>{};
+    if (cookie != null && cookie.isNotEmpty) {
+      headers['Cookie'] = cookie;
+    }
+
+    return {'headers': headers, 'baseUrl': baseUrl};
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +72,7 @@ class BookCardWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          book.title,
+                          widget.book.title,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                           maxLines: 2,
@@ -55,31 +82,32 @@ class BookCardWidget extends StatelessWidget {
                         _buildInfoRow(
                           context,
                           Icons.person,
-                          book.author,
+                          widget.book.author,
                           Theme.of(context).colorScheme.primary,
                         ),
                         const SizedBox(height: 4),
                         _buildInfoRow(
                           context,
                           Icons.business,
-                          book.publisher,
+                          widget.book.publisher,
                           Theme.of(context).colorScheme.secondary,
                           textStyle: Theme.of(context).textTheme.bodySmall,
                         ),
                         const SizedBox(height: 4),
-                        if (book.year != '') ...[
+                        if (widget.book.year != '') ...[
                           _buildInfoRow(
                             context,
                             Icons.calendar_today,
-                            book.year.toString(),
+                            widget.book.year.toString(),
                             Theme.of(context).colorScheme.secondary,
                             textStyle: Theme.of(context).textTheme.bodySmall,
                           ),
                           const SizedBox(height: 4),
                         ],
                         _buildInfoBadges(context),
-                        if (!isSearchResult &&
-                            book.status != DownloaderStatus.notDownloaded) ...[
+                        if (!widget.isSearchResult &&
+                            widget.book.status !=
+                                DownloaderStatus.notDownloaded) ...[
                           const SizedBox(height: 8),
                           _buildStatusIndicator(context, localizations),
                         ],
@@ -89,16 +117,16 @@ class BookCardWidget extends StatelessWidget {
                 ),
               ],
             ),
-            if (!isSearchResult &&
-                book.status == DownloaderStatus.error &&
-                book.errorMessage != null)
+            if (!widget.isSearchResult &&
+                widget.book.status == DownloaderStatus.error &&
+                widget.book.errorMessage != null)
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
                   vertical: 8.0,
                 ),
                 child: Text(
-                  '${localizations.error}: ${book.errorMessage}',
+                  '${localizations.error}: ${widget.book.errorMessage}',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.error,
                     fontSize: 12,
@@ -128,33 +156,61 @@ class BookCardWidget extends StatelessWidget {
         width: 120,
         height: 180,
         child:
-            book.preview.isNotEmpty
-                ? CachedNetworkImage(
-                  imageUrl: book.preview,
-                  fit: BoxFit.cover,
-                  placeholder:
-                      (context, url) => Container(
+            widget.book.preview.isNotEmpty
+                ? FutureBuilder<Map<String, dynamic>>(
+                  future: _imageContextFuture,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return Container(
                         color: Theme.of(context)
                             .colorScheme
                             .surfaceContainerHighest
                             .withValues(alpha: .3),
                         child: Skeletonizer(
                           enabled: true,
-                          effect: ShimmerEffect(
-                            baseColor: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.2),
-                            highlightColor: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: .4),
-                          ),
                           child: const SizedBox(),
                         ),
-                      ),
-                  errorWidget:
-                      (context, url, error) => _buildCoverPlaceholder(context),
-                  maxWidthDiskCache: 120,
-                  maxHeightDiskCache: 180,
+                      );
+                    }
+
+                    final data = snapshot.data!;
+                    final headers = data['headers'] as Map<String, String>;
+                    final baseUrl = data['baseUrl'] as String;
+
+                    String imageUrl = widget.book.preview;
+
+                    imageUrl = '$baseUrl$imageUrl';
+
+                    return CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      httpHeaders: headers,
+                      fit: BoxFit.cover,
+                      placeholder:
+                          (context, url) => Container(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest
+                                .withValues(alpha: .3),
+                            child: Skeletonizer(
+                              enabled: true,
+                              effect: ShimmerEffect(
+                                baseColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.2),
+                                highlightColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: .4),
+                              ),
+                              child: const SizedBox(),
+                            ),
+                          ),
+                      errorWidget:
+                          (context, url, error) =>
+                              _buildCoverPlaceholder(context),
+                      maxWidthDiskCache: 120,
+                      maxHeightDiskCache: 180,
+                    );
+                  },
                 )
                 : _buildCoverPlaceholder(context),
       ),
@@ -202,24 +258,24 @@ class BookCardWidget extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
-        if (book.format.isNotEmpty)
+        if (widget.book.format.isNotEmpty)
           _buildInfoBadge(
             context,
-            book.format.toUpperCase(),
+            widget.book.format.toUpperCase(),
             color: Theme.of(context).colorScheme.primaryContainer,
             textColor: Theme.of(context).colorScheme.onPrimaryContainer,
           ),
-        if (book.size.isNotEmpty)
+        if (widget.book.size.isNotEmpty)
           _buildInfoBadge(
             context,
-            book.size,
+            widget.book.size,
             color: Theme.of(context).colorScheme.tertiaryContainer,
             textColor: Theme.of(context).colorScheme.onTertiaryContainer,
           ),
-        if (book.language.isNotEmpty)
+        if (widget.book.language.isNotEmpty)
           _buildInfoBadge(
             context,
-            book.language.toUpperCase(),
+            widget.book.language.toUpperCase(),
             color: Theme.of(context).colorScheme.secondaryContainer,
             textColor: Theme.of(context).colorScheme.onSecondaryContainer,
           ),
@@ -258,7 +314,7 @@ class BookCardWidget extends StatelessWidget {
     IconData statusIcon;
     String statusText;
 
-    switch (book.status) {
+    switch (widget.book.status) {
       case DownloaderStatus.available:
         statusColor = Colors.blue;
         statusIcon = Icons.download_rounded;
@@ -310,8 +366,8 @@ class BookCardWidget extends StatelessWidget {
     final buttons = <Widget>[];
     final state = context.watch<DownloadServiceBloc>().state;
 
-    if (isSearchResult) {
-      final bool isLoadingThisBook = state.isBookDownloading(book.id);
+    if (widget.isSearchResult) {
+      final bool isLoadingThisBook = state.isBookDownloading(widget.book.id);
 
       buttons.add(
         ElevatedButton(
@@ -320,7 +376,7 @@ class BookCardWidget extends StatelessWidget {
                   ? null
                   : () async {
                     context.read<DownloadServiceBloc>().add(
-                      DownloadBook(book.id),
+                      DownloadBook(widget.book.id),
                     );
                     context.showSnackBar(
                       localizations.addedBookToTheDownloadQueue,
@@ -362,9 +418,11 @@ class BookCardWidget extends StatelessWidget {
         ),
       );
     } else {
-      switch (book.status) {
+      switch (widget.book.status) {
         case DownloaderStatus.error:
-          final bool isLoadingThisBook = state.isBookDownloading(book.id);
+          final bool isLoadingThisBook = state.isBookDownloading(
+            widget.book.id,
+          );
 
           buttons.add(
             ElevatedButton.icon(
@@ -372,7 +430,7 @@ class BookCardWidget extends StatelessWidget {
                   isLoadingThisBook
                       ? null
                       : () => context.read<DownloadServiceBloc>().add(
-                        DownloadBook(book.id),
+                        DownloadBook(widget.book.id),
                       ),
               icon:
                   isLoadingThisBook

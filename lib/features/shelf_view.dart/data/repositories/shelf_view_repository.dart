@@ -58,4 +58,6 @@ class ShelfViewRepository {
       rethrow;
     }
   }
+  
+  bool getIsOpds() => dataSource.getIsOpds();
 }

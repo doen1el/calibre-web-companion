@@ -8,6 +8,7 @@ enum DiscoverType {
   newlyAdded,
   rated,
   discover,
+  surprise,
 }
 
 enum CategoryType {
@@ -18,6 +19,7 @@ enum CategoryType {
   ratings,
   formats,
   series,
+  libraries,
 }
 
 abstract class DiscoverEvent extends Equatable {
@@ -47,3 +49,5 @@ class NavigateToBookList extends DiscoverEvent {
 class NavigateToRecommendations extends DiscoverEvent {
   const NavigateToRecommendations();
 }
+
+class CheckServerType extends DiscoverEvent {}

@@ -78,16 +78,19 @@ class _BookViewPageState extends State<BookViewPage> {
             title: Text(localizations.books),
             actions: [
               _buildColumnSelector(context, state, localizations),
-              _buildSortOptions(context, localizations),
-              _buildSearchButton(context),
+              if (!state.isOpds) _buildSortOptions(context, localizations),
+              _buildSearchButton(context, localizations),
             ],
           ),
           body: _buildBody(context, state, localizations),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => _pickAndUploadBook(context, localizations),
-            tooltip: localizations.uploadEbook,
-            child: const Icon(Icons.upload_rounded),
-          ),
+          floatingActionButton:
+              state.isOpds
+                  ? null
+                  : FloatingActionButton(
+                    onPressed: () => _pickAndUploadBook(context, localizations),
+                    tooltip: localizations.uploadEbook,
+                    child: const Icon(Icons.upload_rounded),
+                  ),
         );
       },
     );
@@ -200,6 +203,7 @@ class _BookViewPageState extends State<BookViewPage> {
                     bookId: book.id.toString(),
                     title: book.title,
                     authors: book.authors,
+                    coverUrl: book.coverUrl,
                     onTap: () async {
                       final changed = await Navigator.of(context).push<bool>(
                         AppTransitions.createSlideRoute(
@@ -355,9 +359,13 @@ class _BookViewPageState extends State<BookViewPage> {
     );
   }
 
-  Widget _buildSearchButton(BuildContext context) {
+  Widget _buildSearchButton(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
     return IconButton(
       icon: const Icon(Icons.search),
+      tooltip: localizations.search,
       onPressed: () async {
         final searchQuery = await showDialog<String>(
           context: context,

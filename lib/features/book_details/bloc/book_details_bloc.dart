@@ -7,13 +7,18 @@ import 'package:calibre_web_companion/features/book_details/bloc/book_details_st
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/core/exceptions/cancellation_exception.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
+import 'package:calibre_web_companion/features/book_details/data/repositories/reading_progress_repository.dart';
 
 class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
   final BookDetailsRepository repository;
+  final ReadingProgressRepository progressRepository;
   final Logger logger;
 
-  BookDetailsBloc({required this.repository, required this.logger})
-    : super(const BookDetailsState()) {
+  BookDetailsBloc({
+    required this.repository,
+    required this.progressRepository,
+    required this.logger,
+  }) : super(const BookDetailsState()) {
     on<LoadBookDetails>(_onLoadBookDetails);
     on<ReloadBookDetails>(_onReloadBookDetails);
     on<ToggleReadStatus>(_onToggleReadStatus);
@@ -33,6 +38,8 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       emit(state.copyWith(sendToEReaderProgress: event.progress));
     });
     on<OpenSeries>(_onOpenSeries);
+    on<LoadReadingProgress>(_onLoadReadingProgress);
+    on<SyncReadingProgress>(_onSyncReadingProgress);
   }
 
   bool _downloadCancelled = false;
@@ -52,6 +59,8 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         event.bookViewModel,
         event.bookUuid,
       );
+
+      add(LoadReadingProgress(event.bookUuid));
 
       logger.i(bookDetails.tags);
 
@@ -668,5 +677,21 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         state.copyWith(seriesNavigationStatus: SeriesNavigationStatus.initial),
       );
     }
+  }
+
+  Future<void> _onLoadReadingProgress(
+    LoadReadingProgress event,
+    Emitter<BookDetailsState> emit,
+  ) async {
+    final location = await progressRepository.getBestLocation(event.bookUuid);
+
+    emit(state.copyWith(startLocation: location));
+  }
+
+  Future<void> _onSyncReadingProgress(
+    SyncReadingProgress event,
+    Emitter<BookDetailsState> emit,
+  ) async {
+    progressRepository.saveProgress(event.bookUuid, event.locatorJson);
   }
 }

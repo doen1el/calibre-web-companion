@@ -8,7 +8,9 @@ import 'package:intl/intl.dart' as intl;
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
+import 'app_localizations_et.dart';
 import 'app_localizations_fr.dart';
+import 'app_localizations_it.dart';
 import 'app_localizations_pt.dart';
 
 // ignore_for_file: type=lint
@@ -97,7 +99,9 @@ abstract class AppLocalizations {
     Locale('de'),
     Locale('en'),
     Locale('es'),
+    Locale('et'),
     Locale('fr'),
+    Locale('it'),
     Locale('pt')
   ];
 
@@ -2158,6 +2162,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This section appears to be disabled in your Calibre-Web server settings or does not exist.'**
   String get sectionDisabledDescription;
+
+  /// No description provided for @or.
+  ///
+  /// In en, this message translates to:
+  /// **'OR'**
+  String get or;
+
+  /// No description provided for @libraries.
+  ///
+  /// In en, this message translates to:
+  /// **'Libraries'**
+  String get libraries;
+
+  /// No description provided for @browsLibraries.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse Libraries'**
+  String get browsLibraries;
+
+  /// No description provided for @surpriseMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Surprise Me'**
+  String get surpriseMe;
+
+  /// No description provided for @downloadOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Options'**
+  String get downloadOptions;
+
+  /// No description provided for @customSend2EReader.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Send2Ereader'**
+  String get customSend2EReader;
+
+  /// No description provided for @testing.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing...'**
+  String get testing;
+
+  /// No description provided for @saveCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Credentials'**
+  String get saveCredentials;
+
+  /// No description provided for @testConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Connection'**
+  String get testConnection;
+
+  /// No description provided for @appendsBookLorePath.
+  ///
+  /// In en, this message translates to:
+  /// **'Appends \'/api/v1/opds\' to the BookLore URL if not present.'**
+  String get appendsBookLorePath;
+
+  /// No description provided for @licenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Licenses'**
+  String get licenses;
+
+  /// No description provided for @syncsReadingProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncs reading progress across devices via a JSON file on your WebDAV storage.'**
+  String get syncsReadingProgress;
+
+  /// No description provided for @webDavSync.
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV Sync'**
+  String get webDavSync;
+
+  /// No description provided for @pleaseFillInAllRequiredFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill in all required fields.'**
+  String get pleaseFillInAllRequiredFields;
+
+  /// No description provided for @connectionTestSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection test successful. Press Save to apply the credentials.'**
+  String get connectionTestSuccessful;
+
+  /// No description provided for @loginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Login failed:'**
+  String get loginFailed;
+
+  /// No description provided for @connectionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection error'**
+  String get connectionError;
+
+  /// No description provided for @pleaseEnterWebDavUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid WebDAV URL'**
+  String get pleaseEnterWebDavUrl;
+
+  /// No description provided for @loginSuccessfull.
+  ///
+  /// In en, this message translates to:
+  /// **'Login successful'**
+  String get loginSuccessfull;
+
+  /// No description provided for @enterUsernamePasswordForSSO.
+  ///
+  /// In en, this message translates to:
+  /// **'Since Calibre Web Companion uses many OPDS endpoints to provide different features, and OPDS currently only works with username/password authentication, you need to provide your credentials, even when using SSO. We know that this goes against the purpose of SSO, but it is necessary for the app to function correctly. Hopefully, future versions will offer a better solution.'**
+  String get enterUsernamePasswordForSSO;
+
+  /// No description provided for @credentialsRequiredForSSO.
+  ///
+  /// In en, this message translates to:
+  /// **'Credentials required for SSO'**
+  String get credentialsRequiredForSSO;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -2169,7 +2299,7 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['de', 'en', 'es', 'fr', 'pt'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['de', 'en', 'es', 'et', 'fr', 'it', 'pt'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -2183,7 +2313,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
     case 'de': return AppLocalizationsDe();
     case 'en': return AppLocalizationsEn();
     case 'es': return AppLocalizationsEs();
+    case 'et': return AppLocalizationsEt();
     case 'fr': return AppLocalizationsFr();
+    case 'it': return AppLocalizationsIt();
     case 'pt': return AppLocalizationsPt();
   }
 

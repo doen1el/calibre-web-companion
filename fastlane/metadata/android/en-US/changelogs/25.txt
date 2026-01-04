@@ -1,0 +1,13 @@
+- updated pipeline to remove wrongly created tag
+- updated edit metadata icon buttons background color
+- added script to generate .ipa files for iOS
+- added new connection settings for Booklore and OPDS (beta)
+- added authentication for calibre-web-automated-book-downloader
+- added ability to load calibre-web-automated-book-downloader config from the server
+- added authentication headers to calibre-web-automated-book-downloader requests
+- added Estonian and Italian translations
+- added new internal epub reader
+- added ability to sync reading progress via webdav to other devices
+- improved SSO handling
+- added licenses page to settings
+- some minor bug fixes and improvements

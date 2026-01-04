@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.8.0+24
+version: 1.8.1+25
 
 environment:
   sdk: ^3.7.0
@@ -60,8 +60,11 @@ dependencies:
   path_provider:
   http_parser:
   docman:
-  epub_view:
   flutter_rating:
+  html_unescape:
+  webdav_client:
+  vocsy_epub_viewer:
+    path: ./packages/vocsy_epub_viewer
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -99,8 +102,8 @@ flutter:
   generate: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  assets:
+    - assets/icon.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -50,17 +50,21 @@ class ShelfViewPage extends StatelessWidget {
               },
               child: _buildBody(context, state, localizations),
             ),
-            floatingActionButton: FloatingActionButton.extended(
-              onPressed: () => _showCreateShelfDialog(context, localizations),
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.add_rounded),
-                  const SizedBox(width: 8),
-                  Text(localizations.createShelf),
-                ],
-              ),
-            ),
+            floatingActionButton:
+                state.isOpds
+                    ? null
+                    : FloatingActionButton.extended(
+                      onPressed:
+                          () => _showCreateShelfDialog(context, localizations),
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.add_rounded),
+                          const SizedBox(width: 8),
+                          Text(localizations.createShelf),
+                        ],
+                      ),
+                    ),
           );
         },
       ),

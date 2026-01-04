@@ -1058,4 +1058,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sectionDisabledDescription => 'This section appears to be disabled in your Calibre-Web server settings or does not exist.';
+
+  @override
+  String get or => 'OR';
+
+  @override
+  String get libraries => 'Libraries';
+
+  @override
+  String get browsLibraries => 'Browse Libraries';
+
+  @override
+  String get surpriseMe => 'Surprise Me';
+
+  @override
+  String get downloadOptions => 'Download Options';
+
+  @override
+  String get customSend2EReader => 'Custom Send2Ereader';
+
+  @override
+  String get testing => 'Testing...';
+
+  @override
+  String get saveCredentials => 'Save Credentials';
+
+  @override
+  String get testConnection => 'Test Connection';
+
+  @override
+  String get appendsBookLorePath => 'Appends \'/api/v1/opds\' to the BookLore URL if not present.';
+
+  @override
+  String get licenses => 'Licenses';
+
+  @override
+  String get syncsReadingProgress => 'Syncs reading progress across devices via a JSON file on your WebDAV storage.';
+
+  @override
+  String get webDavSync => 'WebDAV Sync';
+
+  @override
+  String get pleaseFillInAllRequiredFields => 'Please fill in all required fields.';
+
+  @override
+  String get connectionTestSuccessful => 'Connection test successful. Press Save to apply the credentials.';
+
+  @override
+  String get loginFailed => 'Login failed:';
+
+  @override
+  String get connectionError => 'Connection error';
+
+  @override
+  String get pleaseEnterWebDavUrl => 'Please enter a valid WebDAV URL';
+
+  @override
+  String get loginSuccessfull => 'Login successful';
+
+  @override
+  String get enterUsernamePasswordForSSO => 'Since Calibre Web Companion uses many OPDS endpoints to provide different features, and OPDS currently only works with username/password authentication, you need to provide your credentials, even when using SSO. We know that this goes against the purpose of SSO, but it is necessary for the app to function correctly. Hopefully, future versions will offer a better solution.';
+
+  @override
+  String get credentialsRequiredForSSO => 'Credentials required for SSO';
 }

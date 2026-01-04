@@ -99,7 +99,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: 'build/app/outputs/flutter-apk/*.apk'
-          tag: v${{ env.VERSION }}-b${{ github.run_number }}
+          tag: v${{ env.VERSION }}
           draft: true
           token: ${{ secrets.TOKEN }}
           name: 'Release v${{ env.VERSION }}'

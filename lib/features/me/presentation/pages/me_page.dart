@@ -85,6 +85,7 @@ class MePage extends StatelessWidget {
                               : null,
                       onRetry:
                           () => context.read<MeBloc>().add(const LoadStats()),
+                      isOpds: state.isOpds,
                     ),
                     LongButton(
                       text: localizations.settings,
@@ -102,34 +103,37 @@ class MePage extends StatelessWidget {
                             AppTransitions.createSlideRoute(ShelfViewPage()),
                           ),
                     ),
-                    LongButton(
-                      text: localizations.showReadBooks,
-                      icon: Icons.my_library_books_rounded,
-                      onPressed:
-                          () => Navigator.of(context).push(
-                            AppTransitions.createSlideRoute(
-                              DiscoverDetailsPage(
-                                title: localizations.readBooks,
-                                discoverType: DiscoverType.readbooks,
-                                fullPath: "/opds/readbooks",
+
+                    if (!state.isOpds) ...[
+                      LongButton(
+                        text: localizations.showReadBooks,
+                        icon: Icons.my_library_books_rounded,
+                        onPressed:
+                            () => Navigator.of(context).push(
+                              AppTransitions.createSlideRoute(
+                                DiscoverDetailsPage(
+                                  title: localizations.readBooks,
+                                  discoverType: DiscoverType.readbooks,
+                                  fullPath: "/opds/readbooks",
+                                ),
                               ),
                             ),
-                          ),
-                    ),
-                    LongButton(
-                      text: localizations.showUnReadBooks,
-                      icon: Icons.read_more_rounded,
-                      onPressed:
-                          () => Navigator.of(context).push(
-                            AppTransitions.createSlideRoute(
-                              DiscoverDetailsPage(
-                                title: localizations.unreadBooks,
-                                discoverType: DiscoverType.unreadbooks,
-                                fullPath: "/opds/unreadbooks",
+                      ),
+                      LongButton(
+                        text: localizations.showUnReadBooks,
+                        icon: Icons.read_more_rounded,
+                        onPressed:
+                            () => Navigator.of(context).push(
+                              AppTransitions.createSlideRoute(
+                                DiscoverDetailsPage(
+                                  title: localizations.unreadBooks,
+                                  discoverType: DiscoverType.unreadbooks,
+                                  fullPath: "/opds/unreadbooks",
+                                ),
                               ),
                             ),
-                          ),
-                    ),
+                      ),
+                    ],
                   ],
                 ),
               ),

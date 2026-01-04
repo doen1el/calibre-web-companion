@@ -5,7 +5,6 @@ import 'package:calibre_web_companion/features/book_view/data/models/book_view_m
 
 class BookDetailsModel extends BookViewModel {
   final FormatMetadata formatMetadata;
-  final List<String> formats;
   final String cover;
   final String thumbnail;
   final Map<String, String> mainFormat;
@@ -13,6 +12,7 @@ class BookDetailsModel extends BookViewModel {
   final String titleSort;
   final double rating;
   final String comments;
+  // ignore: annotate_overrides, overridden_fields
   final List<String> tags;
   final List<TagModel> tagModels;
 
@@ -39,7 +39,9 @@ class BookDetailsModel extends BookViewModel {
     super.seriesIndex = 0,
     super.sort = '',
     super.timestamp = '',
-    this.formats = const [],
+    super.formats = const [],
+    super.coverUrl,
+    this.tags = const [],
     this.cover = '',
     this.formatMetadata = const FormatMetadata(formats: {}),
     this.mainFormat = const {},
@@ -48,14 +50,13 @@ class BookDetailsModel extends BookViewModel {
     this.titleSort = '',
     this.rating = 0.0,
     this.comments = '',
-    this.tags = const [],
     this.tagModels = const [],
   });
 
   @override
   List<Object?> get props => [
     ...super.props,
-    formats,
+    // tags, // ENTFERNT
     cover,
     formatMetadata,
     mainFormat,
@@ -161,7 +162,6 @@ class BookDetailsModel extends BookViewModel {
   Map<String, dynamic> toJson() {
     return {
       ...super.toJson(),
-      'formats': formats,
       'cover': cover,
       'format_metadata': formatMetadata.toJson(),
       'main_format': mainFormat,
@@ -209,6 +209,7 @@ class BookDetailsModel extends BookViewModel {
     String? comments,
     List<String>? tags,
     List<TagModel>? tagModels,
+    String? coverUrl,
   }) {
     return BookDetailsModel(
       id: id ?? this.id,

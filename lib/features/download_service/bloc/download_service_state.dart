@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
+import 'package:calibre_web_companion/features/download_service/data/models/download_config_model.dart';
 
 enum DownloadServiceTab { search, downloads }
 
@@ -16,6 +17,7 @@ class DownloadServiceState extends Equatable {
   final bool hasSearched;
   final String? errorMessage;
   final DownloadServiceTab activeTab;
+  final DownloadConfigModel config;
 
   const DownloadServiceState({
     this.searchStatus = DownloadServiceStatus.initial,
@@ -27,6 +29,7 @@ class DownloadServiceState extends Equatable {
     this.hasSearched = false,
     this.errorMessage,
     this.activeTab = DownloadServiceTab.search,
+    this.config = const DownloadConfigModel(),
   });
 
   bool get isSearching => searchStatus == DownloadServiceStatus.loading;
@@ -45,6 +48,7 @@ class DownloadServiceState extends Equatable {
     bool? hasSearched,
     String? errorMessage,
     DownloadServiceTab? activeTab,
+    DownloadConfigModel? config,
   }) {
     return DownloadServiceState(
       searchStatus: searchStatus ?? this.searchStatus,
@@ -56,6 +60,7 @@ class DownloadServiceState extends Equatable {
       hasSearched: hasSearched ?? this.hasSearched,
       errorMessage: errorMessage,
       activeTab: activeTab ?? this.activeTab,
+      config: config ?? this.config,
     );
   }
 
@@ -70,5 +75,6 @@ class DownloadServiceState extends Equatable {
     hasSearched,
     errorMessage,
     activeTab,
+    config,
   ];
 }

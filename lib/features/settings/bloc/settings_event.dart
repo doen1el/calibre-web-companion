@@ -94,6 +94,16 @@ class SetDownloaderUrl extends SettingsEvent {
   List<Object?> get props => [url];
 }
 
+class SetDownloaderCredentials extends SettingsEvent {
+  final String username;
+  final String password;
+
+  const SetDownloaderCredentials(this.username, this.password);
+
+  @override
+  List<Object?> get props => [username, password];
+}
+
 class SubmitFeedback extends SettingsEvent {
   final String? title;
   final String? description;
@@ -128,3 +138,57 @@ class BuyMeACoffee extends SettingsEvent {
   @override
   List<Object?> get props => [];
 }
+
+class SetWebDavSyncEnabled extends SettingsEvent {
+  final bool enabled;
+  const SetWebDavSyncEnabled(this.enabled);
+  @override
+  List<Object?> get props => [enabled];
+}
+
+class SetWebDavUrl extends SettingsEvent {
+  final String url;
+  const SetWebDavUrl(this.url);
+  @override
+  List<Object?> get props => [url];
+}
+
+class SetWebDavCredentials extends SettingsEvent {
+  final String username;
+  final String password;
+  const SetWebDavCredentials(this.username, this.password);
+  @override
+  List<Object?> get props => [username, password];
+}
+
+class TestDownloaderConnection extends SettingsEvent {
+  final String url;
+  final String username;
+  final String password;
+
+  const TestDownloaderConnection({
+    required this.url,
+    required this.username,
+    required this.password,
+  });
+
+  @override
+  List<Object?> get props => [url, username, password];
+}
+
+class TestWebDavConnection extends SettingsEvent {
+  final String url;
+  final String username;
+  final String password;
+
+  const TestWebDavConnection({
+    required this.url,
+    required this.username,
+    required this.password,
+  });
+
+  @override
+  List<Object?> get props => [url, username, password];
+}
+
+class ResetConnectionTestStatus extends SettingsEvent {}

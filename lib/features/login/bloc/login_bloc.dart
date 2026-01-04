@@ -18,6 +18,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<SubmitSsoLogin>(_onSubmitSsoLogin);
     on<ResetLoginStatus>(_onResetLoginStatus);
     on<LoginLogOut>(_onLogOut);
+    on<ChangeServerType>(_onChangeServerType);
+    on<FinalizeSsoLogin>(_onFinalizeSsoLogin); // NEU
     on<LoadStoredCredentials>(_onLoadStoredCredentials);
   }
 
@@ -37,6 +39,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(const LoginState());
   }
 
+  void _onChangeServerType(ChangeServerType event, Emitter<LoginState> emit) {
+    emit(state.copyWith(serverType: event.serverType));
+  }
+
   Future<void> _onSubmitLogin(
     SubmitLogin event,
     Emitter<LoginState> emit,
@@ -54,6 +60,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         state.username,
         state.password,
         state.url,
+        state.serverType,
       );
 
       if (result.isSuccess) {
@@ -106,7 +113,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       ),
     );
     try {
-      final result = await loginRepository.login('', '', state.url);
+      final result = await loginRepository.login(
+        '',
+        '',
+        state.url,
+        state.serverType,
+      );
 
       if (result.isRedirect) {
         logger.i('SSO Redirect detected to: ${result.redirectUrl}');
@@ -163,18 +175,69 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   ) async {
     try {
       final credentials = await loginRepository.getStoredCredentials();
+      final serverType = await loginRepository.getStoredServerType();
+
       if (credentials != null) {
         emit(
           state.copyWith(
             url: credentials.baseUrl,
             username: credentials.username,
             password: credentials.password,
+            serverType: serverType,
           ),
         );
-        logger.i('Stored credentials loaded successfully');
+        logger.i('Stored credentials and server type loaded successfully');
       }
     } catch (e) {
       logger.e('Error loading stored credentials: $e');
+    }
+  }
+
+  Future<void> _onFinalizeSsoLogin(
+    FinalizeSsoLogin event,
+    Emitter<LoginState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        status: LoginStatus.loading,
+        loadingType: LoginLoadingType.sso,
+      ),
+    );
+
+    try {
+      final result = await loginRepository.finalizeSso(
+        event.cookieHeader,
+        event.userAgent,
+        event.baseUrl,
+        event.username,
+        event.password,
+      );
+
+      if (result.isSuccess) {
+        logger.i('SSO Finalization successful');
+        emit(
+          state.copyWith(
+            status: LoginStatus.success,
+            loadingType: LoginLoadingType.initial,
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            status: LoginStatus.failure,
+            errorMessage: result.errorMessage,
+            loadingType: LoginLoadingType.initial,
+          ),
+        );
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: LoginStatus.failure,
+          errorMessage: e.toString(),
+          loadingType: LoginLoadingType.initial,
+        ),
+      );
     }
   }
 }

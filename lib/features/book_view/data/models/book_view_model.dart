@@ -5,18 +5,18 @@ class BookViewModel extends Equatable {
   final String authorSort;
   final String authors;
   final String data;
-  final bool flags; // 1 = true, 0 = false
-  final bool hasCover; // 1 = true, 0 = false
+  final bool flags;
+  final bool hasCover;
   final int id;
   final String identifiers;
-  final bool isArchived; // true or false
+  final bool isArchived;
   final String isbn;
   final String languages;
   final String lastModified;
   final String path;
   final String pubdate;
   final String publishers;
-  final bool readStatus; // "true" or "false"
+  final bool readStatus;
   final String registry;
   final String series;
   final int seriesIndex;
@@ -24,6 +24,9 @@ class BookViewModel extends Equatable {
   final String timestamp;
   final String title;
   final String uuid;
+  final String? coverUrl;
+  final List<String> formats;
+  final List<String> tags;
 
   static final Logger _logger = Logger();
 
@@ -50,6 +53,9 @@ class BookViewModel extends Equatable {
     this.seriesIndex = 0,
     this.sort = '',
     this.timestamp = '',
+    this.coverUrl,
+    this.formats = const [],
+    this.tags = const [],
   });
 
   @override
@@ -76,6 +82,9 @@ class BookViewModel extends Equatable {
     seriesIndex,
     sort,
     timestamp,
+    coverUrl,
+    formats,
+    tags,
   ];
 
   Map<String, dynamic> toJson() {
@@ -102,18 +111,33 @@ class BookViewModel extends Equatable {
       'series_index': seriesIndex.toString(),
       'sort': sort,
       'timestamp': timestamp,
+      'cover_url': coverUrl,
+      'formats': formats,
+      'tags': tags,
     };
   }
 
   factory BookViewModel.fromJson(Map<String, dynamic> json) {
     try {
+      List<String> parsedTags = [];
+      if (json['tags'] != null) {
+        final dynamic t = json['tags'];
+        if (t is String) {
+          if (t.isNotEmpty) {
+            parsedTags = t.split(',').map((e) => e.trim()).toList();
+          }
+        } else if (t is List) {
+          parsedTags = t.map((e) => e.toString()).toList();
+        }
+      }
+
       return BookViewModel(
         id: json['id'],
         uuid: json['uuid'],
         title: json['title'],
         authors: json['authors'],
         authorSort: json['author_sort'],
-        data: json['data'],
+        data: json['comments'] ?? json['data'] ?? '',
         flags: json['flags'] == 1,
         hasCover: json['has_cover'] == 1,
         identifiers: json['identifiers'],
@@ -132,6 +156,12 @@ class BookViewModel extends Equatable {
             0,
         sort: json['sort'],
         timestamp: json['timestamp'],
+        coverUrl: json['cover_url'],
+        formats:
+            json['formats'] != null
+                ? List<String>.from(json['formats'])
+                : const [],
+        tags: parsedTags,
       );
     } catch (e) {
       _logger.e('Error creating BookItem from JSON: $e');
@@ -162,6 +192,9 @@ class BookViewModel extends Equatable {
     String? timestamp,
     String? title,
     String? uuid,
+    String? coverUrl,
+    List<String>? formats,
+    List<String>? tags,
   }) {
     return BookViewModel(
       id: id ?? this.id,
@@ -186,6 +219,9 @@ class BookViewModel extends Equatable {
       seriesIndex: seriesIndex ?? this.seriesIndex,
       sort: sort ?? this.sort,
       timestamp: timestamp ?? this.timestamp,
+      coverUrl: coverUrl ?? this.coverUrl,
+      formats: formats ?? this.formats,
+      tags: tags ?? this.tags,
     );
   }
 }

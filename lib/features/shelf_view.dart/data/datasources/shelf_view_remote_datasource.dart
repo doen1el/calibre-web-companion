@@ -1,4 +1,5 @@
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_list_view_model.dart';
@@ -10,15 +11,23 @@ class ShelfViewRemoteDataSource {
   final ApiService apiService;
   final Logger logger;
   final ShelfDetailsRemoteDataSource shelfDetailsRemoteDataSource;
+  final SharedPreferences preferences;
 
   ShelfViewRemoteDataSource({
     required this.apiService,
     required this.logger,
     required this.shelfDetailsRemoteDataSource,
+    required this.preferences,
   });
 
   Future<ShelfListViewModel> loadShelves() async {
     try {
+      final serverType = preferences.getString('server_type');
+
+      if (serverType == 'opds' || serverType == 'booklore') {
+        return _loadOpdsShelves();
+      }
+
       final res = await apiService.getXmlAsJson(
         endpoint: '/opds/shelfindex',
         authMethod: AuthMethod.auto,
@@ -28,6 +37,14 @@ class ShelfViewRemoteDataSource {
       logger.e("Error loading shelves: $e");
       throw Exception('Failed to load shelves: $e');
     }
+  }
+
+  Future<ShelfListViewModel> _loadOpdsShelves() async {
+    final res = await apiService.getXmlAsJson(
+      endpoint: '/shelves',
+      authMethod: AuthMethod.basic,
+    );
+    return ShelfListViewModel.fromFeedJson(res);
   }
 
   Future<String> createShelf(String shelfName, {bool isPublic = false}) async {
@@ -123,5 +140,10 @@ class ShelfViewRemoteDataSource {
       logger.e('Error finding shelves containing book: $e');
       throw Exception('Failed to find shelves containing book: $e');
     }
+  }
+
+  bool getIsOpds() {
+    return preferences.getString('server_type') == 'opds' ||
+        preferences.getString('server_type') == 'booklore';
   }
 }

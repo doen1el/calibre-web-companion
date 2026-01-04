@@ -17,6 +17,7 @@ class MeBloc extends Bloc<MeEvent, MeState> {
     emit(state.copyWith(status: MeStatus.loading));
 
     try {
+      final isOpds = repository.getIsOpds();
       final stats = await repository.getStats();
 
       emit(
@@ -24,6 +25,7 @@ class MeBloc extends Bloc<MeEvent, MeState> {
           status: MeStatus.loaded,
           stats: stats,
           errorMessage: null,
+          isOpds: isOpds,
         ),
       );
     } catch (e) {

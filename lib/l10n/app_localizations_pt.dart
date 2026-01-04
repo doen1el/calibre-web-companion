@@ -610,7 +610,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get separateWithCommas => 'Separar com vírgulas';
 
   @override
-  String get separateWithAnd => 'Separate with \'&\'';
+  String get separateWithAnd => 'Separar com \"&\"';
 
   @override
   String get ratingOneToTen => 'Avaliação (1-10)';
@@ -784,7 +784,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get webViewAuth => 'Autenticação via WebView';
 
   @override
-  String get basePath => 'Caminho Base (Base Path)';
+  String get basePath => 'Caminho de base (Base Path)';
 
   @override
   String get authSystem => 'Sistema de Autenticação';
@@ -901,7 +901,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get columns => 'Colunas';
 
   @override
-  String get listView => 'List view';
+  String get listView => 'Listar';
 
   @override
   String get uploadEbook => 'Enviar eBook';
@@ -1058,4 +1058,67 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get sectionDisabledDescription => 'Esta seção parece estar desativada nas configurações do seu servidor Calibre-Web ou não existe.';
+
+  @override
+  String get or => 'OU';
+
+  @override
+  String get libraries => 'Bibliotecas';
+
+  @override
+  String get browsLibraries => 'Navegar pelas Bibliotecas';
+
+  @override
+  String get surpriseMe => 'Me surpreenda';
+
+  @override
+  String get downloadOptions => 'Opções de Download';
+
+  @override
+  String get customSend2EReader => 'Send2Ereader Personalizado';
+
+  @override
+  String get testing => 'Testando...';
+
+  @override
+  String get saveCredentials => 'Salvar Credenciais';
+
+  @override
+  String get testConnection => 'Testar Conexão';
+
+  @override
+  String get appendsBookLorePath => 'Adiciona /book/lore ao final da URL do livro';
+
+  @override
+  String get licenses => 'Licenças';
+
+  @override
+  String get syncsReadingProgress => 'Syncs reading progress across devices via a JSON file on your WebDAV storage.';
+
+  @override
+  String get webDavSync => 'WebDAV Sync';
+
+  @override
+  String get pleaseFillInAllRequiredFields => 'Please fill in all required fields.';
+
+  @override
+  String get connectionTestSuccessful => 'Connection test successful. Press Save to apply the credentials.';
+
+  @override
+  String get loginFailed => 'Login failed:';
+
+  @override
+  String get connectionError => 'Connection error';
+
+  @override
+  String get pleaseEnterWebDavUrl => 'Please enter a valid WebDAV URL';
+
+  @override
+  String get loginSuccessfull => 'Login successful';
+
+  @override
+  String get enterUsernamePasswordForSSO => 'Since Calibre Web Companion uses many OPDS endpoints to provide different features, and OPDS currently only works with username/password authentication, you need to provide your credentials, even when using SSO. We know that this goes against the purpose of SSO, but it is necessary for the app to function correctly. Hopefully, future versions will offer a better solution.';
+
+  @override
+  String get credentialsRequiredForSSO => 'Credentials required for SSO';
 }
