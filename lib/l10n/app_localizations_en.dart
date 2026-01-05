@@ -1121,4 +1121,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get credentialsRequiredForSSO => 'Credentials required for SSO';
+
+  @override
+  String get readerSettings => 'Reader Settings';
+
+  @override
+  String get scrollDirection => 'Scroll Direction';
+
+  @override
+  String get vertical => 'Vertical';
+
+  @override
+  String get horizontal => 'Horizontal';
 }

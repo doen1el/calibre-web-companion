@@ -30,6 +30,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SetWebDavCredentials>(_onSetWebDavCredentials);
     on<TestDownloaderConnection>(_onTestDownloaderConnection);
     on<TestWebDavConnection>(_onTestWebDavConnection);
+    on<SetEpubScrollDirection>(_onSetEpubScrollDirection);
     on<ResetConnectionTestStatus>(_onResetConnectionTestStatus);
   }
 
@@ -65,6 +66,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           webDavUsername: settings.webDavUsername,
           webDavPassword: settings.webDavPassword,
           isWebDavSyncEnabled: settings.isWebDavSyncEnabled,
+          epubScrollDirection: settings.epubScrollDirection,
         ),
       );
     } catch (e) {
@@ -438,6 +440,23 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         state.copyWith(
           webDavTestStatus: ConnectionTestStatus.error,
           testErrorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetEpubScrollDirection(
+    SetEpubScrollDirection event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      await repository.setEpubScrollDirection(event.direction);
+      emit(state.copyWith(epubScrollDirection: event.direction));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
         ),
       );
     }

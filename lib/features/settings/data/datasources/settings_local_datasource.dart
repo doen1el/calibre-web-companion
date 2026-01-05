@@ -45,6 +45,8 @@ class SettingsLocalDataSource {
         'webdav_username': sharedPreferences.getString('webdav_username') ?? '',
         'webdav_password': sharedPreferences.getString('webdav_password') ?? '',
         'webdav_enabled': sharedPreferences.getBool('webdav_enabled') ?? false,
+        'epub_scroll_direction':
+            sharedPreferences.getString('epub_scroll_direction') ?? 'vertical',
       });
     } catch (e) {
       logger.e('Error getting settings: $e');
@@ -250,6 +252,15 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error saving WebDav credentials: $e');
       throw Exception('Failed to save WebDav credentials: $e');
+    }
+  }
+
+  Future<void> saveEpubScrollDirection(String direction) async {
+    try {
+      await sharedPreferences.setString('epub_scroll_direction', direction);
+    } catch (e) {
+      logger.e('Error saving epub scroll direction: $e');
+      throw Exception('Failed to save epub scroll direction: $e');
     }
   }
 }

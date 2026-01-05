@@ -34,11 +34,11 @@ class SettingsState extends Equatable {
   final String webDavUrl;
   final String webDavUsername;
   final String webDavPassword;
+  final String epubScrollDirection;
 
-  // Neue Felder für Test-Status
   final ConnectionTestStatus downloaderTestStatus;
   final ConnectionTestStatus webDavTestStatus;
-  final String? testErrorMessage; // Für spezifische Fehler beim Testen
+  final String? testErrorMessage;
 
   const SettingsState({
     this.status = SettingsStatus.initial,
@@ -63,6 +63,7 @@ class SettingsState extends Equatable {
     this.webDavUrl = '',
     this.webDavUsername = '',
     this.webDavPassword = '',
+    this.epubScrollDirection = 'vertical',
     this.downloaderTestStatus = ConnectionTestStatus.initial,
     this.webDavTestStatus = ConnectionTestStatus.initial,
     this.testErrorMessage,
@@ -94,6 +95,7 @@ class SettingsState extends Equatable {
     String? webDavUrl,
     String? webDavUsername,
     String? webDavPassword,
+    String? epubScrollDirection,
     ConnectionTestStatus? downloaderTestStatus,
     ConnectionTestStatus? webDavTestStatus,
     String? testErrorMessage,
@@ -122,6 +124,7 @@ class SettingsState extends Equatable {
       webDavUrl: webDavUrl ?? this.webDavUrl,
       webDavUsername: webDavUsername ?? this.webDavUsername,
       webDavPassword: webDavPassword ?? this.webDavPassword,
+      epubScrollDirection: epubScrollDirection ?? this.epubScrollDirection,
       downloaderTestStatus: downloaderTestStatus ?? this.downloaderTestStatus,
       webDavTestStatus: webDavTestStatus ?? this.webDavTestStatus,
       testErrorMessage: testErrorMessage,
@@ -152,6 +155,7 @@ class SettingsState extends Equatable {
     webDavUrl,
     webDavUsername,
     webDavPassword,
+    epubScrollDirection,
     downloaderTestStatus,
     webDavTestStatus,
     testErrorMessage,
