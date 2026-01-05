@@ -12,6 +12,8 @@ import 'package:calibre_web_companion/features/login_settings/presentation/pages
 import 'package:calibre_web_companion/features/settings/presentation/widgets/download_options_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/feedback_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/theme_selector_widget.dart';
+import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
+import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -97,6 +99,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 localizations.connectionTestSuccessful,
                 isError: false,
               );
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (context.mounted) {
+                  context.read<DownloadServiceBloc>().add(LoadDownloadConfig());
+                }
+              });
             } else if (state.downloaderTestStatus ==
                 ConnectionTestStatus.error) {
               context.showSnackBar(
@@ -295,7 +302,6 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 Icon(
                   Icons.download_rounded,
-                  size: 28,
                   color: Theme.of(context).colorScheme.secondary,
                 ),
                 const SizedBox(width: 16),
@@ -307,11 +313,17 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 Switch(
                   value: state.isDownloaderEnabled,
-                  onChanged:
-                      (value) => context.read<SettingsBloc>().add(
-                        SetDownloaderEnabled(value),
-                      ),
                   activeThumbColor: Theme.of(context).colorScheme.primary,
+                  onChanged: (value) {
+                    context.read<SettingsBloc>().add(
+                      SetDownloaderEnabled(value),
+                    );
+                    if (value) {
+                      context.read<DownloadServiceBloc>().add(
+                        LoadDownloadConfig(),
+                      );
+                    }
+                  },
                 ),
               ],
             ),
