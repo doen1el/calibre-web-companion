@@ -367,5 +367,6 @@
   "readerSettings": "Reader Settings",
   "scrollDirection": "Scroll Direction",
   "vertical": "Vertical",
-  "horizontal": "Horizontal"
+  "horizontal": "Horizontal",
+  "errorOpeningBookInInternalReaderPdf": "Error: PDF files cannot be opened by VocsyEpub. This reader only supports EPUB files."
 }

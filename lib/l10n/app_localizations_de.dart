@@ -1133,4 +1133,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get horizontal => 'Horizontal';
+
+  @override
+  String get errorOpeningBookInInternalReaderPdf => 'Fehler: PDF-Dateien können von VocsyEpub nicht geöffnet werden. Dieser Reader unterstützt nur EPUB-Dateien.';
 }

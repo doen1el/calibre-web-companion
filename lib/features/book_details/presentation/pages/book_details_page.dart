@@ -84,6 +84,16 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     final lastLocation = context.read<BookDetailsBloc>().state.startLocation;
     final settingsState = context.read<SettingsBloc>().state;
 
+    if (filePath.endsWith('.pdf')) {
+      final localization = AppLocalizations.of(context)!;
+      context.showSnackBar(
+        localization.errorOpeningBookInInternalReaderPdf,
+        isError: true,
+        duration: const Duration(seconds: 10),
+      );
+      return;
+    }
+
     VocsyEpub.setConfig(
       themeColor: Theme.of(context).primaryColor,
       identifier: "book_${bookDetailsModel.uuid}",

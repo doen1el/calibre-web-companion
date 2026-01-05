@@ -2314,6 +2314,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Horizontal'**
   String get horizontal;
+
+  /// No description provided for @errorOpeningBookInInternalReaderPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: PDF files cannot be opened by VocsyEpub. This reader only supports EPUB files.'**
+  String get errorOpeningBookInInternalReaderPdf;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
