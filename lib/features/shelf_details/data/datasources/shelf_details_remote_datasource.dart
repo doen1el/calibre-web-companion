@@ -88,6 +88,7 @@ class ShelfDetailsRemoteDataSource {
         endpoint: '/shelf/delete/$shelfId',
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfTokenUrl: '/me',
         contentType: 'application/x-www-form-urlencoded',
       );
 
