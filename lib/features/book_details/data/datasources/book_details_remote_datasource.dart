@@ -495,6 +495,7 @@ class BookDetailsRemoteDatasource {
         endpoint: '/send/$bookId/$format/$conversion',
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfTokenUrl: '/me',
       );
 
       if (response.statusCode == 200) {
