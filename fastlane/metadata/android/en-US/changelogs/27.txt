@@ -1,0 +1,1 @@
+- Hotfix: Internal Epub Reader Crash Fixes

@@ -31,3 +31,13 @@
 -dontwarn androidx.**
 
 -dontwarn com.google.android.play.**
+
+-keep class org.readium.** { *; }
+-keepclassmembers class org.readium.** {
+    public <init>();
+}
+
+-keep class org.nanohttpd.** { *; }
+-keepclassmembers class org.nanohttpd.** {
+    public <init>();
+}

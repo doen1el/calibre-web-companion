@@ -83,7 +83,10 @@ public class EpubViewerPlugin implements FlutterPlugin, MethodChannel.MethodCall
 
     @Override
     public void onMethodCall(MethodCall call, MethodChannel.Result result) {
-        if (call.method.equals("setConfig")) {
+        if (call.method.equals("setChannel")) {
+            result.success(null);
+
+        } else if (call.method.equals("setConfig")) {
             Map<String, Object> arguments = (Map<String, Object>) call.arguments;
             String identifier = arguments.get("identifier").toString();
             String themeColor = arguments.get("themeColor").toString();
