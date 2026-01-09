@@ -1,0 +1,13 @@
+- frissítettük a pipeline-t, hogy eltávolítsa a hibásan létrehozott címkéket
+- frissítettük a metaadat szerkesztés ikon gombok háttérszínét
+- hozzáadtunk egy szkriptet .ipa fájlok generálásához iOS-re
+- új kapcsolati beállításokat adtunk hozzá a Booklore-hoz és az OPDS-hez (béta)
+- hitelesítési módot adtunk hozzá a calibre-web-automated-book-downloaderhez
+- lehetővé tettük a calibre-web-automated-book-downloader konfigurációjának betöltését a szerverről
+- hitelesítési headereket adtunk hozzá a calibre-web-automated-book-downloader kéréseihez
+- észt és olasz fordításokat adtunk hozzá
+- új belső EPUB olvasót adtunk hozzá
+- lehetővé tettük az olvasási folyamat szinkronizálását WebDAV-on keresztül más eszközökkel
+- javítottuk az SSO kezelését
+- licenszek oldalt adtunk hozzá a beállításokhoz
+- néhány apróbb hibajavítás és fejlesztés
