@@ -191,4 +191,13 @@ class TestWebDavConnection extends SettingsEvent {
   List<Object?> get props => [url, username, password];
 }
 
+class SetEpubScrollDirection extends SettingsEvent {
+  final String direction;
+
+  const SetEpubScrollDirection(this.direction);
+
+  @override
+  List<Object?> get props => [direction];
+}
+
 class ResetConnectionTestStatus extends SettingsEvent {}

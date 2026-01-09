@@ -586,7 +586,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get required => 'Richiesto';
 
   @override
-  String get submit => 'Invia';
+  String get submit => 'Conferma';
 
   @override
   String get bookActions => 'Azioni sul libro';
@@ -1093,32 +1093,47 @@ class AppLocalizationsIt extends AppLocalizations {
   String get licenses => 'Licenze';
 
   @override
-  String get syncsReadingProgress => 'Syncs reading progress across devices via a JSON file on your WebDAV storage.';
+  String get syncsReadingProgress => 'Sincronizza i progressi di lettura tra i dispositivi tramite un file JSON sul tuo spazio di archiviazione WebDAV.';
 
   @override
-  String get webDavSync => 'WebDAV Sync';
+  String get webDavSync => 'Sincronizzazione WebDAV';
 
   @override
-  String get pleaseFillInAllRequiredFields => 'Please fill in all required fields.';
+  String get pleaseFillInAllRequiredFields => 'Si prega di compilare tutti i campi obbligatori.';
 
   @override
-  String get connectionTestSuccessful => 'Connection test successful. Press Save to apply the credentials.';
+  String get connectionTestSuccessful => 'Test di connessione riuscito. Premi Salva per applicare le credenziali.';
 
   @override
-  String get loginFailed => 'Login failed:';
+  String get loginFailed => 'Login fallito:';
 
   @override
-  String get connectionError => 'Connection error';
+  String get connectionError => 'Errore di connessione';
 
   @override
-  String get pleaseEnterWebDavUrl => 'Please enter a valid WebDAV URL';
+  String get pleaseEnterWebDavUrl => 'Si prega di inserire un URL WebDAV valido';
 
   @override
-  String get loginSuccessfull => 'Login successful';
+  String get loginSuccessfull => 'Login effettuato con successo';
 
   @override
-  String get enterUsernamePasswordForSSO => 'Since Calibre Web Companion uses many OPDS endpoints to provide different features, and OPDS currently only works with username/password authentication, you need to provide your credentials, even when using SSO. We know that this goes against the purpose of SSO, but it is necessary for the app to function correctly. Hopefully, future versions will offer a better solution.';
+  String get enterUsernamePasswordForSSO => 'Poiché Calibre Web Companion utilizza numerosi endpoint OPDS per offrire diverse funzionalità, e dato che attualmente l\'OPDS supporta solo l\'autenticazione tramite nome utente e password, è necessario fornire le proprie credenziali anche se si utilizza il Single Sign-On (SSO). Siamo consapevoli che ciò vada contro lo scopo dell\'SSO, ma è un passaggio necessario per il corretto funzionamento dell\'app. Speriamo di poter offrire una soluzione migliore nelle versioni future.';
 
   @override
-  String get credentialsRequiredForSSO => 'Credentials required for SSO';
+  String get credentialsRequiredForSSO => 'Credenziali necessarie per SSO';
+
+  @override
+  String get readerSettings => 'Reader Settings';
+
+  @override
+  String get scrollDirection => 'Scroll Direction';
+
+  @override
+  String get vertical => 'Vertical';
+
+  @override
+  String get horizontal => 'Horizontal';
+
+  @override
+  String get errorOpeningBookInInternalReaderPdf => 'Error: PDF files cannot be opened by VocsyEpub. This reader only supports EPUB files.';
 }

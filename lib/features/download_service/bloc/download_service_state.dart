@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
@@ -18,6 +19,7 @@ class DownloadServiceState extends Equatable {
   final String? errorMessage;
   final DownloadServiceTab activeTab;
   final DownloadConfigModel config;
+  final DownloadFilterModel activeFilter;
 
   const DownloadServiceState({
     this.searchStatus = DownloadServiceStatus.initial,
@@ -30,6 +32,7 @@ class DownloadServiceState extends Equatable {
     this.errorMessage,
     this.activeTab = DownloadServiceTab.search,
     this.config = const DownloadConfigModel(),
+    this.activeFilter = const DownloadFilterModel(),
   });
 
   bool get isSearching => searchStatus == DownloadServiceStatus.loading;
@@ -49,6 +52,7 @@ class DownloadServiceState extends Equatable {
     String? errorMessage,
     DownloadServiceTab? activeTab,
     DownloadConfigModel? config,
+    DownloadFilterModel? activeFilter,
   }) {
     return DownloadServiceState(
       searchStatus: searchStatus ?? this.searchStatus,
@@ -61,6 +65,7 @@ class DownloadServiceState extends Equatable {
       errorMessage: errorMessage,
       activeTab: activeTab ?? this.activeTab,
       config: config ?? this.config,
+      activeFilter: activeFilter ?? this.activeFilter,
     );
   }
 
@@ -76,5 +81,6 @@ class DownloadServiceState extends Equatable {
     errorMessage,
     activeTab,
     config,
+    activeFilter,
   ];
 }

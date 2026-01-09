@@ -18,6 +18,47 @@ class DownloadServiceBloc
     on<GetDownloadStatus>(_onGetDownloadStatus);
     on<ClearSearchResults>(_onClearSearchResults);
     on<LoadDownloadConfig>(_onLoadDownloadConfig);
+    on<LoadSavedFilter>(_onLoadSavedFilter);
+    on<SaveFilter>(_onSaveFilter);
+  }
+
+  Future<void> _onSaveFilter(
+    SaveFilter event,
+    Emitter<DownloadServiceState> emit,
+  ) async {
+    logger.i(
+      '[DownloadService] SaveFilter: languages=${event.filter.languages} formats=${event.filter.formats}',
+    );
+
+    emit(state.copyWith(activeFilter: event.filter));
+
+    try {
+      await repository.saveFilterSettings(
+        event.filter.languages,
+        event.filter.formats,
+      );
+      logger.i('[DownloadService] SaveFilter persisted to SharedPreferences');
+    } catch (e) {
+      logger.e('[DownloadService] SaveFilter failed: $e');
+    }
+  }
+
+  Future<void> _onLoadSavedFilter(
+    LoadSavedFilter event,
+    Emitter<DownloadServiceState> emit,
+  ) async {
+    try {
+      logger.i(
+        '[DownloadService] LoadSavedFilter: reading from SharedPreferences...',
+      );
+      final savedFilter = await repository.getSavedFilterSettings();
+      logger.i(
+        '[DownloadService] LoadSavedFilter loaded: languages=${savedFilter.languages} formats=${savedFilter.formats}',
+      );
+      emit(state.copyWith(activeFilter: savedFilter));
+    } catch (e) {
+      logger.e('Failed to load saved filters: $e');
+    }
   }
 
   Future<void> _onLoadDownloadConfig(
@@ -26,6 +67,9 @@ class DownloadServiceBloc
   ) async {
     try {
       final config = await repository.getConfig();
+      logger.i(
+        '[DownloadService] Config loaded: languages=${config.languages.length} supportedFormats=${config.supportedFormats.length} defaultLanguage=${config.defaultLanguage}',
+      );
       emit(state.copyWith(config: config));
     } catch (e) {
       logger.e('Failed to load config: $e');
@@ -36,17 +80,40 @@ class DownloadServiceBloc
     SearchBooks event,
     Emitter<DownloadServiceState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        searchStatus: DownloadServiceStatus.loading,
-        hasSearched: true,
-      ),
+    logger.i(
+      '[DownloadService] SearchBooks: query="${event.query}", event.filter=${event.filter != null ? 'YES' : 'NO'}, activeFilter.languages=${state.activeFilter.languages}, activeFilter.formats=${state.activeFilter.formats}',
     );
+
+    if (event.filter != null) {
+      emit(
+        state.copyWith(
+          searchStatus: DownloadServiceStatus.loading,
+          hasSearched: true,
+          activeFilter: event.filter,
+        ),
+      );
+
+      try {
+        await repository.saveFilterSettings(
+          event.filter!.languages,
+          event.filter!.formats,
+        );
+      } catch (e) {
+        logger.w('Failed to save filter settings: $e');
+      }
+    } else {
+      emit(
+        state.copyWith(
+          searchStatus: DownloadServiceStatus.loading,
+          hasSearched: true,
+        ),
+      );
+    }
 
     try {
       final results = await repository.searchBooks(
         event.query,
-        filter: event.filter,
+        filter: event.filter ?? state.activeFilter,
       );
 
       emit(

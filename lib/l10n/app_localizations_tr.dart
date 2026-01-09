@@ -4,33 +4,33 @@ import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for Estonian (`et`).
-class AppLocalizationsEt extends AppLocalizations {
-  AppLocalizationsEt([String locale = 'et']) : super(locale);
+/// The translations for Turkish (`tr`).
+class AppLocalizationsTr extends AppLocalizations {
+  AppLocalizationsTr([String locale = 'tr']) : super(locale);
 
   @override
   String get loginToCalibreWb => 'Login to Calibre Web';
 
   @override
-  String get calibreWebUrl => 'https://calibre.toredomeen.com';
+  String get calibreWebUrl => 'https://calibre.example.com';
 
   @override
   String get enterCalibreWebUrl => 'Enter Calibre Web URL';
 
   @override
-  String get username => 'Kasutajanimi';
+  String get username => 'Username';
 
   @override
   String get enterYourUsername => 'Enter your username';
 
   @override
-  String get password => 'Salasõna';
+  String get password => 'Password';
 
   @override
   String get enterYourPassword => 'Enter your password';
 
   @override
-  String get login => 'Logi sisse';
+  String get login => 'Login';
 
   @override
   String get pleaseFillInAllFields => 'Please fill in all fields';
@@ -39,19 +39,19 @@ class AppLocalizationsEt extends AppLocalizations {
   String get failedToLognIn => 'Failed to login';
 
   @override
-  String get books => 'Raamatud';
+  String get books => 'Books';
 
   @override
-  String get discover => 'Otsi ja avasta';
+  String get discover => 'Discover';
 
   @override
-  String get me => 'Mina';
+  String get me => 'Me';
 
   @override
   String get discoverBooks => 'Discover books';
 
   @override
-  String get search => 'Otsi';
+  String get search => 'Search';
 
   @override
   String get searchBook => 'Search book';
@@ -114,28 +114,28 @@ class AppLocalizationsEt extends AppLocalizations {
   String get oldestFirst => 'Oldest first';
 
   @override
-  String get authors => 'Autorid';
+  String get authors => 'Authors';
 
   @override
-  String get categories => 'Kategooriad';
+  String get categories => 'Categories';
 
   @override
-  String get series => 'Sari';
+  String get series => 'Series';
 
   @override
-  String get formats => 'Vormingud';
+  String get formats => 'Formats';
 
   @override
-  String get languages => 'Keeled';
+  String get languages => 'Languages';
 
   @override
-  String get publishers => 'Kirjastajad';
+  String get publishers => 'Publishers';
 
   @override
-  String get ratings => 'Hinnangud';
+  String get ratings => 'Ratings';
 
   @override
-  String get rating => 'Hinnang';
+  String get rating => 'Rating';
 
   @override
   String get showAuthors => 'Show authors';
@@ -164,64 +164,64 @@ class AppLocalizationsEt extends AppLocalizations {
   }
 
   @override
-  String get book => 'Raamat';
+  String get book => 'Book';
 
   @override
   String get publicationInfo => 'Publication info';
 
   @override
-  String get published => 'Avaldatud';
+  String get published => 'Published';
 
   @override
-  String get updated => 'Uuendatud';
+  String get updated => 'Updated';
 
   @override
-  String get publisher => 'Kirjastus';
+  String get publisher => 'Publisher';
 
   @override
-  String get language => 'Keel';
+  String get language => 'Language';
 
   @override
   String get fileInfo => 'File info';
 
   @override
-  String get size => 'Suurus';
+  String get size => 'Size';
 
   @override
-  String get description => 'Kirjeldus';
+  String get description => 'Description';
 
   @override
   String get noCoverAvailable => 'No cover available';
 
   @override
-  String get english => 'inglise keel';
+  String get english => 'English';
 
   @override
-  String get german => 'saksa keel';
+  String get german => 'German';
 
   @override
-  String get french => 'prantsuse keel';
+  String get french => 'French';
 
   @override
-  String get spanish => 'hispaania keel';
+  String get spanish => 'Spanish';
 
   @override
-  String get italian => 'itaalia keel';
+  String get italian => 'Italian';
 
   @override
-  String get japanese => 'jaapani keel';
+  String get japanese => 'Japanese';
 
   @override
-  String get russian => 'vene keel';
+  String get russian => 'Russian';
 
   @override
-  String get portuguese => 'portugali keel';
+  String get portuguese => 'Portuguese';
 
   @override
-  String get chineese => 'hiina keel';
+  String get chineese => 'Chineese';
 
   @override
-  String get dutch => 'hollandi keel';
+  String get dutch => 'Dutch';
 
   @override
   String get sendToEReader => 'Send to E-Reader';
@@ -242,7 +242,7 @@ class AppLocalizationsEt extends AppLocalizations {
   String get pleaseEnter4DigitCode => 'Please enter a valid 4-digit code';
 
   @override
-  String get send => 'Saada';
+  String get send => 'Send';
 
   @override
   String get startingDownloadProcess => 'Starting download process';
@@ -287,19 +287,19 @@ class AppLocalizationsEt extends AppLocalizations {
   String get libraryStatistics => 'Library statistics';
 
   @override
-  String get cancel => 'Katkesta';
+  String get cancel => 'Cancel';
 
   @override
-  String get close => 'Sulge';
+  String get close => 'Close';
 
   @override
-  String get retry => 'Proovi uuesti';
+  String get retry => 'Retry';
 
   @override
   String get tryAgain => 'Try again';
 
   @override
-  String get error => 'Viga';
+  String get error => 'Error';
 
   @override
   String get errorLoadingBooks => 'Error loading books';
@@ -320,16 +320,16 @@ class AppLocalizationsEt extends AppLocalizations {
   String get unknownError => 'Unknown error';
 
   @override
-  String get loading => 'Laadin...';
+  String get loading => 'Loading...';
 
   @override
-  String get settings => 'Seadistused';
+  String get settings => 'Settings';
 
   @override
-  String get appearance => 'Välimus';
+  String get appearance => 'Appearance';
 
   @override
-  String get about => 'Rakenduse teave';
+  String get about => 'About';
 
   @override
   String get themeMode => 'Theme mode';
@@ -347,7 +347,7 @@ class AppLocalizationsEt extends AppLocalizations {
   String get downloadService => 'Download service';
 
   @override
-  String get downloads => 'Allalaadimised';
+  String get downloads => 'Downloads';
 
   @override
   String get searchForABook => 'Search for a book';
@@ -364,22 +364,22 @@ class AppLocalizationsEt extends AppLocalizations {
   String get addedBookToTheDownloadQueue => 'Added book to the download queue';
 
   @override
-  String get download => 'Laadi alla';
+  String get download => 'Download';
 
   @override
-  String get available => 'Saadaval';
+  String get available => 'Available';
 
   @override
-  String get downloading => 'Allalaadimisel';
+  String get downloading => 'Downloading';
 
   @override
-  String get completed => 'Valmis';
+  String get completed => 'Completed';
 
   @override
-  String get failed => 'Ebaõnnestunud';
+  String get failed => 'Failed';
 
   @override
-  String get queued => 'Lisatud järjekorda';
+  String get queued => 'Queued';
 
   @override
   String get notDownloaded => 'Not downloaded';
@@ -400,7 +400,7 @@ class AppLocalizationsEt extends AppLocalizations {
   String get markAsReadUnread => 'Mark as read/unread';
 
   @override
-  String get archiveUnarchive => 'Lisa arhiivi/eemalda arhiivist';
+  String get archiveUnarchive => 'Archive/Unarchive';
 
   @override
   String get addToShelf => 'Add to shelf';
@@ -428,10 +428,10 @@ class AppLocalizationsEt extends AppLocalizations {
   String get failedToRemoveFromShelf => 'Failed to remove book from shelf';
 
   @override
-  String get removeFromShelf => 'Eemalda';
+  String get removeFromShelf => 'Remove';
 
   @override
-  String get shelfs => 'Riiulid';
+  String get shelfs => 'Shelves';
 
   @override
   String shelfContains(Object count) {
@@ -459,10 +459,10 @@ class AppLocalizationsEt extends AppLocalizations {
   }
 
   @override
-  String get create => 'Loo';
+  String get create => 'Create';
 
   @override
-  String get creating => 'Loomisel';
+  String get creating => 'Creating';
 
   @override
   String get noShelvesFoundCreateOne => 'No shelves found. Create one!';
@@ -483,10 +483,10 @@ class AppLocalizationsEt extends AppLocalizations {
   String get failedToDeleteShelf => 'Failed to delete shelf';
 
   @override
-  String get delete => 'Kustuta';
+  String get delete => 'Delete';
 
   @override
-  String get deleting => 'Kustutan';
+  String get deleting => 'Deleting';
 
   @override
   String get successfullyEditedShelf => 'Successfully edited shelf';
@@ -495,10 +495,10 @@ class AppLocalizationsEt extends AppLocalizations {
   String get failedToEditShelf => 'Failed to edit shelf';
 
   @override
-  String get edit => 'Muuda';
+  String get edit => 'Edit';
 
   @override
-  String get editing => 'Muutmisel';
+  String get editing => 'Editing';
 
   @override
   String deleteShelfConfirmation(Object name) {
@@ -512,7 +512,7 @@ class AppLocalizationsEt extends AppLocalizations {
   String get shelfIsEmpty => 'Shelf is empty';
 
   @override
-  String get removing => 'Eemaldan';
+  String get removing => 'Removing';
 
   @override
   String get manageBookShelves => 'Manage book shelves';
@@ -1087,10 +1087,10 @@ class AppLocalizationsEt extends AppLocalizations {
   String get testConnection => 'Test Connection';
 
   @override
-  String get appendsBookLorePath => 'BookLore URL-le lisatakse automaatselt \'/api/v1/opds\', kui see pole olemas.';
+  String get appendsBookLorePath => 'Appends \'/api/v1/opds\' to the BookLore URL if not present.';
 
   @override
-  String get licenses => 'Litsentsid';
+  String get licenses => 'Licenses';
 
   @override
   String get syncsReadingProgress => 'Syncs reading progress across devices via a JSON file on your WebDAV storage.';

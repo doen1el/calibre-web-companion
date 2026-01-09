@@ -427,6 +427,7 @@ class ApiService {
     String contentType = 'application/json',
     bool useCsrf = false,
     String csrfSelector = 'input[name="csrf_token"]',
+    String? csrfTokenUrl,
     bool csrfOnlyInHeader = false,
     List<http.MultipartFile>? files,
     bool followRedirects = true,
@@ -505,7 +506,17 @@ class ApiService {
       getHeaders.addAll(customHeaders);
       getHeaders['Accept'] = 'text/html,application/xhtml+xml,application/xml';
 
-      http.Response getResponse = await _client!.get(uri, headers: getHeaders);
+      final Uri tokenFetchUri =
+          csrfTokenUrl != null ? _buildUri(endpoint: csrfTokenUrl) : uri;
+
+      if (csrfTokenUrl != null) {
+        _logger.d('Fetching CSRF token from explicit URL: $tokenFetchUri');
+      }
+
+      http.Response getResponse = await _client!.get(
+        tokenFetchUri,
+        headers: getHeaders,
+      );
       _logger.d(
         'GET response status for CSRF fetch: ${getResponse.statusCode}',
       );

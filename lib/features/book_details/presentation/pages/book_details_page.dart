@@ -82,11 +82,25 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     BookDetailsModel bookDetailsModel,
   ) async {
     final lastLocation = context.read<BookDetailsBloc>().state.startLocation;
+    final settingsState = context.read<SettingsBloc>().state;
+
+    if (filePath.endsWith('.pdf')) {
+      final localization = AppLocalizations.of(context)!;
+      context.showSnackBar(
+        localization.errorOpeningBookInInternalReaderPdf,
+        isError: true,
+        duration: const Duration(seconds: 10),
+      );
+      return;
+    }
 
     VocsyEpub.setConfig(
       themeColor: Theme.of(context).primaryColor,
       identifier: "book_${bookDetailsModel.uuid}",
-      scrollDirection: EpubScrollDirection.ALLDIRECTIONS,
+      scrollDirection:
+          settingsState.epubScrollDirection == 'horizontal'
+              ? EpubScrollDirection.HORIZONTAL
+              : EpubScrollDirection.VERTICAL,
       allowSharing: true,
       enableTts: true,
       nightMode: Theme.of(context).brightness == Brightness.dark,

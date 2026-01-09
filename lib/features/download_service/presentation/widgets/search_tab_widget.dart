@@ -45,7 +45,8 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
       showDragHandle: true,
       builder:
           (context) => DownloadFilterSheet(
-            currentFilter: _currentFilter,
+            currentFilter:
+                context.read<DownloadServiceBloc>().state.activeFilter,
             onApply: (newFilter) {
               setState(() {
                 _currentFilter = newFilter;

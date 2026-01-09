@@ -165,6 +165,10 @@ class SendToEreaderWidget extends StatelessWidget {
                       child: Text(localizations.cancel),
                     ),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            Theme.of(context).colorScheme.primaryContainer,
+                      ),
                       onPressed:
                           () => _handleSendAction(
                             context,
@@ -173,7 +177,13 @@ class SendToEreaderWidget extends StatelessWidget {
                             codeController,
                             isKindle,
                           ),
-                      child: Text(localizations.send),
+                      child: Text(
+                        localizations.send,
+                        style: TextStyle(
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                      ),
                     ),
                   ],
                 ),

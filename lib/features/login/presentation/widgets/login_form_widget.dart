@@ -578,6 +578,8 @@ class _LoginFormState extends State<LoginForm> {
 
         _urlController.text = domain;
       }
+    } else if (domain.endsWith('/')) {
+      domain = domain.substring(0, domain.length - 1);
     }
 
     String fullUrl = '${_isHttps ? "https://" : "http://"}$domain';

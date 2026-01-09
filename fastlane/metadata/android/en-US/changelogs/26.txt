@@ -1,0 +1,8 @@
+- The ability to change the reading direction for the internal reader has been added to the settings.
+- The downloader configuration will now be fetched directly when enabled in the settings.
+- Fixed bug where duplicate books appeared in Books view.
+- Fixed a bug where users could not send ebooks via email without upload permissions.
+- Downloader filters are now stored across app restarts.
+- Fixed F-Droid building issue.
+- Made some CSRF token improvements.
+- Added Italian and Hungarian translations.

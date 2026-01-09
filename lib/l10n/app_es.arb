@@ -363,5 +363,10 @@
   "pleaseEnterWebDavUrl": "Por favor, introduce una URL de WebDAV válida",
   "loginSuccessfull": "Inicio de sesión exitoso",
   "enterUsernamePasswordForSSO": "Dado que Calibre Web Companion utiliza muchos puntos finales OPDS para proporcionar diferentes funciones, y OPDS actualmente solo funciona con autenticación de nombre de usuario/contraseña, necesitas proporcionar tus credenciales, incluso cuando uses SSO. Sabemos que esto va en contra del propósito de SSO, pero es necesario para que la aplicación funcione correctamente. Esperamos que las versiones futuras ofrezcan una mejor solución.",
-  "credentialsRequiredForSSO": "Se requieren credenciales para SSO"
+  "credentialsRequiredForSSO": "Se requieren credenciales para SSO",
+  "readerSettings": "Configuración del lector",
+  "scrollDirection": "Dirección de desplazamiento",
+  "vertical": "Vertical",
+  "horizontal": "Horizontal",
+  "errorOpeningBookInInternalReaderPdf": "Error: Los archivos PDF no pueden ser abiertos por VocsyEpub. Este lector solo soporta archivos EPUB."
 }

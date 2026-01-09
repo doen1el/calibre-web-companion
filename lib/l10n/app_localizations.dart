@@ -12,6 +12,7 @@ import 'app_localizations_et.dart';
 import 'app_localizations_fr.dart';
 import 'app_localizations_it.dart';
 import 'app_localizations_pt.dart';
+import 'app_localizations_tr.dart';
 
 // ignore_for_file: type=lint
 
@@ -102,7 +103,8 @@ abstract class AppLocalizations {
     Locale('et'),
     Locale('fr'),
     Locale('it'),
-    Locale('pt')
+    Locale('pt'),
+    Locale('tr')
   ];
 
   /// No description provided for @loginToCalibreWb.
@@ -2288,6 +2290,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Credentials required for SSO'**
   String get credentialsRequiredForSSO;
+
+  /// No description provided for @readerSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Reader Settings'**
+  String get readerSettings;
+
+  /// No description provided for @scrollDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll Direction'**
+  String get scrollDirection;
+
+  /// No description provided for @vertical.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical'**
+  String get vertical;
+
+  /// No description provided for @horizontal.
+  ///
+  /// In en, this message translates to:
+  /// **'Horizontal'**
+  String get horizontal;
+
+  /// No description provided for @errorOpeningBookInInternalReaderPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: PDF files cannot be opened by VocsyEpub. This reader only supports EPUB files.'**
+  String get errorOpeningBookInInternalReaderPdf;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -2299,7 +2331,7 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['de', 'en', 'es', 'et', 'fr', 'it', 'pt'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['de', 'en', 'es', 'et', 'fr', 'it', 'pt', 'tr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -2317,6 +2349,7 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
     case 'fr': return AppLocalizationsFr();
     case 'it': return AppLocalizationsIt();
     case 'pt': return AppLocalizationsPt();
+    case 'tr': return AppLocalizationsTr();
   }
 
   throw FlutterError(

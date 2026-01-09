@@ -12,6 +12,8 @@ import 'package:calibre_web_companion/features/login_settings/presentation/pages
 import 'package:calibre_web_companion/features/settings/presentation/widgets/download_options_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/feedback_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/theme_selector_widget.dart';
+import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
+import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -97,6 +99,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 localizations.connectionTestSuccessful,
                 isError: false,
               );
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (context.mounted) {
+                  context.read<DownloadServiceBloc>().add(LoadDownloadConfig());
+                }
+              });
             } else if (state.downloaderTestStatus ==
                 ConnectionTestStatus.error) {
               context.showSnackBar(
@@ -144,21 +151,6 @@ class _SettingsPageState extends State<SettingsPage> {
                           _buildLoginSettingsCard(context, localizations),
 
                           const SizedBox(height: 24),
-                          _buildSectionTitle(context, localizations.language),
-                          _buildLanguageSelector(context, state, localizations),
-
-                          const SizedBox(height: 24),
-                          _buildSectionTitle(
-                            context,
-                            localizations.bookDetails,
-                          ),
-                          _buildBookDetailsSettings(
-                            context,
-                            state,
-                            localizations,
-                          ),
-
-                          const SizedBox(height: 24),
                           _buildSectionTitle(
                             context,
                             localizations.downloadOptions,
@@ -184,8 +176,27 @@ class _SettingsPageState extends State<SettingsPage> {
                           _buildDownloaderToggle(context, state, localizations),
 
                           const SizedBox(height: 24),
-                          _buildSectionTitle(context, localizations.webDavSync),
+                          _buildSectionTitle(
+                            context,
+                            localizations.readerSettings,
+                          ),
+                          _buildReaderSettings(context, state, localizations),
                           _buildWebDavSettings(context, state, localizations),
+
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(context, localizations.language),
+                          _buildLanguageSelector(context, state, localizations),
+
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(
+                            context,
+                            localizations.bookDetails,
+                          ),
+                          _buildBookDetailsSettings(
+                            context,
+                            state,
+                            localizations,
+                          ),
 
                           const SizedBox(height: 24),
                           _buildSectionTitle(context, localizations.feedback),
@@ -291,7 +302,6 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 Icon(
                   Icons.download_rounded,
-                  size: 28,
                   color: Theme.of(context).colorScheme.secondary,
                 ),
                 const SizedBox(width: 16),
@@ -303,11 +313,17 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 Switch(
                   value: state.isDownloaderEnabled,
-                  onChanged:
-                      (value) => context.read<SettingsBloc>().add(
-                        SetDownloaderEnabled(value),
-                      ),
                   activeThumbColor: Theme.of(context).colorScheme.primary,
+                  onChanged: (value) {
+                    context.read<SettingsBloc>().add(
+                      SetDownloaderEnabled(value),
+                    );
+                    if (value) {
+                      context.read<DownloadServiceBloc>().add(
+                        LoadDownloadConfig(),
+                      );
+                    }
+                  },
                 ),
               ],
             ),
@@ -948,6 +964,79 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReaderSettings(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.chrome_reader_mode_rounded,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    localizations.scrollDirection,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+              ),
+              initialValue: state.epubScrollDirection,
+              icon: const Icon(Icons.arrow_drop_down),
+              elevation: 16,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 16,
+              ),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  context.read<SettingsBloc>().add(
+                    SetEpubScrollDirection(newValue),
+                  );
+                }
+              },
+              items: [
+                DropdownMenuItem<String>(
+                  value: 'vertical',
+                  child: Text(localizations.vertical),
+                ),
+                DropdownMenuItem<String>(
+                  value: 'horizontal',
+                  child: Text(localizations.horizontal),
+                ),
+              ],
+            ),
           ],
         ),
       ),

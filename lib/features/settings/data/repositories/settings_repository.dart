@@ -201,4 +201,12 @@ class SettingsRepository {
       rethrow;
     }
   }
+
+  Future<void> setEpubScrollDirection(String direction) async {
+    try {
+      await dataSource.saveEpubScrollDirection(direction);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

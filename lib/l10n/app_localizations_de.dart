@@ -1121,4 +1121,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get credentialsRequiredForSSO => 'Credentials required for SSO';
+
+  @override
+  String get readerSettings => 'Reader-Einstellungen';
+
+  @override
+  String get scrollDirection => 'Scroll-Richtung';
+
+  @override
+  String get vertical => 'Vertikal';
+
+  @override
+  String get horizontal => 'Horizontal';
+
+  @override
+  String get errorOpeningBookInInternalReaderPdf => 'Fehler: PDF-Dateien können von VocsyEpub nicht geöffnet werden. Dieser Reader unterstützt nur EPUB-Dateien.';
 }

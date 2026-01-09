@@ -33,3 +33,13 @@ class GetDownloadStatus extends DownloadServiceEvent {}
 class ClearSearchResults extends DownloadServiceEvent {}
 
 class LoadDownloadConfig extends DownloadServiceEvent {}
+
+class LoadSavedFilter extends DownloadServiceEvent {}
+
+class SaveFilter extends DownloadServiceEvent {
+  final DownloadFilterModel filter;
+  const SaveFilter(this.filter);
+
+  @override
+  List<Object?> get props => [filter];
+}

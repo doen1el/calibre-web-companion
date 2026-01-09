@@ -107,6 +107,7 @@ class BookDetailsRemoteDatasource {
         endpoint: '/ajax/toggleread/$bookId',
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfTokenUrl: '/me',
       );
 
       if (response.statusCode == 200) {
@@ -132,6 +133,7 @@ class BookDetailsRemoteDatasource {
         endpoint: '/ajax/togglearchived/$bookId',
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfTokenUrl: '/me',
       );
 
       if (response.statusCode == 200) {
@@ -345,6 +347,7 @@ class BookDetailsRemoteDatasource {
         authMethod: AuthMethod.cookie,
         files: [multipartFile],
         useCsrf: true,
+        csrfTokenUrl: '/me',
       );
 
       if (response.statusCode == 302) {
@@ -492,6 +495,7 @@ class BookDetailsRemoteDatasource {
         endpoint: '/send/$bookId/$format/$conversion',
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfTokenUrl: '/me',
       );
 
       if (response.statusCode == 200) {
