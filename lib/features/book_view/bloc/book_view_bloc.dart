@@ -58,7 +58,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
         state.copyWith(
           isLoading: false,
           books: books,
-          offset: 0,
+          offset: books.length,
           hasMoreBooks: books.length >= state.limit,
           isOpds: isOpds,
         ),
