@@ -280,4 +280,48 @@ class DownloadServiceRemoteDataSource {
       return const DownloadConfigModel();
     }
   }
+
+  Future<void> saveFilterSettings(
+    List<String> languages,
+    List<String> formats,
+  ) async {
+    try {
+      final jsonString = jsonEncode({
+        'languages': languages,
+        'formats': formats,
+      });
+      await sharedPreferences.setString('dl_filter_settings', jsonString);
+      logger.i('Saved filter settings: $jsonString');
+    } catch (e) {
+      logger.e('Error saving filter settings: $e');
+    }
+  }
+
+  Future<DownloadFilterModel> getSavedFilterSettings() async {
+    try {
+      final jsonString = sharedPreferences.getString('dl_filter_settings');
+
+      if (jsonString != null && jsonString.isNotEmpty) {
+        final Map<String, dynamic> map = jsonDecode(jsonString);
+
+        final languages =
+            map['languages'] != null
+                ? List<String>.from(map['languages'])
+                : <String>['de'];
+
+        final formats =
+            map['formats'] != null
+                ? List<String>.from(map['formats'])
+                : DownloadFilterModel.allFormats;
+
+        logger.i('Loaded saved filter: languages=$languages, formats=$formats');
+
+        return DownloadFilterModel(languages: languages, formats: formats);
+      }
+    } catch (e) {
+      logger.e('Error loading saved filter settings: $e');
+    }
+
+    return const DownloadFilterModel(languages: ['de']);
+  }
 }

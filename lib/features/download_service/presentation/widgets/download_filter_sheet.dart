@@ -3,7 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
-import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart'; // Import
+import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
+import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart'; // ADD: for SaveFilter event
 
 class DownloadFilterSheet extends StatefulWidget {
   final DownloadFilterModel currentFilter;
@@ -151,25 +152,44 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
-              children:
-                  availableLanguages.map((langMap) {
-                    final code = langMap['code']!;
-                    final name = langMap['language']!;
-                    final isSelected = _selectedLanguages.contains(code);
-                    return FilterChip(
-                      label: Text(name),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          if (selected) {
-                            _selectedLanguages.add(code);
-                          } else {
-                            _selectedLanguages.remove(code);
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
+              children: [
+                ...availableLanguages.map((langMap) {
+                  final code = langMap['code']!;
+                  final name = langMap['language']!;
+                  final isSelected = _selectedLanguages.contains(code);
+                  return FilterChip(
+                    label: Text(name),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedLanguages.add(code);
+                        } else {
+                          _selectedLanguages.remove(code);
+                        }
+                      });
+                    },
+                  );
+                }),
+                ..._selectedLanguages
+                    .where(
+                      (code) =>
+                          !availableLanguages.any((l) => l['code'] == code),
+                    )
+                    .map((code) {
+                      return FilterChip(
+                        label: Text(code.toUpperCase()),
+                        selected: true,
+                        onSelected: (selected) {
+                          setState(() {
+                            if (!selected) {
+                              _selectedLanguages.remove(code);
+                            }
+                          });
+                        },
+                      );
+                    }),
+              ],
             ),
 
             const SizedBox(height: 20),
@@ -181,23 +201,39 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
-              children:
-                  availableFormats.map((fmt) {
-                    final isSelected = _selectedFormats.contains(fmt);
-                    return FilterChip(
-                      label: Text(fmt.toUpperCase()),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          if (selected) {
-                            _selectedFormats.add(fmt);
-                          } else {
-                            _selectedFormats.remove(fmt);
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
+              children: [
+                ...availableFormats.map((fmt) {
+                  final isSelected = _selectedFormats.contains(fmt);
+                  return FilterChip(
+                    label: Text(fmt.toUpperCase()),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedFormats.add(fmt);
+                        } else {
+                          _selectedFormats.remove(fmt);
+                        }
+                      });
+                    },
+                  );
+                }),
+                ..._selectedFormats
+                    .where((fmt) => !availableFormats.contains(fmt))
+                    .map((fmt) {
+                      return FilterChip(
+                        label: Text(fmt.toUpperCase()),
+                        selected: true,
+                        onSelected: (selected) {
+                          setState(() {
+                            if (!selected) {
+                              _selectedFormats.remove(fmt);
+                            }
+                          });
+                        },
+                      );
+                    }),
+              ],
             ),
 
             const SizedBox(height: 30),
@@ -211,9 +247,12 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
                     author: _authorController.text.trim(),
                     title: _titleController.text.trim(),
                     content: _selectedContent,
-                    languages: _selectedLanguages,
-                    formats: _selectedFormats,
+                    languages: List.unmodifiable(_selectedLanguages),
+                    formats: List.unmodifiable(_selectedFormats),
                   );
+
+                  context.read<DownloadServiceBloc>().add(SaveFilter(filter));
+
                   widget.onApply(filter);
                   Navigator.pop(context);
                 },

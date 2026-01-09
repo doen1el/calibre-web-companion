@@ -46,6 +46,17 @@ class DownloadServiceRepository {
     return await remoteDataSource.getConfig();
   }
 
+  Future<void> saveFilterSettings(
+    List<String> languages,
+    List<String> formats,
+  ) async {
+    await remoteDataSource.saveFilterSettings(languages, formats);
+  }
+
+  Future<DownloadFilterModel> getSavedFilterSettings() async {
+    return await remoteDataSource.getSavedFilterSettings();
+  }
+
   List<DownloadServiceBookModel> getBooksByStatus(
     List<DownloadServiceBookModel> books,
     DownloaderStatus status,

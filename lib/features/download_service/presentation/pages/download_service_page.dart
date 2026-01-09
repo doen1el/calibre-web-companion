@@ -28,6 +28,7 @@ class _DownloadServicePageState extends State<DownloadServicePage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DownloadServiceBloc>().add(GetDownloadStatus());
       context.read<DownloadServiceBloc>().add(LoadDownloadConfig());
+      context.read<DownloadServiceBloc>().add(LoadSavedFilter());
     });
 
     _tabController.addListener(() {
