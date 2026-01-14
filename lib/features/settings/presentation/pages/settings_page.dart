@@ -169,10 +169,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
 
                           const SizedBox(height: 24),
-                          _buildSectionTitle(
-                            context,
-                            "Calibre Web Automated Downloader",
-                          ),
+                          _buildSectionTitle(context, "Shelfmark"),
                           _buildDownloaderToggle(context, state, localizations),
 
                           const SizedBox(height: 24),
