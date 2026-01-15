@@ -1,0 +1,1 @@
+- Åtgärdade ett fel där du nästan kunde logga in med felaktiga uppgifter

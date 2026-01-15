@@ -1,0 +1,1 @@
+- Tog bort information om beroenden för F-Droidversionen

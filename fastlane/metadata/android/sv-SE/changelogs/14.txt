@@ -1,0 +1,5 @@
+- Lagt till möjlighet att ändra kolumnräkning på boklistan
+- Lagt till möjlighet att ladda upp böcker till Calibre Webb
+- Lagt till möjlighet att lägga till alternativa 'send2ereader'-instanser
+- Fixade en bugg som gjorde att du inte kunde öppna .PDF-filer i installerade läsare
+- Fixade en bugg som gjorde att inte alla böcker listades då man sorterade på författare
