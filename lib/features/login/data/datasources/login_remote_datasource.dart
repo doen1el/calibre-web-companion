@@ -140,6 +140,24 @@ class LoginRemoteDataSource {
     logger.i('Checking if user can access website...');
     final prefs = await SharedPreferences.getInstance();
     final baseUrl = prefs.getString('base_url');
+    final serverType = await getStoredServerType();
+
+    if (serverType == ServerType.booklore) {
+      final response = await apiService.get(
+        endpoint: '/catalog',
+        authMethod: AuthMethod.basic,
+      );
+
+      if (response.statusCode == 200) {
+        logger.i('Booklore access check successful.');
+        return true;
+      } else {
+        logger.w(
+          'Booklore access check failed with status: ${response.statusCode}',
+        );
+        return false;
+      }
+    }
 
     final cookie =
         prefs.getString('calibre_web_cookie') ??
