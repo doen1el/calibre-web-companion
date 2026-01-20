@@ -1136,4 +1136,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get errorOpeningBookInInternalReaderPdf => 'Hiba: PDF fájlokat nem lehet megnyitni a VocsyEpub-bal. Ez az olvasó csak EPUB fájlokkal működik.';
+
+  @override
+  String get authentication => 'Authentication';
 }

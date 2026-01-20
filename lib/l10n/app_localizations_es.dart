@@ -1136,4 +1136,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get errorOpeningBookInInternalReaderPdf => 'Error: Los archivos PDF no pueden ser abiertos por VocsyEpub. Este lector solo soporta archivos EPUB.';
+
+  @override
+  String get authentication => 'Authentication';
 }

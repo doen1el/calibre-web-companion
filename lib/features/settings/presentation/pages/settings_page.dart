@@ -37,6 +37,8 @@ class _SettingsPageState extends State<SettingsPage> {
   final TextEditingController _webDavPasswordController =
       TextEditingController();
 
+  bool _showDownloaderAuth = false;
+
   @override
   void initState() {
     super.initState();
@@ -48,6 +50,10 @@ class _SettingsPageState extends State<SettingsPage> {
     _webDavUrlController.text = settingsState.webDavUrl;
     _webDavUsernameController.text = settingsState.webDavUsername;
     _webDavPasswordController.text = settingsState.webDavPassword;
+
+    _showDownloaderAuth =
+        settingsState.downloaderUsername.isNotEmpty ||
+        settingsState.downloaderPassword.isNotEmpty;
   }
 
   @override
@@ -348,49 +354,83 @@ class _SettingsPageState extends State<SettingsPage> {
                       ResetConnectionTestStatus(),
                     ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _downloaderUsernameController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  labelText: localizations.username,
-                  prefixIcon: const Icon(Icons.person),
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 14.0,
-                  ),
+              const SizedBox(height: 8),
+              Text(
+                localizations.enterUrlOfYourDownloadService,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                onChanged:
-                    (_) => context.read<SettingsBloc>().add(
-                      ResetConnectionTestStatus(),
-                    ),
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: _downloaderPasswordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
+              Row(
+                children: [
+                  Icon(
+                    Icons.lock_person,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
-                  labelText: localizations.password,
-                  prefixIcon: const Icon(Icons.lock),
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 14.0,
-                  ),
-                ),
-                onChanged:
-                    (_) => context.read<SettingsBloc>().add(
-                      ResetConnectionTestStatus(),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      localizations.authentication,
+                      style: Theme.of(context).textTheme.titleSmall,
                     ),
+                  ),
+                  Switch(
+                    value: _showDownloaderAuth,
+                    activeThumbColor: Theme.of(context).colorScheme.primary,
+                    onChanged: (value) {
+                      setState(() {
+                        _showDownloaderAuth = value;
+                      });
+                    },
+                  ),
+                ],
               ),
+              if (_showDownloaderAuth) ...[
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _downloaderUsernameController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    labelText: localizations.username,
+                    prefixIcon: const Icon(Icons.person),
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surface,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 14.0,
+                    ),
+                  ),
+                  onChanged:
+                      (_) => context.read<SettingsBloc>().add(
+                        ResetConnectionTestStatus(),
+                      ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _downloaderPasswordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    labelText: localizations.password,
+                    prefixIcon: const Icon(Icons.lock),
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surface,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 14.0,
+                    ),
+                  ),
+                  onChanged:
+                      (_) => context.read<SettingsBloc>().add(
+                        ResetConnectionTestStatus(),
+                      ),
+                ),
+              ],
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
@@ -401,16 +441,22 @@ class _SettingsPageState extends State<SettingsPage> {
                       return;
                     }
 
+                    final username =
+                        _showDownloaderAuth
+                            ? _downloaderUsernameController.text.trim()
+                            : '';
+                    final password =
+                        _showDownloaderAuth
+                            ? _downloaderPasswordController.text
+                            : '';
+
                     if (state.downloaderTestStatus ==
                         ConnectionTestStatus.success) {
                       context.read<SettingsBloc>().add(
                         SetDownloaderUrl(_downloaderUrlController.text.trim()),
                       );
                       context.read<SettingsBloc>().add(
-                        SetDownloaderCredentials(
-                          _downloaderUsernameController.text.trim(),
-                          _downloaderPasswordController.text,
-                        ),
+                        SetDownloaderCredentials(username, password),
                       );
                       context.showSnackBar(localizations.settingsSaved);
                       FocusScope.of(context).unfocus();
@@ -418,8 +464,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       context.read<SettingsBloc>().add(
                         TestDownloaderConnection(
                           url: _downloaderUrlController.text.trim(),
-                          username: _downloaderUsernameController.text.trim(),
-                          password: _downloaderPasswordController.text,
+                          username: username,
+                          password: password,
                         ),
                       );
                     }
@@ -442,16 +488,11 @@ class _SettingsPageState extends State<SettingsPage> {
                         ? localizations.testing
                         : (state.downloaderTestStatus ==
                                 ConnectionTestStatus.success
-                            ? localizations.saveCredentials
+                            ? (_showDownloaderAuth
+                                ? localizations.saveCredentials
+                                : localizations.save)
                             : localizations.testConnection),
                   ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                localizations.enterUrlOfYourDownloadService,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],

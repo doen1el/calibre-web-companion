@@ -368,5 +368,6 @@
   "scrollDirection": "Scroll-Richtung",
   "vertical": "Vertikal",
   "horizontal": "Horizontal",
-  "errorOpeningBookInInternalReaderPdf": "Fehler: PDF-Dateien können von VocsyEpub nicht geöffnet werden. Dieser Reader unterstützt nur EPUB-Dateien."
+  "errorOpeningBookInInternalReaderPdf": "Fehler: PDF-Dateien können von VocsyEpub nicht geöffnet werden. Dieser Reader unterstützt nur EPUB-Dateien.",
+  "authentication": "Authentifizierung"
 }

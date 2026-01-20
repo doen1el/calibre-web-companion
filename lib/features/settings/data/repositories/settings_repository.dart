@@ -171,7 +171,21 @@ class SettingsRepository {
     String password,
   ) async {
     try {
-      final uri = Uri.parse('$url/api/auth/login');
+      final baseUrl =
+          url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+
+      if (username.isEmpty && password.isEmpty) {
+        final uri = Uri.parse('$baseUrl/api/config');
+        final response = await http.get(uri);
+
+        if (response.statusCode == 401 || response.statusCode == 403) {
+          throw Exception("Authentication required");
+        }
+
+        return response.statusCode == 200;
+      }
+
+      final uri = Uri.parse('$baseUrl/api/auth/login');
       final response = await http.post(
         uri,
         headers: {'Content-Type': 'application/json'},
@@ -183,6 +197,9 @@ class SettingsRepository {
       );
       return response.statusCode == 200;
     } catch (e) {
+      if (e.toString().contains("Authentication required")) {
+        throw Exception("Authentication required");
+      }
       throw Exception("Connection failed: $e");
     }
   }

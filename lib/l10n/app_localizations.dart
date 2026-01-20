@@ -2324,6 +2324,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error: PDF files cannot be opened by VocsyEpub. This reader only supports EPUB files.'**
   String get errorOpeningBookInInternalReaderPdf;
+
+  /// No description provided for @authentication.
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication'**
+  String get authentication;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
