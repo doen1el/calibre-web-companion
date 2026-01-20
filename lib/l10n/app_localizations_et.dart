@@ -9,7 +9,7 @@ class AppLocalizationsEt extends AppLocalizations {
   AppLocalizationsEt([String locale = 'et']) : super(locale);
 
   @override
-  String get loginToCalibreWb => 'Login to Calibre Web';
+  String get loginToCalibreWb => 'Logi saiti Calibre Web';
 
   @override
   String get calibreWebUrl => 'https://calibre.toredomeen.com';
@@ -21,22 +21,22 @@ class AppLocalizationsEt extends AppLocalizations {
   String get username => 'Kasutajanimi';
 
   @override
-  String get enterYourUsername => 'Enter your username';
+  String get enterYourUsername => 'Sisesta oma kasutajanimi';
 
   @override
   String get password => 'Salasõna';
 
   @override
-  String get enterYourPassword => 'Enter your password';
+  String get enterYourPassword => 'Sisesta oma salasõna';
 
   @override
   String get login => 'Logi sisse';
 
   @override
-  String get pleaseFillInAllFields => 'Please fill in all fields';
+  String get pleaseFillInAllFields => 'Palun täida kõik väljad';
 
   @override
-  String get failedToLognIn => 'Failed to login';
+  String get failedToLognIn => 'Sisselogimine ei õnnestunud';
 
   @override
   String get books => 'Raamatud';
@@ -54,25 +54,25 @@ class AppLocalizationsEt extends AppLocalizations {
   String get search => 'Otsi';
 
   @override
-  String get searchBook => 'Search book';
+  String get searchBook => 'Otsi raamatut';
 
   @override
-  String get enterTitleAuthorOrTags => 'Enter title, author or tags ...';
+  String get enterTitleAuthorOrTags => 'Sisesta pealkiri, autor või sildid...';
 
   @override
-  String get showReadBooks => 'Show read books';
+  String get showReadBooks => 'Näita loetud raamatuid';
 
   @override
-  String get showUnReadBooks => 'Show unread books';
+  String get showUnReadBooks => 'Näita lugemata raamatuid';
 
   @override
   String get showBookmarkedBooks => 'Show bookmarked books';
 
   @override
-  String get readBooks => 'Read books';
+  String get readBooks => 'Loetud raamatud';
 
   @override
-  String get unreadBooks => 'Unread books';
+  String get unreadBooks => 'Lugemata raamatud';
 
   @override
   String get bookmarkedBooks => 'Bookmarked books';
@@ -87,19 +87,19 @@ class AppLocalizationsEt extends AppLocalizations {
   String get showNewBooks => 'Show new books';
 
   @override
-  String get newBooks => 'New books';
+  String get newBooks => 'Uued raamatud';
 
   @override
   String get showRatedBooks => 'Show rated books';
 
   @override
-  String get ratedBooks => 'Rated books';
+  String get ratedBooks => 'Hinnatud raamatud';
 
   @override
-  String get titleAZ => 'Title (A-Z)';
+  String get titleAZ => 'Pealkiri (A..Z)';
 
   @override
-  String get titleZA => 'Title (Z-A)';
+  String get titleZA => 'Pealkiri (Z..A)';
 
   @override
   String get authorAZ => 'Author (A-Z)';
@@ -245,7 +245,7 @@ class AppLocalizationsEt extends AppLocalizations {
   String get send => 'Saada';
 
   @override
-  String get startingDownloadProcess => 'Starting download process';
+  String get startingDownloadProcess => 'Käivitan allalaadimist';
 
   @override
   String get preparingTransfer => 'Preparing transfer...';
