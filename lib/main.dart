@@ -7,6 +7,7 @@ import 'package:logger/web.dart';
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/di/injection_container.dart' as di;
+import 'package:calibre_web_companion/core/services/download_manager.dart'; // Import
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
@@ -37,6 +38,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await di.init();
+  // DownloadManager initialisieren und Files checken
+  await di.getIt<DownloadManager>().initialize();
 
   final savedThemeMode = await AdaptiveTheme.getThemeMode();
 

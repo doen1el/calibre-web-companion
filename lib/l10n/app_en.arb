@@ -371,5 +371,6 @@
   "errorOpeningBookInInternalReaderPdf": "Error: PDF files cannot be opened by VocsyEpub. This reader only supports EPUB files.",
   "authentication": "Authentication",
   "bookDetailsCouldNotBeLoaded": "Unfortunately, the book details could not be loaded.",
-  "technicalDetails": "Technical Details"
+  "technicalDetails": "Technical Details",
+  "bookAlreadyDownloaded": "Book already downloaded"
 }

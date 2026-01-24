@@ -2342,6 +2342,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Technical Details'**
   String get technicalDetails;
+
+  /// No description provided for @bookAlreadyDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Book already downloaded'**
+  String get bookAlreadyDownloaded;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

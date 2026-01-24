@@ -1145,4 +1145,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get technicalDetails => 'Technical Details';
+
+  @override
+  String get bookAlreadyDownloaded => 'Book already downloaded';
 }

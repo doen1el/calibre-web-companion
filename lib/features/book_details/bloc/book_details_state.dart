@@ -62,6 +62,7 @@ class BookDetailsState extends Equatable {
   final SeriesNavigationStatus seriesNavigationStatus;
   final String? seriesNavigationPath;
   final EpubLocator? startLocation;
+  final bool isDownloaded;
 
   const BookDetailsState({
     this.status = BookDetailsStatus.initial,
@@ -86,6 +87,7 @@ class BookDetailsState extends Equatable {
     this.seriesNavigationStatus = SeriesNavigationStatus.initial,
     this.seriesNavigationPath,
     this.startLocation,
+    this.isDownloaded = false,
   });
 
   BookDetailsState copyWith({
@@ -111,6 +113,7 @@ class BookDetailsState extends Equatable {
     SeriesNavigationStatus? seriesNavigationStatus,
     String? seriesNavigationPath,
     EpubLocator? startLocation,
+    bool? isDownloaded,
   }) {
     return BookDetailsState(
       status: status ?? this.status,
@@ -138,6 +141,7 @@ class BookDetailsState extends Equatable {
           seriesNavigationStatus ?? this.seriesNavigationStatus,
       seriesNavigationPath: seriesNavigationPath ?? this.seriesNavigationPath,
       startLocation: startLocation ?? this.startLocation,
+      isDownloaded: isDownloaded ?? this.isDownloaded,
     );
   }
 
@@ -165,5 +169,6 @@ class BookDetailsState extends Equatable {
     seriesNavigationStatus,
     seriesNavigationPath,
     startLocation,
+    isDownloaded,
   ];
 }

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
+import 'package:calibre_web_companion/core/services/download_manager.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
@@ -62,6 +63,13 @@ Future<void> init() async {
 
   getIt.registerLazySingleton<WebDavSyncService>(
     () => WebDavSyncService(logger: getIt()),
+  );
+
+  getIt.registerLazySingleton<DownloadManager>(
+    () => DownloadManager(
+      prefs: getIt<SharedPreferences>(),
+      logger: getIt<Logger>(),
+    ),
   );
 
   //! Features
@@ -310,6 +318,7 @@ Future<void> init() async {
       repository: getIt<BookDetailsRepository>(),
       logger: logger,
       progressRepository: getIt<ReadingProgressRepository>(),
+      downloadManager: getIt<DownloadManager>(),
     ),
   );
 }
