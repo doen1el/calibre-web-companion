@@ -1139,4 +1139,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get authentication => 'Authentication';
+
+  @override
+  String get bookDetailsCouldNotBeLoaded => 'Unfortunately, the book details could not be loaded.';
+
+  @override
+  String get technicalDetails => 'Technical Details';
 }

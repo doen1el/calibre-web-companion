@@ -261,27 +261,116 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
             if (hasError) {
               return Scaffold(
-                appBar: AppBar(title: Text(localizations.error)),
+                appBar: AppBar(
+                  title: Text(localizations.error),
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed:
+                        () => Navigator.of(context).pop(_didUpdateMetadata),
+                  ),
+                ),
                 body: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '${localizations.errorLoadingData}: ${state.errorMessage}',
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          context.read<BookDetailsBloc>().add(
-                            ReloadBookDetails(
-                              state.bookViewModel ?? widget.bookViewModel,
-                              widget.bookUuid,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline_rounded,
+                          size: 80,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          localizations.errorLoadingData,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          localizations.bookDetailsCouldNotBeLoaded,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        Card(
+                          elevation: 0,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.errorContainer.withValues(alpha: .3),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.error.withValues(alpha: .5),
                             ),
-                          );
-                        },
-                        child: Text(localizations.tryAgain),
-                      ),
-                    ],
+                          ),
+                          child: ExpansionTile(
+                            tilePadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            iconColor: Theme.of(context).colorScheme.error,
+                            collapsedIconColor:
+                                Theme.of(context).colorScheme.error,
+                            title: Text(
+                              localizations.technicalDetails,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  0,
+                                  16,
+                                  16,
+                                ),
+                                child: SelectableText(
+                                  state.errorMessage ?? 'Unknown Error',
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                    fontFamily: 'monospace',
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed:
+                                  () => Navigator.of(
+                                    context,
+                                  ).pop(_didUpdateMetadata),
+                              icon: const Icon(Icons.arrow_back),
+                              label: Text(localizations.goBack),
+                            ),
+                            const SizedBox(width: 16),
+                            FilledButton.icon(
+                              onPressed: () {
+                                context.read<BookDetailsBloc>().add(
+                                  ReloadBookDetails(
+                                    state.bookViewModel ?? widget.bookViewModel,
+                                    widget.bookUuid,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.refresh),
+                              label: Text(localizations.tryAgain),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

@@ -369,5 +369,7 @@
   "vertical": "Vertical",
   "horizontal": "Horizontal",
   "errorOpeningBookInInternalReaderPdf": "Error: PDF files cannot be opened by VocsyEpub. This reader only supports EPUB files.",
-  "authentication": "Authentication"
+  "authentication": "Authentication",
+  "bookDetailsCouldNotBeLoaded": "Unfortunately, the book details could not be loaded.",
+  "technicalDetails": "Technical Details"
 }

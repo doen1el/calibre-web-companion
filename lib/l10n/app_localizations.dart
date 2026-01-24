@@ -2330,6 +2330,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Authentication'**
   String get authentication;
+
+  /// No description provided for @bookDetailsCouldNotBeLoaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfortunately, the book details could not be loaded.'**
+  String get bookDetailsCouldNotBeLoaded;
+
+  /// No description provided for @technicalDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical Details'**
+  String get technicalDetails;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

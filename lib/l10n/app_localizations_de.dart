@@ -1139,4 +1139,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get authentication => 'Authentifizierung';
+
+  @override
+  String get bookDetailsCouldNotBeLoaded => 'Leider konnten die Buchdetails nicht geladen werden.';
+
+  @override
+  String get technicalDetails => 'Technische Details';
 }
