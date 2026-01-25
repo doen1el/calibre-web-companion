@@ -1,0 +1,6 @@
+- changed Calibre-Web-Book-Downloader to Shelfmark
+- added hungarian, swedish and turkish translations
+- fixed authentication issue when using Booklore
+- fixed authentication issue when using Shelfmark
+- added better check when book is already downloaded
+- added library sync feature to bulk download books

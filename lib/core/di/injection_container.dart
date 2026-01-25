@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
+import 'package:calibre_web_companion/core/services/download_manager.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
@@ -40,6 +41,7 @@ import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_b
 import 'package:calibre_web_companion/features/shelf_view.dart/data/datasources/shelf_view_remote_datasource.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/reading_progress_repository.dart';
+import 'package:calibre_web_companion/features/sync/bloc/sync_bloc.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -62,6 +64,13 @@ Future<void> init() async {
 
   getIt.registerLazySingleton<WebDavSyncService>(
     () => WebDavSyncService(logger: getIt()),
+  );
+
+  getIt.registerLazySingleton<DownloadManager>(
+    () => DownloadManager(
+      prefs: getIt<SharedPreferences>(),
+      logger: getIt<Logger>(),
+    ),
   );
 
   //! Features
@@ -310,6 +319,19 @@ Future<void> init() async {
       repository: getIt<BookDetailsRepository>(),
       logger: logger,
       progressRepository: getIt<ReadingProgressRepository>(),
+      downloadManager: getIt<DownloadManager>(),
+    ),
+  );
+
+  // Sync Bloc
+  getIt.registerFactory<SyncBloc>(
+    () => SyncBloc(
+      logger: getIt<Logger>(),
+      bookViewRepository: getIt<BookViewRepository>(),
+      bookDetailsRepository: getIt<BookDetailsRepository>(),
+      downloadManager: getIt<DownloadManager>(),
+      settingsRepository: getIt<SettingsRepository>(),
+      shelfDetailsRepository: getIt<ShelfDetailsRepository>(),
     ),
   );
 }

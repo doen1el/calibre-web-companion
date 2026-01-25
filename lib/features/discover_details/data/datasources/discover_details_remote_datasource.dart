@@ -173,6 +173,38 @@ class DiscoverDetailsRemoteDatasource {
     }
   }
 
+  Future<CategoryFeed> loadCategoriesgeneric(String path) async {
+    try {
+      final jsonData = await apiService.getXmlAsJson(
+        endpoint: path,
+        authMethod: AuthMethod.auto,
+      );
+
+      final feed = _parseCategoryFeed(jsonData);
+      return feed;
+    } catch (e) {
+      throw Exception('Failed to load generic categories from $path: $e');
+    }
+  }
+
+  CategoryFeed _parseCategoryFeed(Map<String, dynamic> jsonData) {
+    if (jsonData['feed'] == null || jsonData['feed']['entry'] == null) {
+      return const CategoryFeed(categories: []);
+    }
+
+    final dynamic entryData = jsonData['feed']["entry"];
+    final List<dynamic> items = entryData is List ? entryData : [entryData];
+
+    final categories =
+        items.map((json) => CategoryModel.fromJson(json)).where((c) {
+          return c.title != 'All books';
+        }).toList();
+
+    categories.sort((a, b) => a.title.compareTo(b.title));
+
+    return CategoryFeed(categories: categories);
+  }
+
   String _getBookListPath(DiscoverType type, String? subPath) {
     final isOpds =
         preferences.getString('server_type') == 'opds' ||

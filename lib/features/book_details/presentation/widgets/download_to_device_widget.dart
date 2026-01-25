@@ -29,8 +29,11 @@ class DownloadToDeviceWidget extends StatelessWidget {
       buildWhen:
           (previous, current) =>
               previous.downloadState != current.downloadState ||
-              previous.downloadProgress != current.downloadProgress,
+              previous.downloadProgress != current.downloadProgress ||
+              previous.isDownloaded != current.isDownloaded,
       builder: (context, state) {
+        final isDownloaded = state.isDownloaded;
+
         return IconButton(
           icon: CircleAvatar(
             backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
@@ -47,13 +50,26 @@ class DownloadToDeviceWidget extends StatelessWidget {
                                 : null,
                       ),
                     )
-                    : const Icon(Icons.download_rounded),
+                    : Icon(
+                      isDownloaded
+                          ? Icons.download_done_rounded
+                          : Icons.download_rounded,
+                    ),
           ),
           onPressed:
               isLoading || state.downloadState == DownloadState.downloading
                   ? null
-                  : () => _showDownloadOptions(context, localizations, book),
-          tooltip: localizations.downloadToDevice,
+                  : () {
+                    if (isDownloaded) {
+                      context.showSnackBar(localizations.bookAlreadyDownloaded);
+                    } else {
+                      _showDownloadOptions(context, localizations, book);
+                    }
+                  },
+          tooltip:
+              isDownloaded
+                  ? localizations.bookAlreadyDownloaded
+                  : localizations.downloadToDevice,
         );
       },
     );

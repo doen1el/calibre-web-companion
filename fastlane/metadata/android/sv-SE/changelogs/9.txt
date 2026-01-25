@@ -1,0 +1,2 @@
+- Lade till översättning för nedladdningsinställningarna
+- Ändrade ordning på mapptillståndsgivande

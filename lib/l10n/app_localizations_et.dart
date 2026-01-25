@@ -9,7 +9,7 @@ class AppLocalizationsEt extends AppLocalizations {
   AppLocalizationsEt([String locale = 'et']) : super(locale);
 
   @override
-  String get loginToCalibreWb => 'Login to Calibre Web';
+  String get loginToCalibreWb => 'Logi saiti Calibre Web';
 
   @override
   String get calibreWebUrl => 'https://calibre.toredomeen.com';
@@ -21,22 +21,22 @@ class AppLocalizationsEt extends AppLocalizations {
   String get username => 'Kasutajanimi';
 
   @override
-  String get enterYourUsername => 'Enter your username';
+  String get enterYourUsername => 'Sisesta oma kasutajanimi';
 
   @override
   String get password => 'Salasõna';
 
   @override
-  String get enterYourPassword => 'Enter your password';
+  String get enterYourPassword => 'Sisesta oma salasõna';
 
   @override
   String get login => 'Logi sisse';
 
   @override
-  String get pleaseFillInAllFields => 'Please fill in all fields';
+  String get pleaseFillInAllFields => 'Palun täida kõik väljad';
 
   @override
-  String get failedToLognIn => 'Failed to login';
+  String get failedToLognIn => 'Sisselogimine ei õnnestunud';
 
   @override
   String get books => 'Raamatud';
@@ -54,25 +54,25 @@ class AppLocalizationsEt extends AppLocalizations {
   String get search => 'Otsi';
 
   @override
-  String get searchBook => 'Search book';
+  String get searchBook => 'Otsi raamatut';
 
   @override
-  String get enterTitleAuthorOrTags => 'Enter title, author or tags ...';
+  String get enterTitleAuthorOrTags => 'Sisesta pealkiri, autor või sildid...';
 
   @override
-  String get showReadBooks => 'Show read books';
+  String get showReadBooks => 'Näita loetud raamatuid';
 
   @override
-  String get showUnReadBooks => 'Show unread books';
+  String get showUnReadBooks => 'Näita lugemata raamatuid';
 
   @override
   String get showBookmarkedBooks => 'Show bookmarked books';
 
   @override
-  String get readBooks => 'Read books';
+  String get readBooks => 'Loetud raamatud';
 
   @override
-  String get unreadBooks => 'Unread books';
+  String get unreadBooks => 'Lugemata raamatud';
 
   @override
   String get bookmarkedBooks => 'Bookmarked books';
@@ -87,19 +87,19 @@ class AppLocalizationsEt extends AppLocalizations {
   String get showNewBooks => 'Show new books';
 
   @override
-  String get newBooks => 'New books';
+  String get newBooks => 'Uued raamatud';
 
   @override
   String get showRatedBooks => 'Show rated books';
 
   @override
-  String get ratedBooks => 'Rated books';
+  String get ratedBooks => 'Hinnatud raamatud';
 
   @override
-  String get titleAZ => 'Title (A-Z)';
+  String get titleAZ => 'Pealkiri (A..Z)';
 
   @override
-  String get titleZA => 'Title (Z-A)';
+  String get titleZA => 'Pealkiri (Z..A)';
 
   @override
   String get authorAZ => 'Author (A-Z)';
@@ -245,7 +245,7 @@ class AppLocalizationsEt extends AppLocalizations {
   String get send => 'Saada';
 
   @override
-  String get startingDownloadProcess => 'Starting download process';
+  String get startingDownloadProcess => 'Käivitan allalaadimist';
 
   @override
   String get preparingTransfer => 'Preparing transfer...';
@@ -1136,4 +1136,86 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get errorOpeningBookInInternalReaderPdf => 'Error: PDF files cannot be opened by VocsyEpub. This reader only supports EPUB files.';
+
+  @override
+  String get authentication => 'Authentication';
+
+  @override
+  String get bookDetailsCouldNotBeLoaded => 'Unfortunately, the book details could not be loaded.';
+
+  @override
+  String get technicalDetails => 'Technical Details';
+
+  @override
+  String get bookAlreadyDownloaded => 'Book already downloaded';
+
+  @override
+  String get configureAndSync => 'Configure and Sync';
+
+  @override
+  String get syncDescription => 'Keep your local library up to date. Configure filters to automatically download books from your server.';
+
+  @override
+  String get librarySync => 'Library Sync';
+
+  @override
+  String get syncError => 'Sync Error';
+
+  @override
+  String get syncCompletedSuccessfully => 'Sync completed successfully';
+
+  @override
+  String get scanningLibraryAndApplyingFilters => 'Scanning library and applying filters...';
+
+  @override
+  String foundXItemsToSync(Object count) {
+    return 'Found $count items to sync';
+  }
+
+  @override
+  String get startSync => 'Start Sync';
+
+  @override
+  String get syncing => 'Syncing...';
+
+  @override
+  String get stopSync => 'Stop Sync';
+
+  @override
+  String get syncConfiguration => 'Sync Configuration';
+
+  @override
+  String get syncOnlyUnreadBooks => 'Sync only unread books';
+
+  @override
+  String get sourceShelf => 'Source shelf';
+
+  @override
+  String get allBooks => 'All Books (Whole Library)';
+
+  @override
+  String get criteria => 'Criteria';
+
+  @override
+  String get preview => 'Preview';
+
+  @override
+  String get syncNow => 'Sync Now';
+
+  @override
+  String get selected => 'selected';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String syncFinishedWithXErrors(Object count) {
+    return 'Sync finished with $count errors';
+  }
+
+  @override
+  String get deselectAll => 'Deselect All';
+
+  @override
+  String get selectAll => 'Select All';
 }

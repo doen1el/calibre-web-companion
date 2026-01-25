@@ -9,28 +9,28 @@ class AppLocalizationsTr extends AppLocalizations {
   AppLocalizationsTr([String locale = 'tr']) : super(locale);
 
   @override
-  String get loginToCalibreWb => 'Login to Calibre Web';
+  String get loginToCalibreWb => 'Calibre Web\'e giriş';
 
   @override
-  String get calibreWebUrl => 'https://calibre.example.com';
+  String get calibreWebUrl => 'https://calibre.siteniz.com';
 
   @override
-  String get enterCalibreWebUrl => 'Enter Calibre Web URL';
+  String get enterCalibreWebUrl => 'Calibre Web URL\'sine girin';
 
   @override
-  String get username => 'Username';
+  String get username => 'Kullanıcı adı';
 
   @override
-  String get enterYourUsername => 'Enter your username';
+  String get enterYourUsername => 'Kullanıcı adınızı girin';
 
   @override
-  String get password => 'Password';
+  String get password => 'Parola';
 
   @override
-  String get enterYourPassword => 'Enter your password';
+  String get enterYourPassword => 'Parolanızı girin';
 
   @override
-  String get login => 'Login';
+  String get login => 'Giriş';
 
   @override
   String get pleaseFillInAllFields => 'Please fill in all fields';
@@ -39,31 +39,31 @@ class AppLocalizationsTr extends AppLocalizations {
   String get failedToLognIn => 'Failed to login';
 
   @override
-  String get books => 'Books';
+  String get books => 'Yapıtlar';
 
   @override
-  String get discover => 'Discover';
+  String get discover => 'Keşfet';
 
   @override
   String get me => 'Me';
 
   @override
-  String get discoverBooks => 'Discover books';
+  String get discoverBooks => 'Yapıtları keşfet';
 
   @override
-  String get search => 'Search';
+  String get search => 'Ara';
 
   @override
-  String get searchBook => 'Search book';
+  String get searchBook => 'Yapıt ara';
 
   @override
-  String get enterTitleAuthorOrTags => 'Enter title, author or tags ...';
+  String get enterTitleAuthorOrTags => 'Başlık, yazar veya etiket girin...';
 
   @override
-  String get showReadBooks => 'Show read books';
+  String get showReadBooks => 'Okunan yapıtları göster';
 
   @override
-  String get showUnReadBooks => 'Show unread books';
+  String get showUnReadBooks => 'Okunmamış yapıtları göster';
 
   @override
   String get showBookmarkedBooks => 'Show bookmarked books';
@@ -96,67 +96,67 @@ class AppLocalizationsTr extends AppLocalizations {
   String get ratedBooks => 'Rated books';
 
   @override
-  String get titleAZ => 'Title (A-Z)';
+  String get titleAZ => 'Başlık (A-Z)';
 
   @override
-  String get titleZA => 'Title (Z-A)';
+  String get titleZA => 'Başlık (Z-A)';
 
   @override
-  String get authorAZ => 'Author (A-Z)';
+  String get authorAZ => 'Yazar (A-Z)';
 
   @override
-  String get authorZA => 'Author (Z-A)';
+  String get authorZA => 'Yazar (Z-A)';
 
   @override
-  String get newestFirst => 'Newest first';
+  String get newestFirst => 'Önce yeniler';
 
   @override
-  String get oldestFirst => 'Oldest first';
+  String get oldestFirst => 'Önce eskiler';
 
   @override
-  String get authors => 'Authors';
+  String get authors => 'Yazarlar';
 
   @override
-  String get categories => 'Categories';
+  String get categories => 'Kategoriler';
 
   @override
   String get series => 'Series';
 
   @override
-  String get formats => 'Formats';
+  String get formats => 'Biçimler';
 
   @override
-  String get languages => 'Languages';
+  String get languages => 'Diller';
 
   @override
-  String get publishers => 'Publishers';
+  String get publishers => 'Yayıncılar';
 
   @override
-  String get ratings => 'Ratings';
+  String get ratings => 'Değerlendirmeler';
 
   @override
-  String get rating => 'Rating';
+  String get rating => 'Değerlendirme';
 
   @override
-  String get showAuthors => 'Show authors';
+  String get showAuthors => 'Yazarları göster';
 
   @override
-  String get showCategories => 'Show categories';
+  String get showCategories => 'Kategorileri göster';
 
   @override
   String get showSeries => 'Show series';
 
   @override
-  String get showFormats => 'Show formats';
+  String get showFormats => 'Biçimleri göster';
 
   @override
-  String get showLanguages => 'Show languages';
+  String get showLanguages => 'Diller göster';
 
   @override
-  String get showPublishers => 'Show publishers';
+  String get showPublishers => 'Yayıncıları göster';
 
   @override
-  String get showRatings => 'Show ratings';
+  String get showRatings => 'Değerlendirmeleri göster';
 
   @override
   String by(Object author) {
@@ -164,64 +164,64 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get book => 'Book';
+  String get book => 'Yapıt';
 
   @override
-  String get publicationInfo => 'Publication info';
+  String get publicationInfo => 'Yayın bilgileri';
 
   @override
-  String get published => 'Published';
+  String get published => 'Yayınlandı';
 
   @override
-  String get updated => 'Updated';
+  String get updated => 'Güncellendi';
 
   @override
-  String get publisher => 'Publisher';
+  String get publisher => 'Yayıncı';
 
   @override
-  String get language => 'Language';
+  String get language => 'Dil';
 
   @override
-  String get fileInfo => 'File info';
+  String get fileInfo => 'Dosya bilgisi';
 
   @override
-  String get size => 'Size';
+  String get size => 'Boyut';
 
   @override
-  String get description => 'Description';
+  String get description => 'Tanım';
 
   @override
-  String get noCoverAvailable => 'No cover available';
+  String get noCoverAvailable => 'Kapak mevcut değil';
 
   @override
-  String get english => 'English';
+  String get english => 'İngilizce';
 
   @override
-  String get german => 'German';
+  String get german => 'Almanca';
 
   @override
-  String get french => 'French';
+  String get french => 'Fransızca';
 
   @override
-  String get spanish => 'Spanish';
+  String get spanish => 'İspanyolca';
 
   @override
-  String get italian => 'Italian';
+  String get italian => 'İtalyanca';
 
   @override
-  String get japanese => 'Japanese';
+  String get japanese => 'Japonca';
 
   @override
-  String get russian => 'Russian';
+  String get russian => 'Rusça';
 
   @override
-  String get portuguese => 'Portuguese';
+  String get portuguese => 'Portekizce';
 
   @override
-  String get chineese => 'Chineese';
+  String get chineese => 'Çince';
 
   @override
-  String get dutch => 'Dutch';
+  String get dutch => 'Flemenkçe';
 
   @override
   String get sendToEReader => 'Send to E-Reader';
@@ -580,10 +580,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get reportAppIssueOrSuggestFeature => 'Report app issue or suggest feature';
 
   @override
-  String get title => 'Title';
+  String get title => 'Başlık';
 
   @override
-  String get required => 'Required';
+  String get required => 'Gerekli';
 
   @override
   String get submit => 'Submit';
@@ -994,7 +994,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get ssoLogin => 'SSO-Login';
 
   @override
-  String get pleaseLoginWithYourSSOAccount => 'Please login with your SSO account. You will be redirected back to the app after successful login.';
+  String get pleaseLoginWithYourSSOAccount => 'Lütfen SSO hesabınızla giriş yapın. Başarılı girişin ardından uygulamaya yönlendirileceksiniz.';
 
   @override
   String get loginWithSSO => 'Login with SSO';
@@ -1015,7 +1015,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get showReadNowButton => 'Show \'Read Now\' button';
 
   @override
-  String get showReadNowButtonDescription => 'Replaces the \'Send to E-Reader\' button with a \'Read Now\' button to open books directly.';
+  String get showReadNowButtonDescription => '\'E-Okuyucuya gönder\' düğmesini, yapıtları doğrudan açmak için \'Şimdi oku\' düğmesiyle değiştirir.';
 
   @override
   String get bookDetails => 'Book Details';
@@ -1057,7 +1057,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get sectionDisabledOrNotFound => 'Section unavailable';
 
   @override
-  String get sectionDisabledDescription => 'This section appears to be disabled in your Calibre-Web server settings or does not exist.';
+  String get sectionDisabledDescription => 'Bu bölüm Calibre-Web sunucu ayarlarınızda devre dışı bırakılmış gibi görünüyor veya mevcut değil.';
 
   @override
   String get or => 'OR';
@@ -1117,7 +1117,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get loginSuccessfull => 'Login successful';
 
   @override
-  String get enterUsernamePasswordForSSO => 'Since Calibre Web Companion uses many OPDS endpoints to provide different features, and OPDS currently only works with username/password authentication, you need to provide your credentials, even when using SSO. We know that this goes against the purpose of SSO, but it is necessary for the app to function correctly. Hopefully, future versions will offer a better solution.';
+  String get enterUsernamePasswordForSSO => 'Calibre Web Companion, farklı özellikler sağlamak için birçok OPDS uç noktası kullandığından ve OPDS şu anda yalnızca kullanıcı adı/şifre kimlik doğrulamasıyla çalıştığından, SSO kullanırken bile kimlik bilgilerinizi sağlamanız gerekmektedir. Bunun SSO\'nun amacına aykırı olduğunu biliyoruz, ancak uygulamanın doğru çalışması için gereklidir. Umarım gelecekteki sürümler daha iyi bir çözüm sunar.';
 
   @override
   String get credentialsRequiredForSSO => 'Credentials required for SSO';
@@ -1136,4 +1136,86 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get errorOpeningBookInInternalReaderPdf => 'Error: PDF files cannot be opened by VocsyEpub. This reader only supports EPUB files.';
+
+  @override
+  String get authentication => 'Authentication';
+
+  @override
+  String get bookDetailsCouldNotBeLoaded => 'Unfortunately, the book details could not be loaded.';
+
+  @override
+  String get technicalDetails => 'Technical Details';
+
+  @override
+  String get bookAlreadyDownloaded => 'Book already downloaded';
+
+  @override
+  String get configureAndSync => 'Configure and Sync';
+
+  @override
+  String get syncDescription => 'Keep your local library up to date. Configure filters to automatically download books from your server.';
+
+  @override
+  String get librarySync => 'Library Sync';
+
+  @override
+  String get syncError => 'Sync Error';
+
+  @override
+  String get syncCompletedSuccessfully => 'Sync completed successfully';
+
+  @override
+  String get scanningLibraryAndApplyingFilters => 'Scanning library and applying filters...';
+
+  @override
+  String foundXItemsToSync(Object count) {
+    return 'Found $count items to sync';
+  }
+
+  @override
+  String get startSync => 'Start Sync';
+
+  @override
+  String get syncing => 'Syncing...';
+
+  @override
+  String get stopSync => 'Stop Sync';
+
+  @override
+  String get syncConfiguration => 'Sync Configuration';
+
+  @override
+  String get syncOnlyUnreadBooks => 'Sync only unread books';
+
+  @override
+  String get sourceShelf => 'Source shelf';
+
+  @override
+  String get allBooks => 'All Books (Whole Library)';
+
+  @override
+  String get criteria => 'Criteria';
+
+  @override
+  String get preview => 'Preview';
+
+  @override
+  String get syncNow => 'Sync Now';
+
+  @override
+  String get selected => 'selected';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String syncFinishedWithXErrors(Object count) {
+    return 'Sync finished with $count errors';
+  }
+
+  @override
+  String get deselectAll => 'Deselect All';
+
+  @override
+  String get selectAll => 'Select All';
 }

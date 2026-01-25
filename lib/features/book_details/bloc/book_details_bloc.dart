@@ -4,6 +4,8 @@ import 'package:logger/logger.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
 
+import 'package:calibre_web_companion/core/services/download_manager.dart';
+
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/core/exceptions/cancellation_exception.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
@@ -12,11 +14,13 @@ import 'package:calibre_web_companion/features/book_details/data/repositories/re
 class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
   final BookDetailsRepository repository;
   final ReadingProgressRepository progressRepository;
+  final DownloadManager downloadManager;
   final Logger logger;
 
   BookDetailsBloc({
     required this.repository,
     required this.progressRepository,
+    required this.downloadManager,
     required this.logger,
   }) : super(const BookDetailsState()) {
     on<LoadBookDetails>(_onLoadBookDetails);
@@ -42,7 +46,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     on<SyncReadingProgress>(_onSyncReadingProgress);
   }
 
-  bool _downloadCancelled = false;
   bool _sendToEReaderCancelled = false;
 
   Future<void> _onLoadBookDetails(
@@ -60,6 +63,10 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         event.bookUuid,
       );
 
+      final isDownloaded = await downloadManager.checkFileExistence(
+        event.bookUuid,
+      );
+
       add(LoadReadingProgress(event.bookUuid));
 
       logger.i(bookDetails.tags);
@@ -67,10 +74,9 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       emit(
         state.copyWith(
           status: BookDetailsStatus.loaded,
-          isBookRead: event.bookViewModel.readStatus,
-          isBookArchived: event.bookViewModel.isArchived,
-          bookDetails: bookDetails,
           bookViewModel: event.bookViewModel,
+          bookDetails: bookDetails,
+          isDownloaded: isDownloaded,
         ),
       );
     } catch (e) {
@@ -226,8 +232,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       ),
     );
 
-    _downloadCancelled = false;
-
     try {
       if (state.bookDetails == null) {
         throw Exception('Book details not available');
@@ -241,19 +245,28 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         schema,
         format: event.format,
         progressCallback: (progress) {
-          if (_downloadCancelled) {
-            throw const CancellationException('Download cancelled by user');
-          }
           emit(state.copyWith(downloadProgress: progress));
         },
       );
 
+      if (state.bookViewModel != null) {
+        await downloadManager.registerDownload(
+          state.bookViewModel!.uuid,
+          filePath,
+        );
+      } else {
+        await downloadManager.registerDownload(
+          state.bookDetails!.uuid,
+          filePath,
+        );
+      }
+
       logger.i('Download completed successfully: $filePath');
       emit(
         state.copyWith(
-          downloadState: DownloadState.success,
-          downloadProgress: 100,
           downloadFilePath: filePath,
+          downloadState: DownloadState.success,
+          isDownloaded: true,
         ),
       );
     } catch (e) {
@@ -277,8 +290,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
   }
 
   void _onCancelDownload(CancelDownload event, Emitter<BookDetailsState> emit) {
-    _downloadCancelled = true;
-
     emit(state.copyWith(downloadState: DownloadState.canceled));
   }
 

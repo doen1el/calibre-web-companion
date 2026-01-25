@@ -1,0 +1,5 @@
+- Lagt till klickbart serienamn
+- Lagt till klickbar tagg
+- Lagt till autofyll till loginsidan
+- Lagt till möjlighet att öppna böcker i installerade läsare
+- Lagt till stöd för omvänd proxyautentisering

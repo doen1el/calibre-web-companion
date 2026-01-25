@@ -1,0 +1,3 @@
+- Uppdaterad version för kodgenerering
+- Nödpatch för boknedladdning
+- Tog bort bokrekommendationer (För tillfället)

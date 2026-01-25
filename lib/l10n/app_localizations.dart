@@ -10,8 +10,10 @@ import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
 import 'app_localizations_et.dart';
 import 'app_localizations_fr.dart';
+import 'app_localizations_hu.dart';
 import 'app_localizations_it.dart';
 import 'app_localizations_pt.dart';
+import 'app_localizations_sv.dart';
 import 'app_localizations_tr.dart';
 
 // ignore_for_file: type=lint
@@ -102,8 +104,10 @@ abstract class AppLocalizations {
     Locale('es'),
     Locale('et'),
     Locale('fr'),
+    Locale('hu'),
     Locale('it'),
     Locale('pt'),
+    Locale('sv'),
     Locale('tr')
   ];
 
@@ -2320,6 +2324,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error: PDF files cannot be opened by VocsyEpub. This reader only supports EPUB files.'**
   String get errorOpeningBookInInternalReaderPdf;
+
+  /// No description provided for @authentication.
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication'**
+  String get authentication;
+
+  /// No description provided for @bookDetailsCouldNotBeLoaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfortunately, the book details could not be loaded.'**
+  String get bookDetailsCouldNotBeLoaded;
+
+  /// No description provided for @technicalDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical Details'**
+  String get technicalDetails;
+
+  /// No description provided for @bookAlreadyDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Book already downloaded'**
+  String get bookAlreadyDownloaded;
+
+  /// No description provided for @configureAndSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure and Sync'**
+  String get configureAndSync;
+
+  /// No description provided for @syncDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your local library up to date. Configure filters to automatically download books from your server.'**
+  String get syncDescription;
+
+  /// No description provided for @librarySync.
+  ///
+  /// In en, this message translates to:
+  /// **'Library Sync'**
+  String get librarySync;
+
+  /// No description provided for @syncError.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Error'**
+  String get syncError;
+
+  /// No description provided for @syncCompletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync completed successfully'**
+  String get syncCompletedSuccessfully;
+
+  /// No description provided for @scanningLibraryAndApplyingFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning library and applying filters...'**
+  String get scanningLibraryAndApplyingFilters;
+
+  /// No description provided for @foundXItemsToSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {count} items to sync'**
+  String foundXItemsToSync(Object count);
+
+  /// No description provided for @startSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Sync'**
+  String get startSync;
+
+  /// No description provided for @syncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing...'**
+  String get syncing;
+
+  /// No description provided for @stopSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop Sync'**
+  String get stopSync;
+
+  /// No description provided for @syncConfiguration.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Configuration'**
+  String get syncConfiguration;
+
+  /// No description provided for @syncOnlyUnreadBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync only unread books'**
+  String get syncOnlyUnreadBooks;
+
+  /// No description provided for @sourceShelf.
+  ///
+  /// In en, this message translates to:
+  /// **'Source shelf'**
+  String get sourceShelf;
+
+  /// No description provided for @allBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'All Books (Whole Library)'**
+  String get allBooks;
+
+  /// No description provided for @criteria.
+  ///
+  /// In en, this message translates to:
+  /// **'Criteria'**
+  String get criteria;
+
+  /// No description provided for @preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get preview;
+
+  /// No description provided for @syncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Now'**
+  String get syncNow;
+
+  /// No description provided for @selected.
+  ///
+  /// In en, this message translates to:
+  /// **'selected'**
+  String get selected;
+
+  /// No description provided for @all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get all;
+
+  /// No description provided for @syncFinishedWithXErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync finished with {count} errors'**
+  String syncFinishedWithXErrors(Object count);
+
+  /// No description provided for @deselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect All'**
+  String get deselectAll;
+
+  /// No description provided for @selectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select All'**
+  String get selectAll;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -2331,7 +2491,7 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['de', 'en', 'es', 'et', 'fr', 'it', 'pt', 'tr'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['de', 'en', 'es', 'et', 'fr', 'hu', 'it', 'pt', 'sv', 'tr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -2347,8 +2507,10 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
     case 'es': return AppLocalizationsEs();
     case 'et': return AppLocalizationsEt();
     case 'fr': return AppLocalizationsFr();
+    case 'hu': return AppLocalizationsHu();
     case 'it': return AppLocalizationsIt();
     case 'pt': return AppLocalizationsPt();
+    case 'sv': return AppLocalizationsSv();
     case 'tr': return AppLocalizationsTr();
   }
 
