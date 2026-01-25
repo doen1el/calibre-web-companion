@@ -30,6 +30,8 @@ import 'package:calibre_web_companion/features/login/data/repositories/login_rep
 import 'package:calibre_web_companion/features/login/bloc/login_bloc.dart';
 import 'package:calibre_web_companion/features/login/presentation/pages/login_page.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_bloc.dart';
+import 'package:calibre_web_companion/features/sync/bloc/sync_bloc.dart';
+import 'package:calibre_web_companion/features/sync/bloc/sync_event.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 final GetIt getIt = GetIt.instance;
@@ -38,7 +40,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await di.init();
-  // DownloadManager initialisieren und Files checken
+
   await di.getIt<DownloadManager>().initialize();
 
   final savedThemeMode = await AdaptiveTheme.getThemeMode();
@@ -81,6 +83,9 @@ void main() async {
                   getIt<BookViewBloc>()
                     ..add(const LoadViewSettings())
                     ..add(const LoadBooks()),
+        ),
+        BlocProvider<SyncBloc>(
+          create: (_) => getIt<SyncBloc>()..add(const CheckForUnsyncedBooks()),
         ),
       ],
       child: MyApp(savedThemeMode: savedThemeMode),

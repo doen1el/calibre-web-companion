@@ -50,12 +50,13 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 - View detailed information about each book.
 - Easily mark books as read or unread, organize them into shelves, or archive them.
 - Access comprehensive collection statistics at a glance.
-- Download books directly onto your device.
 - Instantly send books to your e-reader using [send2ereader](https://github.com/daniel-j/send2ereader) or via Calibre Web's mail function. You can also use your own send2ereader instance.
 - Automatically download books to your collection with [shelfmark](https://github.com/calibrain/shelfmark).
+- Read books directly within the app using the built-in eBook reader and sync your reading progress using WebDAV.
 - Manage and customize your shelves.
 - Upload books to your Calibre Web server.
 - Edit your book's metadata and upload new covers.
+- Sync your whole librarby or selected books for offline reading.
 
 ## 🖼️ Impressions
 

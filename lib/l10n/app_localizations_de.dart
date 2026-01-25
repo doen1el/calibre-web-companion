@@ -1148,4 +1148,74 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get bookAlreadyDownloaded => 'Buch bereits heruntergeladen';
+
+  @override
+  String get configureAndSync => 'Konfigurieren und Synchronisieren';
+
+  @override
+  String get syncDescription => 'Halte deine lokale Bibliothek auf dem neuesten Stand. Konfiguriere Filter, um Bücher automatisch von deinem Server herunterzuladen.';
+
+  @override
+  String get librarySync => 'Bibliothekssynchronisierung';
+
+  @override
+  String get syncError => 'Sync-Fehler';
+
+  @override
+  String get syncCompletedSuccessfully => 'Sync erfolgreich abgeschlossen';
+
+  @override
+  String get scanningLibraryAndApplyingFilters => 'Bibliothek wird gescannt und Filter werden angewendet...';
+
+  @override
+  String foundXItemsToSync(Object count) {
+    return '$count Elemente zum Synchronisieren gefunden';
+  }
+
+  @override
+  String get startSync => 'Sync starten';
+
+  @override
+  String get syncing => 'Synchronisiere...';
+
+  @override
+  String get stopSync => 'Sync stoppen';
+
+  @override
+  String get syncConfiguration => 'Sync-Konfiguration';
+
+  @override
+  String get syncOnlyUnreadBooks => 'Nur ungelesene Bücher synchronisieren';
+
+  @override
+  String get sourceShelf => 'Quellregal';
+
+  @override
+  String get allBooks => 'Alle Bücher (Ganze Bibliothek)';
+
+  @override
+  String get criteria => 'Kriterien';
+
+  @override
+  String get preview => 'Vorschau';
+
+  @override
+  String get syncNow => 'Jetzt synchronisieren';
+
+  @override
+  String get selected => 'ausgewählt';
+
+  @override
+  String get all => 'Alle';
+
+  @override
+  String syncFinishedWithXErrors(Object count) {
+    return 'Sync mit $count Fehlern abgeschlossen';
+  }
+
+  @override
+  String get deselectAll => 'Alle abwählen';
+
+  @override
+  String get selectAll => 'Alle auswählen';
 }

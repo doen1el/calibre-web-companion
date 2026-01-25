@@ -46,7 +46,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     on<SyncReadingProgress>(_onSyncReadingProgress);
   }
 
-  bool _downloadCancelled = false;
   bool _sendToEReaderCancelled = false;
 
   Future<void> _onLoadBookDetails(
@@ -233,8 +232,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       ),
     );
 
-    _downloadCancelled = false;
-
     try {
       if (state.bookDetails == null) {
         throw Exception('Book details not available');
@@ -293,8 +290,6 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
   }
 
   void _onCancelDownload(CancelDownload event, Emitter<BookDetailsState> emit) {
-    _downloadCancelled = true;
-
     emit(state.copyWith(downloadState: DownloadState.canceled));
   }
 

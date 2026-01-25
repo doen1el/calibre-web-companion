@@ -12,6 +12,7 @@ import 'package:calibre_web_companion/features/login_settings/presentation/pages
 import 'package:calibre_web_companion/features/settings/presentation/widgets/download_options_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/feedback_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/theme_selector_widget.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/sync_settings_widget.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 
@@ -162,6 +163,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             localizations.downloadOptions,
                           ),
                           const DownloadOptionsWidget(),
+                          SyncSettingsWidget(),
 
                           const SizedBox(height: 24),
                           _buildSectionTitle(
