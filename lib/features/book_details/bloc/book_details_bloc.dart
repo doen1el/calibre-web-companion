@@ -55,7 +55,12 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     try {
       logger.i('Loading book details: ${event.bookUuid}');
       emit(
-        state.copyWith(status: BookDetailsStatus.loading, errorMessage: null),
+        state.copyWith(
+          status: BookDetailsStatus.loading,
+          errorMessage: null,
+          isBookRead: event.bookViewModel.readStatus,
+          isBookArchived: event.bookViewModel.isArchived,
+        ),
       );
 
       final bookDetails = await repository.getBookDetails(
@@ -77,6 +82,8 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           bookViewModel: event.bookViewModel,
           bookDetails: bookDetails,
           isDownloaded: isDownloaded,
+          isBookRead: bookDetails.readStatus,
+          isBookArchived: bookDetails.isArchived,
         ),
       );
     } catch (e) {
