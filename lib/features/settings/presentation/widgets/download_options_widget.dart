@@ -65,6 +65,10 @@ class DownloadOptionsWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                  ),
                   onPressed: () async {
                     DocumentFile? selectedDirectory =
                         await DocMan.pick.directory();
@@ -94,7 +98,12 @@ class DownloadOptionsWidget extends StatelessWidget {
                       isError: false,
                     );
                   },
-                  child: Text(localizations.select),
+                  child: Text(
+                    localizations.select,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -156,10 +165,15 @@ class DownloadOptionsWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                  ),
                   onPressed: () async {
                     final result = await _showSchemaSelectionDialog(
                       context,
                       localizations,
+                      state.downloadSchema,
                     );
                     if (result != null) {
                       // ignore: use_build_context_synchronously
@@ -174,7 +188,12 @@ class DownloadOptionsWidget extends StatelessWidget {
                       );
                     }
                   },
-                  child: Text(localizations.select),
+                  child: Text(
+                    localizations.select,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -206,57 +225,113 @@ class DownloadOptionsWidget extends StatelessWidget {
           'title': localizations.schemaAuthorSeriesBook,
           'example': '/author/series/book1/book1.epub',
         };
+      case DownloadSchema.authorSortOnly:
+        return {
+          'title': '${localizations.schemaAuthorOnly} (Sort)',
+          'example': '/author_sort/book1.epub',
+        };
+      case DownloadSchema.authorSortBook:
+        return {
+          'title': '${localizations.schemaAuthorBook} (Sort)',
+          'example': '/author_sort/book1/book1.epub',
+        };
+      case DownloadSchema.authorSortSeriesBook:
+        return {
+          'title': '${localizations.schemaAuthorSeriesBook} (Sort)',
+          'example': '/author_sort/series/book1/book1.epub',
+        };
     }
   }
 
   Future<DownloadSchema?> _showSchemaSelectionDialog(
     BuildContext context,
     AppLocalizations localizations,
+    DownloadSchema currentSchema,
   ) async {
+    bool useAuthorSort = [
+      DownloadSchema.authorSortOnly,
+      DownloadSchema.authorSortBook,
+      DownloadSchema.authorSortSeriesBook,
+    ].contains(currentSchema);
+
     return showDialog<DownloadSchema>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(localizations.selectDownloadSchema),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildSchemaOption(
-                  context,
-                  DownloadSchema.flat,
-                  localizations.schemaFlat,
-                  '/book1.epub',
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(localizations.selectDownloadSchema),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SwitchListTile(
+                      title: Text(localizations.useAuthorSort),
+                      subtitle: Text(
+                        useAuthorSort ? "Doe, John" : "John Doe",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        ),
+                      ),
+                      value: useAuthorSort,
+                      onChanged: (bool value) {
+                        setState(() {
+                          useAuthorSort = value;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    _buildSchemaOption(
+                      context,
+                      DownloadSchema.flat,
+                      localizations.schemaFlat,
+                      '/book1.epub',
+                    ),
+                    _buildSchemaOption(
+                      context,
+                      useAuthorSort
+                          ? DownloadSchema.authorSortOnly
+                          : DownloadSchema.authorOnly,
+                      localizations.schemaAuthorOnly,
+                      useAuthorSort
+                          ? '/author_sort/book1.epub'
+                          : '/author/book1.epub',
+                    ),
+                    _buildSchemaOption(
+                      context,
+                      useAuthorSort
+                          ? DownloadSchema.authorSortBook
+                          : DownloadSchema.authorBook,
+                      localizations.schemaAuthorBook,
+                      useAuthorSort
+                          ? '/author_sort/book1/book1.epub'
+                          : '/author/book1/book1.epub',
+                    ),
+                    _buildSchemaOption(
+                      context,
+                      useAuthorSort
+                          ? DownloadSchema.authorSortSeriesBook
+                          : DownloadSchema.authorSeriesBook,
+                      localizations.schemaAuthorSeriesBook,
+                      useAuthorSort
+                          ? '/author_sort/series/book1/book1.epub'
+                          : '/author/series/book1/book1.epub',
+                    ),
+                  ],
                 ),
-                _buildSchemaOption(
-                  context,
-                  DownloadSchema.authorOnly,
-                  localizations.schemaAuthorOnly,
-                  '/author/book1.epub',
-                ),
-                _buildSchemaOption(
-                  context,
-                  DownloadSchema.authorBook,
-                  localizations.schemaAuthorBook,
-                  '/author/book1/book1.epub',
-                ),
-                _buildSchemaOption(
-                  context,
-                  DownloadSchema.authorSeriesBook,
-                  localizations.schemaAuthorSeriesBook,
-                  '/author/series/book1/book1.epub',
+              ),
+              actions: <Widget>[
+                ElevatedButton(
+                  child: Text(localizations.cancel),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
                 ),
               ],
-            ),
-          ),
-          actions: <Widget>[
-            ElevatedButton(
-              child: Text(localizations.cancel),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+            );
+          },
         );
       },
     );

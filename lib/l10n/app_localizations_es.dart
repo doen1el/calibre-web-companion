@@ -1218,4 +1218,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get selectAll => 'Select All';
+
+  @override
+  String get useAuthorSort => 'Use \'Author Sort\'';
 }

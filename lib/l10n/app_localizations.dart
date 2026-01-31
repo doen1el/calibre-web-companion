@@ -2482,6 +2482,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select All'**
   String get selectAll;
+
+  /// No description provided for @useAuthorSort.
+  ///
+  /// In en, this message translates to:
+  /// **'Use \'Author Sort\''**
+  String get useAuthorSort;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

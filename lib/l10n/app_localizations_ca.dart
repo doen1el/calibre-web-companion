@@ -1218,4 +1218,7 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get selectAll => 'Selecciona Tot';
+
+  @override
+  String get useAuthorSort => 'Use \'Author Sort\'';
 }

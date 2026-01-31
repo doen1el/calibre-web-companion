@@ -394,5 +394,6 @@
   "all": "Alle",
   "syncFinishedWithXErrors": "Sync mit {count} Fehlern abgeschlossen",
   "deselectAll": "Alle abwählen",
-  "selectAll": "Alle auswählen"
+  "selectAll": "Alle auswählen",
+  "useAuthorSort": "Benutze 'Author Sort'"
 }
