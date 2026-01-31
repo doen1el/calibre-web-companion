@@ -165,7 +165,7 @@
     "shelfIsEmpty": "Estant buit",
     "removing": "Eliminant",
     "manageBookShelves": "Gestiona llibres de l'estant",
-    "bookInShelfs": "Llibre a {count, plural, =1{un estant} altre{{count} shelves}}",
+    "bookInShelfs": "Llibre a {count, plural, =1{un estant} other{{count} shelves}}",
     "searchForBooks": "Cerca per llibres",
     "connectionSettings": "Opcions de connexió",
     "costumHttpPHeader": "Capçalera HTTP personalitzada",
