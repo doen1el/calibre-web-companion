@@ -23,9 +23,20 @@ class BookListTile extends StatelessWidget {
             children: [
               AspectRatio(
                 aspectRatio: 2 / 3,
-                child: BookCoverWidget(
-                  bookId: book.id,
-                  coverUrl: book.coverUrl,
+                child: Stack(
+                  children: [
+                    BookCoverWidget(bookId: book.id, coverUrl: book.coverUrl),
+                    if (book.readStatus)
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Icon(
+                          Icons.check_circle,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                  ],
                 ),
               ),
               Expanded(

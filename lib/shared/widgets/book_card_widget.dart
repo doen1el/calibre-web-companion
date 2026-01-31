@@ -9,6 +9,7 @@ class BookCard extends StatelessWidget {
   final VoidCallback? onTap;
   final bool isLoading;
   final String? coverUrl;
+  final bool readStatus;
 
   const BookCard({
     super.key,
@@ -18,6 +19,7 @@ class BookCard extends StatelessWidget {
     this.onTap,
     this.isLoading = false,
     this.coverUrl,
+    this.readStatus = false,
   });
 
   @override
@@ -37,11 +39,35 @@ class BookCard extends StatelessWidget {
               children: [
                 Expanded(
                   flex: 3,
-                  child: BookCoverWidget(
-                    bookId:
-                        int.tryParse(bookId) ??
-                        int.parse(bookId.split('/').last),
-                    coverUrl: coverUrl,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      BookCoverWidget(
+                        bookId:
+                            int.tryParse(bookId) ??
+                            int.parse(bookId.split('/').last),
+                        coverUrl: coverUrl,
+                      ),
+                      if (readStatus)
+                        Positioned(
+                          top: 6,
+                          right: 6,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surface.withValues(alpha: 0.8),
+                            ),
+                            padding: const EdgeInsets.all(0.5),
+                            child: Icon(
+                              Icons.check_circle,
+                              size: 25,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
                 Expanded(
