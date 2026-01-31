@@ -6,6 +6,7 @@ import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf
 import 'package:calibre_web_companion/features/sync/data/models/sync_filter.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
 import 'package:calibre_web_companion/features/settings/presentation/pages/filter_selection_page.dart'; // Import Page
+import 'package:calibre_web_companion/core/services/api_service.dart';
 
 class SyncFilterBottomSheet extends StatefulWidget {
   final SyncFilter initialFilter;
@@ -20,11 +21,45 @@ class _SyncFilterBottomSheetState extends State<SyncFilterBottomSheet> {
   ShelfListViewModel shelves = const ShelfListViewModel(shelves: []);
   bool isLoadingShelves = true;
 
+  List<String> availableFormats = ['epub', 'pdf', 'mobi', 'cbz'];
+  bool isLoadingFormats = true;
+
   @override
   void initState() {
     super.initState();
     filter = widget.initialFilter;
     _loadShelves();
+    _loadFormats();
+  }
+
+  Future<void> _loadFormats() async {
+    try {
+      final api = GetIt.I<ApiService>();
+      final response = await api.get(endpoint: '/opds/formats');
+
+      final entries = response.body.split('<entry>');
+      final Set<String> foundFormats = {};
+
+      for (var entry in entries) {
+        if (!entry.contains('</entry>')) continue;
+
+        final titleMatch = RegExp(r'<title>(.*?)</title>').firstMatch(entry);
+        if (titleMatch != null) {
+          foundFormats.add(titleMatch.group(1)!.toLowerCase().trim());
+        }
+      }
+
+      if (mounted && foundFormats.isNotEmpty) {
+        setState(() {
+          availableFormats = foundFormats.toList()..sort();
+          isLoadingFormats = false;
+        });
+      } else {
+        if (mounted) setState(() => isLoadingFormats = false);
+      }
+    } catch (e) {
+      if (mounted) setState(() => isLoadingFormats = false);
+    }
   }
 
   Future<void> _loadShelves() async {
@@ -95,33 +130,41 @@ class _SyncFilterBottomSheetState extends State<SyncFilterBottomSheet> {
             child: ListView(
               children: [
                 _buildSectionTitle(localization.formats),
-                Wrap(
-                  spacing: 8,
-                  children:
-                      ['epub', 'pdf', 'mobi', 'cbz'].map((fmt) {
-                        final isSelected = filter.selectedFormats.contains(fmt);
-                        return FilterChip(
-                          label: Text(fmt.toUpperCase()),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            final newFormats = List<String>.from(
-                              filter.selectedFormats,
-                            );
-                            if (selected) {
-                              newFormats.add(fmt);
-                            } else {
-                              newFormats.remove(fmt);
-                            }
-                            setState(
-                              () =>
-                                  filter = filter.copyWith(
-                                    selectedFormats: newFormats,
-                                  ),
-                            );
-                          },
-                        );
-                      }).toList(),
-                ),
+                if (isLoadingFormats)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: LinearProgressIndicator(),
+                  )
+                else
+                  Wrap(
+                    spacing: 8,
+                    children:
+                        availableFormats.map((fmt) {
+                          final isSelected = filter.selectedFormats.contains(
+                            fmt,
+                          );
+                          return FilterChip(
+                            label: Text(fmt.toUpperCase()),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              final newFormats = List<String>.from(
+                                filter.selectedFormats,
+                              );
+                              if (selected) {
+                                newFormats.add(fmt);
+                              } else {
+                                newFormats.remove(fmt);
+                              }
+                              setState(
+                                () =>
+                                    filter = filter.copyWith(
+                                      selectedFormats: newFormats,
+                                    ),
+                              );
+                            },
+                          );
+                        }).toList(),
+                  ),
 
                 const SizedBox(height: 16),
 
