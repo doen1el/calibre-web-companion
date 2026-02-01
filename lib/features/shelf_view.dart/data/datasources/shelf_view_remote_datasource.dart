@@ -128,7 +128,16 @@ class ShelfViewRemoteDataSource {
             await shelfDetailsRemoteDataSource.getShelfDetails(s.id);
 
         for (var book in shelfDetails.books) {
-          if (book.id == bookId) {
+          final String shelfBookId = book.id
+              .toString()
+              .toLowerCase()
+              .replaceFirst('urn:uuid:', '');
+          final String searchBookId = bookId
+              .toString()
+              .toLowerCase()
+              .replaceFirst('urn:uuid:', '');
+
+          if (shelfBookId == searchBookId) {
             logger.d('Found book in shelf: ${s.title}');
             shelves.add(ShelfViewModel(id: s.id, title: s.title));
           }

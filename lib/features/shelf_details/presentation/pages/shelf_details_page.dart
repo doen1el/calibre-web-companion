@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,7 +15,6 @@ import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_e
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/main.dart';
-import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_book_item_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
@@ -377,31 +377,22 @@ class ShelfDetailsPage extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: () async {
+              final cleanUuid = book.id.toLowerCase().replaceAll(
+                'urn:uuid:',
+                '',
+              );
+
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder:
                       (context) => BookDetailsPage(
-                        bookViewModel: BookDetailsModel(
-                          id: int.tryParse(book.id) ?? 0,
-                          uuid: book.uuid,
+                        bookUuid: cleanUuid,
+                        bookViewModel: BookViewModel(
+                          id: 0,
+                          uuid: cleanUuid,
                           title: book.title,
                           authors: book.authors,
-                          cover: book.coverUrl ?? '',
-                          coverUrl: book.coverUrl,
-                          comments: book.summary,
-                          data: book.summary,
-                          tags: book.tags,
-                          formats: book.formats,
-                          hasCover: book.coverUrl != null,
-                          path: '',
-                          pubdate: '',
-                          series: '',
-                          seriesIndex: 0,
-                          rating: 0,
-                          languages: '',
-                          publishers: '',
                         ),
-                        bookUuid: book.uuid,
                       ),
                 ),
               );

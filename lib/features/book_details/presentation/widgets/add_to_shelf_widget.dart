@@ -52,7 +52,7 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
   void _loadShelvesAndCheckContaining() {
     if (!mounted) return;
 
-    if (widget.book.id == 0) {
+    if (widget.book.uuid.isEmpty) {
       return;
     }
 
@@ -62,7 +62,7 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
       shelfBloc.add(const LoadShelves());
     }
 
-    shelfBloc.add(FindShelvesContainingBook(widget.book.id.toString()));
+    shelfBloc.add(FindShelvesContainingBook(widget.book.uuid.toString()));
 
     setState(() {
       _hasChecked = true;
