@@ -1221,4 +1221,33 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get useAuthorSort => 'Use \'Author Sort\'';
+
+  @override
+  String get account => 'Acount';
+
+  @override
+  String get accounts => 'Accounts';
+
+  @override
+  String get addAnotherAccount => 'Add another account';
+
+  @override
+  String get switchAccount => 'Switch account';
+
+  @override
+  String switchAccountConfirmation(Object username) {
+    return 'Are you sure you want to switch to $username?';
+  }
+
+  @override
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String get deleteAccountConfirmation => 'Are you sure you want to remove this account from the list?';
+
+  @override
+  String get user => 'User';
+
+  @override
+  String get userFirstLetter => 'U';
 }

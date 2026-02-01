@@ -1,3 +1,4 @@
+import 'dart:convert';
 // ignore: implementation_imports
 import 'package:http/src/response.dart';
 import 'package:logger/logger.dart';
@@ -26,6 +27,8 @@ class LoginRemoteDataSource {
       await prefs.setString('password', credentials.password);
       await prefs.setString('server_type', serverType.name);
 
+      bool isLoggedIn = false;
+
       if (serverType == ServerType.opds || serverType == ServerType.booklore) {
         try {
           final uri = Uri.parse(credentials.baseUrl);
@@ -40,18 +43,22 @@ class LoginRemoteDataSource {
           await prefs.setString('base_url', credentials.baseUrl);
           await apiService.initialize();
 
-          return true;
+          isLoggedIn = true;
         } catch (e) {
-          logger.w(
-            'Error parsing OPDS URL, falling back to standard method: $e',
-          );
+          logger.w('Error parsing OPDS URL, falling back: $e');
           await apiService.initialize();
-          return _loginOpds(credentials, '');
+          isLoggedIn = await _loginOpds(credentials, '');
         }
       } else {
         await apiService.initialize();
-        return _loginCalibreWeb(credentials);
+        isLoggedIn = await _loginCalibreWeb(credentials);
       }
+
+      if (isLoggedIn) {
+        await _saveAccountToHistory(credentials, serverType);
+      }
+
+      return isLoggedIn;
     } on RedirectException {
       rethrow;
     } catch (e) {
@@ -217,6 +224,98 @@ class LoginRemoteDataSource {
       }
     }
     return false;
+  }
+
+  Future<void> _saveAccountToHistory(
+    LoginCredentials credentials,
+    ServerType type,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> history = prefs.getStringList('saved_accounts') ?? [];
+
+    history.removeWhere((item) {
+      try {
+        final Map<String, dynamic> json = jsonDecode(item);
+        return json['baseUrl'] == credentials.baseUrl &&
+            json['username'] == credentials.username;
+      } catch (_) {
+        return false;
+      }
+    });
+
+    final entry = credentials.toJson();
+    entry['serverType'] = type.name;
+
+    history.insert(0, jsonEncode(entry));
+
+    await prefs.setStringList('saved_accounts', history);
+  }
+
+  Future<List<LoginCredentials>> getSavedAccounts() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> history = prefs.getStringList('saved_accounts') ?? [];
+
+    final currentBaseUrl = prefs.getString('base_url');
+    final currentUsername = prefs.getString('username');
+    final currentPassword = prefs.getString('password');
+    final currentServerTypeStr = prefs.getString('server_type');
+
+    if (currentBaseUrl != null && currentBaseUrl.isNotEmpty) {
+      bool isAlreadySaved = false;
+
+      for (String item in history) {
+        try {
+          final Map<String, dynamic> json = jsonDecode(item);
+          if (json['baseUrl'] == currentBaseUrl &&
+              json['username'] == (currentUsername ?? '')) {
+            isAlreadySaved = true;
+            break;
+          }
+        } catch (_) {}
+      }
+
+      if (!isAlreadySaved) {
+        final newEntry = {
+          'baseUrl': currentBaseUrl,
+          'username': currentUsername ?? '',
+          'password': currentPassword ?? '',
+          'serverType': currentServerTypeStr ?? ServerType.calibreWeb.name,
+        };
+
+        history.insert(0, jsonEncode(newEntry));
+
+        await prefs.setStringList('saved_accounts', history);
+        logger.i('Automatically migrated current account to saved history.');
+      }
+    }
+
+    return history
+        .map((item) {
+          try {
+            return LoginCredentials.fromJson(jsonDecode(item));
+          } catch (e) {
+            return null;
+          }
+        })
+        .whereType<LoginCredentials>()
+        .toList();
+  }
+
+  Future<void> removeAccount(LoginCredentials credentials) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> history = prefs.getStringList('saved_accounts') ?? [];
+
+    history.removeWhere((item) {
+      try {
+        final Map<String, dynamic> json = jsonDecode(item);
+        return json['baseUrl'] == credentials.baseUrl &&
+            json['username'] == credentials.username;
+      } catch (_) {
+        return false;
+      }
+    });
+
+    await prefs.setStringList('saved_accounts', history);
   }
 
   Future<LoginCredentials?> getStoredCredentials() async {

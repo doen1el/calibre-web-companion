@@ -113,6 +113,14 @@ class LoginRepository {
       return LoginResult.failure(e.toString());
     }
   }
+
+  Future<List<LoginCredentials>> getSavedAccounts() async {
+    return dataSource.getSavedAccounts();
+  }
+
+  Future<void> removeAccount(LoginCredentials credentials) async {
+    return dataSource.removeAccount(credentials);
+  }
 }
 
 class LoginResult {

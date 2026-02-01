@@ -66,8 +66,7 @@ class DownloadOptionsWidget extends StatelessWidget {
                 const SizedBox(width: 16),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                   ),
                   onPressed: () async {
                     DocumentFile? selectedDirectory =
@@ -101,7 +100,7 @@ class DownloadOptionsWidget extends StatelessWidget {
                   child: Text(
                     localizations.select,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
                 ),
@@ -166,8 +165,7 @@ class DownloadOptionsWidget extends StatelessWidget {
                 const SizedBox(width: 16),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                   ),
                   onPressed: () async {
                     final result = await _showSchemaSelectionDialog(
@@ -191,7 +189,7 @@ class DownloadOptionsWidget extends StatelessWidget {
                   child: Text(
                     localizations.select,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
                 ),
