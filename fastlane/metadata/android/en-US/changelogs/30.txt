@@ -1,0 +1,8 @@
+- Catalan translation added.
+- Fixed the building script for .ipa files.
+- The sync feature will query the available formats from the server.
+- Read status indicator added to homepage.
+- Fixed the read status flag problem.
+- Added the authorSort option to the download path settings.
+- The ability to quickly switch between Calibre Web (and other) instances has been added.
+- Fixed a problem with the 'Add to Shelf' option on the book description page.

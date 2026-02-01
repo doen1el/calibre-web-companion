@@ -1,4 +1,5 @@
 import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
+import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class LoginEvent extends Equatable {
@@ -86,4 +87,22 @@ class FinalizeSsoLogin extends LoginEvent {
     username,
     password,
   ];
+}
+
+class LoadSavedAccounts extends LoginEvent {
+  const LoadSavedAccounts();
+}
+
+class SwitchAccount extends LoginEvent {
+  final LoginCredentials credentials;
+  const SwitchAccount(this.credentials);
+  @override
+  List<Object?> get props => [credentials];
+}
+
+class DeleteAccount extends LoginEvent {
+  final LoginCredentials credentials;
+  const DeleteAccount(this.credentials);
+  @override
+  List<Object?> get props => [credentials];
 }

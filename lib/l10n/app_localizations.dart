@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_ca.dart';
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
@@ -99,6 +100,7 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('ca'),
     Locale('de'),
     Locale('en'),
     Locale('es'),
@@ -2480,6 +2482,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select All'**
   String get selectAll;
+
+  /// No description provided for @useAuthorSort.
+  ///
+  /// In en, this message translates to:
+  /// **'Use \'Author Sort\''**
+  String get useAuthorSort;
+
+  /// No description provided for @account.
+  ///
+  /// In en, this message translates to:
+  /// **'Acount'**
+  String get account;
+
+  /// No description provided for @accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get accounts;
+
+  /// No description provided for @addAnotherAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Add another account'**
+  String get addAnotherAccount;
+
+  /// No description provided for @switchAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch account'**
+  String get switchAccount;
+
+  /// No description provided for @switchAccountConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to switch to {username}?'**
+  String switchAccountConfirmation(Object username);
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove this account from the list?'**
+  String get deleteAccountConfirmation;
+
+  /// No description provided for @user.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get user;
+
+  /// No description provided for @userFirstLetter.
+  ///
+  /// In en, this message translates to:
+  /// **'U'**
+  String get userFirstLetter;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -2491,7 +2553,7 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['de', 'en', 'es', 'et', 'fr', 'hu', 'it', 'pt', 'sv', 'tr'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['ca', 'de', 'en', 'es', 'et', 'fr', 'hu', 'it', 'pt', 'sv', 'tr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -2502,6 +2564,7 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
 
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'ca': return AppLocalizationsCa();
     case 'de': return AppLocalizationsDe();
     case 'en': return AppLocalizationsEn();
     case 'es': return AppLocalizationsEs();

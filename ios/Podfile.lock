@@ -1,35 +1,43 @@
 PODS:
-  - DKImagePickerController/Core (4.3.4):
+  - AEXML (4.6.0)
+  - DKImagePickerController/Core (4.3.9):
     - DKImagePickerController/ImageDataManager
     - DKImagePickerController/Resource
-  - DKImagePickerController/ImageDataManager (4.3.4)
-  - DKImagePickerController/PhotoGallery (4.3.4):
+  - DKImagePickerController/ImageDataManager (4.3.9)
+  - DKImagePickerController/PhotoGallery (4.3.9):
     - DKImagePickerController/Core
     - DKPhotoGallery
-  - DKImagePickerController/Resource (4.3.4)
-  - DKPhotoGallery (0.0.17):
-    - DKPhotoGallery/Core (= 0.0.17)
-    - DKPhotoGallery/Model (= 0.0.17)
-    - DKPhotoGallery/Preview (= 0.0.17)
-    - DKPhotoGallery/Resource (= 0.0.17)
+  - DKImagePickerController/Resource (4.3.9)
+  - DKPhotoGallery (0.0.19):
+    - DKPhotoGallery/Core (= 0.0.19)
+    - DKPhotoGallery/Model (= 0.0.19)
+    - DKPhotoGallery/Preview (= 0.0.19)
+    - DKPhotoGallery/Resource (= 0.0.19)
     - SDWebImage
     - SwiftyGif
-  - DKPhotoGallery/Core (0.0.17):
+  - DKPhotoGallery/Core (0.0.19):
     - DKPhotoGallery/Model
     - DKPhotoGallery/Preview
     - SDWebImage
     - SwiftyGif
-  - DKPhotoGallery/Model (0.0.17):
+  - DKPhotoGallery/Model (0.0.19):
     - SDWebImage
     - SwiftyGif
-  - DKPhotoGallery/Preview (0.0.17):
+  - DKPhotoGallery/Preview (0.0.19):
     - DKPhotoGallery/Model
     - DKPhotoGallery/Resource
     - SDWebImage
     - SwiftyGif
-  - DKPhotoGallery/Resource (0.0.17):
+  - DKPhotoGallery/Resource (0.0.19):
     - SDWebImage
     - SwiftyGif
+  - EpubViewerKit (0.1.3):
+    - AEXML (= 4.6.0)
+    - FontBlaster (= 5.1.1)
+    - MenuItemKit (= 4.0.1)
+    - RealmSwift (= 5.5.1)
+    - SSZipArchive (= 2.2.3)
+    - ZFDragableModalTransition (= 0.6)
   - file_picker (0.0.1):
     - DKImagePickerController/PhotoGallery
     - Flutter
@@ -43,8 +51,10 @@ PODS:
     - OrderedSet (~> 6.0.3)
   - fluttertoast (0.0.2):
     - Flutter
+  - FontBlaster (5.1.1)
   - image_picker_ios (0.0.1):
     - Flutter
+  - MenuItemKit (4.0.1)
   - open_file_ios (0.0.1):
     - Flutter
   - OrderedSet (6.0.3)
@@ -53,18 +63,28 @@ PODS:
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - SDWebImage (5.18.5):
-    - SDWebImage/Core (= 5.18.5)
-  - SDWebImage/Core (5.18.5)
+  - Realm (5.5.1):
+    - Realm/Headers (= 5.5.1)
+  - Realm/Headers (5.5.1)
+  - RealmSwift (5.5.1):
+    - Realm (= 5.5.1)
+  - SDWebImage (5.21.5):
+    - SDWebImage/Core (= 5.21.5)
+  - SDWebImage/Core (5.21.5)
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
-  - SwiftyGif (5.4.4)
+  - SSZipArchive (2.2.3)
+  - SwiftyGif (5.4.5)
   - url_launcher_ios (0.0.1):
     - Flutter
+  - vocsy_epub_viewer (2.0.0):
+    - EpubViewerKit (~> 0.1.3)
+    - Flutter
+  - ZFDragableModalTransition (0.6)
 
 DEPENDENCIES:
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
@@ -78,14 +98,23 @@ DEPENDENCIES:
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
+  - vocsy_epub_viewer (from `.symlinks/plugins/vocsy_epub_viewer/ios`)
 
 SPEC REPOS:
   trunk:
+    - AEXML
     - DKImagePickerController
     - DKPhotoGallery
+    - EpubViewerKit
+    - FontBlaster
+    - MenuItemKit
     - OrderedSet
+    - Realm
+    - RealmSwift
     - SDWebImage
+    - SSZipArchive
     - SwiftyGif
+    - ZFDragableModalTransition
 
 EXTERNAL SOURCES:
   file_picker:
@@ -110,24 +139,35 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/sqflite_darwin/darwin"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
+  vocsy_epub_viewer:
+    :path: ".symlinks/plugins/vocsy_epub_viewer/ios"
 
 SPEC CHECKSUMS:
-  DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
-  DKPhotoGallery: fdfad5125a9fdda9cc57df834d49df790dbb4179
+  AEXML: 2fbb73d8724797ed2cde888731e176fa4d44dd83
+  DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
+  DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
+  EpubViewerKit: 5f6c8ff9161bba18d6742c59b3c575c19f0623a9
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
   fluttertoast: 2c67e14dce98bbdb200df9e1acf610d7a6264ea1
+  FontBlaster: 8897ebdbb4b6ace3ab78c92b665d88c954f19e4a
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
+  MenuItemKit: 1459920e984d823e1bcc858b7a964f94e6bfa0f6
   open_file_ios: 5ff7526df64e4394b4fe207636b67a95e83078bb
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
-  SDWebImage: 7ac2b7ddc5e8484c79aa90fc4e30b149d6a2c88f
+  Realm: c2ffe0667f9c98c9ba65f608ba85684d39826145
+  RealmSwift: 5a35c1c35c3e1925e6fcd092c881d5cc4a826bff
+  SDWebImage: e9c98383c7572d713c1a0d7dd2783b10599b9838
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
-  SwiftyGif: 93a1cc87bf3a51916001cf8f3d63835fb64c819f
+  SSZipArchive: 62d4947b08730e4cda640473b0066d209ff033c9
+  SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
+  vocsy_epub_viewer: f6b70ce4776ac1871caee8e6bc7a108d847cad79
+  ZFDragableModalTransition: 0d294eaaba6edfcb9839595de765f9ca06a4b524
 
 PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
 

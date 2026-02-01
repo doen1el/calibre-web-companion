@@ -19,8 +19,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<ResetLoginStatus>(_onResetLoginStatus);
     on<LoginLogOut>(_onLogOut);
     on<ChangeServerType>(_onChangeServerType);
-    on<FinalizeSsoLogin>(_onFinalizeSsoLogin); // NEU
+    on<FinalizeSsoLogin>(_onFinalizeSsoLogin);
     on<LoadStoredCredentials>(_onLoadStoredCredentials);
+    on<LoadSavedAccounts>(_onLoadSavedAccounts);
+    on<SwitchAccount>(_onSwitchAccount);
+    on<DeleteAccount>(_onDeleteAccount);
   }
 
   void _onEnterUrl(EnterUrl event, Emitter<LoginState> emit) {
@@ -239,5 +242,44 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         ),
       );
     }
+  }
+
+  Future<void> _onLoadSavedAccounts(
+    LoadSavedAccounts event,
+    Emitter<LoginState> emit,
+  ) async {
+    final accounts = await loginRepository.getSavedAccounts();
+    emit(state.copyWith(savedAccounts: accounts));
+  }
+
+  Future<void> _onSwitchAccount(
+    SwitchAccount event,
+    Emitter<LoginState> emit,
+  ) async {
+    emit(state.copyWith(status: LoginStatus.loading));
+
+    ServerType targetServerType = ServerType.values.firstWhere(
+      (e) => e.name == event.credentials.serverType,
+      orElse: () => ServerType.calibreWeb,
+    );
+
+    emit(
+      state.copyWith(
+        url: event.credentials.baseUrl,
+        username: event.credentials.username,
+        password: event.credentials.password,
+        serverType: targetServerType,
+      ),
+    );
+
+    add(const SubmitLogin());
+  }
+
+  Future<void> _onDeleteAccount(
+    DeleteAccount event,
+    Emitter<LoginState> emit,
+  ) async {
+    await loginRepository.removeAccount(event.credentials);
+    add(const LoadSavedAccounts());
   }
 }

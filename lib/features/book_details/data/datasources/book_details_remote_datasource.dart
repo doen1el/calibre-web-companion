@@ -390,6 +390,11 @@ class BookDetailsRemoteDatasource {
       );
       final safeTitle = book.title.replaceAll(RegExp(r'[\\/:*?"<>|.]'), '');
       final safeAuthor = book.authors.replaceAll(RegExp(r'[\\/:*?"<>|]'), '');
+      final safeAuthorSort = book.authorSort.replaceAll(
+        RegExp(r'[\\/:*?"<>|]'),
+        '',
+      );
+
       final fileName = '$safeTitle.$format';
 
       DocumentFile targetDir = selectedDirectory;
@@ -419,6 +424,34 @@ class BookDetailsRemoteDatasource {
           final authorDir = await _getOrCreateDirectory(
             selectedDirectory,
             safeAuthor,
+          );
+          if (safeSeries != null && safeSeries.isNotEmpty) {
+            final seriesDir = await _getOrCreateDirectory(
+              authorDir,
+              safeSeries,
+            );
+            targetDir = await _getOrCreateDirectory(seriesDir, safeTitle);
+          } else {
+            targetDir = await _getOrCreateDirectory(authorDir, safeTitle);
+          }
+          break;
+        case DownloadSchema.authorSortOnly:
+          targetDir = await _getOrCreateDirectory(
+            selectedDirectory,
+            safeAuthorSort,
+          );
+          break;
+        case DownloadSchema.authorSortBook:
+          final authorDir = await _getOrCreateDirectory(
+            selectedDirectory,
+            safeAuthorSort,
+          );
+          targetDir = await _getOrCreateDirectory(authorDir, safeTitle);
+          break;
+        case DownloadSchema.authorSortSeriesBook:
+          final authorDir = await _getOrCreateDirectory(
+            selectedDirectory,
+            safeAuthorSort,
           );
           if (safeSeries != null && safeSeries.isNotEmpty) {
             final seriesDir = await _getOrCreateDirectory(

@@ -147,6 +147,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                       current.seriesNavigationStatus,
           listener: (context, state) {
             if (state.readStatusState == ReadStatusState.success) {
+              _didUpdateMetadata = true;
               context.showSnackBar(
                 state.isBookRead
                     ? localizations.markedAsReadSuccessfully
@@ -164,6 +165,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
             }
 
             if (state.archiveStatusState == ArchiveStatusState.success) {
+              _didUpdateMetadata = true;
               context.showSnackBar(
                 state.isBookArchived
                     ? localizations.archivedBookSuccessfully

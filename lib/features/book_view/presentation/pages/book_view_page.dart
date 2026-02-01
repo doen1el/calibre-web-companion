@@ -204,6 +204,7 @@ class _BookViewPageState extends State<BookViewPage> {
                     title: book.title,
                     authors: book.authors,
                     coverUrl: book.coverUrl,
+                    readStatus: book.readStatus,
                     onTap: () async {
                       final changed = await Navigator.of(context).push<bool>(
                         AppTransitions.createSlideRoute(

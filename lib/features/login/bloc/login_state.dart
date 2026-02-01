@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
 
 enum ServerType {
   calibreWeb,
@@ -30,6 +31,7 @@ class LoginState extends Equatable {
   final String? errorMessage;
   final LoginLoadingType loadingType;
   final ServerType serverType;
+  final List<LoginCredentials> savedAccounts;
 
   const LoginState({
     this.url = '',
@@ -40,6 +42,7 @@ class LoginState extends Equatable {
     this.errorMessage,
     this.loadingType = LoginLoadingType.standard,
     this.serverType = ServerType.calibreWeb,
+    this.savedAccounts = const [],
   });
 
   LoginState copyWith({
@@ -51,6 +54,7 @@ class LoginState extends Equatable {
     String? errorMessage,
     LoginLoadingType? loadingType,
     ServerType? serverType,
+    List<LoginCredentials>? savedAccounts,
   }) {
     return LoginState(
       url: url ?? this.url,
@@ -61,6 +65,7 @@ class LoginState extends Equatable {
       errorMessage: errorMessage,
       loadingType: loadingType ?? this.loadingType,
       serverType: serverType ?? this.serverType,
+      savedAccounts: savedAccounts ?? this.savedAccounts,
     );
   }
 
@@ -74,5 +79,6 @@ class LoginState extends Equatable {
     errorMessage,
     loadingType,
     serverType,
+    savedAccounts,
   ];
 }

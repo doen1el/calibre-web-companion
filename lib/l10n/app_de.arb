@@ -394,5 +394,15 @@
   "all": "Alle",
   "syncFinishedWithXErrors": "Sync mit {count} Fehlern abgeschlossen",
   "deselectAll": "Alle abwählen",
-  "selectAll": "Alle auswählen"
+  "selectAll": "Alle auswählen",
+  "useAuthorSort": "Benutze 'Author Sort'",
+  "accounts": "Konten",
+  "account": "Konto",
+  "addAnotherAccount": "Anderes Konto hinzufügen",
+  "switchAccount": "Konto wechseln",
+  "switchAccountConfirmation": "Bist du sicher, dass du zu {username} wechseln möchtest?",
+  "deleteAccount": "Konto entfernen",
+  "deleteAccountConfirmation": "Bist du sicher, dass du dieses Konto aus der Liste entfernen möchtest?",
+  "user": "Benutzer",
+  "userFirstLetter": "B"
 }

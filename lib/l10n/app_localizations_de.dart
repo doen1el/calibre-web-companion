@@ -1218,4 +1218,36 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get selectAll => 'Alle auswählen';
+
+  @override
+  String get useAuthorSort => 'Benutze \'Author Sort\'';
+
+  @override
+  String get account => 'Konto';
+
+  @override
+  String get accounts => 'Konten';
+
+  @override
+  String get addAnotherAccount => 'Anderes Konto hinzufügen';
+
+  @override
+  String get switchAccount => 'Konto wechseln';
+
+  @override
+  String switchAccountConfirmation(Object username) {
+    return 'Bist du sicher, dass du zu $username wechseln möchtest?';
+  }
+
+  @override
+  String get deleteAccount => 'Konto entfernen';
+
+  @override
+  String get deleteAccountConfirmation => 'Bist du sicher, dass du dieses Konto aus der Liste entfernen möchtest?';
+
+  @override
+  String get user => 'Benutzer';
+
+  @override
+  String get userFirstLetter => 'B';
 }
