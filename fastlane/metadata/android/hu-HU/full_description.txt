@@ -1,0 +1,36 @@
+Nem hivatalos kísérőalkalmazás a Calibre Webhez és a Calibre Web Automatedhez, amely lehetővé teszi könyvgyűjteményed böngészését és digitális könyvtárad kezelését útközben is.
+
+<b>Flutterrel</b> és <b>Material You</b> dizájnnal készült, hogy modern, intuitív és reszponzív felhasználói élményt nyújtson.
+
+<b>Támogatott funkciók:</b>
+
+<ul>
+    <li>A Calibre Web könyvtár böngészése</li> 
+    <ul>
+        <li>Könyvek megtekintése szerző, sorozat, népszerűség és egyéb szempontok szerint</li> 
+        <li>Részletes könyvinformációk megtekintése</li>
+        <li>Átfogó gyűjteménystatisztikák elérése</li>
+    </ul>
+    <li>Könyvtárkezelés</li> 
+    <ul>
+        <li>Könyvek megjelölése olvasottként vagy olvasatlanként</li>
+        <li>Könyvek archiválása és visszaállítása</li>
+        <li>Könyvek rendszerezése polcokba</li>
+        <li>Polcok kezelése és testreszabása</li>
+    </ul>
+    <li>Olvasás és eszközök</li>
+    <ul>
+        <li>Könyvek közvetlen letöltése az eszközödre</li>
+        <li>Könyvek küldése e-olvasóra (Kindle/Kobo) a send2ereader segítségével</li>
+        <li>A Calibre Web e-mail funkciójának használata eszközre küldéshez</li>
+    </ul>
+    <li>Automatizálási integráció</li>
+    <ul>
+        <li>Együttműködik a Calibre Web Automateddel</li>
+       <li>Könyvek automatikus letöltése a calibre-web-automated-book-downloader segítségével</li>
+    </ul>
+</ul>
+
+Kérjük, vedd figyelembe, hogy az alkalmazás jelenleg aktív fejlesztés alatt áll. Hibákat, visszajelzéseket és funkcióötleteket GitHubon lehet jelezni.
+
+Közreműködők: Calibre Web, Calibre Web Automated, send2ereader, calibre-web-automated-book-downloader

@@ -1,0 +1,8 @@
+- Katalán nyelv hozzáadva.
+- .ipa fájlok létrehozó szkripje javítva.
+- Szinkronizáció lekéri az elérhető formátumokat a szerverről.
+- Olvasás állapot jelző hozzáadva a főoldalhoz.
+- Olvasási állapot jelző probléma javítva.
+- Író rendezési formátum hozzáadva a letöltési útvonal beállításokhoz.
+- Calibre Web (és más) fiókok közötti gyors váltás hozzáadva.
+- "Polchoz hozzáadás" hibája javítva a könyv leírás oldalon.
