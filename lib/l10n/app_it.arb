@@ -395,5 +395,13 @@
     "deselectAll": "Cancella Selezione",
     "selectAll": "Seleziona Tutto",
     "useAuthorSort": "Usa 'Ordinamento per Autore'",
-    "account": "Account"
+    "account": "Account",
+    "userFirstLetter": "U",
+    "addAnotherAccount": "Aggiungi un altro account",
+    "switchAccount": "Cambia account",
+    "switchAccountConfirmation": "sei sicuro che vuoi cambiare in {username}?",
+    "deleteAccount": "Cancella account",
+    "deleteAccountConfirmation": "Sei sicuro di cancellare questo account dalla lista?",
+    "user": "User",
+    "accounts": "Accounts"
 }
