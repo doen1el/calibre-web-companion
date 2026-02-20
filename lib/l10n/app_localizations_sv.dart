@@ -1206,7 +1206,9 @@ class AppLocalizationsSv extends AppLocalizations {
   String get selected => 'selected';
 
   @override
-  String get all => 'All';
+  String all(Object count) {
+    return 'All';
+  }
 
   @override
   String syncFinishedWithXErrors(Object count) {

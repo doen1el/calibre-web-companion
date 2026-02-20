@@ -655,7 +655,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get selectDownloadSchema => 'Seleziona il tipo di download';
 
   @override
-  String get schemaFlat => 'Piatto';
+  String get schemaFlat => 'Semplice';
 
   @override
   String get schemaAuthorOnly => 'Solo Autori';
@@ -757,7 +757,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get schemaWasSelectedSuccessfully => 'Lo schema è stato selezionato correttamente';
 
   @override
-  String get downloadSchema => 'Scarica schema';
+  String get downloadSchema => 'impostazioni download';
 
   @override
   String get noFolderSelected => 'Nessuna cartella selezionata';
@@ -1123,127 +1123,129 @@ class AppLocalizationsIt extends AppLocalizations {
   String get credentialsRequiredForSSO => 'Credenziali necessarie per SSO';
 
   @override
-  String get readerSettings => 'Reader Settings';
+  String get readerSettings => 'Impostazioni Lettore';
 
   @override
-  String get scrollDirection => 'Scroll Direction';
+  String get scrollDirection => 'Direzione di scorrimento';
 
   @override
-  String get vertical => 'Vertical';
+  String get vertical => 'Verticale';
 
   @override
-  String get horizontal => 'Horizontal';
+  String get horizontal => 'Orizzontale';
 
   @override
-  String get errorOpeningBookInInternalReaderPdf => 'Error: PDF files cannot be opened by VocsyEpub. This reader only supports EPUB files.';
+  String get errorOpeningBookInInternalReaderPdf => 'Errore: i file PDF non possono essere aperti da VocsyEpub. Questo lettore supporta solo file EPUB.';
 
   @override
-  String get authentication => 'Authentication';
+  String get authentication => 'Autenticazione';
 
   @override
-  String get bookDetailsCouldNotBeLoaded => 'Unfortunately, the book details could not be loaded.';
+  String get bookDetailsCouldNotBeLoaded => 'Spiacenti, si è verificato un errore nel caricamento dei dettagli del libro.';
 
   @override
-  String get technicalDetails => 'Technical Details';
+  String get technicalDetails => 'Dettagli Tecnici';
 
   @override
-  String get bookAlreadyDownloaded => 'Book already downloaded';
+  String get bookAlreadyDownloaded => 'Libro già scaricato';
 
   @override
-  String get configureAndSync => 'Configure and Sync';
+  String get configureAndSync => 'Configura e Sincronizza';
 
   @override
-  String get syncDescription => 'Keep your local library up to date. Configure filters to automatically download books from your server.';
+  String get syncDescription => 'Mantieni aggiornata la tua biblioteca locale. Configura i filtri per scaricare automaticamente i libri dal tuo server.';
 
   @override
-  String get librarySync => 'Library Sync';
+  String get librarySync => 'Sincronizzazione Libreria';
 
   @override
-  String get syncError => 'Sync Error';
+  String get syncError => 'Errore di Sincronizzazione';
 
   @override
-  String get syncCompletedSuccessfully => 'Sync completed successfully';
+  String get syncCompletedSuccessfully => 'Sincronizzazione completata con successo';
 
   @override
-  String get scanningLibraryAndApplyingFilters => 'Scanning library and applying filters...';
+  String get scanningLibraryAndApplyingFilters => 'Scansione libreria e applicazione filtri...';
 
   @override
   String foundXItemsToSync(Object count) {
-    return 'Found $count items to sync';
+    return 'Trovati $count oggetti da sincronizzare';
   }
 
   @override
-  String get startSync => 'Start Sync';
+  String get startSync => 'Inizio Sincronizzazione';
 
   @override
-  String get syncing => 'Syncing...';
+  String get syncing => 'Sincronizzazione...';
 
   @override
-  String get stopSync => 'Stop Sync';
+  String get stopSync => 'Ferma Sincronizzazione';
 
   @override
-  String get syncConfiguration => 'Sync Configuration';
+  String get syncConfiguration => 'Impostazioni Sincronizzazione';
 
   @override
-  String get syncOnlyUnreadBooks => 'Sync only unread books';
+  String get syncOnlyUnreadBooks => 'Sincronizza solo libri non letti';
 
   @override
-  String get sourceShelf => 'Source shelf';
+  String get sourceShelf => 'Sorgente Scaffalatura';
 
   @override
-  String get allBooks => 'All Books (Whole Library)';
+  String get allBooks => 'Tutti i Libri (Biblioteca Intera)';
 
   @override
-  String get criteria => 'Criteria';
+  String get criteria => 'Criteri';
 
   @override
-  String get preview => 'Preview';
+  String get preview => 'Anteprima';
 
   @override
-  String get syncNow => 'Sync Now';
+  String get syncNow => 'Sincronizza Ora';
 
   @override
-  String get selected => 'selected';
+  String get selected => 'selezionato';
 
   @override
-  String get all => 'All';
+  String all(Object count) {
+    return 'Tutti';
+  }
 
   @override
   String syncFinishedWithXErrors(Object count) {
-    return 'Sync finished with $count errors';
+    return 'Sincronizzazione completata con $count errori';
   }
 
   @override
-  String get deselectAll => 'Deselect All';
+  String get deselectAll => 'Cancella Selezione';
 
   @override
-  String get selectAll => 'Select All';
+  String get selectAll => 'Seleziona Tutto';
 
   @override
-  String get useAuthorSort => 'Use \'Author Sort\'';
+  String get useAuthorSort => 'Usa \'Ordinamento per Autore\'';
 
   @override
-  String get account => 'Acount';
+  String get account => 'Account';
 
   @override
   String get accounts => 'Accounts';
 
   @override
-  String get addAnotherAccount => 'Add another account';
+  String get addAnotherAccount => 'Aggiungi un altro account';
 
   @override
-  String get switchAccount => 'Switch account';
+  String get switchAccount => 'Cambia account';
 
   @override
   String switchAccountConfirmation(Object username) {
-    return 'Are you sure you want to switch to $username?';
+    return 'sei sicuro che vuoi cambiare in $username?';
   }
 
   @override
-  String get deleteAccount => 'Delete account';
+  String get deleteAccount => 'Cancella account';
 
   @override
-  String get deleteAccountConfirmation => 'Are you sure you want to remove this account from the list?';
+  String get deleteAccountConfirmation => 'Sei sicuro di cancellare questo account dalla lista?';
 
   @override
   String get user => 'User';

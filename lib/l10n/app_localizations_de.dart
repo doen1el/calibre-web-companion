@@ -1206,7 +1206,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get selected => 'ausgewählt';
 
   @override
-  String get all => 'Alle';
+  String all(Object count) {
+    return 'Alle';
+  }
 
   @override
   String syncFinishedWithXErrors(Object count) {

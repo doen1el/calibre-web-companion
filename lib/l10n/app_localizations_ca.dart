@@ -1206,7 +1206,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get selected => 'seleccionat';
 
   @override
-  String get all => 'Tot';
+  String all(Object count) {
+    return 'Tot';
+  }
 
   @override
   String syncFinishedWithXErrors(Object count) {
@@ -1220,33 +1222,33 @@ class AppLocalizationsCa extends AppLocalizations {
   String get selectAll => 'Selecciona Tot';
 
   @override
-  String get useAuthorSort => 'Use \'Author Sort\'';
+  String get useAuthorSort => 'Empra \'Ordenament d\'Autor\'';
 
   @override
-  String get account => 'Acount';
+  String get account => 'Compte';
 
   @override
-  String get accounts => 'Accounts';
+  String get accounts => 'Comptes';
 
   @override
-  String get addAnotherAccount => 'Add another account';
+  String get addAnotherAccount => 'Afegir altre compte';
 
   @override
-  String get switchAccount => 'Switch account';
+  String get switchAccount => 'Alterna compte';
 
   @override
   String switchAccountConfirmation(Object username) {
-    return 'Are you sure you want to switch to $username?';
+    return 'Alternar compte a $username?';
   }
 
   @override
-  String get deleteAccount => 'Delete account';
+  String get deleteAccount => 'Esborra compte';
 
   @override
-  String get deleteAccountConfirmation => 'Are you sure you want to remove this account from the list?';
+  String get deleteAccountConfirmation => 'Segur que vols eliminar el compte de la llista?';
 
   @override
-  String get user => 'User';
+  String get user => 'Usuari';
 
   @override
   String get userFirstLetter => 'U';

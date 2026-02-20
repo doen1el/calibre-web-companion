@@ -123,7 +123,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get series => 'Sorozatok';
 
   @override
-  String get formats => 'Formátumok';
+  String get formats => 'Formátum';
 
   @override
   String get languages => 'Nyelvek';
@@ -522,17 +522,17 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count shelves',
-      one: 'one shelf',
+      other: '$count polcon',
+      one: 'egy polcon',
     );
-    return 'Book in $_temp0';
+    return 'Könyv $_temp0';
   }
 
   @override
   String get searchForBooks => 'Könyvek keresése';
 
   @override
-  String get connectionSettings => 'Kapcsolati beéllítások';
+  String get connectionSettings => 'Kapcsolati beállítások';
 
   @override
   String get costumHttpPHeader => 'Egyéni HTTP-Header';
@@ -754,10 +754,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get select => 'Kiválasztás';
 
   @override
-  String get schemaWasSelectedSuccessfully => '';
+  String get schemaWasSelectedSuccessfully => 'Útvonal sikeresen kiválasztva';
 
   @override
-  String get downloadSchema => 'Download schema';
+  String get downloadSchema => 'Letöltési útvonal';
 
   @override
   String get noFolderSelected => 'Nincs mappa kiválasztva';
@@ -898,7 +898,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get columnsCount => 'Oszlopok száma';
 
   @override
-  String get columns => 'Oszlopok';
+  String get columns => 'Oszlop';
 
   @override
   String get listView => 'Lista nézet';
@@ -979,7 +979,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settingsForSSL => 'SSL tanusítvány beállításai';
 
   @override
-  String get allowSelfSignedCertificates => 'Önaláírt tanusítványok engedályezése';
+  String get allowSelfSignedCertificates => 'Önaláírt tanusítványok engedélyezése';
 
   @override
   String get allowUnsafeConnections => 'Nem biztonságos kapcsolatok engedélyezése';
@@ -1117,7 +1117,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get loginSuccessfull => 'Sikeres bejelentkezés';
 
   @override
-  String get enterUsernamePasswordForSSO => 'Since Calibre Web Companion uses many OPDS endpoints to provide different features, and OPDS currently only works with username/password authentication, you need to provide your credentials, even when using SSO. We know that this goes against the purpose of SSO, but it is necessary for the app to function correctly. Hopefully, future versions will offer a better solution.';
+  String get enterUsernamePasswordForSSO => 'Mivel a Calibre Web Companion számos OPDS végpontot használ különböző funkciók biztosításához, és az OPDS jelenleg csak felhasználónév/jelszó alapú hitelesítést támogat, meg kell adnod a bejelentkezési adataidat akkor is, ha SSO-t használsz. Tudjuk, hogy ez ellentmond az SSO céljának, de az alkalmazás megfelelő működéséhez jelenleg elengedhetetlen. Remélhetőleg a jövőbeli verziók jobb megoldást kínálnak majd.';
 
   @override
   String get credentialsRequiredForSSO => 'Hitelesítő adatok kötelezőek SSO-hoz';
@@ -1138,116 +1138,118 @@ class AppLocalizationsHu extends AppLocalizations {
   String get errorOpeningBookInInternalReaderPdf => 'Hiba: PDF fájlokat nem lehet megnyitni a VocsyEpub-bal. Ez az olvasó csak EPUB fájlokkal működik.';
 
   @override
-  String get authentication => 'Authentication';
+  String get authentication => 'Autentikáció';
 
   @override
-  String get bookDetailsCouldNotBeLoaded => 'Unfortunately, the book details could not be loaded.';
+  String get bookDetailsCouldNotBeLoaded => 'Sajnos a könyv részletes adatait nem lehet betölteni.';
 
   @override
-  String get technicalDetails => 'Technical Details';
+  String get technicalDetails => 'Technikai részletek';
 
   @override
-  String get bookAlreadyDownloaded => 'Book already downloaded';
+  String get bookAlreadyDownloaded => 'A könyv már letöltve';
 
   @override
-  String get configureAndSync => 'Configure and Sync';
+  String get configureAndSync => 'Beállítás és szinkronizáció';
 
   @override
-  String get syncDescription => 'Keep your local library up to date. Configure filters to automatically download books from your server.';
+  String get syncDescription => 'Tartsd a helyi könyvtáradat naprakészen. Állíts be szűrőket, hogy automatikusan letöltsd a könyveket a szerveredről.';
 
   @override
-  String get librarySync => 'Library Sync';
+  String get librarySync => 'Könyvtár szinkronizáció';
 
   @override
-  String get syncError => 'Sync Error';
+  String get syncError => 'Szinkronizáció hiba';
 
   @override
-  String get syncCompletedSuccessfully => 'Sync completed successfully';
+  String get syncCompletedSuccessfully => 'Szinkronizáció sikeres';
 
   @override
-  String get scanningLibraryAndApplyingFilters => 'Scanning library and applying filters...';
+  String get scanningLibraryAndApplyingFilters => 'Könyvtár átnézése és szűrők alkalmazása...';
 
   @override
   String foundXItemsToSync(Object count) {
-    return 'Found $count items to sync';
+    return '$count szinkronizálható elem találva';
   }
 
   @override
-  String get startSync => 'Start Sync';
+  String get startSync => 'Szinkronizáció indítása';
 
   @override
-  String get syncing => 'Syncing...';
+  String get syncing => 'Szinkronizáció...';
 
   @override
-  String get stopSync => 'Stop Sync';
+  String get stopSync => 'Szinkronizáció leállítása';
 
   @override
-  String get syncConfiguration => 'Sync Configuration';
+  String get syncConfiguration => 'Szinkronizáció beállításai';
 
   @override
-  String get syncOnlyUnreadBooks => 'Sync only unread books';
+  String get syncOnlyUnreadBooks => 'Csak az olvasatlan könyveket';
 
   @override
-  String get sourceShelf => 'Source shelf';
+  String get sourceShelf => 'Forrás polc';
 
   @override
-  String get allBooks => 'All Books (Whole Library)';
+  String get allBooks => 'Minden könyv (Teljes könyvtár)';
 
   @override
-  String get criteria => 'Criteria';
+  String get criteria => 'Megkötések';
 
   @override
-  String get preview => 'Preview';
+  String get preview => 'Előnézet';
 
   @override
-  String get syncNow => 'Sync Now';
+  String get syncNow => 'Szinkronizáció most';
 
   @override
-  String get selected => 'selected';
+  String get selected => 'kiválasztott';
 
   @override
-  String get all => 'All';
+  String all(Object count) {
+    return 'Mind';
+  }
 
   @override
   String syncFinishedWithXErrors(Object count) {
-    return 'Sync finished with $count errors';
+    return 'A szinkronizáció $count hibával ért véget';
   }
 
   @override
-  String get deselectAll => 'Deselect All';
+  String get deselectAll => 'Kijelölések törlése';
 
   @override
-  String get selectAll => 'Select All';
+  String get selectAll => 'Minden kijelölése';
 
   @override
-  String get useAuthorSort => 'Use \'Author Sort\'';
+  String get useAuthorSort => '„Szerző rendezési név” használata';
 
   @override
-  String get account => 'Acount';
+  String get account => 'Fiók';
 
   @override
-  String get accounts => 'Accounts';
+  String get accounts => 'Fiókok';
 
   @override
-  String get addAnotherAccount => 'Add another account';
+  String get addAnotherAccount => 'Másik fiók hozzáadása';
 
   @override
-  String get switchAccount => 'Switch account';
+  String get switchAccount => 'Fiók váltása';
 
   @override
   String switchAccountConfirmation(Object username) {
-    return 'Are you sure you want to switch to $username?';
+    return 'Biztosan szeretnél $username fiókra váltani?';
   }
 
   @override
-  String get deleteAccount => 'Delete account';
+  String get deleteAccount => 'Fiók törlése';
 
   @override
-  String get deleteAccountConfirmation => 'Are you sure you want to remove this account from the list?';
+  String get deleteAccountConfirmation => 'Biztosan szeretnéd eltávolítani ezt a fiókot a listáról?';
 
   @override
-  String get user => 'User';
+  String get user => 'Felhasználó';
 
   @override
-  String get userFirstLetter => 'U';
+  String get userFirstLetter => 'F';
 }
