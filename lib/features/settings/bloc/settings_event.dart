@@ -201,3 +201,12 @@ class SetEpubScrollDirection extends SettingsEvent {
 }
 
 class ResetConnectionTestStatus extends SettingsEvent {}
+
+class SetShowSendToEReaderButton extends SettingsEvent {
+  final bool enabled;
+
+  const SetShowSendToEReaderButton(this.enabled);
+
+  @override
+  List<Object?> get props => [enabled];
+}

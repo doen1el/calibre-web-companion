@@ -357,7 +357,9 @@ class _SyncFilterBottomSheetState extends State<SyncFilterBottomSheet> {
         leading: Icon(icon, color: Theme.of(context).colorScheme.secondary),
         title: Text(title),
         subtitle: Text(
-          count > 0 ? "$count ${localization.selected}" : localization.all,
+          count > 0
+              ? "$count ${localization.selected}"
+              : localization.all as String,
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,

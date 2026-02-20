@@ -65,7 +65,6 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
         config.languages.isNotEmpty
             ? config.languages
             : [
-              {'code': 'de', 'language': 'German'},
               {'code': 'en', 'language': 'English'},
             ];
 

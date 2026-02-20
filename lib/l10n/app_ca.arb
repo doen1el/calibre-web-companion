@@ -393,5 +393,15 @@
     "all": "Tot",
     "syncFinishedWithXErrors": "Sincronització acabada amb {count} error(s)",
     "deselectAll": "Selecciona Res",
-    "selectAll": "Selecciona Tot"
+    "selectAll": "Selecciona Tot",
+    "account": "Compte",
+    "accounts": "Comptes",
+    "addAnotherAccount": "Afegir altre compte",
+    "switchAccount": "Alterna compte",
+    "switchAccountConfirmation": "Alternar compte a {username}?",
+    "deleteAccount": "Esborra compte",
+    "deleteAccountConfirmation": "Segur que vols eliminar el compte de la llista?",
+    "user": "Usuari",
+    "userFirstLetter": "U",
+    "useAuthorSort": "Empra 'Ordenament d'Autor'"
 }

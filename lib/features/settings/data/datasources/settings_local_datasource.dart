@@ -41,6 +41,8 @@ class SettingsLocalDataSource {
         'language_code': sharedPreferences.getString('language_code') ?? 'en',
         'show_read_now_button':
             sharedPreferences.getBool('show_read_now_button') ?? false,
+        'show_send_to_ereader_button':
+            sharedPreferences.getBool('show_send_to_ereader_button') ?? true,
         'webdav_url': sharedPreferences.getString('webdav_url') ?? '',
         'webdav_username': sharedPreferences.getString('webdav_username') ?? '',
         'webdav_password': sharedPreferences.getString('webdav_password') ?? '',
@@ -261,6 +263,15 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error saving epub scroll direction: $e');
       throw Exception('Failed to save epub scroll direction: $e');
+    }
+  }
+
+  Future<void> saveShowSendToEReaderButton(bool enabled) async {
+    try {
+      await sharedPreferences.setBool('show_send_to_ereader_button', enabled);
+    } catch (e) {
+      logger.e('Error saving SendToEReader button visibility: $e');
+      throw Exception('Failed to save SendToEReader button visibility: $e');
     }
   }
 }

@@ -1012,6 +1012,12 @@ class AppLocalizationsSv extends AppLocalizations {
   String get readNow => 'Läs nu';
 
   @override
+  String get showSendToEReaderButton => 'Show \'Send to E-Reader\' button';
+
+  @override
+  String get showSendToEReaderButtonDescription => 'Display a \'Send to E-Reader\' button on book details pages to easily send books to your E-Reader.';
+
+  @override
   String get showReadNowButton => 'Visa \"Läs nu\"-knapp';
 
   @override
@@ -1206,7 +1212,9 @@ class AppLocalizationsSv extends AppLocalizations {
   String get selected => 'selected';
 
   @override
-  String get all => 'All';
+  String all(Object count) {
+    return 'All';
+  }
 
   @override
   String syncFinishedWithXErrors(Object count) {
