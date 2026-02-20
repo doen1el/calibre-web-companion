@@ -1,0 +1,4 @@
+- Updated: Adjusted code for the new Calibre database format.
+- Added: Russian language support
+- Added: You can now hide the 'Send to Ereader' button.
+- Updated: Set the default download option to English (Shelfmark).
