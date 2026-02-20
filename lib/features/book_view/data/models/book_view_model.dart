@@ -119,47 +119,67 @@ class BookViewModel extends Equatable {
 
   factory BookViewModel.fromJson(Map<String, dynamic> json) {
     try {
+      String asString(dynamic value, [String fallback = '']) {
+        if (value == null) return fallback;
+        return value.toString();
+      }
+
+      int asInt(dynamic value, [int fallback = 0]) {
+        if (value == null) return fallback;
+        if (value is int) return value;
+        if (value is double) return value.toInt();
+        return int.tryParse(value.toString()) ?? fallback;
+      }
+
+      bool asBool(dynamic value, [bool fallback = false]) {
+        if (value == null) return fallback;
+        if (value is bool) return value;
+        if (value is num) return value != 0;
+        final v = value.toString().toLowerCase().trim();
+        if (v == 'true' || v == '1' || v == 'yes') return true;
+        if (v == 'false' || v == '0' || v == 'no') return false;
+        return fallback;
+      }
+
       List<String> parsedTags = [];
-      if (json['tags'] != null) {
-        final dynamic t = json['tags'];
-        if (t is String) {
-          if (t.isNotEmpty) {
-            parsedTags = t.split(',').map((e) => e.trim()).toList();
-          }
-        } else if (t is List) {
-          parsedTags = t.map((e) => e.toString()).toList();
+      final dynamic rawTags = json['tags'];
+      if (rawTags is String) {
+        if (rawTags.isNotEmpty) {
+          parsedTags = rawTags.split(',').map((e) => e.trim()).toList();
         }
+      } else if (rawTags is List) {
+        parsedTags = rawTags.map((e) => e.toString()).toList();
       }
 
       return BookViewModel(
-        id: json['id'],
-        uuid: json['uuid'],
-        title: json['title'],
-        authors: json['authors'],
-        authorSort: json['author_sort'],
-        data: json['comments'] ?? json['data'] ?? '',
-        flags: json['flags'] == 1,
-        hasCover: json['has_cover'] == 1,
-        identifiers: json['identifiers'],
-        isArchived: json['is_archived'] == true,
-        isbn: json['isbn'],
-        languages: json['languages'],
-        lastModified: json['last_modified'],
-        path: json['path'],
-        pubdate: json['pubdate'],
-        publishers: json['publishers'],
-        readStatus: json['read_status'] == true,
-        registry: json['registry'],
-        series: json['series'],
-        seriesIndex:
-            double.tryParse(json['series_index']?.toString() ?? '0')?.toInt() ??
-            0,
-        sort: json['sort'],
-        timestamp: json['timestamp'],
-        coverUrl: json['cover_url'],
+        id: asInt(json['id']),
+        uuid: asString(json['uuid']),
+        title: asString(json['title'], 'Unknown Title'),
+        authors: asString(json['authors'], 'Unknown'),
+        authorSort: asString(json['author_sort']),
+        data: asString(json['comments'] ?? json['data']),
+        flags: asBool(json['flags']),
+        hasCover: asBool(json['has_cover']),
+        identifiers: asString(json['identifiers']),
+        isArchived: asBool(json['is_archived']),
+        isbn: asString(json['isbn']),
+        languages: asString(json['languages']),
+        lastModified: asString(json['last_modified']),
+        path: asString(json['path']),
+        pubdate: asString(json['pubdate']),
+        publishers: asString(json['publishers'] ?? json['publisher_name']),
+        readStatus: asBool(json['read_status']),
+        registry: asString(json['registry']),
+        series: asString(json['series']),
+        seriesIndex: asInt(json['series_index']),
+        sort: asString(json['sort']),
+        timestamp: asString(json['timestamp']),
+        coverUrl: json['cover_url']?.toString(),
         formats:
-            json['formats'] != null
-                ? List<String>.from(json['formats'])
+            json['formats'] is List
+                ? List<String>.from(
+                  (json['formats'] as List).map((e) => e.toString()),
+                )
                 : const [],
         tags: parsedTags,
       );
