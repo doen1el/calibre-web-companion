@@ -327,6 +327,8 @@
   "openInInternalReader": "Open in Internal Reader",
   "errorOpeningBookInInternalReader": "Error opening book in internal reader",
   "readNow": "Read Now",
+  "showSendToEReaderButton": "Show 'Send to E-Reader' button",
+  "showSendToEReaderButtonDescription": "Display a 'Send to E-Reader' button on book details pages to easily send books to your E-Reader.",
   "showReadNowButton": "Show 'Read Now' button",
   "showReadNowButtonDescription": "Replaces the 'Send to E-Reader' button with a 'Read Now' button to open books directly.",
   "bookDetails": "Book Details",

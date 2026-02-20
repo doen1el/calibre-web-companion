@@ -760,6 +760,44 @@ class _SettingsPageState extends State<SettingsPage> {
             Row(
               children: [
                 Icon(
+                  Icons.send,
+                  size: 28,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        localizations.showSendToEReaderButton,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        localizations.showSendToEReaderButtonDescription,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: state.showSendToEReaderButton,
+                  onChanged: (value) {
+                    context.read<SettingsBloc>().add(
+                      SetShowSendToEReaderButton(value),
+                    );
+                  },
+                  activeThumbColor: Theme.of(context).colorScheme.primary,
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Icon(
                   Icons.visibility_rounded,
                   size: 28,
                   color: Theme.of(context).colorScheme.secondary,
@@ -785,11 +823,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 Switch(
                   value: state.showReadNowButton,
-                  onChanged: (value) {
-                    context.read<SettingsBloc>().add(
-                      SetShowReadNowButton(value),
-                    );
-                  },
+                  onChanged:
+                      state.showSendToEReaderButton
+                          ? (value) {
+                            context.read<SettingsBloc>().add(
+                              SetShowReadNowButton(value),
+                            );
+                          }
+                          : null,
                   activeThumbColor: Theme.of(context).colorScheme.primary,
                 ),
               ],

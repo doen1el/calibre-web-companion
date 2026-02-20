@@ -133,6 +133,14 @@ class SettingsRepository {
     }
   }
 
+  Future<void> setShowSendToEReaderButton(bool enabled) async {
+    try {
+      await dataSource.saveShowSendToEReaderButton(enabled);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> buyMeACoffee() async {
     try {
       return await dataSource.buyMeACoffe();

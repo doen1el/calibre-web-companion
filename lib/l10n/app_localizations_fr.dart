@@ -1012,6 +1012,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get readNow => 'Lire maintenant';
 
   @override
+  String get showSendToEReaderButton => 'Show \'Send to E-Reader\' button';
+
+  @override
+  String get showSendToEReaderButtonDescription => 'Display a \'Send to E-Reader\' button on book details pages to easily send books to your E-Reader.';
+
+  @override
   String get showReadNowButton => 'Afficher le bouton \'Lire maintenant\'';
 
   @override

@@ -18,6 +18,7 @@ class SettingsModel extends Equatable {
   final DownloadSchema downloadSchema;
   final String languageCode;
   final bool showReadNowButton;
+  final bool showSendToEReaderButton;
   final String webDavUrl;
   final String webDavUsername;
   final String webDavPassword;
@@ -38,6 +39,7 @@ class SettingsModel extends Equatable {
     required this.downloadSchema,
     required this.languageCode,
     required this.showReadNowButton,
+    required this.showSendToEReaderButton,
     required this.webDavUrl,
     required this.webDavUsername,
     required this.webDavPassword,
@@ -60,6 +62,7 @@ class SettingsModel extends Equatable {
       downloadSchema: DownloadSchema.values[json['download_schema'] ?? 0],
       languageCode: json['language_code'] ?? 'en',
       showReadNowButton: json['show_read_now_button'] ?? false,
+      showSendToEReaderButton: json['show_send_to_ereader_button'] ?? true,
       webDavUrl: json['webdav_url'] ?? '',
       webDavUsername: json['webdav_username'] ?? '',
       webDavPassword: json['webdav_password'] ?? '',
@@ -83,6 +86,7 @@ class SettingsModel extends Equatable {
     downloadSchema,
     languageCode,
     showReadNowButton,
+    showSendToEReaderButton,
     webDavUrl,
     webDavUsername,
     webDavPassword,

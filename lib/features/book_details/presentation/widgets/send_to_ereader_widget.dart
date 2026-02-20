@@ -32,7 +32,12 @@ class SendToEreaderWidget extends StatelessWidget {
       builder: (context, bookDetailsState) {
         return BlocBuilder<SettingsBloc, SettingsState>(
           builder: (context, settingsState) {
+            final bool showFab = settingsState.showSendToEReaderButton;
             final bool showReadNow = settingsState.showReadNowButton;
+
+            if (!showFab) {
+              return const SizedBox.shrink();
+            }
 
             final bool isOpeningReader =
                 bookDetailsState.openInReaderState == OpenInReaderState.loading;

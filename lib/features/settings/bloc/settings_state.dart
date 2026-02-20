@@ -30,6 +30,7 @@ class SettingsState extends Equatable {
   final String? buildNumber;
   final String? languageCode;
   final bool showReadNowButton;
+  final bool showSendToEReaderButton;
   final bool isWebDavSyncEnabled;
   final String webDavUrl;
   final String webDavUsername;
@@ -59,6 +60,7 @@ class SettingsState extends Equatable {
     this.buildNumber,
     this.languageCode = 'en',
     this.showReadNowButton = false,
+    this.showSendToEReaderButton = true,
     this.isWebDavSyncEnabled = false,
     this.webDavUrl = '',
     this.webDavUsername = '',
@@ -91,6 +93,7 @@ class SettingsState extends Equatable {
     String? buildNumber,
     String? languageCode,
     bool? showReadNowButton,
+    bool? showSendToEReaderButton,
     bool? isWebDavSyncEnabled,
     String? webDavUrl,
     String? webDavUsername,
@@ -120,6 +123,8 @@ class SettingsState extends Equatable {
       buildNumber: buildNumber ?? this.buildNumber,
       languageCode: languageCode ?? this.languageCode,
       showReadNowButton: showReadNowButton ?? this.showReadNowButton,
+      showSendToEReaderButton:
+          showSendToEReaderButton ?? this.showSendToEReaderButton,
       isWebDavSyncEnabled: isWebDavSyncEnabled ?? this.isWebDavSyncEnabled,
       webDavUrl: webDavUrl ?? this.webDavUrl,
       webDavUsername: webDavUsername ?? this.webDavUsername,
@@ -151,6 +156,7 @@ class SettingsState extends Equatable {
     buildNumber,
     languageCode,
     showReadNowButton,
+    showSendToEReaderButton,
     isWebDavSyncEnabled,
     webDavUrl,
     webDavUsername,

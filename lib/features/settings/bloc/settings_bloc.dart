@@ -32,6 +32,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<TestWebDavConnection>(_onTestWebDavConnection);
     on<SetEpubScrollDirection>(_onSetEpubScrollDirection);
     on<ResetConnectionTestStatus>(_onResetConnectionTestStatus);
+    on<SetShowSendToEReaderButton>(_onSetShowSendToEReaderButton);
   }
 
   Future<void> _onLoadSettings(
@@ -59,6 +60,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           defaultDownloadPath: settings.defaultDownloadPath,
           downloadSchema: settings.downloadSchema,
           showReadNowButton: settings.showReadNowButton,
+          showSendToEReaderButton: settings.showSendToEReaderButton,
           appVersion: packageInfo.version,
           buildNumber: packageInfo.buildNumber,
           languageCode: settings.languageCode,
@@ -473,5 +475,22 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         testErrorMessage: null,
       ),
     );
+  }
+
+  Future<void> _onSetShowSendToEReaderButton(
+    SetShowSendToEReaderButton event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      await repository.setShowSendToEReaderButton(event.enabled);
+      emit(state.copyWith(showSendToEReaderButton: event.enabled));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
   }
 }
