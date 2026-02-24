@@ -49,6 +49,7 @@ class SettingsLocalDataSource {
         'webdav_enabled': sharedPreferences.getBool('webdav_enabled') ?? false,
         'epub_scroll_direction':
             sharedPreferences.getString('epub_scroll_direction') ?? 'vertical',
+        'is_eink_mode': sharedPreferences.getBool('is_eink_mode') ?? false,
       });
     } catch (e) {
       logger.e('Error getting settings: $e');
@@ -272,6 +273,15 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error saving SendToEReader button visibility: $e');
       throw Exception('Failed to save SendToEReader button visibility: $e');
+    }
+  }
+
+  Future<void> saveEInkMode(bool enabled) async {
+    try {
+      await sharedPreferences.setBool('is_eink_mode', enabled);
+    } catch (e) {
+      logger.e('Error saving E-Ink mode: $e');
+      throw Exception('Failed to save E-Ink mode: $e');
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
@@ -149,7 +150,7 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (_containingShelves.isNotEmpty) ...[
-                            Skeletonizer(
+                            AppSkeletonizer(
                               enabled:
                                   shelfState.status == ShelfViewStatus.loading,
                               effect: ShimmerEffect(
@@ -179,7 +180,7 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
                               shelfState.status == ShelfViewStatus.loading)
                             SizedBox(
                               height: 168,
-                              child: Skeletonizer(
+                              child: AppSkeletonizer(
                                 enabled: true,
                                 effect: ShimmerEffect(
                                   baseColor: Theme.of(

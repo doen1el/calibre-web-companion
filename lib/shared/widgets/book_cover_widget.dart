@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
@@ -104,7 +105,7 @@ class BookCoverWidget extends StatelessWidget {
       color: Theme.of(
         context,
       ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
-      child: Skeletonizer(
+      child: AppSkeletonizer(
         enabled: true,
         effect: ShimmerEffect(
           baseColor: Theme.of(

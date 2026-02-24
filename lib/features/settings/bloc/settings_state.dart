@@ -36,6 +36,7 @@ class SettingsState extends Equatable {
   final String webDavUsername;
   final String webDavPassword;
   final String epubScrollDirection;
+  final bool isEInkMode;
 
   final ConnectionTestStatus downloaderTestStatus;
   final ConnectionTestStatus webDavTestStatus;
@@ -66,6 +67,7 @@ class SettingsState extends Equatable {
     this.webDavUsername = '',
     this.webDavPassword = '',
     this.epubScrollDirection = 'vertical',
+    this.isEInkMode = false,
     this.downloaderTestStatus = ConnectionTestStatus.initial,
     this.webDavTestStatus = ConnectionTestStatus.initial,
     this.testErrorMessage,
@@ -99,6 +101,7 @@ class SettingsState extends Equatable {
     String? webDavUsername,
     String? webDavPassword,
     String? epubScrollDirection,
+    bool? isEInkMode,
     ConnectionTestStatus? downloaderTestStatus,
     ConnectionTestStatus? webDavTestStatus,
     String? testErrorMessage,
@@ -130,6 +133,7 @@ class SettingsState extends Equatable {
       webDavUsername: webDavUsername ?? this.webDavUsername,
       webDavPassword: webDavPassword ?? this.webDavPassword,
       epubScrollDirection: epubScrollDirection ?? this.epubScrollDirection,
+      isEInkMode: isEInkMode ?? this.isEInkMode,
       downloaderTestStatus: downloaderTestStatus ?? this.downloaderTestStatus,
       webDavTestStatus: webDavTestStatus ?? this.webDavTestStatus,
       testErrorMessage: testErrorMessage,
@@ -162,6 +166,7 @@ class SettingsState extends Equatable {
     webDavUsername,
     webDavPassword,
     epubScrollDirection,
+    isEInkMode,
     downloaderTestStatus,
     webDavTestStatus,
     testErrorMessage,

@@ -98,6 +98,8 @@
   "tryAgain": "Erneut versuchen",
   "error": "Fehler",
   "errorLoadingBooks": "Fehler beim Laden der Bücher",
+  "eInkMode": "E-Ink Modus",
+  "eInkModeDescription": "Deaktiviert Animationen für E-Ink Geräte",
   "deleteBook": "Buch löschen",
   "deleteBookConfirmation": "Bist du sicher, dass du dieses Buch löschen möchtest?",
   "delete": "Löschen",

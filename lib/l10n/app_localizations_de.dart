@@ -305,6 +305,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get errorLoadingBooks => 'Fehler beim Laden der Bücher';
 
   @override
+  String get eInkMode => 'E-Ink Modus';
+
+  @override
+  String get eInkModeDescription => 'Deaktiviert Animationen für E-Ink Geräte';
+
+  @override
   String get deleteBook => 'Buch löschen';
 
   @override

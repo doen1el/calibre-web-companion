@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
@@ -82,7 +83,7 @@ class DownloadsTabWidget extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Skeletonizer(
+            child: AppSkeletonizer(
               enabled: true,
               effect: ShimmerEffect(
                 baseColor: Theme.of(
@@ -103,7 +104,7 @@ class DownloadsTabWidget extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: 3,
             itemBuilder: (context, index) {
-              return Skeletonizer(
+              return AppSkeletonizer(
                 enabled: true,
                 effect: ShimmerEffect(
                   baseColor: Theme.of(

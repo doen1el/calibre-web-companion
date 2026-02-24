@@ -1,11 +1,11 @@
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:skeletonizer/skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 import 'package:calibre_web_companion/features/discover_details/data/repositories/discover_details_repository.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
-import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart'; // Für CategoryType Enum
+import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 
 enum FilterType { author, series, category, language, publisher }
 
@@ -125,7 +125,8 @@ class _FilterSelectionPageState extends State<FilterSelectionPage> {
       ),
       body:
           isLoading
-              ? Skeletonizer(
+              ? AppSkeletonizer(
+                enabled: true,
                 child: ListView.builder(
                   itemCount: 10,
                   itemBuilder:

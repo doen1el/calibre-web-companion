@@ -703,6 +703,18 @@ abstract class AppLocalizations {
   /// **'Error loading books'**
   String get errorLoadingBooks;
 
+  /// No description provided for @eInkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'E-Ink Mode'**
+  String get eInkMode;
+
+  /// No description provided for @eInkModeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Disables animations for E-Ink devices'**
+  String get eInkModeDescription;
+
   /// No description provided for @deleteBook.
   ///
   /// In en, this message translates to:

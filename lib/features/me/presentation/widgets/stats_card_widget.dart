@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/me/presentation/widgets/animated_counter_widget.dart';
 import 'package:calibre_web_companion/features/me/data/models/stats_model.dart';
@@ -28,9 +29,8 @@ class StatsCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.all(16),
       elevation: 3,
-      child: Skeletonizer(
+      child: AppSkeletonizer(
         enabled: isLoading,
-        containersColor: Theme.of(context).colorScheme.surface,
         effect: ShimmerEffect(
           baseColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           highlightColor: Theme.of(context).colorScheme.surface,

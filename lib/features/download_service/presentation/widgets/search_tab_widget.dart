@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
@@ -165,7 +166,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Skeletonizer(
+            child: AppSkeletonizer(
               enabled: true,
               effect: ShimmerEffect(
                 baseColor: Theme.of(
@@ -186,7 +187,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: 3,
             itemBuilder: (context, index) {
-              return Skeletonizer(
+              return AppSkeletonizer(
                 enabled: true,
                 effect: ShimmerEffect(
                   baseColor: Theme.of(

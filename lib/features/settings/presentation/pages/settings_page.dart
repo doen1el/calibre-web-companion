@@ -152,6 +152,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         children: [
                           _buildSectionTitle(context, localizations.appearance),
                           const ThemeSelectorWidget(),
+                          _buildEInkModeToggle(context, state, localizations),
 
                           const SizedBox(height: 24),
                           _buildSectionTitle(context, localizations.connection),
@@ -285,6 +286,56 @@ class _SettingsPageState extends State<SettingsPage> {
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.secondary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEInkModeToggle(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(
+              Icons.e_mobiledata,
+              size: 28,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    localizations.eInkMode,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    localizations.eInkModeDescription,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: state.isEInkMode,
+              activeThumbColor: Theme.of(context).colorScheme.primary,
+              onChanged: (value) {
+                context.read<SettingsBloc>().add(SetEInkMode(value));
+              },
+            ),
+          ],
         ),
       ),
     );

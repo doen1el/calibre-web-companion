@@ -98,6 +98,8 @@
   "tryAgain": "Try again",
   "error": "Error",
   "errorLoadingBooks": "Error loading books",
+  "eInkMode": "E-Ink Mode",
+  "eInkModeDescription": "Disables animations for E-Ink devices",
   "deleteBook": "Delete book",
   "deleteBookConfirmation": "Are you sure you want to delete this book?",
   "delete": "Delete",

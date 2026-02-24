@@ -210,3 +210,12 @@ class SetShowSendToEReaderButton extends SettingsEvent {
   @override
   List<Object?> get props => [enabled];
 }
+
+class SetEInkMode extends SettingsEvent {
+  final bool enabled;
+
+  const SetEInkMode(this.enabled);
+
+  @override
+  List<Object?> get props => [enabled];
+}

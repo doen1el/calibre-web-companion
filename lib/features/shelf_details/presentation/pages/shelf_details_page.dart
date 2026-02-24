@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_event.dart';
@@ -169,7 +170,7 @@ class ShelfDetailsPage extends StatelessWidget {
       books: dummyBooks,
     );
 
-    return Skeletonizer(
+    return AppSkeletonizer(
       enabled: true,
       effect: ShimmerEffect(
         baseColor: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -614,7 +615,7 @@ class ShelfDetailsPage extends StatelessWidget {
                 color: Theme.of(
                   context,
                 ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
-                child: Skeletonizer(
+                child: AppSkeletonizer(
                   enabled: true,
                   effect: ShimmerEffect(
                     baseColor: Theme.of(

@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:logger/logger.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -409,7 +410,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
               appBar: AppBar(
                 title:
                     isLoading
-                        ? Skeletonizer(
+                        ? AppSkeletonizer(
                           enabled: true,
                           effect: ShimmerEffect(
                             baseColor: Theme.of(
@@ -446,7 +447,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                   );
                 },
 
-                child: Skeletonizer(
+                child: AppSkeletonizer(
                   enabled: isLoading,
                   effect: ShimmerEffect(
                     baseColor: Theme.of(

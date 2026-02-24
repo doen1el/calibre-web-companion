@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 
 class AppTransitions {
   AppTransitions._();
@@ -9,6 +11,11 @@ class AppTransitions {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
+    final isEInkMode = context.read<SettingsBloc>().state.isEInkMode;
+    if (isEInkMode) {
+      return child;
+    }
+
     const begin = Offset(1.0, 0.0);
     const end = Offset.zero;
     const curve = Curves.ease;

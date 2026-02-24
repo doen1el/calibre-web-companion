@@ -24,6 +24,7 @@ class SettingsModel extends Equatable {
   final String webDavPassword;
   final bool isWebDavSyncEnabled;
   final String epubScrollDirection;
+  final bool isEInkMode;
 
   const SettingsModel({
     required this.themeMode,
@@ -45,6 +46,7 @@ class SettingsModel extends Equatable {
     required this.webDavPassword,
     required this.isWebDavSyncEnabled,
     required this.epubScrollDirection,
+    required this.isEInkMode,
   });
 
   factory SettingsModel.fromJson(Map<String, dynamic> json) {
@@ -68,6 +70,7 @@ class SettingsModel extends Equatable {
       webDavPassword: json['webdav_password'] ?? '',
       isWebDavSyncEnabled: json['webdav_enabled'] ?? false,
       epubScrollDirection: json['epub_scroll_direction'] ?? 'vertical',
+      isEInkMode: json['is_eink_mode'] ?? false,
     );
   }
 
@@ -92,5 +95,6 @@ class SettingsModel extends Equatable {
     webDavPassword,
     isWebDavSyncEnabled,
     epubScrollDirection,
+    isEInkMode,
   ];
 }
