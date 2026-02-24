@@ -305,6 +305,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get errorLoadingBooks => 'Fehler beim Laden der Bücher';
 
   @override
+  String get deleteBook => 'Buch löschen';
+
+  @override
+  String get deleteBookConfirmation => 'Bist du sicher, dass du dieses Buch löschen möchtest?';
+
+  @override
+  String get delete => 'Löschen';
+
+  @override
+  String get bookDeletedSuccessfully => 'Buch erfolgreich gelöscht';
+
+  @override
+  String get failedToDeleteBook => 'Fehler beim Löschen des Buches';
+
+  @override
   String get errorLoadingData => 'Fehler beim Laden der Daten';
 
   @override
@@ -481,9 +496,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get failedToDeleteShelf => 'Fehler beim Löschen des Regals';
-
-  @override
-  String get delete => 'Löschen';
 
   @override
   String get deleting => 'Löschen...';

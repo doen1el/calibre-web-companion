@@ -47,6 +47,7 @@ class BookDetailsPage extends StatefulWidget {
 
 class _BookDetailsPageState extends State<BookDetailsPage> {
   bool _didUpdateMetadata = false;
+  bool _canPop = false;
   StreamSubscription<dynamic>? _locatorSubscription;
   late final WebDavSyncService _webDavService;
 
@@ -126,7 +127,16 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        Navigator.of(context).pop(_didUpdateMetadata);
+
+        setState(() {
+          _canPop = true;
+        });
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Navigator.of(context).pop(result ?? _didUpdateMetadata);
+          }
+        });
       },
       child: BlocProvider(
         create:
@@ -138,6 +148,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
               (previous, current) =>
                   previous.readStatusState != current.readStatusState ||
                   previous.archiveStatusState != current.archiveStatusState ||
+                  previous.deleteBookState != current.deleteBookState ||
                   previous.openInReaderState != current.openInReaderState ||
                   previous.openInInternalReaderState !=
                       current.openInInternalReaderState ||
@@ -177,6 +188,19 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                 state.isBookArchived
                     ? localizations.archivedBookFailed
                     : localizations.unarchivedBookFailed,
+                isError: true,
+              );
+              context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
+            }
+
+            if (state.deleteBookState == DeleteBookState.success) {
+              _didUpdateMetadata = true;
+              context.showSnackBar(localizations.bookDeletedSuccessfully);
+              context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
+              Navigator.of(context).pop(true);
+            } else if (state.deleteBookState == DeleteBookState.error) {
+              context.showSnackBar(
+                localizations.failedToDeleteBook,
                 isError: true,
               );
               context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
@@ -249,6 +273,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                   previous.bookDetails != current.bookDetails ||
                   previous.isBookRead != current.isBookRead ||
                   previous.isBookArchived != current.isBookArchived ||
+                  previous.deleteBookState != current.deleteBookState ||
                   previous.openInReaderState != current.openInReaderState ||
                   previous.openInInternalReaderState !=
                       current.openInInternalReaderState ||
@@ -888,6 +913,70 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                   () =>
                       context.read<BookDetailsBloc>().add(OpenBookInBrowser()),
               tooltip: localizations.openBookInBrowser,
+            ),
+
+          if (!isOpds)
+            IconButton(
+              icon: CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                child:
+                    state.deleteBookState == DeleteBookState.loading
+                        ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        )
+                        : Icon(
+                          Icons.delete_rounded,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+              ),
+              onPressed:
+                  isLoading
+                      ? null
+                      : () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: Text(localizations.deleteBook),
+                              content: Text(
+                                localizations.deleteBookConfirmation,
+                              ),
+                              actions: [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.error,
+                                  ),
+                                  onPressed:
+                                      () => Navigator.of(context).pop(true),
+                                  child: Text(
+                                    localizations.delete,
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(context).colorScheme.onError,
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed:
+                                      () => Navigator.of(context).pop(false),
+                                  child: Text(localizations.cancel),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (confirm == true) {
+                          // ignore: use_build_context_synchronously
+                          context.read<BookDetailsBloc>().add(
+                            DeleteBook(book.id),
+                          );
+                        }
+                      },
+              tooltip: localizations.deleteBook,
             ),
         ],
       ),

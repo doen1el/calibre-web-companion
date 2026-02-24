@@ -27,6 +27,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     on<ReloadBookDetails>(_onReloadBookDetails);
     on<ToggleReadStatus>(_onToggleReadStatus);
     on<ToggleArchiveStatus>(_onToggleArchiveStatus);
+    on<DeleteBook>(_onDeleteBook);
     on<DownloadBook>(_onDownloadBook);
     on<CancelDownload>(_onCancelDownload);
     on<OpenBookInReader>(_onOpenBookInReader);
@@ -105,6 +106,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       state.copyWith(
         readStatusState: ReadStatusState.initial,
         archiveStatusState: ArchiveStatusState.initial,
+        deleteBookState: DeleteBookState.initial,
         openInReaderState: OpenInReaderState.initial,
         openInInternalReaderState: OpenInInternalReaderState.initial,
         metadataUpdateState: MetadataUpdateState.initial,
@@ -217,6 +219,37 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       emit(
         state.copyWith(
           archiveStatusState: ArchiveStatusState.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onDeleteBook(
+    DeleteBook event,
+    Emitter<BookDetailsState> emit,
+  ) async {
+    try {
+      logger.i('Deleting book: ${event.bookId}');
+      emit(state.copyWith(deleteBookState: DeleteBookState.loading));
+
+      final success = await repository.deleteBook(event.bookId);
+
+      if (success) {
+        emit(state.copyWith(deleteBookState: DeleteBookState.success));
+      } else {
+        emit(
+          state.copyWith(
+            deleteBookState: DeleteBookState.error,
+            errorMessage: 'Failed to delete book',
+          ),
+        );
+      }
+    } catch (e) {
+      logger.e('Error deleting book: $e');
+      emit(
+        state.copyWith(
+          deleteBookState: DeleteBookState.error,
           errorMessage: e.toString(),
         ),
       );

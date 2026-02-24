@@ -42,6 +42,14 @@ class BookDetailsRepository {
     }
   }
 
+  Future<bool> deleteBook(int bookId) async {
+    try {
+      return await datasource.deleteBook(bookId);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<bool> openInReader(
     BookDetailsModel book,
     DocumentFile selectedDirectory,
