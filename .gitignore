@@ -46,3 +46,6 @@ app.*.map.json
 
 *.jks
 de.doen1el.calibreWebCompanion.yml
+
+# Don't track generated localization files
+lib/l10n/app_localizations*.dart
