@@ -38,5 +38,11 @@ class MeState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, logoutStatus, stats, errorMessage, isOpds];
+  List<Object?> get props => [
+    status,
+    logoutStatus,
+    stats,
+    errorMessage,
+    isOpds,
+  ];
 }

@@ -403,5 +403,7 @@
     "userFirstLetter": "F",
     "authentication": "Autentikáció",
     "bookInShelfs": "Könyv {count, plural, =1{egy polcon} other{{count} polcon}}",
-    "enterUsernamePasswordForSSO": "Mivel a Calibre Web Companion számos OPDS végpontot használ különböző funkciók biztosításához, és az OPDS jelenleg csak felhasználónév/jelszó alapú hitelesítést támogat, meg kell adnod a bejelentkezési adataidat akkor is, ha SSO-t használsz. Tudjuk, hogy ez ellentmond az SSO céljának, de az alkalmazás megfelelő működéséhez jelenleg elengedhetetlen. Remélhetőleg a jövőbeli verziók jobb megoldást kínálnak majd."
+    "enterUsernamePasswordForSSO": "Mivel a Calibre Web Companion számos OPDS végpontot használ különböző funkciók biztosításához, és az OPDS jelenleg csak felhasználónév/jelszó alapú hitelesítést támogat, meg kell adnod a bejelentkezési adataidat akkor is, ha SSO-t használsz. Tudjuk, hogy ez ellentmond az SSO céljának, de az alkalmazás megfelelő működéséhez jelenleg elengedhetetlen. Remélhetőleg a jövőbeli verziók jobb megoldást kínálnak majd.",
+    "showSendToEReaderButton": "\"Küldes E-olvasóra\" gomb megjelenítése",
+    "showSendToEReaderButtonDescription": "\"Küldés E-olvasóra\" gomb megjelenítése a könyv részletei oldalon, hogy könnyedén el lehessen azt küldeni E-olvasóra olvasáshoz."
 }

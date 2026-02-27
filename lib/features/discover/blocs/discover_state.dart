@@ -11,10 +11,7 @@ class DiscoverState extends Equatable {
     this.isOpds = false,
   });
 
-  DiscoverState copyWith({
-    DiscoverStatus? status,
-    bool? isOpds,
-  }) {
+  DiscoverState copyWith({DiscoverStatus? status, bool? isOpds}) {
     return DiscoverState(
       status: status ?? this.status,
       isOpds: isOpds ?? this.isOpds,

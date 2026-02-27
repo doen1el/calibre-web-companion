@@ -234,4 +234,12 @@ class SettingsRepository {
       rethrow;
     }
   }
+
+  Future<void> setEInkMode(bool enabled) async {
+    try {
+      await dataSource.saveEInkMode(enabled);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

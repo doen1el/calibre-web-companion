@@ -44,9 +44,10 @@ class DownloadServiceBookModel extends Equatable {
       publisher: json['publisher'] ?? '',
       year: json['year']?.toString() ?? '',
       language: json['language'] ?? '',
-      downloadUrls: json['download_urls'] != null 
-          ? List<String>.from(json['download_urls']) 
-          : [],
+      downloadUrls:
+          json['download_urls'] != null
+              ? List<String>.from(json['download_urls'])
+              : [],
     );
   }
 

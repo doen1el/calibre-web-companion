@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 
 import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 
@@ -8,7 +9,7 @@ class BookCardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Skeletonizer(
+    return AppSkeletonizer(
       enabled: true,
       effect: ShimmerEffect(
         baseColor: Theme.of(context).colorScheme.primary.withValues(alpha: .2),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
@@ -166,7 +167,7 @@ class _BookCardWidgetState extends State<BookCardWidget> {
                             .colorScheme
                             .surfaceContainerHighest
                             .withValues(alpha: .3),
-                        child: Skeletonizer(
+                        child: AppSkeletonizer(
                           enabled: true,
                           child: const SizedBox(),
                         ),
@@ -191,7 +192,7 @@ class _BookCardWidgetState extends State<BookCardWidget> {
                                 .colorScheme
                                 .surfaceContainerHighest
                                 .withValues(alpha: .3),
-                            child: Skeletonizer(
+                            child: AppSkeletonizer(
                               enabled: true,
                               effect: ShimmerEffect(
                                 baseColor: Theme.of(

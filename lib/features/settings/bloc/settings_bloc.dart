@@ -33,6 +33,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SetEpubScrollDirection>(_onSetEpubScrollDirection);
     on<ResetConnectionTestStatus>(_onResetConnectionTestStatus);
     on<SetShowSendToEReaderButton>(_onSetShowSendToEReaderButton);
+    on<SetEInkMode>(_onSetEInkMode);
   }
 
   Future<void> _onLoadSettings(
@@ -69,6 +70,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           webDavPassword: settings.webDavPassword,
           isWebDavSyncEnabled: settings.isWebDavSyncEnabled,
           epubScrollDirection: settings.epubScrollDirection,
+          isEInkMode: settings.isEInkMode,
         ),
       );
     } catch (e) {
@@ -484,6 +486,23 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setShowSendToEReaderButton(event.enabled);
       emit(state.copyWith(showSendToEReaderButton: event.enabled));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetEInkMode(
+    SetEInkMode event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      await repository.setEInkMode(event.enabled);
+      emit(state.copyWith(isEInkMode: event.enabled));
     } catch (e) {
       emit(
         state.copyWith(

@@ -51,6 +51,15 @@ class ToggleArchiveStatus extends BookDetailsEvent {
   List<Object?> get props => [bookId];
 }
 
+class DeleteBook extends BookDetailsEvent {
+  final int bookId;
+
+  const DeleteBook(this.bookId);
+
+  @override
+  List<Object?> get props => [bookId];
+}
+
 class DownloadBook extends BookDetailsEvent {
   final String bookId;
   final String format;

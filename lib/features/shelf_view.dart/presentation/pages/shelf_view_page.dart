@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
@@ -92,7 +93,7 @@ class ShelfViewPage extends StatelessWidget {
   }
 
   Widget _buildLoadingSkeleton(BuildContext context) {
-    return Skeletonizer(
+    return AppSkeletonizer(
       enabled: true,
       effect: ShimmerEffect(
         baseColor: Theme.of(context).colorScheme.surfaceContainerHighest,

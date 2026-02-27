@@ -703,6 +703,48 @@ abstract class AppLocalizations {
   /// **'Error loading books'**
   String get errorLoadingBooks;
 
+  /// No description provided for @eInkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'E-Ink Mode'**
+  String get eInkMode;
+
+  /// No description provided for @eInkModeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Disables animations for E-Ink devices'**
+  String get eInkModeDescription;
+
+  /// No description provided for @deleteBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete book'**
+  String get deleteBook;
+
+  /// No description provided for @deleteBookConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this book?'**
+  String get deleteBookConfirmation;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @bookDeletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Book deleted successfully'**
+  String get bookDeletedSuccessfully;
+
+  /// No description provided for @failedToDeleteBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete book'**
+  String get failedToDeleteBook;
+
   /// No description provided for @errorLoadingData.
   ///
   /// In en, this message translates to:
@@ -1038,12 +1080,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to delete shelf'**
   String get failedToDeleteShelf;
-
-  /// No description provided for @delete.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete'**
-  String get delete;
 
   /// No description provided for @deleting.
   ///

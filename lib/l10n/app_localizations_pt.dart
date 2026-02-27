@@ -305,6 +305,27 @@ class AppLocalizationsPt extends AppLocalizations {
   String get errorLoadingBooks => 'Erro ao carregar livros';
 
   @override
+  String get eInkMode => 'E-Ink Mode';
+
+  @override
+  String get eInkModeDescription => 'Disables animations for E-Ink devices';
+
+  @override
+  String get deleteBook => 'Delete book';
+
+  @override
+  String get deleteBookConfirmation => 'Are you sure you want to delete this book?';
+
+  @override
+  String get delete => 'Excluir';
+
+  @override
+  String get bookDeletedSuccessfully => 'Book deleted successfully';
+
+  @override
+  String get failedToDeleteBook => 'Failed to delete book';
+
+  @override
   String get errorLoadingData => 'Erro ao carregar dados';
 
   @override
@@ -481,9 +502,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get failedToDeleteShelf => 'Falha ao excluir estante';
-
-  @override
-  String get delete => 'Excluir';
 
   @override
   String get deleting => 'Excluindo';

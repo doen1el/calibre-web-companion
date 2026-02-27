@@ -49,6 +49,6 @@ class ShelfDetailsRepository {
       rethrow;
     }
   }
-  
+
   bool getIsOpds() => dataSource.getIsOpds();
 }

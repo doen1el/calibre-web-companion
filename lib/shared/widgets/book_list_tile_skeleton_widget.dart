@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 
 class BookListTileSkeleton extends StatelessWidget {
   const BookListTileSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Skeletonizer(
+    return AppSkeletonizer(
       enabled: true,
       effect: ShimmerEffect(
         baseColor: Theme.of(context).colorScheme.primary.withValues(alpha: .2),

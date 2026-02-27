@@ -305,6 +305,27 @@ class AppLocalizationsEt extends AppLocalizations {
   String get errorLoadingBooks => 'Error loading books';
 
   @override
+  String get eInkMode => 'E-Ink Mode';
+
+  @override
+  String get eInkModeDescription => 'Disables animations for E-Ink devices';
+
+  @override
+  String get deleteBook => 'Delete book';
+
+  @override
+  String get deleteBookConfirmation => 'Are you sure you want to delete this book?';
+
+  @override
+  String get delete => 'Kustuta';
+
+  @override
+  String get bookDeletedSuccessfully => 'Book deleted successfully';
+
+  @override
+  String get failedToDeleteBook => 'Failed to delete book';
+
+  @override
   String get errorLoadingData => 'Error loading data';
 
   @override
@@ -481,9 +502,6 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get failedToDeleteShelf => 'Failed to delete shelf';
-
-  @override
-  String get delete => 'Kustuta';
 
   @override
   String get deleting => 'Kustutan';

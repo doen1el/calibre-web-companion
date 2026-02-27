@@ -62,7 +62,6 @@ class DownloadStatusResponse {
       allBooks.add(_createBookFromData(id, bookData, DownloaderStatus.queued));
     });
 
-
     complete.forEach((id, bookData) {
       allBooks.add(_createBookFromData(id, bookData, DownloaderStatus.done));
     });

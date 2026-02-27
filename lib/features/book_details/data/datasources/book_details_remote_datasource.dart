@@ -151,6 +151,30 @@ class BookDetailsRemoteDatasource {
     }
   }
 
+  Future<bool> deleteBook(int bookId) async {
+    try {
+      logger.i('Deleting book: $bookId');
+
+      final response = await apiService.post(
+        endpoint: '/delete/$bookId',
+        authMethod: AuthMethod.cookie,
+        useCsrf: true,
+        csrfTokenUrl: '/book/$bookId',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 302) {
+        logger.i('Successfully deleted book');
+        return true;
+      } else {
+        logger.e('Failed to delete book: ${response.statusCode}');
+        throw Exception('Failed to delete book (${response.statusCode})');
+      }
+    } catch (e) {
+      logger.e('Error deleting book: $e');
+      throw Exception('Error deleting book: $e');
+    }
+  }
+
   Future<String> downloadBook(
     BookDetailsModel book,
     DocumentFile selectedDirectory,

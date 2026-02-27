@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:logger/web.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/di/injection_container.dart' as di;
@@ -125,7 +126,8 @@ class _MyAppState extends State<MyApp> {
               previous.themeMode != current.themeMode ||
               previous.themeSource != current.themeSource ||
               previous.selectedColorKey != current.selectedColorKey ||
-              previous.languageCode != current.languageCode,
+              previous.languageCode != current.languageCode ||
+              previous.isEInkMode != current.isEInkMode,
 
       builder: (context, settingsState) {
         return DynamicColorBuilder(
@@ -163,39 +165,47 @@ class _MyAppState extends State<MyApp> {
               colorScheme: darkScheme,
             );
 
-            return MaterialApp(
-              title: 'Calibre-Web-Companion',
-              theme: lightTheme,
-              darkTheme: darkTheme,
-              themeMode: settingsState.themeMode,
-              navigatorKey: navigatorKey,
-              navigatorObservers: [routeObserver],
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              locale: Locale(settingsState.languageCode ?? 'en'),
-              debugShowCheckedModeBanner: false,
-              localeResolutionCallback: (locale, supportedLocales) {
-                if (locale != null) {
-                  for (final supportedLocale in supportedLocales) {
-                    if (supportedLocale.languageCode == locale.languageCode) {
-                      return supportedLocale;
+            return SkeletonizerConfig(
+              data: SkeletonizerConfigData(
+                effect:
+                    settingsState.isEInkMode
+                        ? const SolidColorEffect()
+                        : const ShimmerEffect(),
+              ),
+              child: MaterialApp(
+                title: 'Calibre-Web-Companion',
+                theme: lightTheme,
+                darkTheme: darkTheme,
+                themeMode: settingsState.themeMode,
+                navigatorKey: navigatorKey,
+                navigatorObservers: [routeObserver],
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                locale: Locale(settingsState.languageCode ?? 'en'),
+                debugShowCheckedModeBanner: false,
+                localeResolutionCallback: (locale, supportedLocales) {
+                  if (locale != null) {
+                    for (final supportedLocale in supportedLocales) {
+                      if (supportedLocale.languageCode == locale.languageCode) {
+                        return supportedLocale;
+                      }
                     }
                   }
-                }
-                return const Locale('en');
-              },
-              home: FutureBuilder<bool>(
-                future: _isLoggedIn(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Scaffold(
-                      body: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-
-                  final isLoggedIn = snapshot.data ?? false;
-                  return isLoggedIn ? const HomePage() : const LoginPage();
+                  return const Locale('en');
                 },
+                home: FutureBuilder<bool>(
+                  future: _isLoggedIn(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+
+                    final isLoggedIn = snapshot.data ?? false;
+                    return isLoggedIn ? const HomePage() : const LoginPage();
+                  },
+                ),
               ),
             );
           },

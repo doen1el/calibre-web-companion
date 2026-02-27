@@ -64,6 +64,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.doen1el.calibreWebCompanion
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          changesNotSentForReview: true
           track: production
           status: completed
           releaseName: 'Release ${{ github.run_number }}'

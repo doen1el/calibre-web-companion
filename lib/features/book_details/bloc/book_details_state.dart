@@ -10,6 +10,8 @@ enum ReadStatusState { initial, loading, success, error }
 
 enum ArchiveStatusState { initial, loading, success, error }
 
+enum DeleteBookState { initial, loading, success, error }
+
 enum SeriesNavigationStatus { initial, loading, success, error }
 
 enum DownloadState {
@@ -47,6 +49,7 @@ class BookDetailsState extends Equatable {
   final ReadStatusState readStatusState;
   final bool isBookArchived;
   final ArchiveStatusState archiveStatusState;
+  final DeleteBookState deleteBookState;
   final DownloadState downloadState;
   final int downloadProgress;
   final String? downloadedFilePath;
@@ -72,6 +75,7 @@ class BookDetailsState extends Equatable {
     this.readStatusState = ReadStatusState.initial,
     this.isBookArchived = false,
     this.archiveStatusState = ArchiveStatusState.initial,
+    this.deleteBookState = DeleteBookState.initial,
     this.downloadState = DownloadState.initial,
     this.downloadProgress = 0,
     this.downloadedFilePath,
@@ -98,6 +102,7 @@ class BookDetailsState extends Equatable {
     ReadStatusState? readStatusState,
     bool? isBookArchived,
     ArchiveStatusState? archiveStatusState,
+    DeleteBookState? deleteBookState,
     DownloadState? downloadState,
     int? downloadProgress,
     String? downloadedFilePath,
@@ -123,6 +128,7 @@ class BookDetailsState extends Equatable {
       readStatusState: readStatusState ?? this.readStatusState,
       isBookArchived: isBookArchived ?? this.isBookArchived,
       archiveStatusState: archiveStatusState ?? this.archiveStatusState,
+      deleteBookState: deleteBookState ?? this.deleteBookState,
       downloadState: downloadState ?? this.downloadState,
       downloadProgress: downloadProgress ?? this.downloadProgress,
       downloadedFilePath: downloadedFilePath ?? this.downloadedFilePath,
@@ -154,6 +160,7 @@ class BookDetailsState extends Equatable {
     readStatusState,
     isBookArchived,
     archiveStatusState,
+    deleteBookState,
     downloadState,
     downloadProgress,
     downloadedFilePath,
