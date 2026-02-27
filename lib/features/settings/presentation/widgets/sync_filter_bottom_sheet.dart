@@ -359,7 +359,7 @@ class _SyncFilterBottomSheetState extends State<SyncFilterBottomSheet> {
         subtitle: Text(
           count > 0
               ? "$count ${localization.selected}"
-              : localization.all as String,
+              : localization.all,
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,
