@@ -1,0 +1,2 @@
+- Added ability to delete books from the server via the book details page.
+- Added option to disable app animations for eink devices
