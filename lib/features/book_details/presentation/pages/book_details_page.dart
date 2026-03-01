@@ -506,7 +506,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topCenter,
+                begin: Alignment(0.0, -0.5),
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.black.withValues(alpha: .3),
