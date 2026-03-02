@@ -1130,7 +1130,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
 Widget _buildCoverImage(BuildContext context, int bookId, String? coverUrl) {
   return SizedBox(
-    height: 350,
+    //height: 350,
     child: BookCoverWidget(
       bookId: bookId,
       coverUrl: coverUrl,
