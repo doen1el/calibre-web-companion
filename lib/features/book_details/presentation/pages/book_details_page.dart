@@ -496,67 +496,118 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     BookDetailsModel book,
     bool isLoading,
   ) {
-    return Stack(
-      children: [
-        ///  Background cover image
-        Positioned.fill(child: _buildCoverImage(context, book.id, book.cover)),
+    return CustomScrollView(
+      slivers: [
+        /// 🔥 Collapsing Parallax Cover
+        SliverAppBar(
+          expandedHeight: 420,
+          pinned: true,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          elevation: 0,
+          flexibleSpace: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxHeight = constraints.biggest.height;
 
-        ///  Global fade gradient (makes scroll content readable)
-        Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment(0.0, -0.5),
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: .3),
-                  Theme.of(context).scaffoldBackgroundColor,
+              final collapsePercent = (1 -
+                      (maxHeight - kToolbarHeight) / (420 - kToolbarHeight))
+                  .clamp(0.0, 1.0);
+
+              final titleScale = 1.2 - (0.4 * collapsePercent);
+              final titleOpacity = 1 - collapsePercent;
+
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  /// Cover
+                  Transform.scale(
+                    scale: 1.1 - (0.1 * collapsePercent),
+                    child: _buildCoverImage(context, book.id, book.cover),
+                  ),
+
+                  /// Animated gradient
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(
+                            alpha: 0.0 + (0.5 * collapsePercent),
+                          ),
+                          Colors.black.withValues(
+                            alpha: 0.2 + (0.6 * collapsePercent),
+                          ),
+                          Theme.of(context).scaffoldBackgroundColor,
+                        ],
+                        stops: const [0.0, 0.9, 1.0],
+                      ),
+                    ),
+                  ),
+
+                  /// Large Title
+                  Positioned(
+                    left: 16,
+                    top: 280 + (40 * collapsePercent),
+                    child: Transform.scale(
+                      scale: titleScale,
+                      alignment: Alignment.topLeft,
+                      child: Opacity(
+                        opacity: titleOpacity,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              book.title,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.headlineMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              localizations.by(book.authors),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  /// Toolbar Title
+                  Positioned(
+                    left: 72,
+                    bottom: 16,
+                    child: Opacity(
+                      opacity: collapsePercent,
+                      child: Text(
+                        book.title,
+                        style: Theme.of(context).textTheme.titleLarge,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
                 ],
-                stops: const [0.0, 0.6],
-              ),
-            ),
+              );
+            },
           ),
         ),
 
-        ///  Scrollable content
-        SingleChildScrollView(
+        /// 🔥 Main Scroll Content
+        SliverToBoxAdapter(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 260),
-
-              /// 🔥 Title section with stronger bottom gradient
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(16, 40, 16, 24),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Theme.of(context).scaffoldBackgroundColor,
-                    ],
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      book.title,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      localizations.by(book.authors),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ],
+              /// Author section (no more SizedBox hack needed)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                child: Text(
+                  localizations.by(book.authors),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
 
@@ -1128,15 +1179,12 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     return '${(sizeInBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
-Widget _buildCoverImage(BuildContext context, int bookId, String? coverUrl) {
-  return SizedBox(
-    //height: 350,
-    child: BookCoverWidget(
-      bookId: bookId,
-      coverUrl: coverUrl,
-    ),
-  );
-}
+  Widget _buildCoverImage(BuildContext context, int bookId, String? coverUrl) {
+    return SizedBox(
+      //height: 350,
+      child: BookCoverWidget(bookId: bookId, coverUrl: coverUrl),
+    );
+  }
 
   Widget _buildTags(
     BuildContext context,
