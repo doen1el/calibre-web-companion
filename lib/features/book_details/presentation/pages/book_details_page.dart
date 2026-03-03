@@ -520,7 +520,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                 fit: StackFit.expand,
                 children: [
                   Transform.scale(
-                    scale: 1.1 - (0.1 * collapsePercent),
+                    scale: 1.0 - (0.1 * collapsePercent),
                     child: _buildCoverImage(context, book.id, book.cover),
                   ),
 
@@ -546,7 +546,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
                   Positioned(
                     left: 16,
-                    top: 360 - (80 * collapsePercent),
+                    bottom: 20 + (80 * collapsePercent),
                     child: Transform.scale(
                       scale: titleScale,
                       alignment: Alignment.topLeft,
@@ -566,7 +566,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                   ),
 
                   Positioned(
-                    left: 16,
+                    left: 20,
                     right: 16,
                     bottom: 16,
                     child: Opacity(
@@ -592,7 +592,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
             children: [
               /// Author section (no more SizedBox hack needed)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 2, 16, 2),
+                padding: const EdgeInsets.fromLTRB(16, 2, 16, 1),
                 child: Text(
                   localizations.by(book.authors),
                   style: Theme.of(context).textTheme.titleMedium,
