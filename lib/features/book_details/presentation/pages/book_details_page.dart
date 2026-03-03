@@ -496,208 +496,259 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     BookDetailsModel book,
     bool isLoading,
   ) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            alignment: Alignment.bottomLeft,
-            children: [
-              _buildCoverImage(context, book.id, book.cover),
+    return CustomScrollView(
+      slivers: [
+        /// 🔥 Collapsing Parallax Cover
+        SliverAppBar(
+          expandedHeight: 420,
+          pinned: true,
+          automaticallyImplyLeading: false,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          elevation: 0,
+          flexibleSpace: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxHeight = constraints.biggest.height;
 
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: .7),
-                    ],
-                    stops: const [0.5, 1.0],
+              final collapsePercent = (1 -
+                      (maxHeight - kToolbarHeight) / (420 - kToolbarHeight))
+                  .clamp(0.0, 1.0);
+
+              final titleScale = 1.2 - (0.4 * collapsePercent);
+              final titleOpacity = 1 - collapsePercent;
+
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Transform.scale(
+                    scale: 1.0 - (0.1 * collapsePercent),
+                    child: _buildCoverImage(context, book.id, book.cover),
                   ),
-                ),
-                height: 100,
-                width: double.infinity,
-              ),
 
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      book.title,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            offset: const Offset(1, 1),
-                            blurRadius: 3,
-                            color: Colors.black.withValues(alpha: .5),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(
+                            alpha: 0.0 + (0.5 * collapsePercent),
                           ),
+                          Colors.black.withValues(
+                            alpha: 0.3 + (0.4 * collapsePercent),
+                          ),
+                          Colors.black,
+                          //Colors.transparent,
                         ],
+                        stops: const [0.0, 0.65, /*0.985,*/ 1.0],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      localizations.by(book.authors),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: .9),
-                        shadows: [
-                          Shadow(
-                            offset: const Offset(1, 1),
-                            blurRadius: 2,
-                            color: Colors.black.withValues(alpha: .5),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          _buildCard(
-            context,
-            Icons.menu_book_rounded,
-            localizations.bookActions,
-            _buildBookActions(context, localizations, state, book, isLoading),
-          ),
-
-          if (book.rating > 0)
-            _buildCard(
-              context,
-              Icons.star_rate_rounded,
-              localizations.rating,
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: _buildRating(book.rating),
-              ),
-            ),
-
-          if (book.series.isNotEmpty)
-            _buildCard(
-              context,
-              Icons.bookmark_rounded,
-              localizations.series,
-              InkWell(
-                borderRadius: BorderRadius.circular(8.0),
-                onTap: () {
-                  context.read<BookDetailsBloc>().add(OpenSeries(book.series));
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 4.0,
-                    horizontal: 4.0,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${book.series} (${localizations.book} ${book.seriesIndex.toInt()})',
-                      ),
-                      if (state.seriesNavigationStatus ==
-                          SeriesNavigationStatus.loading)
-                        const Padding(
-                          padding: EdgeInsets.only(left: 8.0),
-                          child: SizedBox(
-                            width: 12,
-                            height: 12,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+
+                  Positioned(
+                    left: 16,
+                    bottom: 20 + (80 * collapsePercent),
+                    child: Transform.scale(
+                      scale: titleScale,
+                      alignment: Alignment.topLeft,
+                      child: Opacity(
+                        opacity: titleOpacity,
+                        child: Text(
+                          book.title,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.headlineMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                    ],
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
 
-          _buildInfoCard(
-            context,
-            Icons.info_outline_rounded,
-            localizations.publicationInfo,
-            [
-              if (book.pubdate != "")
-                _buildInfoRow(
-                  context,
-                  localizations.updated,
-                  intl.DateFormat.yMMMMd(
-                    localizations.localeName,
-                  ).format(DateTime.parse(book.pubdate)),
-                  Icons.update_rounded,
-                ),
-              if (book.publishers != "")
-                _buildInfoRow(
-                  context,
-                  localizations.publisher,
-                  book.publishers,
-                  Icons.business_rounded,
-                ),
-              if (book.languages.isNotEmpty)
-                _buildInfoRow(
-                  context,
-                  localizations.language,
-                  _formatLanguage(book.languages, localizations),
-                  Icons.language_rounded,
-                ),
-            ],
-          ),
-
-          _buildInfoCard(
-            context,
-            Icons.description_rounded,
-            localizations.fileInfo,
-            [
-              if (book.formats.isNotEmpty)
-                _buildInfoRow(
-                  context,
-                  localizations.formats,
-                  book.formats.join(', '),
-                  Icons.folder_rounded,
-                ),
-              if (book.formatMetadata.formats.isNotEmpty)
-                _buildInfoRow(
-                  context,
-                  localizations.size,
-                  _formatFileSize(
-                    book.formatMetadata.formats.entries.first.value.size!,
+                  Positioned(
+                    left: 20,
+                    right: 16,
+                    bottom: 16,
+                    child: Opacity(
+                      opacity: collapsePercent,
+                      child: Text(
+                        book.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ),
                   ),
-                  Icons.data_usage_rounded,
-                ),
-              _buildInfoRow(context, 'ID', book.uuid, Icons.tag_rounded),
-            ],
+                ],
+              );
+            },
           ),
+        ),
 
-          if (book.tags.isNotEmpty)
-            _buildCard(
-              context,
-              Icons.local_offer_rounded,
-              localizations.tags,
+        /// 🔥 Main Scroll Content
+        SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// Author section (no more SizedBox hack needed)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: _buildTags(context, book.tags, book.tagModels),
-              ),
-            ),
-          if (book.comments.isNotEmpty)
-            _buildCard(
-              context,
-              Icons.article_rounded,
-              localizations.description,
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                padding: const EdgeInsets.fromLTRB(16, 2, 16, 1),
                 child: Text(
-                  book.comments,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  localizations.by(book.authors),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
-            ),
 
-          const SizedBox(height: 16),
-        ],
-      ),
+              _buildCard(
+                context,
+                Icons.menu_book_rounded,
+                localizations.bookActions,
+                _buildBookActions(
+                  context,
+                  localizations,
+                  state,
+                  book,
+                  isLoading,
+                ),
+              ),
+
+              if (book.rating > 0)
+                _buildCard(
+                  context,
+                  Icons.star_rate_rounded,
+                  localizations.rating,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: _buildRating(book.rating),
+                  ),
+                ),
+
+              if (book.series.isNotEmpty)
+                _buildCard(
+                  context,
+                  Icons.bookmark_rounded,
+                  localizations.series,
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8.0),
+                    onTap: () {
+                      context.read<BookDetailsBloc>().add(
+                        OpenSeries(book.series),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4.0,
+                        horizontal: 4.0,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${book.series} (${localizations.book} ${book.seriesIndex.toInt()})',
+                          ),
+                          if (state.seriesNavigationStatus ==
+                              SeriesNavigationStatus.loading)
+                            const Padding(
+                              padding: EdgeInsets.only(left: 8.0),
+                              child: SizedBox(
+                                width: 12,
+                                height: 12,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+              _buildInfoCard(
+                context,
+                Icons.info_outline_rounded,
+                localizations.publicationInfo,
+                [
+                  if (book.pubdate != "")
+                    _buildInfoRow(
+                      context,
+                      localizations.updated,
+                      intl.DateFormat.yMMMMd(
+                        localizations.localeName,
+                      ).format(DateTime.parse(book.pubdate)),
+                      Icons.update_rounded,
+                    ),
+                  if (book.publishers != "")
+                    _buildInfoRow(
+                      context,
+                      localizations.publisher,
+                      book.publishers,
+                      Icons.business_rounded,
+                    ),
+                  if (book.languages.isNotEmpty)
+                    _buildInfoRow(
+                      context,
+                      localizations.language,
+                      _formatLanguage(book.languages, localizations),
+                      Icons.language_rounded,
+                    ),
+                ],
+              ),
+
+              _buildInfoCard(
+                context,
+                Icons.description_rounded,
+                localizations.fileInfo,
+                [
+                  if (book.formats.isNotEmpty)
+                    _buildInfoRow(
+                      context,
+                      localizations.formats,
+                      book.formats.join(', '),
+                      Icons.folder_rounded,
+                    ),
+                  if (book.formatMetadata.formats.isNotEmpty)
+                    _buildInfoRow(
+                      context,
+                      localizations.size,
+                      _formatFileSize(
+                        book.formatMetadata.formats.entries.first.value.size!,
+                      ),
+                      Icons.data_usage_rounded,
+                    ),
+                  _buildInfoRow(context, 'ID', book.uuid, Icons.tag_rounded),
+                ],
+              ),
+
+              if (book.tags.isNotEmpty)
+                _buildCard(
+                  context,
+                  Icons.local_offer_rounded,
+                  localizations.tags,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: _buildTags(context, book.tags, book.tagModels),
+                  ),
+                ),
+              if (book.comments.isNotEmpty)
+                _buildCard(
+                  context,
+                  Icons.article_rounded,
+                  localizations.description,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      book.comments,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                ),
+
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -1118,8 +1169,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
   Widget _buildCoverImage(BuildContext context, int bookId, String? coverUrl) {
     return SizedBox(
-      height: 300,
-      width: double.infinity,
+      //height: 350,
       child: BookCoverWidget(bookId: bookId, coverUrl: coverUrl),
     );
   }
