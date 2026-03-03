@@ -1,3 +1,6 @@
+> [!CAUTION]
+> ‼️ Android will become a locked-down platform. Learn more: https://keepandroidopen.org/
+
 <p align="center">
     <img src="docs/icon/icon.png" alt="App Icon" width="100" />
     <br>
