@@ -502,6 +502,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
         SliverAppBar(
           expandedHeight: 420,
           pinned: true,
+          automaticallyImplyLeading: false,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           elevation: 0,
           flexibleSpace: LayoutBuilder(
@@ -512,19 +513,17 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                       (maxHeight - kToolbarHeight) / (420 - kToolbarHeight))
                   .clamp(0.0, 1.0);
 
-              final titleScale = 1.2 - (5 * collapsePercent);
-              final titleOpacity = 1 - (10 * collapsePercent);
+              final titleScale = 1.2 - (0.4 * collapsePercent);
+              final titleOpacity = 1 - collapsePercent;
 
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  /// Book Cover
                   Transform.scale(
                     scale: 1.1 - (0.1 * collapsePercent),
                     child: _buildCoverImage(context, book.id, book.cover),
                   ),
 
-                  /// Animated gradient
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -535,59 +534,48 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                             alpha: 0.0 + (0.5 * collapsePercent),
                           ),
                           Colors.black.withValues(
-                            alpha: 0.2 + (0.6 * collapsePercent),
+                            alpha: 0.3 + (0.4 * collapsePercent),
                           ),
-                          Theme.of(context).scaffoldBackgroundColor,
+                          Colors.black,
+                          Colors.transparent,
                         ],
-                        stops: const [0.0, 0.75, 1.0],
+                        stops: const [0.0, 0.65, 0.985, 1.0],
                       ),
                     ),
                   ),
 
-                  /// Large Title
                   Positioned(
                     left: 16,
-                    top: 360 + (40 * collapsePercent),
+                    top: 360 - (80 * collapsePercent),
                     child: Transform.scale(
                       scale: titleScale,
                       alignment: Alignment.topLeft,
                       child: Opacity(
                         opacity: titleOpacity,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              book.title,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.headlineMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            /*const SizedBox(height: 6),
-                            Text(
-                              localizations.by(book.authors),
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(color: Colors.white70),
-                            ),*/
-                          ],
+                        child: Text(
+                          book.title,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.headlineMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
                   ),
 
-                  /// Toolbar Title
                   Positioned(
-                    left: 72,
+                    left: 16,
+                    right: 16,
                     bottom: 16,
                     child: Opacity(
                       opacity: collapsePercent,
                       child: Text(
                         book.title,
-                        style: Theme.of(context).textTheme.titleLarge,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
                   ),
