@@ -403,5 +403,13 @@
     "deleteAccountConfirmation": "Segur que vols eliminar el compte de la llista?",
     "user": "Usuari",
     "userFirstLetter": "U",
-    "useAuthorSort": "Empra 'Ordenament d'Autor'"
+    "useAuthorSort": "Empra 'Ordenament d'Autor'",
+    "failedToDeleteBook": "Error a l'esborrar llibre",
+    "eInkMode": "Mode E-Ink",
+    "eInkModeDescription": "Deshabilita animacions per a dispositius E-Ink",
+    "deleteBook": "esborra llibre",
+    "deleteBookConfirmation": "Segur que el vols esborrar?",
+    "bookDeletedSuccessfully": "Llibre esborrat correctament",
+    "showSendToEReaderButton": "Mostra botó 'Envia a e-Reader'",
+    "showSendToEReaderButtonDescription": "Mostra botó \"Envia al llibre electrònic\" a les pàgines de detalls del llibre per enviar llibres fàcilment al teu lector."
 }
