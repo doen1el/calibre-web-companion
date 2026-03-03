@@ -512,13 +512,13 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                       (maxHeight - kToolbarHeight) / (420 - kToolbarHeight))
                   .clamp(0.0, 1.0);
 
-              final titleScale = 1.2 - (0.4 * collapsePercent);
-              final titleOpacity = 1 - collapsePercent;
+              final titleScale = 1.2 - (5 * collapsePercent);
+              final titleOpacity = 1 - (10 * collapsePercent);
 
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  /// Cover
+                  /// Book Cover
                   Transform.scale(
                     scale: 1.1 - (0.1 * collapsePercent),
                     child: _buildCoverImage(context, book.id, book.cover),
@@ -539,7 +539,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                           ),
                           Theme.of(context).scaffoldBackgroundColor,
                         ],
-                        stops: const [0.0, 0.9, 1.0],
+                        stops: const [0.0, 0.75, 1.0],
                       ),
                     ),
                   ),
@@ -547,7 +547,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                   /// Large Title
                   Positioned(
                     left: 16,
-                    top: 280 + (40 * collapsePercent),
+                    top: 360 + (40 * collapsePercent),
                     child: Transform.scale(
                       scale: titleScale,
                       alignment: Alignment.topLeft,
@@ -565,12 +565,12 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            /*const SizedBox(height: 6),
                             Text(
                               localizations.by(book.authors),
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(color: Colors.white70),
-                            ),
+                            ),*/
                           ],
                         ),
                       ),
@@ -604,7 +604,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
             children: [
               /// Author section (no more SizedBox hack needed)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                padding: const EdgeInsets.fromLTRB(16, 2, 16, 2),
                 child: Text(
                   localizations.by(book.authors),
                   style: Theme.of(context).textTheme.titleMedium,
