@@ -28,6 +28,7 @@ import 'package:calibre_web_companion/features/discover_details/presentation/pag
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
+import 'package:calibre_web_companion/features/settings/presentation/pages/settings_page.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -503,13 +504,26 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
         ).toSet();
 
     final sectionBuilders = <String, Widget Function()>{
-      BookDetailsSection.bookActions.key:
-          () => _buildCard(
-            context,
-            Icons.menu_book_rounded,
-            localizations.bookActions,
-            _buildBookActions(context, localizations, state, book, isLoading),
-          ),
+      BookDetailsSection.bookActions.key: () {
+        final actions = _buildBookActions(
+          context,
+          localizations,
+          state,
+          book,
+          isLoading,
+        );
+
+        if (actions is SizedBox) {
+          return const SizedBox.shrink();
+        }
+
+        return _buildCard(
+          context,
+          Icons.menu_book_rounded,
+          localizations.bookActions,
+          actions,
+        );
+      },
       BookDetailsSection.rating.key:
           () =>
               book.rating > 0
@@ -664,6 +678,13 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
             .where((widget) => widget is! SizedBox)
             .toList();
 
+    final bodySections =
+        visibleSections.isEmpty
+            ? <Widget>[
+              _buildAllSectionsDisabledFallback(context, localizations),
+            ]
+            : visibleSections;
+
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
@@ -726,10 +747,44 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
         SliverToBoxAdapter(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [...visibleSections, const SizedBox(height: 24)],
+            children: [...bodySections, const SizedBox(height: 24)],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAllSectionsDisabledFallback(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        children: [
+          Text(
+            localizations.sectionDisabledOrNotFound,
+            style: Theme.of(context).textTheme.titleLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            localizations.sectionDisabledDescription,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(AppTransitions.createSlideRoute(const SettingsPage()));
+            },
+            icon: const Icon(Icons.settings_rounded),
+            label: Text(localizations.settings),
+          ),
+        ],
+      ),
     );
   }
 

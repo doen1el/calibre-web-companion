@@ -268,3 +268,67 @@ class SetBookDetailsSectionEnabled extends SettingsEvent {
 class ResetBookDetailsSectionsCustomization extends SettingsEvent {
   const ResetBookDetailsSectionsCustomization();
 }
+
+class SetDiscoverMainSectionsOrder extends SettingsEvent {
+  final List<String> sectionKeys;
+
+  const SetDiscoverMainSectionsOrder(this.sectionKeys);
+
+  @override
+  List<Object?> get props => [sectionKeys];
+}
+
+class SetDiscoverMainSectionEnabled extends SettingsEvent {
+  final String sectionKey;
+  final bool enabled;
+
+  const SetDiscoverMainSectionEnabled({
+    required this.sectionKey,
+    required this.enabled,
+  });
+
+  @override
+  List<Object?> get props => [sectionKey, enabled];
+}
+
+class SetDiscoverItemsOrder extends SettingsEvent {
+  final List<String> itemKeys;
+
+  const SetDiscoverItemsOrder(this.itemKeys);
+
+  @override
+  List<Object?> get props => [itemKeys];
+}
+
+class SetDiscoverItemEnabled extends SettingsEvent {
+  final String itemKey;
+  final bool enabled;
+
+  const SetDiscoverItemEnabled({required this.itemKey, required this.enabled});
+
+  @override
+  List<Object?> get props => [itemKey, enabled];
+}
+
+class SetCategoryItemsOrder extends SettingsEvent {
+  final List<String> itemKeys;
+
+  const SetCategoryItemsOrder(this.itemKeys);
+
+  @override
+  List<Object?> get props => [itemKeys];
+}
+
+class SetCategoryItemEnabled extends SettingsEvent {
+  final String itemKey;
+  final bool enabled;
+
+  const SetCategoryItemEnabled({required this.itemKey, required this.enabled});
+
+  @override
+  List<Object?> get props => [itemKey, enabled];
+}
+
+class ResetDiscoverCustomization extends SettingsEvent {
+  const ResetDiscoverCustomization();
+}

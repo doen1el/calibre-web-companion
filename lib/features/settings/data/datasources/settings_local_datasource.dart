@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
+import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/settings_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
@@ -64,6 +65,24 @@ class SettingsLocalDataSource {
         'enabled_book_details_sections':
             sharedPreferences.getStringList('enabled_book_details_sections') ??
             BookDetailsSectionConfig.defaultOrder,
+        'discover_main_sections_order':
+            sharedPreferences.getStringList('discover_main_sections_order') ??
+            DiscoverLayoutConfig.defaultMainSectionsOrder,
+        'enabled_discover_main_sections':
+            sharedPreferences.getStringList('enabled_discover_main_sections') ??
+            DiscoverLayoutConfig.defaultMainSectionsOrder,
+        'discover_items_order':
+            sharedPreferences.getStringList('discover_items_order') ??
+            DiscoverLayoutConfig.defaultDiscoverItemsOrder,
+        'enabled_discover_items':
+            sharedPreferences.getStringList('enabled_discover_items') ??
+            DiscoverLayoutConfig.defaultDiscoverItemsOrder,
+        'category_items_order':
+            sharedPreferences.getStringList('category_items_order') ??
+            DiscoverLayoutConfig.defaultCategoryItemsOrder,
+        'enabled_category_items':
+            sharedPreferences.getStringList('enabled_category_items') ??
+            DiscoverLayoutConfig.defaultCategoryItemsOrder,
       });
     } catch (e) {
       logger.e('Error getting settings: $e');
@@ -338,6 +357,66 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error saving enabled book details sections: $e');
       throw Exception('Failed to save enabled book details sections: $e');
+    }
+  }
+
+  Future<void> saveDiscoverMainSectionsOrder(List<String> sectionKeys) async {
+    try {
+      await sharedPreferences.setStringList(
+        'discover_main_sections_order',
+        sectionKeys,
+      );
+    } catch (e) {
+      logger.e('Error saving discover main sections order: $e');
+      throw Exception('Failed to save discover main sections order: $e');
+    }
+  }
+
+  Future<void> saveEnabledDiscoverMainSections(List<String> sectionKeys) async {
+    try {
+      await sharedPreferences.setStringList(
+        'enabled_discover_main_sections',
+        sectionKeys,
+      );
+    } catch (e) {
+      logger.e('Error saving enabled discover main sections: $e');
+      throw Exception('Failed to save enabled discover main sections: $e');
+    }
+  }
+
+  Future<void> saveDiscoverItemsOrder(List<String> itemKeys) async {
+    try {
+      await sharedPreferences.setStringList('discover_items_order', itemKeys);
+    } catch (e) {
+      logger.e('Error saving discover items order: $e');
+      throw Exception('Failed to save discover items order: $e');
+    }
+  }
+
+  Future<void> saveEnabledDiscoverItems(List<String> itemKeys) async {
+    try {
+      await sharedPreferences.setStringList('enabled_discover_items', itemKeys);
+    } catch (e) {
+      logger.e('Error saving enabled discover items: $e');
+      throw Exception('Failed to save enabled discover items: $e');
+    }
+  }
+
+  Future<void> saveCategoryItemsOrder(List<String> itemKeys) async {
+    try {
+      await sharedPreferences.setStringList('category_items_order', itemKeys);
+    } catch (e) {
+      logger.e('Error saving category items order: $e');
+      throw Exception('Failed to save category items order: $e');
+    }
+  }
+
+  Future<void> saveEnabledCategoryItems(List<String> itemKeys) async {
+    try {
+      await sharedPreferences.setStringList('enabled_category_items', itemKeys);
+    } catch (e) {
+      logger.e('Error saving enabled category items: $e');
+      throw Exception('Failed to save enabled category items: $e');
     }
   }
 }

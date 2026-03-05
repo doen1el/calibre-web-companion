@@ -7,6 +7,7 @@ import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart
 
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
+import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
@@ -194,6 +195,10 @@ class _SettingsPageState extends State<SettingsPage> {
                           const SizedBox(height: 24),
                           _buildSectionTitle(context, localizations.language),
                           _buildLanguageSelector(context, state, localizations),
+
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(context, localizations.discover),
+                          _buildDiscoverSettings(context, state, localizations),
 
                           const SizedBox(height: 24),
                           _buildSectionTitle(
@@ -1216,6 +1221,376 @@ class _SettingsPageState extends State<SettingsPage> {
         return Icons.local_offer_rounded;
       case BookDetailsSection.description:
         return Icons.article_rounded;
+    }
+  }
+
+  Widget _buildDiscoverSettings(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            _buildDiscoverMainSectionsCustomization(
+              context,
+              state,
+              localizations,
+            ),
+            const SizedBox(height: 20),
+            const Divider(),
+            const SizedBox(height: 8),
+            _buildDiscoverItemsCustomization(context, state, localizations),
+            const SizedBox(height: 20),
+            const Divider(),
+            const SizedBox(height: 8),
+            _buildCategoryItemsCustomization(context, state, localizations),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDiscoverMainSectionsCustomization(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    final orderedSections =
+        DiscoverLayoutConfig.normalizeMainSectionsOrder(
+              state.discoverMainSectionsOrder,
+            )
+            .map(DiscoverMainSectionX.fromKey)
+            .whereType<DiscoverMainSection>()
+            .toList();
+    final enabledSections =
+        DiscoverLayoutConfig.normalizeEnabledMainSections(
+          state.enabledDiscoverMainSections,
+        ).toSet();
+
+    return _buildSettingsReorderList(
+      context: context,
+      title: localizations.discover,
+      icon: Icons.view_stream_rounded,
+      resetTooltip: localizations.reset,
+      onReset:
+          () => context.read<SettingsBloc>().add(
+            const ResetDiscoverCustomization(),
+          ),
+      itemCount: orderedSections.length,
+      onReorder: (oldIndex, newIndex) {
+        final updated = List<String>.from(
+          DiscoverLayoutConfig.normalizeMainSectionsOrder(
+            state.discoverMainSectionsOrder,
+          ),
+        );
+        if (newIndex > oldIndex) newIndex -= 1;
+        final item = updated.removeAt(oldIndex);
+        updated.insert(newIndex, item);
+        context.read<SettingsBloc>().add(SetDiscoverMainSectionsOrder(updated));
+      },
+      tileBuilder: (index) {
+        final section = orderedSections[index];
+        final sectionKey = section.key;
+        return _settingsReorderTile(
+          context: context,
+          keyValue: sectionKey,
+          leading: Icon(
+            _discoverMainSectionIcon(section),
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          title: _discoverMainSectionTitle(section, localizations),
+          value: enabledSections.contains(sectionKey),
+          onChanged:
+              (value) => context.read<SettingsBloc>().add(
+                SetDiscoverMainSectionEnabled(
+                  sectionKey: sectionKey,
+                  enabled: value,
+                ),
+              ),
+          index: index,
+        );
+      },
+    );
+  }
+
+  Widget _buildDiscoverItemsCustomization(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    final orderedItems =
+        DiscoverLayoutConfig.normalizeDiscoverItemsOrder(
+          state.discoverItemsOrder,
+        ).map(DiscoverItemX.fromKey).whereType<DiscoverItem>().toList();
+    final enabledItems =
+        DiscoverLayoutConfig.normalizeEnabledDiscoverItems(
+          state.enabledDiscoverItems,
+        ).toSet();
+
+    return _buildSettingsReorderList(
+      context: context,
+      title: localizations.discover,
+      icon: Icons.search_rounded,
+      itemCount: orderedItems.length,
+      onReorder: (oldIndex, newIndex) {
+        final updated = List<String>.from(
+          DiscoverLayoutConfig.normalizeDiscoverItemsOrder(
+            state.discoverItemsOrder,
+          ),
+        );
+        if (newIndex > oldIndex) newIndex -= 1;
+        final item = updated.removeAt(oldIndex);
+        updated.insert(newIndex, item);
+        context.read<SettingsBloc>().add(SetDiscoverItemsOrder(updated));
+      },
+      tileBuilder: (index) {
+        final item = orderedItems[index];
+        final itemKey = item.key;
+        return _settingsReorderTile(
+          context: context,
+          keyValue: itemKey,
+          leading: Icon(
+            _discoverItemIcon(item),
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          title: _discoverItemTitle(item, localizations),
+          value: enabledItems.contains(itemKey),
+          onChanged:
+              (value) => context.read<SettingsBloc>().add(
+                SetDiscoverItemEnabled(itemKey: itemKey, enabled: value),
+              ),
+          index: index,
+        );
+      },
+    );
+  }
+
+  Widget _buildCategoryItemsCustomization(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    final orderedItems =
+        DiscoverLayoutConfig.normalizeCategoryItemsOrder(
+          state.categoryItemsOrder,
+        ).map(CategoryItemX.fromKey).whereType<CategoryItem>().toList();
+    final enabledItems =
+        DiscoverLayoutConfig.normalizeEnabledCategoryItems(
+          state.enabledCategoryItems,
+        ).toSet();
+
+    return _buildSettingsReorderList(
+      context: context,
+      title: localizations.categories,
+      icon: Icons.category_rounded,
+      itemCount: orderedItems.length,
+      onReorder: (oldIndex, newIndex) {
+        final updated = List<String>.from(
+          DiscoverLayoutConfig.normalizeCategoryItemsOrder(
+            state.categoryItemsOrder,
+          ),
+        );
+        if (newIndex > oldIndex) newIndex -= 1;
+        final item = updated.removeAt(oldIndex);
+        updated.insert(newIndex, item);
+        context.read<SettingsBloc>().add(SetCategoryItemsOrder(updated));
+      },
+      tileBuilder: (index) {
+        final item = orderedItems[index];
+        final itemKey = item.key;
+        return _settingsReorderTile(
+          context: context,
+          keyValue: itemKey,
+          leading: Icon(
+            _categoryItemIcon(item),
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          title: _categoryItemTitle(item, localizations),
+          value: enabledItems.contains(itemKey),
+          onChanged:
+              (value) => context.read<SettingsBloc>().add(
+                SetCategoryItemEnabled(itemKey: itemKey, enabled: value),
+              ),
+          index: index,
+        );
+      },
+    );
+  }
+
+  Widget _buildSettingsReorderList({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    String? resetTooltip,
+    VoidCallback? onReset,
+    required int itemCount,
+    required void Function(int oldIndex, int newIndex) onReorder,
+    required Widget Function(int index) tileBuilder,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              icon,
+              size: 24,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            const SizedBox(width: 12),
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            if (onReset != null) ...[
+              const Spacer(),
+              IconButton(
+                tooltip: resetTooltip,
+                onPressed: onReset,
+                icon: const Icon(Icons.restart_alt_rounded),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 12),
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          buildDefaultDragHandles: false,
+          proxyDecorator:
+              (child, index, animation) =>
+                  Material(type: MaterialType.transparency, child: child),
+          itemCount: itemCount,
+          onReorder: onReorder,
+          itemBuilder: (context, index) => tileBuilder(index),
+        ),
+      ],
+    );
+  }
+
+  Widget _settingsReorderTile({
+    required BuildContext context,
+    required String keyValue,
+    required Widget leading,
+    required String title,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required int index,
+  }) {
+    return Card(
+      key: ValueKey(keyValue),
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+        leading: leading,
+        title: Text(title),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Switch(value: value, onChanged: onChanged),
+            ReorderableDragStartListener(
+              index: index,
+              child: Icon(
+                Icons.drag_handle_rounded,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _discoverMainSectionTitle(
+    DiscoverMainSection section,
+    AppLocalizations localizations,
+  ) {
+    switch (section) {
+      case DiscoverMainSection.discover:
+        return localizations.discover;
+      case DiscoverMainSection.categories:
+        return localizations.categories;
+    }
+  }
+
+  IconData _discoverMainSectionIcon(DiscoverMainSection section) {
+    switch (section) {
+      case DiscoverMainSection.discover:
+        return Icons.search_rounded;
+      case DiscoverMainSection.categories:
+        return Icons.category_rounded;
+    }
+  }
+
+  String _discoverItemTitle(DiscoverItem item, AppLocalizations localizations) {
+    switch (item) {
+      case DiscoverItem.discover:
+        return localizations.discover;
+      case DiscoverItem.hotBooks:
+        return localizations.showHotBooks;
+      case DiscoverItem.newBooks:
+        return localizations.showNewBooks;
+      case DiscoverItem.ratedBooks:
+        return localizations.showRatedBooks;
+    }
+  }
+
+  IconData _discoverItemIcon(DiscoverItem item) {
+    switch (item) {
+      case DiscoverItem.discover:
+        return Icons.search;
+      case DiscoverItem.hotBooks:
+        return Icons.local_fire_department_rounded;
+      case DiscoverItem.newBooks:
+        return Icons.new_releases_rounded;
+      case DiscoverItem.ratedBooks:
+        return Icons.star_border_rounded;
+    }
+  }
+
+  String _categoryItemTitle(CategoryItem item, AppLocalizations localizations) {
+    switch (item) {
+      case CategoryItem.authors:
+        return localizations.showAuthors;
+      case CategoryItem.categories:
+        return localizations.showCategories;
+      case CategoryItem.series:
+        return localizations.showSeries;
+      case CategoryItem.formats:
+        return localizations.showFormats;
+      case CategoryItem.languages:
+        return localizations.showLanguages;
+      case CategoryItem.publishers:
+        return localizations.showPublishers;
+      case CategoryItem.ratings:
+        return localizations.showRatings;
+    }
+  }
+
+  IconData _categoryItemIcon(CategoryItem item) {
+    switch (item) {
+      case CategoryItem.authors:
+        return Icons.people_rounded;
+      case CategoryItem.categories:
+        return Icons.category_rounded;
+      case CategoryItem.series:
+        return Icons.library_books_rounded;
+      case CategoryItem.formats:
+        return Icons.file_open_rounded;
+      case CategoryItem.languages:
+        return Icons.language_rounded;
+      case CategoryItem.publishers:
+        return Icons.business_rounded;
+      case CategoryItem.ratings:
+        return Icons.star_rounded;
     }
   }
 

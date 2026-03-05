@@ -274,4 +274,52 @@ class SettingsRepository {
       rethrow;
     }
   }
+
+  Future<void> setDiscoverMainSectionsOrder(List<String> sectionKeys) async {
+    try {
+      await dataSource.saveDiscoverMainSectionsOrder(sectionKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setEnabledDiscoverMainSections(List<String> sectionKeys) async {
+    try {
+      await dataSource.saveEnabledDiscoverMainSections(sectionKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setDiscoverItemsOrder(List<String> itemKeys) async {
+    try {
+      await dataSource.saveDiscoverItemsOrder(itemKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setEnabledDiscoverItems(List<String> itemKeys) async {
+    try {
+      await dataSource.saveEnabledDiscoverItems(itemKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setCategoryItemsOrder(List<String> itemKeys) async {
+    try {
+      await dataSource.saveCategoryItemsOrder(itemKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setEnabledCategoryItems(List<String> itemKeys) async {
+    try {
+      await dataSource.saveEnabledCategoryItems(itemKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

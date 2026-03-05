@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
+import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
 
@@ -31,6 +32,12 @@ class SettingsModel extends Equatable {
   final List<String> enabledBookActions;
   final List<String> bookDetailsSectionsOrder;
   final List<String> enabledBookDetailsSections;
+  final List<String> discoverMainSectionsOrder;
+  final List<String> enabledDiscoverMainSections;
+  final List<String> discoverItemsOrder;
+  final List<String> enabledDiscoverItems;
+  final List<String> categoryItemsOrder;
+  final List<String> enabledCategoryItems;
 
   const SettingsModel({
     required this.themeMode,
@@ -57,6 +64,12 @@ class SettingsModel extends Equatable {
     required this.enabledBookActions,
     required this.bookDetailsSectionsOrder,
     required this.enabledBookDetailsSections,
+    required this.discoverMainSectionsOrder,
+    required this.enabledDiscoverMainSections,
+    required this.discoverItemsOrder,
+    required this.enabledDiscoverItems,
+    required this.categoryItemsOrder,
+    required this.enabledCategoryItems,
   });
 
   factory SettingsModel.fromJson(Map<String, dynamic> json) {
@@ -103,6 +116,44 @@ class SettingsModel extends Equatable {
               BookDetailsSectionConfig.defaultOrder,
         ),
       ),
+      discoverMainSectionsOrder:
+          DiscoverLayoutConfig.normalizeMainSectionsOrder(
+            List<String>.from(
+              json['discover_main_sections_order'] ??
+                  DiscoverLayoutConfig.defaultMainSectionsOrder,
+            ),
+          ),
+      enabledDiscoverMainSections:
+          DiscoverLayoutConfig.normalizeEnabledMainSections(
+            List<String>.from(
+              json['enabled_discover_main_sections'] ??
+                  DiscoverLayoutConfig.defaultMainSectionsOrder,
+            ),
+          ),
+      discoverItemsOrder: DiscoverLayoutConfig.normalizeDiscoverItemsOrder(
+        List<String>.from(
+          json['discover_items_order'] ??
+              DiscoverLayoutConfig.defaultDiscoverItemsOrder,
+        ),
+      ),
+      enabledDiscoverItems: DiscoverLayoutConfig.normalizeEnabledDiscoverItems(
+        List<String>.from(
+          json['enabled_discover_items'] ??
+              DiscoverLayoutConfig.defaultDiscoverItemsOrder,
+        ),
+      ),
+      categoryItemsOrder: DiscoverLayoutConfig.normalizeCategoryItemsOrder(
+        List<String>.from(
+          json['category_items_order'] ??
+              DiscoverLayoutConfig.defaultCategoryItemsOrder,
+        ),
+      ),
+      enabledCategoryItems: DiscoverLayoutConfig.normalizeEnabledCategoryItems(
+        List<String>.from(
+          json['enabled_category_items'] ??
+              DiscoverLayoutConfig.defaultCategoryItemsOrder,
+        ),
+      ),
     );
   }
 
@@ -132,5 +183,11 @@ class SettingsModel extends Equatable {
     enabledBookActions,
     bookDetailsSectionsOrder,
     enabledBookDetailsSections,
+    discoverMainSectionsOrder,
+    enabledDiscoverMainSections,
+    discoverItemsOrder,
+    enabledDiscoverItems,
+    categoryItemsOrder,
+    enabledCategoryItems,
   ];
 }
