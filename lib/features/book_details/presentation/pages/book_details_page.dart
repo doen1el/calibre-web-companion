@@ -763,22 +763,26 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       child: Column(
         children: [
           Text(
-            localizations.sectionDisabledOrNotFound,
+            localizations.bookDetailsAllSectionsDisabledTitle,
             style: Theme.of(context).textTheme.titleLarge,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Text(
-            localizations.sectionDisabledDescription,
+            localizations.bookDetailsAllSectionsDisabledDescription,
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () {
-              Navigator.of(
-                context,
-              ).push(AppTransitions.createSlideRoute(const SettingsPage()));
+              Navigator.of(context).push(
+                AppTransitions.createSlideRoute(
+                  const SettingsPage(
+                    initialSubPage: SettingsSubPage.bookDetails,
+                  ),
+                ),
+              );
             },
             icon: const Icon(Icons.settings_rounded),
             label: Text(localizations.settings),

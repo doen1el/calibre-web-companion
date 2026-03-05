@@ -19,8 +19,12 @@ import 'package:calibre_web_companion/features/settings/presentation/widgets/syn
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 
+enum SettingsSubPage { discover, bookDetails }
+
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  final SettingsSubPage? initialSubPage;
+
+  const SettingsPage({super.key, this.initialSubPage});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -42,6 +46,7 @@ class _SettingsPageState extends State<SettingsPage> {
       TextEditingController();
 
   bool _showDownloaderAuth = false;
+  bool _didOpenInitialSubPage = false;
 
   @override
   void initState() {
@@ -86,6 +91,97 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
 
+    return _wrapWithSettingsListeners(
+      localizations: localizations,
+      child: BlocBuilder<SettingsBloc, SettingsState>(
+        builder: (context, state) {
+          if (!_didOpenInitialSubPage &&
+              widget.initialSubPage != null &&
+              state.status != SettingsStatus.loading) {
+            _didOpenInitialSubPage = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              switch (widget.initialSubPage!) {
+                case SettingsSubPage.discover:
+                  _openDiscoverSettingsSubPage(context);
+                case SettingsSubPage.bookDetails:
+                  _openBookDetailsSettingsSubPage(context);
+              }
+            });
+          }
+
+          return Scaffold(
+            appBar: AppBar(title: Text(localizations.settings)),
+            body:
+                state.status == SettingsStatus.loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionTitle(context, localizations.categories),
+                          _buildSettingsCategoryNavCard(
+                            context,
+                            title: localizations.appearance,
+                            subtitle: localizations.themeMode,
+                            icon: Icons.palette_rounded,
+                            onTap:
+                                () => _openAppearanceSettingsSubPage(context),
+                          ),
+                          _buildLoginSettingsCard(context, localizations),
+                          _buildSettingsCategoryNavCard(
+                            context,
+                            title: localizations.downloadOptions,
+                            subtitle: localizations.downloadService,
+                            icon: Icons.download_rounded,
+                            onTap: () => _openDownloadSettingsSubPage(context),
+                          ),
+                          _buildSettingsCategoryNavCard(
+                            context,
+                            title: localizations.readerSettings,
+                            subtitle: localizations.scrollDirection,
+                            icon: Icons.chrome_reader_mode_rounded,
+                            onTap: () => _openReaderSettingsSubPage(context),
+                          ),
+                          _buildSettingsCategoryNavCard(
+                            context,
+                            title: localizations.discover,
+                            subtitle: localizations.categories,
+                            icon: Icons.explore_rounded,
+                            onTap: () => _openDiscoverSettingsSubPage(context),
+                          ),
+                          _buildSettingsCategoryNavCard(
+                            context,
+                            title: localizations.bookDetails,
+                            subtitle: localizations.bookActions,
+                            icon: Icons.menu_book_rounded,
+                            onTap:
+                                () => _openBookDetailsSettingsSubPage(context),
+                          ),
+
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(context, localizations.feedback),
+                          const FeedbackWidget(),
+
+                          const SizedBox(height: 24),
+                          _buildSectionTitle(context, localizations.about),
+                          _buyMeACoffeeButton(context, "Buy Me a Coffee"),
+                          _buildLicensesButton(context, state, localizations),
+                          _buildVersionCard(context, state, localizations),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _wrapWithSettingsListeners({
+    required AppLocalizations localizations,
+    required Widget child,
+  }) {
     return MultiBlocListener(
       listeners: [
         BlocListener<SettingsBloc, SettingsState>(
@@ -142,90 +238,177 @@ class _SettingsPageState extends State<SettingsPage> {
           },
         ),
       ],
-      child: BlocBuilder<SettingsBloc, SettingsState>(
-        builder: (context, state) {
-          return Scaffold(
-            appBar: AppBar(title: Text(localizations.settings)),
-            body:
-                state.status == SettingsStatus.loading
-                    ? const Center(child: CircularProgressIndicator())
-                    : SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildSectionTitle(context, localizations.appearance),
-                          const ThemeSelectorWidget(),
-                          _buildEInkModeToggle(context, state, localizations),
+      child: child,
+    );
+  }
 
-                          const SizedBox(height: 24),
-                          _buildSectionTitle(context, localizations.connection),
-                          _buildLoginSettingsCard(context, localizations),
+  void _openSettingsSubPage({
+    required BuildContext context,
+    required String title,
+    required List<Widget> Function(
+      BuildContext context,
+      SettingsState state,
+      AppLocalizations localizations,
+    )
+    bodyBuilder,
+  }) {
+    Navigator.of(context).push(
+      AppTransitions.createSlideRoute(
+        Builder(
+          builder: (context) {
+            final localizations = AppLocalizations.of(context)!;
+            return _wrapWithSettingsListeners(
+              localizations: localizations,
+              child: BlocBuilder<SettingsBloc, SettingsState>(
+                builder: (context, state) {
+                  return Scaffold(
+                    appBar: AppBar(title: Text(title)),
+                    body:
+                        state.status == SettingsStatus.loading
+                            ? const Center(child: CircularProgressIndicator())
+                            : SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ...bodyBuilder(context, state, localizations),
+                                  const SizedBox(height: 24),
+                                ],
+                              ),
+                            ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
 
-                          const SizedBox(height: 24),
-                          _buildSectionTitle(
-                            context,
-                            localizations.downloadOptions,
-                          ),
-                          const DownloadOptionsWidget(),
-                          SyncSettingsWidget(),
+  void _openAppearanceSettingsSubPage(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    _openSettingsSubPage(
+      context: context,
+      title: localizations.appearance,
+      bodyBuilder:
+          (context, state, localizations) => [
+            _buildSectionTitle(context, localizations.appearance),
+            const ThemeSelectorWidget(),
+            _buildEInkModeToggle(context, state, localizations),
+            const SizedBox(height: 24),
+            _buildSectionTitle(context, localizations.language),
+            _buildLanguageSelector(context, state, localizations),
+          ],
+    );
+  }
 
-                          const SizedBox(height: 24),
-                          _buildSectionTitle(
-                            context,
-                            localizations.customSend2EReader,
-                          ),
-                          _buildSend2EreaderToggle(
-                            context,
-                            state,
-                            localizations,
-                          ),
+  void _openDownloadSettingsSubPage(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    _openSettingsSubPage(
+      context: context,
+      title: localizations.downloadOptions,
+      bodyBuilder:
+          (context, state, localizations) => [
+            _buildSectionTitle(context, localizations.downloadOptions),
+            const DownloadOptionsWidget(),
+            SyncSettingsWidget(),
+            const SizedBox(height: 24),
+            _buildSectionTitle(context, localizations.customSend2EReader),
+            _buildSend2EreaderToggle(context, state, localizations),
+            const SizedBox(height: 24),
+            _buildSectionTitle(context, 'Shelfmark'),
+            _buildDownloaderToggle(context, state, localizations),
+          ],
+    );
+  }
 
-                          const SizedBox(height: 24),
-                          _buildSectionTitle(context, "Shelfmark"),
-                          _buildDownloaderToggle(context, state, localizations),
+  void _openReaderSettingsSubPage(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    _openSettingsSubPage(
+      context: context,
+      title: localizations.readerSettings,
+      bodyBuilder:
+          (context, state, localizations) => [
+            _buildSectionTitle(context, localizations.readerSettings),
+            _buildReaderSettings(context, state, localizations),
+            _buildWebDavSettings(context, state, localizations),
+          ],
+    );
+  }
 
-                          const SizedBox(height: 24),
-                          _buildSectionTitle(
-                            context,
-                            localizations.readerSettings,
-                          ),
-                          _buildReaderSettings(context, state, localizations),
-                          _buildWebDavSettings(context, state, localizations),
+  void _openDiscoverSettingsSubPage(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    _openSettingsSubPage(
+      context: context,
+      title: localizations.discover,
+      bodyBuilder:
+          (context, state, localizations) => [
+            _buildSectionTitle(context, localizations.discover),
+            _buildDiscoverSettings(context, state, localizations),
+          ],
+    );
+  }
 
-                          const SizedBox(height: 24),
-                          _buildSectionTitle(context, localizations.language),
-                          _buildLanguageSelector(context, state, localizations),
+  void _openBookDetailsSettingsSubPage(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    _openSettingsSubPage(
+      context: context,
+      title: localizations.bookDetails,
+      bodyBuilder:
+          (context, state, localizations) => [
+            _buildSectionTitle(context, localizations.bookDetails),
+            _buildBookDetailsSettings(context, state, localizations),
+          ],
+    );
+  }
 
-                          const SizedBox(height: 24),
-                          _buildSectionTitle(context, localizations.discover),
-                          _buildDiscoverSettings(context, state, localizations),
-
-                          const SizedBox(height: 24),
-                          _buildSectionTitle(
-                            context,
-                            localizations.bookDetails,
-                          ),
-                          _buildBookDetailsSettings(
-                            context,
-                            state,
-                            localizations,
-                          ),
-
-                          const SizedBox(height: 24),
-                          _buildSectionTitle(context, localizations.feedback),
-                          const FeedbackWidget(),
-
-                          const SizedBox(height: 24),
-                          _buildSectionTitle(context, localizations.about),
-                          _buyMeACoffeeButton(context, "Buy Me a Coffee"),
-                          _buildLicensesButton(context, state, localizations),
-                          _buildVersionCard(context, state, localizations),
-                          const SizedBox(height: 24),
-                        ],
+  Widget _buildSettingsCategoryNavCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8.0),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 28,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-          );
-        },
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
