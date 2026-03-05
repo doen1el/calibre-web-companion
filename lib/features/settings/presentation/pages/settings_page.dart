@@ -5,6 +5,7 @@ import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart'
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 
+import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
@@ -886,10 +887,172 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 20),
+            const Divider(),
+            const SizedBox(height: 8),
+            _buildBookActionsCustomization(context, state, localizations),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildBookActionsCustomization(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    final orderedActions =
+        state.bookActionsOrder
+            .map(BookDetailsActionX.fromKey)
+            .whereType<BookDetailsAction>()
+            .toList();
+    final enabledActions = state.enabledBookActions.toSet();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.tune_rounded,
+              size: 24,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              localizations.bookActions,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const Spacer(),
+            IconButton(
+              tooltip: localizations.reset,
+              onPressed: () {
+                context.read<SettingsBloc>().add(
+                  const ResetBookActionsCustomization(),
+                );
+              },
+              icon: const Icon(Icons.restart_alt_rounded),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          buildDefaultDragHandles: false,
+          proxyDecorator:
+              (child, index, animation) =>
+                  Material(type: MaterialType.transparency, child: child),
+          itemCount: orderedActions.length,
+          onReorder: (oldIndex, newIndex) {
+            final updated = List<String>.from(state.bookActionsOrder);
+            if (newIndex > oldIndex) {
+              newIndex -= 1;
+            }
+            final item = updated.removeAt(oldIndex);
+            updated.insert(newIndex, item);
+            context.read<SettingsBloc>().add(SetBookActionsOrder(updated));
+          },
+          itemBuilder: (context, index) {
+            final action = orderedActions[index];
+            final actionKey = action.key;
+
+            return Card(
+              key: ValueKey(actionKey),
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                leading: Icon(
+                  _bookActionIcon(action),
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                title: Text(_bookActionTitle(action, localizations)),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Switch(
+                      value: enabledActions.contains(actionKey),
+                      onChanged: (value) {
+                        context.read<SettingsBloc>().add(
+                          SetBookActionEnabled(
+                            actionKey: actionKey,
+                            enabled: value,
+                          ),
+                        );
+                      },
+                    ),
+                    ReorderableDragStartListener(
+                      index: index,
+                      child: Icon(
+                        Icons.drag_handle_rounded,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  String _bookActionTitle(
+    BookDetailsAction action,
+    AppLocalizations localizations,
+  ) {
+    switch (action) {
+      case BookDetailsAction.toggleReadStatus:
+        return localizations.markAsReadUnread;
+      case BookDetailsAction.toggleArchiveStatus:
+        return localizations.archiveUnarchive;
+      case BookDetailsAction.editMetadata:
+        return localizations.editBookMetadata;
+      case BookDetailsAction.addToShelf:
+        return localizations.addToShelf;
+      case BookDetailsAction.downloadToDevice:
+        return localizations.downloadToDevice;
+      case BookDetailsAction.openInInternalReader:
+        return localizations.openInInternalReader;
+      case BookDetailsAction.openInReader:
+        return localizations.openInReader;
+      case BookDetailsAction.openInBrowser:
+        return localizations.openBookInBrowser;
+      case BookDetailsAction.deleteBook:
+        return localizations.deleteBook;
+    }
+  }
+
+  IconData _bookActionIcon(BookDetailsAction action) {
+    switch (action) {
+      case BookDetailsAction.toggleReadStatus:
+        return Icons.visibility_off;
+      case BookDetailsAction.toggleArchiveStatus:
+        return Icons.unarchive;
+      case BookDetailsAction.editMetadata:
+        return Icons.edit;
+      case BookDetailsAction.addToShelf:
+        return Icons.playlist_add_rounded;
+      case BookDetailsAction.downloadToDevice:
+        return Icons.download_rounded;
+      case BookDetailsAction.openInInternalReader:
+        return Icons.menu_book_rounded;
+      case BookDetailsAction.openInReader:
+        return Icons.open_in_new_rounded;
+      case BookDetailsAction.openInBrowser:
+        return Icons.open_in_browser_rounded;
+      case BookDetailsAction.deleteBook:
+        return Icons.delete_rounded;
+    }
   }
 
   Widget _buildLicensesButton(

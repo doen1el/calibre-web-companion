@@ -219,3 +219,26 @@ class SetEInkMode extends SettingsEvent {
   @override
   List<Object?> get props => [enabled];
 }
+
+class SetBookActionsOrder extends SettingsEvent {
+  final List<String> actionKeys;
+
+  const SetBookActionsOrder(this.actionKeys);
+
+  @override
+  List<Object?> get props => [actionKeys];
+}
+
+class SetBookActionEnabled extends SettingsEvent {
+  final String actionKey;
+  final bool enabled;
+
+  const SetBookActionEnabled({required this.actionKey, required this.enabled});
+
+  @override
+  List<Object?> get props => [actionKey, enabled];
+}
+
+class ResetBookActionsCustomization extends SettingsEvent {
+  const ResetBookActionsCustomization();
+}

@@ -26,6 +26,7 @@ import 'package:calibre_web_companion/features/book_view/data/models/book_view_m
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
+import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -48,7 +49,6 @@ class BookDetailsPage extends StatefulWidget {
 
 class _BookDetailsPageState extends State<BookDetailsPage> {
   bool _didUpdateMetadata = false;
-  bool _canPop = false;
   StreamSubscription<dynamic>? _locatorSubscription;
   late final WebDavSyncService _webDavService;
 
@@ -128,10 +128,6 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-
-        setState(() {
-          _canPop = true;
-        });
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
@@ -719,100 +715,90 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     BookDetailsModel book,
     bool isLoading,
   ) {
-    final isOpds =
-        GetIt.instance<SharedPreferences>().getString('server_type') ==
-            'opds' ||
-        GetIt.instance<SharedPreferences>().getString('server_type') ==
-            'booklore';
+    final settingsState = context.select((SettingsBloc bloc) => bloc.state);
+    final enabledActionKeys = settingsState.enabledBookActions.toSet();
+    final serverType = GetIt.instance<SharedPreferences>().getString(
+      'server_type',
+    );
+    final isOpds = serverType == 'opds' || serverType == 'booklore';
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          if (!isOpds)
-            IconButton(
-              icon: CircleAvatar(
-                backgroundColor:
-                    Theme.of(context).colorScheme.secondaryContainer,
-                child:
-                    state.readStatusState == ReadStatusState.loading
-                        ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 3),
-                        )
-                        : Icon(
-                          state.isBookRead
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-              ),
-              onPressed:
-                  isLoading
-                      ? null
-                      : () => context.read<BookDetailsBloc>().add(
-                        ToggleReadStatus(book.id),
+    final actionBuilders = <String, Widget Function()>{
+      BookDetailsAction.toggleReadStatus.key:
+          () => IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              child:
+                  state.readStatusState == ReadStatusState.loading
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      )
+                      : Icon(
+                        state.isBookRead
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
-              tooltip: localizations.markAsReadUnread,
             ),
-
-          if (!isOpds)
-            IconButton(
-              icon: CircleAvatar(
-                backgroundColor:
-                    Theme.of(context).colorScheme.secondaryContainer,
-                child:
-                    state.archiveStatusState == ArchiveStatusState.loading
-                        ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 3),
-                        )
-                        : Icon(
-                          state.isBookArchived
-                              ? Icons.archive
-                              : Icons.unarchive,
-                        ),
-              ),
-              onPressed:
-                  isLoading
-                      ? null
-                      : () => context.read<BookDetailsBloc>().add(
-                        ToggleArchiveStatus(book.id),
+            onPressed:
+                isLoading
+                    ? null
+                    : () => context.read<BookDetailsBloc>().add(
+                      ToggleReadStatus(book.id),
+                    ),
+            tooltip: localizations.markAsReadUnread,
+          ),
+      BookDetailsAction.toggleArchiveStatus.key:
+          () => IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              child:
+                  state.archiveStatusState == ArchiveStatusState.loading
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      )
+                      : Icon(
+                        state.isBookArchived ? Icons.archive : Icons.unarchive,
                       ),
-              tooltip: localizations.archiveUnarchive,
             ),
-
-          if (!isOpds)
-            EditBookMetadataWidget(
-              book: book,
-              isLoading: isLoading,
-              bookViewModel: state.bookViewModel ?? widget.bookViewModel,
-            ),
-
-          if (!isOpds) AddToShelfWidget(book: book, isLoading: isLoading),
-
-          DownloadToDeviceWidget(book: book, isLoading: isLoading),
-
-          IconButton(
+            onPressed:
+                isLoading
+                    ? null
+                    : () => context.read<BookDetailsBloc>().add(
+                      ToggleArchiveStatus(book.id),
+                    ),
+            tooltip: localizations.archiveUnarchive,
+          ),
+      BookDetailsAction.editMetadata.key:
+          () => EditBookMetadataWidget(
+            book: book,
+            isLoading: isLoading,
+            bookViewModel: state.bookViewModel ?? widget.bookViewModel,
+          ),
+      BookDetailsAction.addToShelf.key:
+          () => AddToShelfWidget(book: book, isLoading: isLoading),
+      BookDetailsAction.downloadToDevice.key:
+          () => DownloadToDeviceWidget(book: book, isLoading: isLoading),
+      BookDetailsAction.openInInternalReader.key:
+          () => IconButton(
             icon: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
               child:
                   state.openInInternalReaderState ==
                           OpenInInternalReaderState.loading
-                      ? SizedBox(
+                      ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 3),
                       )
-                      : Icon(Icons.menu_book_rounded),
+                      : const Icon(Icons.menu_book_rounded),
             ),
             onPressed:
                 isLoading
                     ? null
                     : () async {
-                      final settingsState = context.read<SettingsBloc>().state;
                       DocumentFile? selectedDirectory;
 
                       if (settingsState.defaultDownloadPath.isEmpty) {
@@ -853,24 +839,23 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                     },
             tooltip: localizations.openInInternalReader,
           ),
-
-          IconButton(
+      BookDetailsAction.openInReader.key:
+          () => IconButton(
             icon: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
               child:
                   state.openInReaderState == OpenInReaderState.loading
-                      ? SizedBox(
+                      ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 3),
                       )
-                      : Icon(Icons.open_in_new_rounded),
+                      : const Icon(Icons.open_in_new_rounded),
             ),
             onPressed:
                 isLoading
                     ? null
                     : () async {
-                      final settingsState = context.read<SettingsBloc>().state;
                       DocumentFile? selectedDirectory;
 
                       if (settingsState.defaultDownloadPath.isEmpty) {
@@ -913,84 +898,108 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                     },
             tooltip: localizations.openInReader,
           ),
-
-          if (!isOpds)
-            IconButton(
-              icon: CircleAvatar(
-                backgroundColor:
-                    Theme.of(context).colorScheme.secondaryContainer,
-                child: Icon(Icons.open_in_browser_rounded),
-              ),
-              onPressed:
-                  () =>
-                      context.read<BookDetailsBloc>().add(OpenBookInBrowser()),
-              tooltip: localizations.openBookInBrowser,
+      BookDetailsAction.openInBrowser.key:
+          () => IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              child: const Icon(Icons.open_in_browser_rounded),
             ),
-
-          if (!isOpds)
-            IconButton(
-              icon: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                child:
-                    state.deleteBookState == DeleteBookState.loading
-                        ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 3),
-                        )
-                        : Icon(
-                          Icons.delete_rounded,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-              ),
-              onPressed:
-                  isLoading
-                      ? null
-                      : () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: Text(localizations.deleteBook),
-                              content: Text(
-                                localizations.deleteBookConfirmation,
+            onPressed:
+                () => context.read<BookDetailsBloc>().add(OpenBookInBrowser()),
+            tooltip: localizations.openBookInBrowser,
+          ),
+      BookDetailsAction.deleteBook.key:
+          () => IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.errorContainer,
+              child:
+                  state.deleteBookState == DeleteBookState.loading
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      )
+                      : Icon(
+                        Icons.delete_rounded,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+            ),
+            onPressed:
+                isLoading
+                    ? null
+                    : () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: Text(localizations.deleteBook),
+                            content: Text(localizations.deleteBookConfirmation),
+                            actions: [
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.error,
+                                ),
+                                onPressed:
+                                    () => Navigator.of(context).pop(true),
+                                child: Text(
+                                  localizations.delete,
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onError,
+                                  ),
+                                ),
                               ),
-                              actions: [
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.error,
-                                  ),
-                                  onPressed:
-                                      () => Navigator.of(context).pop(true),
-                                  child: Text(
-                                    localizations.delete,
-                                    style: TextStyle(
-                                      color:
-                                          Theme.of(context).colorScheme.onError,
-                                    ),
-                                  ),
-                                ),
-                                ElevatedButton(
-                                  onPressed:
-                                      () => Navigator.of(context).pop(false),
-                                  child: Text(localizations.cancel),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-
-                        if (confirm == true) {
-                          // ignore: use_build_context_synchronously
-                          context.read<BookDetailsBloc>().add(
-                            DeleteBook(book.id),
+                              ElevatedButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(false),
+                                child: Text(localizations.cancel),
+                              ),
+                            ],
                           );
-                        }
-                      },
-              tooltip: localizations.deleteBook,
-            ),
-        ],
+                        },
+                      );
+
+                      if (confirm == true) {
+                        // ignore: use_build_context_synchronously
+                        context.read<BookDetailsBloc>().add(
+                          DeleteBook(book.id),
+                        );
+                      }
+                    },
+            tooltip: localizations.deleteBook,
+          ),
+    };
+
+    final unsupportedOnOpds = <String>{
+      BookDetailsAction.toggleReadStatus.key,
+      BookDetailsAction.toggleArchiveStatus.key,
+      BookDetailsAction.editMetadata.key,
+      BookDetailsAction.addToShelf.key,
+      BookDetailsAction.openInBrowser.key,
+      BookDetailsAction.deleteBook.key,
+    };
+
+    final visibleOrder =
+        settingsState.bookActionsOrder.where((actionKey) {
+          final isEnabled = enabledActionKeys.contains(actionKey);
+          final exists = actionBuilders.containsKey(actionKey);
+          final isSupported = !isOpds || !unsupportedOnOpds.contains(actionKey);
+          return isEnabled && exists && isSupported;
+        }).toList();
+
+    if (visibleOrder.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children:
+            visibleOrder
+                .map((actionKey) => actionBuilders[actionKey]!())
+                .toList(),
       ),
     );
   }

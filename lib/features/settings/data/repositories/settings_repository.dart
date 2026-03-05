@@ -242,4 +242,20 @@ class SettingsRepository {
       rethrow;
     }
   }
+
+  Future<void> setBookActionsOrder(List<String> actionKeys) async {
+    try {
+      await dataSource.saveBookActionsOrder(actionKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setEnabledBookActions(List<String> actionKeys) async {
+    try {
+      await dataSource.saveEnabledBookActions(actionKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
+import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
 
@@ -25,6 +26,8 @@ class SettingsModel extends Equatable {
   final bool isWebDavSyncEnabled;
   final String epubScrollDirection;
   final bool isEInkMode;
+  final List<String> bookActionsOrder;
+  final List<String> enabledBookActions;
 
   const SettingsModel({
     required this.themeMode,
@@ -47,6 +50,8 @@ class SettingsModel extends Equatable {
     required this.isWebDavSyncEnabled,
     required this.epubScrollDirection,
     required this.isEInkMode,
+    required this.bookActionsOrder,
+    required this.enabledBookActions,
   });
 
   factory SettingsModel.fromJson(Map<String, dynamic> json) {
@@ -71,6 +76,16 @@ class SettingsModel extends Equatable {
       isWebDavSyncEnabled: json['webdav_enabled'] ?? false,
       epubScrollDirection: json['epub_scroll_direction'] ?? 'vertical',
       isEInkMode: json['is_eink_mode'] ?? false,
+      bookActionsOrder: BookDetailsActionConfig.normalizeOrder(
+        List<String>.from(
+          json['book_actions_order'] ?? BookDetailsActionConfig.defaultOrder,
+        ),
+      ),
+      enabledBookActions: BookDetailsActionConfig.normalizeEnabled(
+        List<String>.from(
+          json['enabled_book_actions'] ?? BookDetailsActionConfig.defaultOrder,
+        ),
+      ),
     );
   }
 
@@ -96,5 +111,7 @@ class SettingsModel extends Equatable {
     isWebDavSyncEnabled,
     epubScrollDirection,
     isEInkMode,
+    bookActionsOrder,
+    enabledBookActions,
   ];
 }

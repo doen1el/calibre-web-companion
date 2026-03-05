@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/settings_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
@@ -50,6 +51,12 @@ class SettingsLocalDataSource {
         'epub_scroll_direction':
             sharedPreferences.getString('epub_scroll_direction') ?? 'vertical',
         'is_eink_mode': sharedPreferences.getBool('is_eink_mode') ?? false,
+        'book_actions_order':
+            sharedPreferences.getStringList('book_actions_order') ??
+            BookDetailsActionConfig.defaultOrder,
+        'enabled_book_actions':
+            sharedPreferences.getStringList('enabled_book_actions') ??
+            BookDetailsActionConfig.defaultOrder,
       });
     } catch (e) {
       logger.e('Error getting settings: $e');
@@ -282,6 +289,24 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error saving E-Ink mode: $e');
       throw Exception('Failed to save E-Ink mode: $e');
+    }
+  }
+
+  Future<void> saveBookActionsOrder(List<String> actionKeys) async {
+    try {
+      await sharedPreferences.setStringList('book_actions_order', actionKeys);
+    } catch (e) {
+      logger.e('Error saving book actions order: $e');
+      throw Exception('Failed to save book actions order: $e');
+    }
+  }
+
+  Future<void> saveEnabledBookActions(List<String> actionKeys) async {
+    try {
+      await sharedPreferences.setStringList('enabled_book_actions', actionKeys);
+    } catch (e) {
+      logger.e('Error saving enabled book actions: $e');
+      throw Exception('Failed to save enabled book actions: $e');
     }
   }
 }

@@ -4,6 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 
+import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
@@ -34,6 +35,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<ResetConnectionTestStatus>(_onResetConnectionTestStatus);
     on<SetShowSendToEReaderButton>(_onSetShowSendToEReaderButton);
     on<SetEInkMode>(_onSetEInkMode);
+    on<SetBookActionsOrder>(_onSetBookActionsOrder);
+    on<SetBookActionEnabled>(_onSetBookActionEnabled);
+    on<ResetBookActionsCustomization>(_onResetBookActionsCustomization);
   }
 
   Future<void> _onLoadSettings(
@@ -71,6 +75,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           isWebDavSyncEnabled: settings.isWebDavSyncEnabled,
           epubScrollDirection: settings.epubScrollDirection,
           isEInkMode: settings.isEInkMode,
+          bookActionsOrder: settings.bookActionsOrder,
+          enabledBookActions: settings.enabledBookActions,
         ),
       );
     } catch (e) {
@@ -503,6 +509,78 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setEInkMode(event.enabled);
       emit(state.copyWith(isEInkMode: event.enabled));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetBookActionsOrder(
+    SetBookActionsOrder event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final normalizedOrder = BookDetailsActionConfig.normalizeOrder(
+      event.actionKeys,
+    );
+    emit(state.copyWith(bookActionsOrder: normalizedOrder));
+
+    try {
+      await repository.setBookActionsOrder(normalizedOrder);
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetBookActionEnabled(
+    SetBookActionEnabled event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      final updated = List<String>.from(state.enabledBookActions);
+      if (event.enabled) {
+        if (!updated.contains(event.actionKey)) {
+          updated.add(event.actionKey);
+        }
+      } else {
+        updated.remove(event.actionKey);
+      }
+
+      final normalized = BookDetailsActionConfig.normalizeEnabled(updated);
+      await repository.setEnabledBookActions(normalized);
+      emit(state.copyWith(enabledBookActions: normalized));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onResetBookActionsCustomization(
+    ResetBookActionsCustomization event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final defaults = List<String>.from(BookDetailsActionConfig.defaultOrder);
+    emit(
+      state.copyWith(bookActionsOrder: defaults, enabledBookActions: defaults),
+    );
+
+    try {
+      await Future.wait([
+        repository.setBookActionsOrder(defaults),
+        repository.setEnabledBookActions(defaults),
+      ]);
     } catch (e) {
       emit(
         state.copyWith(
