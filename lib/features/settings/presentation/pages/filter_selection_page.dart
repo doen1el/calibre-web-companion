@@ -30,6 +30,7 @@ class _FilterSelectionPageState extends State<FilterSelectionPage> {
   List<CategoryModel> items = [];
   bool isLoading = true;
   String? errorMessage;
+  bool isNotFound = false;
 
   @override
   void initState() {
@@ -67,13 +68,21 @@ class _FilterSelectionPageState extends State<FilterSelectionPage> {
           break;
       }
 
+      if (!mounted) return;
       setState(() {
         items = feed.categories;
         isLoading = false;
+        errorMessage = null;
+        isNotFound = false;
       });
     } catch (e) {
+      final error = e.toString();
+      final endpointDisabledOrMissing = error.contains('404');
+
+      if (!mounted) return;
       setState(() {
-        errorMessage = e.toString();
+        errorMessage = error;
+        isNotFound = endpointDisabledOrMissing;
         isLoading = false;
       });
     }
@@ -134,7 +143,9 @@ class _FilterSelectionPageState extends State<FilterSelectionPage> {
                 ),
               )
               : errorMessage != null
-              ? Center(child: Text("${localizations.error}: $errorMessage"))
+              ? isNotFound
+                  ? _buildNotFoundWidget(context, localizations)
+                  : Center(child: Text("${localizations.error}: $errorMessage"))
               : ListView.builder(
                 itemCount: items.length,
                 itemBuilder: (context, index) {
@@ -155,6 +166,51 @@ class _FilterSelectionPageState extends State<FilterSelectionPage> {
                   );
                 },
               ),
+    );
+  }
+
+  Widget _buildNotFoundWidget(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.visibility_off_outlined,
+              size: 80,
+              color: Theme.of(
+                context,
+              ).colorScheme.secondary.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              localizations.sectionDisabledOrNotFound,
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              localizations.sectionDisabledDescription,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            FilledButton.icon(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.arrow_back),
+              label: Text(localizations.goBack),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
