@@ -1,0 +1,10 @@
+- Added a better error message to the Sync Settings page when the Calibre Web section is disabled.
+- Added the ability to view and copy app logs for bug reports.
+- Added the ability to reorder and disable Discover sections via Settings.
+- Added the ability to reorder and hide book details via settings.
+- Added the ability to change the order and visibility of book actions via settings.
+- Fixed: Resolved 401 Unauthorized on Shelf Covers.
+- Fixed: Shelf add/remove broken due to missing csrfTokenUrl (405 error).
+- Redesigned the Settings page.
+- Small UI improvements
+- Reworked the book details page.
