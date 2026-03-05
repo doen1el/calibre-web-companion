@@ -16,6 +16,7 @@ import 'package:calibre_web_companion/features/settings/presentation/widgets/dow
 import 'package:calibre_web_companion/features/settings/presentation/widgets/feedback_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/theme_selector_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/sync_settings_widget.dart';
+import 'package:calibre_web_companion/features/settings/presentation/pages/app_logs_page.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 
@@ -166,6 +167,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           const SizedBox(height: 24),
                           _buildSectionTitle(context, localizations.about),
                           _buyMeACoffeeButton(context, "Buy Me a Coffee"),
+                          _buildAppLogsButton(context, localizations),
                           _buildLicensesButton(context, state, localizations),
                           _buildVersionCard(context, state, localizations),
                           const SizedBox(height: 24),
@@ -1815,6 +1817,61 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Text(
                   localizations.licenses,
                   style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppLogsButton(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8.0),
+        onTap: () {
+          Navigator.of(
+            context,
+          ).push(AppTransitions.createSlideRoute(const AppLogsPage()));
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(
+                Icons.bug_report_rounded,
+                size: 28,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      localizations.appLogs,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      localizations.openAndCopyLogs,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Icon(

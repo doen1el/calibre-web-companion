@@ -7,6 +7,7 @@ import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
+import 'package:calibre_web_companion/core/services/app_log_service.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
@@ -47,12 +48,16 @@ final GetIt getIt = GetIt.instance;
 
 Future<void> init() async {
   final sharedPreferences = await SharedPreferences.getInstance();
-  final logger = Logger();
+  final appLogService = AppLogService();
+  final logger = Logger(
+    output: MultiOutput([ConsoleOutput(), AppLogOutput(appLogService)]),
+  );
   final client = http.Client();
 
   //! Core
   // Singletons
   getIt.registerSingleton<SharedPreferences>(sharedPreferences);
+  getIt.registerLazySingleton<AppLogService>(() => appLogService);
   getIt.registerLazySingleton<Logger>(() => logger);
   getIt.registerLazySingleton<http.Client>(() => client);
 
