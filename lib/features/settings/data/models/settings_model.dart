@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
+import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
 
@@ -28,6 +29,8 @@ class SettingsModel extends Equatable {
   final bool isEInkMode;
   final List<String> bookActionsOrder;
   final List<String> enabledBookActions;
+  final List<String> bookDetailsSectionsOrder;
+  final List<String> enabledBookDetailsSections;
 
   const SettingsModel({
     required this.themeMode,
@@ -52,6 +55,8 @@ class SettingsModel extends Equatable {
     required this.isEInkMode,
     required this.bookActionsOrder,
     required this.enabledBookActions,
+    required this.bookDetailsSectionsOrder,
+    required this.enabledBookDetailsSections,
   });
 
   factory SettingsModel.fromJson(Map<String, dynamic> json) {
@@ -86,6 +91,18 @@ class SettingsModel extends Equatable {
           json['enabled_book_actions'] ?? BookDetailsActionConfig.defaultOrder,
         ),
       ),
+      bookDetailsSectionsOrder: BookDetailsSectionConfig.normalizeOrder(
+        List<String>.from(
+          json['book_details_sections_order'] ??
+              BookDetailsSectionConfig.defaultOrder,
+        ),
+      ),
+      enabledBookDetailsSections: BookDetailsSectionConfig.normalizeEnabled(
+        List<String>.from(
+          json['enabled_book_details_sections'] ??
+              BookDetailsSectionConfig.defaultOrder,
+        ),
+      ),
     );
   }
 
@@ -113,5 +130,7 @@ class SettingsModel extends Equatable {
     isEInkMode,
     bookActionsOrder,
     enabledBookActions,
+    bookDetailsSectionsOrder,
+    enabledBookDetailsSections,
   ];
 }

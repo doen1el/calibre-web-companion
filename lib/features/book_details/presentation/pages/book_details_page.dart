@@ -27,6 +27,7 @@ import 'package:calibre_web_companion/features/discover/blocs/discover_event.dar
 import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
+import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -492,6 +493,177 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     BookDetailsModel book,
     bool isLoading,
   ) {
+    final settingsState = context.select((SettingsBloc bloc) => bloc.state);
+    final orderedSectionKeys = BookDetailsSectionConfig.normalizeOrder(
+      settingsState.bookDetailsSectionsOrder,
+    );
+    final enabledSections =
+        BookDetailsSectionConfig.normalizeEnabled(
+          settingsState.enabledBookDetailsSections,
+        ).toSet();
+
+    final sectionBuilders = <String, Widget Function()>{
+      BookDetailsSection.bookActions.key:
+          () => _buildCard(
+            context,
+            Icons.menu_book_rounded,
+            localizations.bookActions,
+            _buildBookActions(context, localizations, state, book, isLoading),
+          ),
+      BookDetailsSection.rating.key:
+          () =>
+              book.rating > 0
+                  ? _buildCard(
+                    context,
+                    Icons.star_rate_rounded,
+                    localizations.rating,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: _buildRating(book.rating),
+                    ),
+                  )
+                  : const SizedBox.shrink(),
+      BookDetailsSection.series.key:
+          () =>
+              book.series.isNotEmpty
+                  ? _buildCard(
+                    context,
+                    Icons.bookmark_rounded,
+                    localizations.series,
+                    InkWell(
+                      borderRadius: BorderRadius.circular(8.0),
+                      onTap: () {
+                        context.read<BookDetailsBloc>().add(
+                          OpenSeries(book.series),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 4.0,
+                          horizontal: 4.0,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${book.series} (${localizations.book} ${book.seriesIndex.toInt()})',
+                            ),
+                            if (state.seriesNavigationStatus ==
+                                SeriesNavigationStatus.loading)
+                              const Padding(
+                                padding: EdgeInsets.only(left: 8.0),
+                                child: SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                  : const SizedBox.shrink(),
+      BookDetailsSection.publicationInfo.key:
+          () => _buildInfoCard(
+            context,
+            Icons.info_outline_rounded,
+            localizations.publicationInfo,
+            [
+              if (book.pubdate != "")
+                _buildInfoRow(
+                  context,
+                  localizations.updated,
+                  intl.DateFormat.yMMMMd(
+                    localizations.localeName,
+                  ).format(DateTime.parse(book.pubdate)),
+                  Icons.update_rounded,
+                ),
+              if (book.publishers != "")
+                _buildInfoRow(
+                  context,
+                  localizations.publisher,
+                  book.publishers,
+                  Icons.business_rounded,
+                ),
+              if (book.languages.isNotEmpty)
+                _buildInfoRow(
+                  context,
+                  localizations.language,
+                  _formatLanguage(book.languages, localizations),
+                  Icons.language_rounded,
+                ),
+            ],
+          ),
+      BookDetailsSection.fileInfo.key:
+          () => _buildInfoCard(
+            context,
+            Icons.description_rounded,
+            localizations.fileInfo,
+            [
+              if (book.formats.isNotEmpty)
+                _buildInfoRow(
+                  context,
+                  localizations.formats,
+                  book.formats.join(', '),
+                  Icons.folder_rounded,
+                ),
+              if (book.formatMetadata.formats.isNotEmpty)
+                _buildInfoRow(
+                  context,
+                  localizations.size,
+                  _formatFileSize(
+                    book.formatMetadata.formats.entries.first.value.size!,
+                  ),
+                  Icons.data_usage_rounded,
+                ),
+              _buildInfoRow(context, 'ID', book.uuid, Icons.tag_rounded),
+            ],
+          ),
+      BookDetailsSection.tags.key:
+          () =>
+              book.tags.isNotEmpty
+                  ? _buildCard(
+                    context,
+                    Icons.local_offer_rounded,
+                    localizations.tags,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: _buildTags(context, book.tags, book.tagModels),
+                    ),
+                  )
+                  : const SizedBox.shrink(),
+      BookDetailsSection.description.key:
+          () =>
+              book.comments.isNotEmpty
+                  ? _buildCard(
+                    context,
+                    Icons.article_rounded,
+                    localizations.description,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        book.comments,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                  )
+                  : const SizedBox.shrink(),
+    };
+
+    final visibleSections =
+        orderedSectionKeys
+            .where(
+              (sectionKey) =>
+                  enabledSections.contains(sectionKey) &&
+                  sectionBuilders.containsKey(sectionKey),
+            )
+            .map((sectionKey) => sectionBuilders[sectionKey]!())
+            .where((widget) => widget is! SizedBox)
+            .toList();
+
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
@@ -554,154 +726,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
         SliverToBoxAdapter(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildCard(
-                context,
-                Icons.menu_book_rounded,
-                localizations.bookActions,
-                _buildBookActions(
-                  context,
-                  localizations,
-                  state,
-                  book,
-                  isLoading,
-                ),
-              ),
-
-              if (book.rating > 0)
-                _buildCard(
-                  context,
-                  Icons.star_rate_rounded,
-                  localizations.rating,
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: _buildRating(book.rating),
-                  ),
-                ),
-
-              if (book.series.isNotEmpty)
-                _buildCard(
-                  context,
-                  Icons.bookmark_rounded,
-                  localizations.series,
-                  InkWell(
-                    borderRadius: BorderRadius.circular(8.0),
-                    onTap: () {
-                      context.read<BookDetailsBloc>().add(
-                        OpenSeries(book.series),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 4.0,
-                        horizontal: 4.0,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '${book.series} (${localizations.book} ${book.seriesIndex.toInt()})',
-                          ),
-                          if (state.seriesNavigationStatus ==
-                              SeriesNavigationStatus.loading)
-                            const Padding(
-                              padding: EdgeInsets.only(left: 8.0),
-                              child: SizedBox(
-                                width: 12,
-                                height: 12,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-              _buildInfoCard(
-                context,
-                Icons.info_outline_rounded,
-                localizations.publicationInfo,
-                [
-                  if (book.pubdate != "")
-                    _buildInfoRow(
-                      context,
-                      localizations.updated,
-                      intl.DateFormat.yMMMMd(
-                        localizations.localeName,
-                      ).format(DateTime.parse(book.pubdate)),
-                      Icons.update_rounded,
-                    ),
-                  if (book.publishers != "")
-                    _buildInfoRow(
-                      context,
-                      localizations.publisher,
-                      book.publishers,
-                      Icons.business_rounded,
-                    ),
-                  if (book.languages.isNotEmpty)
-                    _buildInfoRow(
-                      context,
-                      localizations.language,
-                      _formatLanguage(book.languages, localizations),
-                      Icons.language_rounded,
-                    ),
-                ],
-              ),
-
-              _buildInfoCard(
-                context,
-                Icons.description_rounded,
-                localizations.fileInfo,
-                [
-                  if (book.formats.isNotEmpty)
-                    _buildInfoRow(
-                      context,
-                      localizations.formats,
-                      book.formats.join(', '),
-                      Icons.folder_rounded,
-                    ),
-                  if (book.formatMetadata.formats.isNotEmpty)
-                    _buildInfoRow(
-                      context,
-                      localizations.size,
-                      _formatFileSize(
-                        book.formatMetadata.formats.entries.first.value.size!,
-                      ),
-                      Icons.data_usage_rounded,
-                    ),
-                  _buildInfoRow(context, 'ID', book.uuid, Icons.tag_rounded),
-                ],
-              ),
-
-              if (book.tags.isNotEmpty)
-                _buildCard(
-                  context,
-                  Icons.local_offer_rounded,
-                  localizations.tags,
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: _buildTags(context, book.tags, book.tagModels),
-                  ),
-                ),
-              if (book.comments.isNotEmpty)
-                _buildCard(
-                  context,
-                  Icons.article_rounded,
-                  localizations.description,
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      book.comments,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                ),
-
-              const SizedBox(height: 24),
-            ],
+            children: [...visibleSections, const SizedBox(height: 24)],
           ),
         ),
       ],

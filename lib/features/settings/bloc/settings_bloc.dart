@@ -5,6 +5,7 @@ import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
+import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
@@ -38,6 +39,11 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SetBookActionsOrder>(_onSetBookActionsOrder);
     on<SetBookActionEnabled>(_onSetBookActionEnabled);
     on<ResetBookActionsCustomization>(_onResetBookActionsCustomization);
+    on<SetBookDetailsSectionsOrder>(_onSetBookDetailsSectionsOrder);
+    on<SetBookDetailsSectionEnabled>(_onSetBookDetailsSectionEnabled);
+    on<ResetBookDetailsSectionsCustomization>(
+      _onResetBookDetailsSectionsCustomization,
+    );
   }
 
   Future<void> _onLoadSettings(
@@ -77,6 +83,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           isEInkMode: settings.isEInkMode,
           bookActionsOrder: settings.bookActionsOrder,
           enabledBookActions: settings.enabledBookActions,
+          bookDetailsSectionsOrder: settings.bookDetailsSectionsOrder,
+          enabledBookDetailsSections: settings.enabledBookDetailsSections,
         ),
       );
     } catch (e) {
@@ -580,6 +588,81 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       await Future.wait([
         repository.setBookActionsOrder(defaults),
         repository.setEnabledBookActions(defaults),
+      ]);
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetBookDetailsSectionsOrder(
+    SetBookDetailsSectionsOrder event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final normalizedOrder = BookDetailsSectionConfig.normalizeOrder(
+      event.sectionKeys,
+    );
+    emit(state.copyWith(bookDetailsSectionsOrder: normalizedOrder));
+
+    try {
+      await repository.setBookDetailsSectionsOrder(normalizedOrder);
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetBookDetailsSectionEnabled(
+    SetBookDetailsSectionEnabled event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      final updated = List<String>.from(state.enabledBookDetailsSections);
+      if (event.enabled) {
+        if (!updated.contains(event.sectionKey)) {
+          updated.add(event.sectionKey);
+        }
+      } else {
+        updated.remove(event.sectionKey);
+      }
+
+      final normalized = BookDetailsSectionConfig.normalizeEnabled(updated);
+      await repository.setEnabledBookDetailsSections(normalized);
+      emit(state.copyWith(enabledBookDetailsSections: normalized));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onResetBookDetailsSectionsCustomization(
+    ResetBookDetailsSectionsCustomization event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final defaults = List<String>.from(BookDetailsSectionConfig.defaultOrder);
+    emit(
+      state.copyWith(
+        bookDetailsSectionsOrder: defaults,
+        enabledBookDetailsSections: defaults,
+      ),
+    );
+
+    try {
+      await Future.wait([
+        repository.setBookDetailsSectionsOrder(defaults),
+        repository.setEnabledBookDetailsSections(defaults),
       ]);
     } catch (e) {
       emit(

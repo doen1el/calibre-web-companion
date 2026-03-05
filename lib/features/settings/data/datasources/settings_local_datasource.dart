@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
+import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/settings_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
@@ -57,6 +58,12 @@ class SettingsLocalDataSource {
         'enabled_book_actions':
             sharedPreferences.getStringList('enabled_book_actions') ??
             BookDetailsActionConfig.defaultOrder,
+        'book_details_sections_order':
+            sharedPreferences.getStringList('book_details_sections_order') ??
+            BookDetailsSectionConfig.defaultOrder,
+        'enabled_book_details_sections':
+            sharedPreferences.getStringList('enabled_book_details_sections') ??
+            BookDetailsSectionConfig.defaultOrder,
       });
     } catch (e) {
       logger.e('Error getting settings: $e');
@@ -307,6 +314,30 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error saving enabled book actions: $e');
       throw Exception('Failed to save enabled book actions: $e');
+    }
+  }
+
+  Future<void> saveBookDetailsSectionsOrder(List<String> sectionKeys) async {
+    try {
+      await sharedPreferences.setStringList(
+        'book_details_sections_order',
+        sectionKeys,
+      );
+    } catch (e) {
+      logger.e('Error saving book details sections order: $e');
+      throw Exception('Failed to save book details sections order: $e');
+    }
+  }
+
+  Future<void> saveEnabledBookDetailsSections(List<String> sectionKeys) async {
+    try {
+      await sharedPreferences.setStringList(
+        'enabled_book_details_sections',
+        sectionKeys,
+      );
+    } catch (e) {
+      logger.e('Error saving enabled book details sections: $e');
+      throw Exception('Failed to save enabled book details sections: $e');
     }
   }
 }

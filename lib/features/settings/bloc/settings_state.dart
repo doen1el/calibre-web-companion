@@ -39,6 +39,8 @@ class SettingsState extends Equatable {
   final bool isEInkMode;
   final List<String> bookActionsOrder;
   final List<String> enabledBookActions;
+  final List<String> bookDetailsSectionsOrder;
+  final List<String> enabledBookDetailsSections;
 
   final ConnectionTestStatus downloaderTestStatus;
   final ConnectionTestStatus webDavTestStatus;
@@ -72,6 +74,8 @@ class SettingsState extends Equatable {
     this.isEInkMode = false,
     this.bookActionsOrder = const [],
     this.enabledBookActions = const [],
+    this.bookDetailsSectionsOrder = const [],
+    this.enabledBookDetailsSections = const [],
     this.downloaderTestStatus = ConnectionTestStatus.initial,
     this.webDavTestStatus = ConnectionTestStatus.initial,
     this.testErrorMessage,
@@ -108,6 +112,8 @@ class SettingsState extends Equatable {
     bool? isEInkMode,
     List<String>? bookActionsOrder,
     List<String>? enabledBookActions,
+    List<String>? bookDetailsSectionsOrder,
+    List<String>? enabledBookDetailsSections,
     ConnectionTestStatus? downloaderTestStatus,
     ConnectionTestStatus? webDavTestStatus,
     String? testErrorMessage,
@@ -142,6 +148,10 @@ class SettingsState extends Equatable {
       isEInkMode: isEInkMode ?? this.isEInkMode,
       bookActionsOrder: bookActionsOrder ?? this.bookActionsOrder,
       enabledBookActions: enabledBookActions ?? this.enabledBookActions,
+      bookDetailsSectionsOrder:
+          bookDetailsSectionsOrder ?? this.bookDetailsSectionsOrder,
+      enabledBookDetailsSections:
+          enabledBookDetailsSections ?? this.enabledBookDetailsSections,
       downloaderTestStatus: downloaderTestStatus ?? this.downloaderTestStatus,
       webDavTestStatus: webDavTestStatus ?? this.webDavTestStatus,
       testErrorMessage: testErrorMessage,
@@ -177,6 +187,8 @@ class SettingsState extends Equatable {
     isEInkMode,
     bookActionsOrder,
     enabledBookActions,
+    bookDetailsSectionsOrder,
+    enabledBookDetailsSections,
     downloaderTestStatus,
     webDavTestStatus,
     testErrorMessage,

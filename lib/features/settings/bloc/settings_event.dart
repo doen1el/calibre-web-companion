@@ -242,3 +242,29 @@ class SetBookActionEnabled extends SettingsEvent {
 class ResetBookActionsCustomization extends SettingsEvent {
   const ResetBookActionsCustomization();
 }
+
+class SetBookDetailsSectionsOrder extends SettingsEvent {
+  final List<String> sectionKeys;
+
+  const SetBookDetailsSectionsOrder(this.sectionKeys);
+
+  @override
+  List<Object?> get props => [sectionKeys];
+}
+
+class SetBookDetailsSectionEnabled extends SettingsEvent {
+  final String sectionKey;
+  final bool enabled;
+
+  const SetBookDetailsSectionEnabled({
+    required this.sectionKey,
+    required this.enabled,
+  });
+
+  @override
+  List<Object?> get props => [sectionKey, enabled];
+}
+
+class ResetBookDetailsSectionsCustomization extends SettingsEvent {
+  const ResetBookDetailsSectionsCustomization();
+}

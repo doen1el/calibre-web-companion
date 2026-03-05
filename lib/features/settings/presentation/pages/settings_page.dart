@@ -6,6 +6,7 @@ import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
+import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
@@ -891,6 +892,10 @@ class _SettingsPageState extends State<SettingsPage> {
             const Divider(),
             const SizedBox(height: 8),
             _buildBookActionsCustomization(context, state, localizations),
+            const SizedBox(height: 20),
+            const Divider(),
+            const SizedBox(height: 8),
+            _buildBookSectionsCustomization(context, state, localizations),
           ],
         ),
       ),
@@ -1052,6 +1057,165 @@ class _SettingsPageState extends State<SettingsPage> {
         return Icons.open_in_browser_rounded;
       case BookDetailsAction.deleteBook:
         return Icons.delete_rounded;
+    }
+  }
+
+  Widget _buildBookSectionsCustomization(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    final orderedSections =
+        BookDetailsSectionConfig.normalizeOrder(state.bookDetailsSectionsOrder)
+            .map(BookDetailsSectionX.fromKey)
+            .whereType<BookDetailsSection>()
+            .toList();
+    final enabledSections =
+        BookDetailsSectionConfig.normalizeEnabled(
+          state.enabledBookDetailsSections,
+        ).toSet();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.view_list_rounded,
+              size: 24,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              localizations.bookDetails,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const Spacer(),
+            IconButton(
+              tooltip: localizations.reset,
+              onPressed: () {
+                context.read<SettingsBloc>().add(
+                  const ResetBookDetailsSectionsCustomization(),
+                );
+              },
+              icon: const Icon(Icons.restart_alt_rounded),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          buildDefaultDragHandles: false,
+          proxyDecorator:
+              (child, index, animation) =>
+                  Material(type: MaterialType.transparency, child: child),
+          itemCount: orderedSections.length,
+          onReorder: (oldIndex, newIndex) {
+            final updated = List<String>.from(
+              BookDetailsSectionConfig.normalizeOrder(
+                state.bookDetailsSectionsOrder,
+              ),
+            );
+            if (newIndex > oldIndex) {
+              newIndex -= 1;
+            }
+            final item = updated.removeAt(oldIndex);
+            updated.insert(newIndex, item);
+            context.read<SettingsBloc>().add(
+              SetBookDetailsSectionsOrder(updated),
+            );
+          },
+          itemBuilder: (context, index) {
+            final section = orderedSections[index];
+            final sectionKey = section.key;
+
+            return Card(
+              key: ValueKey(sectionKey),
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                leading: Icon(
+                  _bookSectionIcon(section),
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                title: Text(_bookSectionTitle(section, localizations)),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Switch(
+                      value: enabledSections.contains(sectionKey),
+                      onChanged: (value) {
+                        context.read<SettingsBloc>().add(
+                          SetBookDetailsSectionEnabled(
+                            sectionKey: sectionKey,
+                            enabled: value,
+                          ),
+                        );
+                      },
+                    ),
+                    ReorderableDragStartListener(
+                      index: index,
+                      child: Icon(
+                        Icons.drag_handle_rounded,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  String _bookSectionTitle(
+    BookDetailsSection section,
+    AppLocalizations localizations,
+  ) {
+    switch (section) {
+      case BookDetailsSection.bookActions:
+        return localizations.bookActions;
+      case BookDetailsSection.rating:
+        return localizations.rating;
+      case BookDetailsSection.series:
+        return localizations.series;
+      case BookDetailsSection.publicationInfo:
+        return localizations.publicationInfo;
+      case BookDetailsSection.fileInfo:
+        return localizations.fileInfo;
+      case BookDetailsSection.tags:
+        return localizations.tags;
+      case BookDetailsSection.description:
+        return localizations.description;
+    }
+  }
+
+  IconData _bookSectionIcon(BookDetailsSection section) {
+    switch (section) {
+      case BookDetailsSection.bookActions:
+        return Icons.menu_book_rounded;
+      case BookDetailsSection.rating:
+        return Icons.star_rate_rounded;
+      case BookDetailsSection.series:
+        return Icons.bookmark_rounded;
+      case BookDetailsSection.publicationInfo:
+        return Icons.info_outline_rounded;
+      case BookDetailsSection.fileInfo:
+        return Icons.description_rounded;
+      case BookDetailsSection.tags:
+        return Icons.local_offer_rounded;
+      case BookDetailsSection.description:
+        return Icons.article_rounded;
     }
   }
 

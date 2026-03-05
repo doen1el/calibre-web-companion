@@ -258,4 +258,20 @@ class SettingsRepository {
       rethrow;
     }
   }
+
+  Future<void> setBookDetailsSectionsOrder(List<String> sectionKeys) async {
+    try {
+      await dataSource.saveBookDetailsSectionsOrder(sectionKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setEnabledBookDetailsSections(List<String> sectionKeys) async {
+    try {
+      await dataSource.saveEnabledBookDetailsSections(sectionKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
