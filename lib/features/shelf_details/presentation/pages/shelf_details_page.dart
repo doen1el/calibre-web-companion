@@ -559,7 +559,7 @@ class ShelfDetailsPage extends StatelessWidget {
 
     return FutureBuilder<Map<String, String>>(
       future: () async {
-        final headers = apiService.getAuthHeaders(authMethod: AuthMethod.auto);
+        final headers = <String, String>{}; headers.addAll(apiService.getAuthHeaders(authMethod: AuthMethod.auto));
 
         final username = apiService.getUsername();
         final password = apiService.getPassword();
