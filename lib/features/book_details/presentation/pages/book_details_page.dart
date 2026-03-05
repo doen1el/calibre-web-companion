@@ -498,107 +498,67 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
   ) {
     return CustomScrollView(
       slivers: [
-        /// 🔥 Collapsing Parallax Cover
-        SliverAppBar(
-          expandedHeight: 420,
-          pinned: true,
-          automaticallyImplyLeading: false,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          elevation: 0,
-          flexibleSpace: LayoutBuilder(
-            builder: (context, constraints) {
-              final maxHeight = constraints.biggest.height;
-
-              final collapsePercent = (1 -
-                      (maxHeight - kToolbarHeight) / (420 - kToolbarHeight))
-                  .clamp(0.0, 1.0);
-
-              final titleScale = 1.2 - (0.4 * collapsePercent);
-              final titleOpacity = 1 - collapsePercent;
-
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  Transform.scale(
-                    scale: 1.0 - (0.1 * collapsePercent),
-                    child: _buildCoverImage(context, book.id, book.cover),
-                  ),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withValues(
-                            alpha: 0.0 + (0.5 * collapsePercent),
-                          ),
-                          Colors.black.withValues(
-                            alpha: 0.3 + (0.4 * collapsePercent),
-                          ),
-                          Colors.black,
-                          //Colors.transparent,
-                        ],
-                        stops: const [0.0, 0.65, /*0.985,*/ 1.0],
-                      ),
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: 420,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _buildCoverImage(context, book.id, book.cover),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.0),
+                        Colors.black.withValues(alpha: 0.3),
+                        Colors.black,
+                      ],
+                      stops: const [0.0, 0.65, 1.0],
                     ),
                   ),
-
-                  Positioned(
-                    left: 16,
-                    bottom: 20 + (80 * collapsePercent),
-                    child: Transform.scale(
-                      scale: titleScale,
-                      alignment: Alignment.topLeft,
-                      child: Opacity(
-                        opacity: titleOpacity,
-                        child: Text(
-                          book.title,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.headlineMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                ),
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 20,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        book.title,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                  ),
-
-                  Positioned(
-                    left: 20,
-                    right: 16,
-                    bottom: 16,
-                    child: Opacity(
-                      opacity: collapsePercent,
-                      child: Text(
-                        book.title,
+                      const SizedBox(height: 4),
+                      Text(
+                        localizations.by(book.authors),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleLarge,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: .9),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              );
-            },
+                ),
+              ],
+            ),
           ),
         ),
 
-        /// 🔥 Main Scroll Content
         SliverToBoxAdapter(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// Author section (no more SizedBox hack needed)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 2, 16, 1),
-                child: Text(
-                  localizations.by(book.authors),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-
               _buildCard(
                 context,
                 Icons.menu_book_rounded,
