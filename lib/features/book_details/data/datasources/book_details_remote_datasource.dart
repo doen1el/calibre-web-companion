@@ -627,9 +627,11 @@ class BookDetailsRemoteDatasource {
         endpoint: '/shelf/add/$shelfId/$bookId',
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfTokenUrl: '/me',
+        contentType: 'application/x-www-form-urlencoded',
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 204 || response.statusCode == 302) {
         logger.i('Successfully added book to shelf');
         return true;
       } else {
@@ -650,9 +652,11 @@ class BookDetailsRemoteDatasource {
         endpoint: '/shelf/remove/$shelfId/$bookId',
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfTokenUrl: '/me',
+        contentType: 'application/x-www-form-urlencoded',
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 204 || response.statusCode == 302) {
         logger.i('Successfully removed book from shelf');
         return true;
       } else {

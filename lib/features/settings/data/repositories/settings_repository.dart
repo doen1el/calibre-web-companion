@@ -242,4 +242,84 @@ class SettingsRepository {
       rethrow;
     }
   }
+
+  Future<void> setBookActionsOrder(List<String> actionKeys) async {
+    try {
+      await dataSource.saveBookActionsOrder(actionKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setEnabledBookActions(List<String> actionKeys) async {
+    try {
+      await dataSource.saveEnabledBookActions(actionKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setBookDetailsSectionsOrder(List<String> sectionKeys) async {
+    try {
+      await dataSource.saveBookDetailsSectionsOrder(sectionKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setEnabledBookDetailsSections(List<String> sectionKeys) async {
+    try {
+      await dataSource.saveEnabledBookDetailsSections(sectionKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setDiscoverMainSectionsOrder(List<String> sectionKeys) async {
+    try {
+      await dataSource.saveDiscoverMainSectionsOrder(sectionKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setEnabledDiscoverMainSections(List<String> sectionKeys) async {
+    try {
+      await dataSource.saveEnabledDiscoverMainSections(sectionKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setDiscoverItemsOrder(List<String> itemKeys) async {
+    try {
+      await dataSource.saveDiscoverItemsOrder(itemKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setEnabledDiscoverItems(List<String> itemKeys) async {
+    try {
+      await dataSource.saveEnabledDiscoverItems(itemKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setCategoryItemsOrder(List<String> itemKeys) async {
+    try {
+      await dataSource.saveCategoryItemsOrder(itemKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setEnabledCategoryItems(List<String> itemKeys) async {
+    try {
+      await dataSource.saveEnabledCategoryItems(itemKeys);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

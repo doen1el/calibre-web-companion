@@ -4,6 +4,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 
+import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
+import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
+import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
 import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
@@ -34,6 +37,21 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<ResetConnectionTestStatus>(_onResetConnectionTestStatus);
     on<SetShowSendToEReaderButton>(_onSetShowSendToEReaderButton);
     on<SetEInkMode>(_onSetEInkMode);
+    on<SetBookActionsOrder>(_onSetBookActionsOrder);
+    on<SetBookActionEnabled>(_onSetBookActionEnabled);
+    on<ResetBookActionsCustomization>(_onResetBookActionsCustomization);
+    on<SetBookDetailsSectionsOrder>(_onSetBookDetailsSectionsOrder);
+    on<SetBookDetailsSectionEnabled>(_onSetBookDetailsSectionEnabled);
+    on<ResetBookDetailsSectionsCustomization>(
+      _onResetBookDetailsSectionsCustomization,
+    );
+    on<SetDiscoverMainSectionsOrder>(_onSetDiscoverMainSectionsOrder);
+    on<SetDiscoverMainSectionEnabled>(_onSetDiscoverMainSectionEnabled);
+    on<SetDiscoverItemsOrder>(_onSetDiscoverItemsOrder);
+    on<SetDiscoverItemEnabled>(_onSetDiscoverItemEnabled);
+    on<SetCategoryItemsOrder>(_onSetCategoryItemsOrder);
+    on<SetCategoryItemEnabled>(_onSetCategoryItemEnabled);
+    on<ResetDiscoverCustomization>(_onResetDiscoverCustomization);
   }
 
   Future<void> _onLoadSettings(
@@ -71,6 +89,16 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           isWebDavSyncEnabled: settings.isWebDavSyncEnabled,
           epubScrollDirection: settings.epubScrollDirection,
           isEInkMode: settings.isEInkMode,
+          bookActionsOrder: settings.bookActionsOrder,
+          enabledBookActions: settings.enabledBookActions,
+          bookDetailsSectionsOrder: settings.bookDetailsSectionsOrder,
+          enabledBookDetailsSections: settings.enabledBookDetailsSections,
+          discoverMainSectionsOrder: settings.discoverMainSectionsOrder,
+          enabledDiscoverMainSections: settings.enabledDiscoverMainSections,
+          discoverItemsOrder: settings.discoverItemsOrder,
+          enabledDiscoverItems: settings.enabledDiscoverItems,
+          categoryItemsOrder: settings.categoryItemsOrder,
+          enabledCategoryItems: settings.enabledCategoryItems,
         ),
       );
     } catch (e) {
@@ -503,6 +531,347 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setEInkMode(event.enabled);
       emit(state.copyWith(isEInkMode: event.enabled));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetBookActionsOrder(
+    SetBookActionsOrder event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final normalizedOrder = BookDetailsActionConfig.normalizeOrder(
+      event.actionKeys,
+    );
+    emit(state.copyWith(bookActionsOrder: normalizedOrder));
+
+    try {
+      await repository.setBookActionsOrder(normalizedOrder);
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetBookActionEnabled(
+    SetBookActionEnabled event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      final updated = List<String>.from(state.enabledBookActions);
+      if (event.enabled) {
+        if (!updated.contains(event.actionKey)) {
+          updated.add(event.actionKey);
+        }
+      } else {
+        updated.remove(event.actionKey);
+      }
+
+      final normalized = BookDetailsActionConfig.normalizeEnabled(updated);
+      await repository.setEnabledBookActions(normalized);
+      emit(state.copyWith(enabledBookActions: normalized));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onResetBookActionsCustomization(
+    ResetBookActionsCustomization event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final defaults = List<String>.from(BookDetailsActionConfig.defaultOrder);
+    emit(
+      state.copyWith(bookActionsOrder: defaults, enabledBookActions: defaults),
+    );
+
+    try {
+      await Future.wait([
+        repository.setBookActionsOrder(defaults),
+        repository.setEnabledBookActions(defaults),
+      ]);
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetBookDetailsSectionsOrder(
+    SetBookDetailsSectionsOrder event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final normalizedOrder = BookDetailsSectionConfig.normalizeOrder(
+      event.sectionKeys,
+    );
+    emit(state.copyWith(bookDetailsSectionsOrder: normalizedOrder));
+
+    try {
+      await repository.setBookDetailsSectionsOrder(normalizedOrder);
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetBookDetailsSectionEnabled(
+    SetBookDetailsSectionEnabled event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      final updated = List<String>.from(state.enabledBookDetailsSections);
+      if (event.enabled) {
+        if (!updated.contains(event.sectionKey)) {
+          updated.add(event.sectionKey);
+        }
+      } else {
+        updated.remove(event.sectionKey);
+      }
+
+      final normalized = BookDetailsSectionConfig.normalizeEnabled(updated);
+      await repository.setEnabledBookDetailsSections(normalized);
+      emit(state.copyWith(enabledBookDetailsSections: normalized));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onResetBookDetailsSectionsCustomization(
+    ResetBookDetailsSectionsCustomization event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final defaults = List<String>.from(BookDetailsSectionConfig.defaultOrder);
+    emit(
+      state.copyWith(
+        bookDetailsSectionsOrder: defaults,
+        enabledBookDetailsSections: defaults,
+      ),
+    );
+
+    try {
+      await Future.wait([
+        repository.setBookDetailsSectionsOrder(defaults),
+        repository.setEnabledBookDetailsSections(defaults),
+      ]);
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetDiscoverMainSectionsOrder(
+    SetDiscoverMainSectionsOrder event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final normalizedOrder = DiscoverLayoutConfig.normalizeMainSectionsOrder(
+      event.sectionKeys,
+    );
+    emit(state.copyWith(discoverMainSectionsOrder: normalizedOrder));
+
+    try {
+      await repository.setDiscoverMainSectionsOrder(normalizedOrder);
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetDiscoverMainSectionEnabled(
+    SetDiscoverMainSectionEnabled event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      final updated = List<String>.from(state.enabledDiscoverMainSections);
+      if (event.enabled) {
+        if (!updated.contains(event.sectionKey)) {
+          updated.add(event.sectionKey);
+        }
+      } else {
+        updated.remove(event.sectionKey);
+      }
+
+      final normalized = DiscoverLayoutConfig.normalizeEnabledMainSections(
+        updated,
+      );
+      await repository.setEnabledDiscoverMainSections(normalized);
+      emit(state.copyWith(enabledDiscoverMainSections: normalized));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetDiscoverItemsOrder(
+    SetDiscoverItemsOrder event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final normalizedOrder = DiscoverLayoutConfig.normalizeDiscoverItemsOrder(
+      event.itemKeys,
+    );
+    emit(state.copyWith(discoverItemsOrder: normalizedOrder));
+
+    try {
+      await repository.setDiscoverItemsOrder(normalizedOrder);
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetDiscoverItemEnabled(
+    SetDiscoverItemEnabled event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      final updated = List<String>.from(state.enabledDiscoverItems);
+      if (event.enabled) {
+        if (!updated.contains(event.itemKey)) {
+          updated.add(event.itemKey);
+        }
+      } else {
+        updated.remove(event.itemKey);
+      }
+
+      final normalized = DiscoverLayoutConfig.normalizeEnabledDiscoverItems(
+        updated,
+      );
+      await repository.setEnabledDiscoverItems(normalized);
+      emit(state.copyWith(enabledDiscoverItems: normalized));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetCategoryItemsOrder(
+    SetCategoryItemsOrder event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final normalizedOrder = DiscoverLayoutConfig.normalizeCategoryItemsOrder(
+      event.itemKeys,
+    );
+    emit(state.copyWith(categoryItemsOrder: normalizedOrder));
+
+    try {
+      await repository.setCategoryItemsOrder(normalizedOrder);
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetCategoryItemEnabled(
+    SetCategoryItemEnabled event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      final updated = List<String>.from(state.enabledCategoryItems);
+      if (event.enabled) {
+        if (!updated.contains(event.itemKey)) {
+          updated.add(event.itemKey);
+        }
+      } else {
+        updated.remove(event.itemKey);
+      }
+
+      final normalized = DiscoverLayoutConfig.normalizeEnabledCategoryItems(
+        updated,
+      );
+      await repository.setEnabledCategoryItems(normalized);
+      emit(state.copyWith(enabledCategoryItems: normalized));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onResetDiscoverCustomization(
+    ResetDiscoverCustomization event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final mainDefaults = List<String>.from(
+      DiscoverLayoutConfig.defaultMainSectionsOrder,
+    );
+    final discoverDefaults = List<String>.from(
+      DiscoverLayoutConfig.defaultDiscoverItemsOrder,
+    );
+    final categoryDefaults = List<String>.from(
+      DiscoverLayoutConfig.defaultCategoryItemsOrder,
+    );
+
+    emit(
+      state.copyWith(
+        discoverMainSectionsOrder: mainDefaults,
+        enabledDiscoverMainSections: mainDefaults,
+        discoverItemsOrder: discoverDefaults,
+        enabledDiscoverItems: discoverDefaults,
+        categoryItemsOrder: categoryDefaults,
+        enabledCategoryItems: categoryDefaults,
+      ),
+    );
+
+    try {
+      await Future.wait([
+        repository.setDiscoverMainSectionsOrder(mainDefaults),
+        repository.setEnabledDiscoverMainSections(mainDefaults),
+        repository.setDiscoverItemsOrder(discoverDefaults),
+        repository.setEnabledDiscoverItems(discoverDefaults),
+        repository.setCategoryItemsOrder(categoryDefaults),
+        repository.setEnabledCategoryItems(categoryDefaults),
+      ]);
     } catch (e) {
       emit(
         state.copyWith(

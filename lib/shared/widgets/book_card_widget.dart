@@ -25,6 +25,7 @@ class BookCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(12);
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: borderRadius),
@@ -34,49 +35,67 @@ class BookCard extends StatelessWidget {
         onTap: isLoading ? null : onTap,
         child: Stack(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      BookCoverWidget(
-                        bookId:
-                            int.tryParse(bookId) ??
-                            int.parse(bookId.split('/').last),
-                        coverUrl: coverUrl,
-                      ),
-                      if (readStatus)
-                        Positioned(
-                          top: 6,
-                          right: 6,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.surface.withValues(alpha: 0.8),
-                            ),
-                            padding: const EdgeInsets.all(0.5),
-                            child: Icon(
-                              Icons.check_circle,
-                              size: 25,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                    ],
+            Positioned.fill(
+              child: BookCoverWidget(
+                bookId:
+                    int.tryParse(bookId) ?? int.parse(bookId.split('/').last),
+                coverUrl: coverUrl,
+                fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
+              ),
+            ),
+
+            if (readStatus)
+              Positioned(
+                top: 6,
+                right: 6,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surface.withValues(alpha: 0.8),
+                  ),
+                  padding: const EdgeInsets.all(0.5),
+                  child: Icon(
+                    Icons.check_circle,
+                    size: 25,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+              ),
+
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 28,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Theme.of(
+                            context,
+                          ).colorScheme.surface.withValues(alpha: 0.45),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surface.withValues(alpha: 0.82),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           title,
@@ -93,7 +112,7 @@ class BookCard extends StatelessWidget {
                           ).textTheme.bodySmall?.copyWith(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withValues(alpha: .7),
+                            ).colorScheme.onSurface.withValues(alpha: .75),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -101,9 +120,10 @@ class BookCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
+
             if (isLoading)
               Positioned.fill(
                 child: Container(
@@ -111,10 +131,9 @@ class BookCard extends StatelessWidget {
                     color: Theme.of(
                       context,
                     ).colorScheme.surface.withValues(alpha: .6),
-                    borderRadius: borderRadius,
                   ),
                   child: const Center(
-                    child: CircularProgressIndicator(strokeWidth: 3),
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                 ),
               ),

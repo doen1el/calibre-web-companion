@@ -1,4 +1,6 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'dart:async';
+import 'dart:ui';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +11,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/di/injection_container.dart' as di;
 import 'package:calibre_web_companion/core/services/download_manager.dart'; // Import
+import 'package:calibre_web_companion/core/services/app_log_service.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
@@ -42,54 +45,85 @@ void main() async {
 
   await di.init();
 
+  final appLogService = di.getIt<AppLogService>();
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    appLogService.add(
+      'FlutterError: ${details.exceptionAsString()}\n${details.stack ?? ''}',
+    );
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    appLogService.add('Uncaught error: $error\n$stack');
+    return false;
+  };
+
   await di.getIt<DownloadManager>().initialize();
 
   final savedThemeMode = await AdaptiveTheme.getThemeMode();
 
-  runApp(
-    MultiBlocProvider(
-      providers: [
-        BlocProvider<LoginBloc>(create: (_) => getIt<LoginBloc>()),
-        BlocProvider<LoginSettingsBloc>(
-          create:
-              (_) => getIt<LoginSettingsBloc>()..add(const LoadLoginSettings()),
+  runZonedGuarded(
+    () {
+      runApp(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<LoginBloc>(create: (_) => getIt<LoginBloc>()),
+            BlocProvider<LoginSettingsBloc>(
+              create:
+                  (_) =>
+                      getIt<LoginSettingsBloc>()
+                        ..add(const LoadLoginSettings()),
+            ),
+            BlocProvider<BookViewBloc>(
+              create:
+                  (_) => getIt<BookViewBloc>()..add(const LoadViewSettings()),
+            ),
+            BlocProvider<MeBloc>(create: (_) => getIt<MeBloc>()),
+            BlocProvider<DiscoverBloc>(create: (_) => getIt<DiscoverBloc>()),
+            BlocProvider<DiscoverDetailsBloc>(
+              create: (_) => getIt<DiscoverDetailsBloc>(),
+            ),
+            BlocProvider<ShelfViewBloc>(
+              create: (_) => getIt<ShelfViewBloc>()..add(const LoadShelves()),
+            ),
+            BlocProvider<ShelfDetailsBloc>(
+              create: (_) => getIt<ShelfDetailsBloc>(),
+            ),
+            BlocProvider<SettingsBloc>(
+              create: (_) => getIt<SettingsBloc>()..add(LoadSettings()),
+            ),
+            BlocProvider<DownloadServiceBloc>(
+              create: (_) => getIt<DownloadServiceBloc>(),
+            ),
+            BlocProvider<HomePageBloc>(create: (_) => getIt<HomePageBloc>()),
+            BlocProvider<BookDetailsBloc>(
+              create: (_) => di.getIt<BookDetailsBloc>(),
+            ),
+            BlocProvider<BookViewBloc>(
+              create:
+                  (_) =>
+                      getIt<BookViewBloc>()
+                        ..add(const LoadViewSettings())
+                        ..add(const LoadBooks()),
+            ),
+            BlocProvider<SyncBloc>(
+              create:
+                  (_) => getIt<SyncBloc>()..add(const CheckForUnsyncedBooks()),
+            ),
+          ],
+          child: MyApp(savedThemeMode: savedThemeMode),
         ),
-        BlocProvider<BookViewBloc>(
-          create: (_) => getIt<BookViewBloc>()..add(const LoadViewSettings()),
-        ),
-        BlocProvider<MeBloc>(create: (_) => getIt<MeBloc>()),
-        BlocProvider<DiscoverBloc>(create: (_) => getIt<DiscoverBloc>()),
-        BlocProvider<DiscoverDetailsBloc>(
-          create: (_) => getIt<DiscoverDetailsBloc>(),
-        ),
-        BlocProvider<ShelfViewBloc>(
-          create: (_) => getIt<ShelfViewBloc>()..add(const LoadShelves()),
-        ),
-        BlocProvider<ShelfDetailsBloc>(
-          create: (_) => getIt<ShelfDetailsBloc>(),
-        ),
-        BlocProvider<SettingsBloc>(
-          create: (_) => getIt<SettingsBloc>()..add(LoadSettings()),
-        ),
-        BlocProvider<DownloadServiceBloc>(
-          create: (_) => getIt<DownloadServiceBloc>(),
-        ),
-        BlocProvider<HomePageBloc>(create: (_) => getIt<HomePageBloc>()),
-        BlocProvider<BookDetailsBloc>(
-          create: (_) => di.getIt<BookDetailsBloc>(),
-        ),
-        BlocProvider<BookViewBloc>(
-          create:
-              (_) =>
-                  getIt<BookViewBloc>()
-                    ..add(const LoadViewSettings())
-                    ..add(const LoadBooks()),
-        ),
-        BlocProvider<SyncBloc>(
-          create: (_) => getIt<SyncBloc>()..add(const CheckForUnsyncedBooks()),
-        ),
-      ],
-      child: MyApp(savedThemeMode: savedThemeMode),
+      );
+    },
+    (error, stack) {
+      appLogService.add('Zoned error: $error\n$stack');
+    },
+    zoneSpecification: ZoneSpecification(
+      print: (self, parent, zone, line) {
+        appLogService.add('print: $line');
+        parent.print(zone, line);
+      },
     ),
   );
 }

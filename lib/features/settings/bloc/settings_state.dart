@@ -37,6 +37,16 @@ class SettingsState extends Equatable {
   final String webDavPassword;
   final String epubScrollDirection;
   final bool isEInkMode;
+  final List<String> bookActionsOrder;
+  final List<String> enabledBookActions;
+  final List<String> bookDetailsSectionsOrder;
+  final List<String> enabledBookDetailsSections;
+  final List<String> discoverMainSectionsOrder;
+  final List<String> enabledDiscoverMainSections;
+  final List<String> discoverItemsOrder;
+  final List<String> enabledDiscoverItems;
+  final List<String> categoryItemsOrder;
+  final List<String> enabledCategoryItems;
 
   final ConnectionTestStatus downloaderTestStatus;
   final ConnectionTestStatus webDavTestStatus;
@@ -68,6 +78,16 @@ class SettingsState extends Equatable {
     this.webDavPassword = '',
     this.epubScrollDirection = 'vertical',
     this.isEInkMode = false,
+    this.bookActionsOrder = const [],
+    this.enabledBookActions = const [],
+    this.bookDetailsSectionsOrder = const [],
+    this.enabledBookDetailsSections = const [],
+    this.discoverMainSectionsOrder = const [],
+    this.enabledDiscoverMainSections = const [],
+    this.discoverItemsOrder = const [],
+    this.enabledDiscoverItems = const [],
+    this.categoryItemsOrder = const [],
+    this.enabledCategoryItems = const [],
     this.downloaderTestStatus = ConnectionTestStatus.initial,
     this.webDavTestStatus = ConnectionTestStatus.initial,
     this.testErrorMessage,
@@ -102,6 +122,16 @@ class SettingsState extends Equatable {
     String? webDavPassword,
     String? epubScrollDirection,
     bool? isEInkMode,
+    List<String>? bookActionsOrder,
+    List<String>? enabledBookActions,
+    List<String>? bookDetailsSectionsOrder,
+    List<String>? enabledBookDetailsSections,
+    List<String>? discoverMainSectionsOrder,
+    List<String>? enabledDiscoverMainSections,
+    List<String>? discoverItemsOrder,
+    List<String>? enabledDiscoverItems,
+    List<String>? categoryItemsOrder,
+    List<String>? enabledCategoryItems,
     ConnectionTestStatus? downloaderTestStatus,
     ConnectionTestStatus? webDavTestStatus,
     String? testErrorMessage,
@@ -134,6 +164,20 @@ class SettingsState extends Equatable {
       webDavPassword: webDavPassword ?? this.webDavPassword,
       epubScrollDirection: epubScrollDirection ?? this.epubScrollDirection,
       isEInkMode: isEInkMode ?? this.isEInkMode,
+      bookActionsOrder: bookActionsOrder ?? this.bookActionsOrder,
+      enabledBookActions: enabledBookActions ?? this.enabledBookActions,
+      bookDetailsSectionsOrder:
+          bookDetailsSectionsOrder ?? this.bookDetailsSectionsOrder,
+      enabledBookDetailsSections:
+          enabledBookDetailsSections ?? this.enabledBookDetailsSections,
+      discoverMainSectionsOrder:
+          discoverMainSectionsOrder ?? this.discoverMainSectionsOrder,
+      enabledDiscoverMainSections:
+          enabledDiscoverMainSections ?? this.enabledDiscoverMainSections,
+      discoverItemsOrder: discoverItemsOrder ?? this.discoverItemsOrder,
+      enabledDiscoverItems: enabledDiscoverItems ?? this.enabledDiscoverItems,
+      categoryItemsOrder: categoryItemsOrder ?? this.categoryItemsOrder,
+      enabledCategoryItems: enabledCategoryItems ?? this.enabledCategoryItems,
       downloaderTestStatus: downloaderTestStatus ?? this.downloaderTestStatus,
       webDavTestStatus: webDavTestStatus ?? this.webDavTestStatus,
       testErrorMessage: testErrorMessage,
@@ -167,6 +211,16 @@ class SettingsState extends Equatable {
     webDavPassword,
     epubScrollDirection,
     isEInkMode,
+    bookActionsOrder,
+    enabledBookActions,
+    bookDetailsSectionsOrder,
+    enabledBookDetailsSections,
+    discoverMainSectionsOrder,
+    enabledDiscoverMainSections,
+    discoverItemsOrder,
+    enabledDiscoverItems,
+    categoryItemsOrder,
+    enabledCategoryItems,
     downloaderTestStatus,
     webDavTestStatus,
     testErrorMessage,

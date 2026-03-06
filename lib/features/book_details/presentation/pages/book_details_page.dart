@@ -26,6 +26,9 @@ import 'package:calibre_web_companion/features/book_view/data/models/book_view_m
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
+import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
+import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
+import 'package:calibre_web_companion/features/settings/presentation/pages/settings_page.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -48,7 +51,6 @@ class BookDetailsPage extends StatefulWidget {
 
 class _BookDetailsPageState extends State<BookDetailsPage> {
   bool _didUpdateMetadata = false;
-  bool _canPop = false;
   StreamSubscription<dynamic>? _locatorSubscription;
   late final WebDavSyncService _webDavService;
 
@@ -128,10 +130,6 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-
-        setState(() {
-          _canPop = true;
-        });
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
@@ -496,126 +494,94 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     BookDetailsModel book,
     bool isLoading,
   ) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            alignment: Alignment.bottomLeft,
-            children: [
-              _buildCoverImage(context, book.id, book.cover),
+    final settingsState = context.select((SettingsBloc bloc) => bloc.state);
+    final orderedSectionKeys = BookDetailsSectionConfig.normalizeOrder(
+      settingsState.bookDetailsSectionsOrder,
+    );
+    final enabledSections =
+        BookDetailsSectionConfig.normalizeEnabled(
+          settingsState.enabledBookDetailsSections,
+        ).toSet();
 
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: .7),
-                    ],
-                    stops: const [0.5, 1.0],
-                  ),
-                ),
-                height: 100,
-                width: double.infinity,
-              ),
+    final sectionBuilders = <String, Widget Function()>{
+      BookDetailsSection.bookActions.key: () {
+        final actions = _buildBookActions(
+          context,
+          localizations,
+          state,
+          book,
+          isLoading,
+        );
 
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      book.title,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            offset: const Offset(1, 1),
-                            blurRadius: 3,
-                            color: Colors.black.withValues(alpha: .5),
-                          ),
-                        ],
-                      ),
+        if (actions is SizedBox) {
+          return const SizedBox.shrink();
+        }
+
+        return _buildCard(
+          context,
+          Icons.menu_book_rounded,
+          localizations.bookActions,
+          actions,
+        );
+      },
+      BookDetailsSection.rating.key:
+          () =>
+              book.rating > 0
+                  ? _buildCard(
+                    context,
+                    Icons.star_rate_rounded,
+                    localizations.rating,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: _buildRating(book.rating),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      localizations.by(book.authors),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: .9),
-                        shadows: [
-                          Shadow(
-                            offset: const Offset(1, 1),
-                            blurRadius: 2,
-                            color: Colors.black.withValues(alpha: .5),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          _buildCard(
-            context,
-            Icons.menu_book_rounded,
-            localizations.bookActions,
-            _buildBookActions(context, localizations, state, book, isLoading),
-          ),
-
-          if (book.rating > 0)
-            _buildCard(
-              context,
-              Icons.star_rate_rounded,
-              localizations.rating,
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: _buildRating(book.rating),
-              ),
-            ),
-
-          if (book.series.isNotEmpty)
-            _buildCard(
-              context,
-              Icons.bookmark_rounded,
-              localizations.series,
-              InkWell(
-                borderRadius: BorderRadius.circular(8.0),
-                onTap: () {
-                  context.read<BookDetailsBloc>().add(OpenSeries(book.series));
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 4.0,
-                    horizontal: 4.0,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${book.series} (${localizations.book} ${book.seriesIndex.toInt()})',
-                      ),
-                      if (state.seriesNavigationStatus ==
-                          SeriesNavigationStatus.loading)
-                        const Padding(
-                          padding: EdgeInsets.only(left: 8.0),
-                          child: SizedBox(
-                            width: 12,
-                            height: 12,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
+                  )
+                  : const SizedBox.shrink(),
+      BookDetailsSection.series.key:
+          () =>
+              book.series.isNotEmpty
+                  ? _buildCard(
+                    context,
+                    Icons.bookmark_rounded,
+                    localizations.series,
+                    InkWell(
+                      borderRadius: BorderRadius.circular(8.0),
+                      onTap: () {
+                        context.read<BookDetailsBloc>().add(
+                          OpenSeries(book.series),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 4.0,
+                          horizontal: 4.0,
                         ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-          _buildInfoCard(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${book.series} (${localizations.book} ${book.seriesIndex.toInt()})',
+                            ),
+                            if (state.seriesNavigationStatus ==
+                                SeriesNavigationStatus.loading)
+                              const Padding(
+                                padding: EdgeInsets.only(left: 8.0),
+                                child: SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                  : const SizedBox.shrink(),
+      BookDetailsSection.publicationInfo.key:
+          () => _buildInfoCard(
             context,
             Icons.info_outline_rounded,
             localizations.publicationInfo,
@@ -645,8 +611,8 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                 ),
             ],
           ),
-
-          _buildInfoCard(
+      BookDetailsSection.fileInfo.key:
+          () => _buildInfoCard(
             context,
             Icons.description_rounded,
             localizations.fileInfo,
@@ -670,32 +636,157 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
               _buildInfoRow(context, 'ID', book.uuid, Icons.tag_rounded),
             ],
           ),
+      BookDetailsSection.tags.key:
+          () =>
+              book.tags.isNotEmpty
+                  ? _buildCard(
+                    context,
+                    Icons.local_offer_rounded,
+                    localizations.tags,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: _buildTags(context, book.tags, book.tagModels),
+                    ),
+                  )
+                  : const SizedBox.shrink(),
+      BookDetailsSection.description.key:
+          () =>
+              book.comments.isNotEmpty
+                  ? _buildCard(
+                    context,
+                    Icons.article_rounded,
+                    localizations.description,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        book.comments,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                  )
+                  : const SizedBox.shrink(),
+    };
 
-          if (book.tags.isNotEmpty)
-            _buildCard(
-              context,
-              Icons.local_offer_rounded,
-              localizations.tags,
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: _buildTags(context, book.tags, book.tagModels),
-              ),
-            ),
-          if (book.comments.isNotEmpty)
-            _buildCard(
-              context,
-              Icons.article_rounded,
-              localizations.description,
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Text(
-                  book.comments,
-                  style: Theme.of(context).textTheme.bodyMedium,
+    final visibleSections =
+        orderedSectionKeys
+            .where(
+              (sectionKey) =>
+                  enabledSections.contains(sectionKey) &&
+                  sectionBuilders.containsKey(sectionKey),
+            )
+            .map((sectionKey) => sectionBuilders[sectionKey]!())
+            .where((widget) => widget is! SizedBox)
+            .toList();
+
+    final bodySections =
+        visibleSections.isEmpty
+            ? <Widget>[
+              _buildAllSectionsDisabledFallback(context, localizations),
+            ]
+            : visibleSections;
+
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: 420,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _buildCoverImage(context, book.id, book.cover),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.0),
+                        Colors.black.withValues(alpha: 0.3),
+                        Colors.black,
+                      ],
+                      stops: const [0.0, 0.65, 1.0],
+                    ),
+                  ),
                 ),
-              ),
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 20,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        book.title,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        localizations.by(book.authors),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: .9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
+          ),
+        ),
 
+        SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [...bodySections, const SizedBox(height: 24)],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAllSectionsDisabledFallback(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        children: [
+          Text(
+            localizations.bookDetailsAllSectionsDisabledTitle,
+            style: Theme.of(context).textTheme.titleLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            localizations.bookDetailsAllSectionsDisabledDescription,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.of(context).push(
+                AppTransitions.createSlideRoute(
+                  const SettingsPage(
+                    initialSubPage: SettingsSubPage.bookDetails,
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.settings_rounded),
+            label: Text(localizations.settings),
+          ),
         ],
       ),
     );
@@ -708,100 +799,90 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     BookDetailsModel book,
     bool isLoading,
   ) {
-    final isOpds =
-        GetIt.instance<SharedPreferences>().getString('server_type') ==
-            'opds' ||
-        GetIt.instance<SharedPreferences>().getString('server_type') ==
-            'booklore';
+    final settingsState = context.select((SettingsBloc bloc) => bloc.state);
+    final enabledActionKeys = settingsState.enabledBookActions.toSet();
+    final serverType = GetIt.instance<SharedPreferences>().getString(
+      'server_type',
+    );
+    final isOpds = serverType == 'opds' || serverType == 'booklore';
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          if (!isOpds)
-            IconButton(
-              icon: CircleAvatar(
-                backgroundColor:
-                    Theme.of(context).colorScheme.secondaryContainer,
-                child:
-                    state.readStatusState == ReadStatusState.loading
-                        ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 3),
-                        )
-                        : Icon(
-                          state.isBookRead
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-              ),
-              onPressed:
-                  isLoading
-                      ? null
-                      : () => context.read<BookDetailsBloc>().add(
-                        ToggleReadStatus(book.id),
+    final actionBuilders = <String, Widget Function()>{
+      BookDetailsAction.toggleReadStatus.key:
+          () => IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              child:
+                  state.readStatusState == ReadStatusState.loading
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      )
+                      : Icon(
+                        state.isBookRead
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
-              tooltip: localizations.markAsReadUnread,
             ),
-
-          if (!isOpds)
-            IconButton(
-              icon: CircleAvatar(
-                backgroundColor:
-                    Theme.of(context).colorScheme.secondaryContainer,
-                child:
-                    state.archiveStatusState == ArchiveStatusState.loading
-                        ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 3),
-                        )
-                        : Icon(
-                          state.isBookArchived
-                              ? Icons.archive
-                              : Icons.unarchive,
-                        ),
-              ),
-              onPressed:
-                  isLoading
-                      ? null
-                      : () => context.read<BookDetailsBloc>().add(
-                        ToggleArchiveStatus(book.id),
+            onPressed:
+                isLoading
+                    ? null
+                    : () => context.read<BookDetailsBloc>().add(
+                      ToggleReadStatus(book.id),
+                    ),
+            tooltip: localizations.markAsReadUnread,
+          ),
+      BookDetailsAction.toggleArchiveStatus.key:
+          () => IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              child:
+                  state.archiveStatusState == ArchiveStatusState.loading
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      )
+                      : Icon(
+                        state.isBookArchived ? Icons.archive : Icons.unarchive,
                       ),
-              tooltip: localizations.archiveUnarchive,
             ),
-
-          if (!isOpds)
-            EditBookMetadataWidget(
-              book: book,
-              isLoading: isLoading,
-              bookViewModel: state.bookViewModel ?? widget.bookViewModel,
-            ),
-
-          if (!isOpds) AddToShelfWidget(book: book, isLoading: isLoading),
-
-          DownloadToDeviceWidget(book: book, isLoading: isLoading),
-
-          IconButton(
+            onPressed:
+                isLoading
+                    ? null
+                    : () => context.read<BookDetailsBloc>().add(
+                      ToggleArchiveStatus(book.id),
+                    ),
+            tooltip: localizations.archiveUnarchive,
+          ),
+      BookDetailsAction.editMetadata.key:
+          () => EditBookMetadataWidget(
+            book: book,
+            isLoading: isLoading,
+            bookViewModel: state.bookViewModel ?? widget.bookViewModel,
+          ),
+      BookDetailsAction.addToShelf.key:
+          () => AddToShelfWidget(book: book, isLoading: isLoading),
+      BookDetailsAction.downloadToDevice.key:
+          () => DownloadToDeviceWidget(book: book, isLoading: isLoading),
+      BookDetailsAction.openInInternalReader.key:
+          () => IconButton(
             icon: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
               child:
                   state.openInInternalReaderState ==
                           OpenInInternalReaderState.loading
-                      ? SizedBox(
+                      ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 3),
                       )
-                      : Icon(Icons.menu_book_rounded),
+                      : const Icon(Icons.menu_book_rounded),
             ),
             onPressed:
                 isLoading
                     ? null
                     : () async {
-                      final settingsState = context.read<SettingsBloc>().state;
                       DocumentFile? selectedDirectory;
 
                       if (settingsState.defaultDownloadPath.isEmpty) {
@@ -842,24 +923,23 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                     },
             tooltip: localizations.openInInternalReader,
           ),
-
-          IconButton(
+      BookDetailsAction.openInReader.key:
+          () => IconButton(
             icon: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
               child:
                   state.openInReaderState == OpenInReaderState.loading
-                      ? SizedBox(
+                      ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 3),
                       )
-                      : Icon(Icons.open_in_new_rounded),
+                      : const Icon(Icons.open_in_new_rounded),
             ),
             onPressed:
                 isLoading
                     ? null
                     : () async {
-                      final settingsState = context.read<SettingsBloc>().state;
                       DocumentFile? selectedDirectory;
 
                       if (settingsState.defaultDownloadPath.isEmpty) {
@@ -902,84 +982,108 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                     },
             tooltip: localizations.openInReader,
           ),
-
-          if (!isOpds)
-            IconButton(
-              icon: CircleAvatar(
-                backgroundColor:
-                    Theme.of(context).colorScheme.secondaryContainer,
-                child: Icon(Icons.open_in_browser_rounded),
-              ),
-              onPressed:
-                  () =>
-                      context.read<BookDetailsBloc>().add(OpenBookInBrowser()),
-              tooltip: localizations.openBookInBrowser,
+      BookDetailsAction.openInBrowser.key:
+          () => IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              child: const Icon(Icons.open_in_browser_rounded),
             ),
-
-          if (!isOpds)
-            IconButton(
-              icon: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                child:
-                    state.deleteBookState == DeleteBookState.loading
-                        ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 3),
-                        )
-                        : Icon(
-                          Icons.delete_rounded,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-              ),
-              onPressed:
-                  isLoading
-                      ? null
-                      : () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: Text(localizations.deleteBook),
-                              content: Text(
-                                localizations.deleteBookConfirmation,
+            onPressed:
+                () => context.read<BookDetailsBloc>().add(OpenBookInBrowser()),
+            tooltip: localizations.openBookInBrowser,
+          ),
+      BookDetailsAction.deleteBook.key:
+          () => IconButton(
+            icon: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.errorContainer,
+              child:
+                  state.deleteBookState == DeleteBookState.loading
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      )
+                      : Icon(
+                        Icons.delete_rounded,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+            ),
+            onPressed:
+                isLoading
+                    ? null
+                    : () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: Text(localizations.deleteBook),
+                            content: Text(localizations.deleteBookConfirmation),
+                            actions: [
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.error,
+                                ),
+                                onPressed:
+                                    () => Navigator.of(context).pop(true),
+                                child: Text(
+                                  localizations.delete,
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onError,
+                                  ),
+                                ),
                               ),
-                              actions: [
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.error,
-                                  ),
-                                  onPressed:
-                                      () => Navigator.of(context).pop(true),
-                                  child: Text(
-                                    localizations.delete,
-                                    style: TextStyle(
-                                      color:
-                                          Theme.of(context).colorScheme.onError,
-                                    ),
-                                  ),
-                                ),
-                                ElevatedButton(
-                                  onPressed:
-                                      () => Navigator.of(context).pop(false),
-                                  child: Text(localizations.cancel),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-
-                        if (confirm == true) {
-                          // ignore: use_build_context_synchronously
-                          context.read<BookDetailsBloc>().add(
-                            DeleteBook(book.id),
+                              ElevatedButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(false),
+                                child: Text(localizations.cancel),
+                              ),
+                            ],
                           );
-                        }
-                      },
-              tooltip: localizations.deleteBook,
-            ),
-        ],
+                        },
+                      );
+
+                      if (confirm == true) {
+                        // ignore: use_build_context_synchronously
+                        context.read<BookDetailsBloc>().add(
+                          DeleteBook(book.id),
+                        );
+                      }
+                    },
+            tooltip: localizations.deleteBook,
+          ),
+    };
+
+    final unsupportedOnOpds = <String>{
+      BookDetailsAction.toggleReadStatus.key,
+      BookDetailsAction.toggleArchiveStatus.key,
+      BookDetailsAction.editMetadata.key,
+      BookDetailsAction.addToShelf.key,
+      BookDetailsAction.openInBrowser.key,
+      BookDetailsAction.deleteBook.key,
+    };
+
+    final visibleOrder =
+        settingsState.bookActionsOrder.where((actionKey) {
+          final isEnabled = enabledActionKeys.contains(actionKey);
+          final exists = actionBuilders.containsKey(actionKey);
+          final isSupported = !isOpds || !unsupportedOnOpds.contains(actionKey);
+          return isEnabled && exists && isSupported;
+        }).toList();
+
+    if (visibleOrder.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children:
+            visibleOrder
+                .map((actionKey) => actionBuilders[actionKey]!())
+                .toList(),
       ),
     );
   }
@@ -1118,8 +1222,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
   Widget _buildCoverImage(BuildContext context, int bookId, String? coverUrl) {
     return SizedBox(
-      height: 300,
-      width: double.infinity,
+      //height: 350,
       child: BookCoverWidget(bookId: bookId, coverUrl: coverUrl),
     );
   }

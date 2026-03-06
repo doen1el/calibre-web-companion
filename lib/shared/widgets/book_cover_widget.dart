@@ -11,8 +11,16 @@ import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
 class BookCoverWidget extends StatelessWidget {
   final int bookId;
   final String? coverUrl;
+  final BoxFit fit;
+  final Alignment alignment;
 
-  const BookCoverWidget({super.key, required this.bookId, this.coverUrl});
+  const BookCoverWidget({
+    super.key,
+    required this.bookId,
+    this.coverUrl,
+    this.fit = BoxFit.fitWidth,
+    this.alignment = Alignment.topCenter,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +45,8 @@ class BookCoverWidget extends StatelessWidget {
           imageUrl: imageUrl,
           httpHeaders: headers,
           key: ValueKey('${bookId}_$imageUrl'),
-          fit: BoxFit.cover,
+          fit: fit,
+          alignment: alignment,
           width: double.infinity,
           height: double.infinity,
           placeholder: (context, url) => _buildPlaceholder(context),
