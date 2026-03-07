@@ -411,5 +411,8 @@
     "deleteBookConfirmation": "Segur que el vols esborrar?",
     "bookDeletedSuccessfully": "Llibre esborrat correctament",
     "showSendToEReaderButton": "Mostra botó 'Envia a e-Reader'",
-    "showSendToEReaderButtonDescription": "Mostra botó \"Envia al llibre electrònic\" a les pàgines de detalls del llibre per enviar llibres fàcilment al teu lector."
+    "showSendToEReaderButtonDescription": "Mostra botó \"Envia al llibre electrònic\" a les pàgines de detalls del llibre per enviar llibres fàcilment al teu lector.",
+    "discoverAllSectionsDisabledTitle": "Opcions de descobriment deshabilitades",
+    "discoverAllSectionsDisabledDescription": "Habilita les seccions a Opcions > Descobreix.",
+    "bookDetailsAllSectionsDisabledTitle": "Seccions de detalls de llibres deshabilitades"
 }
