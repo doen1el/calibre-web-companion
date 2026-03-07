@@ -1,0 +1,1 @@
+- Függőség info eltávolítva f-droid verziónál

@@ -1,0 +1,2 @@
+- Fordítás hozzáadva a letöltési beállításokhoz
+. Mappa engedélyek sorrendjének megváltoztatása

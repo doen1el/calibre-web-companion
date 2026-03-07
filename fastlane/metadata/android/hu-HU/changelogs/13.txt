@@ -1,0 +1,5 @@
+- Kattintható sorozatnév hozzáadva
+- Kattintható címke hozzáadva
+- Automatikus kitöltés bejelentkezéskor
+- Könyvek megnyitása telepített olvasóban
+- Reverse proxy hitelesítés hozzáadva

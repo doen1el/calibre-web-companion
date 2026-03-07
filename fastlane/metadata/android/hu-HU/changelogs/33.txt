@@ -1,0 +1,10 @@
+- Jobb hibaüzenet a szink. beállításoknál, ha a Calibre Web szekció le van tiltva.
+- Naplók megtekintése és másolása hibajelentéshez.
+- Felfedezés szekciók átrendezésének és letiltásának lehetősége.
+- Könyv részletek átrendezésének és letiltásának lehetősége.
+- Kónyvműveletek átrendezésének és letiltásánal lehetősége.
+- Javítva: 401 hiba Polc borítóknál.
+- Javítva: Polc hozzáadása/törlése hibás hiányzó xsrfTokenUrl miatt.
+- Beállítások menü újratervezve.
+- Apró felhasználói felület javítások.
+- Könyv részletek oldal újradolgozva.
