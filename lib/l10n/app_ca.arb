@@ -414,5 +414,12 @@
     "showSendToEReaderButtonDescription": "Mostra botó \"Envia al llibre electrònic\" a les pàgines de detalls del llibre per enviar llibres fàcilment al teu lector.",
     "discoverAllSectionsDisabledTitle": "Opcions de descobriment deshabilitades",
     "discoverAllSectionsDisabledDescription": "Habilita les seccions a Opcions > Descobreix.",
-    "bookDetailsAllSectionsDisabledTitle": "Seccions de detalls de llibres deshabilitades"
+    "bookDetailsAllSectionsDisabledTitle": "Seccions de detalls de llibres deshabilitades",
+    "clearLogs": "Neteja Logs",
+    "bookDetailsAllSectionsDisabledDescription": "Habilita seccions a Opcions > Detalls Llibre.",
+    "appLogs": "Logs App",
+    "openAndCopyLogs": "Obre i copia logs per a reports d'error",
+    "noLogsAvailable": "Sense logs disponibles.",
+    "logsCopied": "Logs copiats al porta-retalls",
+    "copyLogs": "Còpia logs"
 }
