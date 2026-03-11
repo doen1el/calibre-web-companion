@@ -1,0 +1,4 @@
+- Frissítve: kód az új Calibre adatbázishoz igazítva
+- Hozzáadva: orosz nyelv
+- Hozzáadva: "Send to Ereade" gomb elrejtése
+- Frissítve: Az alapértelmezett letöltési nyelv angol (Shelfmark).

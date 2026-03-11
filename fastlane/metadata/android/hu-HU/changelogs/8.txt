@@ -1,0 +1,4 @@
+- Letöltési mappa globális megadása
+- Letöltési útvonal globális megadása
+- Letöltési útvonal sorozatoknál hiba javítása
+- Frissítve a workflow, hogy várhatóan elkerülje a frissítési konfliktusokat

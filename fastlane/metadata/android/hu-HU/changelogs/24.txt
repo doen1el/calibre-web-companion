@@ -1,0 +1,20 @@
+- A bejelentkezési adatok mostantól megmaradnak az alkalmazás újraindítása után is, és az alkalmazás automatikusan megpróbál újra bejelentkezni, ha a munkamenet lejár.
+- Több fájltípus engedélyezett a könyvek feltöltésekor.
+- Lehetőség nyilvános és nem nyilvános polcok létrehozására.
+- Javítva egy hiba, amely akkor jelentkezett, amikor csak egyetlen polc létezett.
+- A sorozatok mostantól helyesen jelennek meg a könyv részleteinél.
+- Frissítve a build pipeline, hogy támogassa más APK-típusokat, az iOS buildet és a közzétételt a Google Play Store áruházban.
+- Javítva egy probléma, amely több formátumú könyvek letöltésekor jelentkezett.
+- A Calibre-Web-Automated-Book-Downloader integráció frissítve a legújabb verzióra.
+- A könyvkommentekből eltávolításra kerültek a HTML elemek.
+- Hozzáadva az alfabetikus rendezés a Felfedezés oldalon.
+- Hozzáadva a lehetőség, hogy a „Send to E-Reader” gomb „Read Now”-ra változtatható legyen.
+- Lista nézet hozzáadva a kezdőoldalhoz.
+- Optimalizálva a könyvek betöltése a polcokról és a Felfedezés oldalról.
+- Lehetőség könyv metaadatainak módosítására.
+- Lehetőség könyvborítók módosítására.
+- Jobb visszajelzés jelenik meg, ha egy Felfedezés kategória le van tiltva.
+- Bővített egyéni fejléc funkciók.
+- Weblate fordítási támogatás hozzáadva.
+- Portugál fordítás hozzáadva.
+- Kisebb hibajavítások

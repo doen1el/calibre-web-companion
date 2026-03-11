@@ -1,0 +1,6 @@
+- Calibre-Web-Downloader megváltoztatása Shelfmark-ra
+- Hozzáadva: magyar, svéd és török nyelv
+- Booklore autentikációs hiba javítva
+- Shelfmark autentikációs hiba javítva
+- Jobb ellenőrzés amikor a könyv már le van töltve
+- Könyvtár szinkronizáció könyvek tömeges letöltéséhez
