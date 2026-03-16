@@ -123,12 +123,23 @@ class DownloadServiceRemoteDataSource {
     try {
       final baseUrl = await _getBaseUrl();
 
-      final uri = Uri.parse('$baseUrl/api/search').replace(
-        queryParameters: {
-          'query': query,
-          if (filter != null) ..._buildFilterParams(filter),
-        },
-      );
+      final queryParameters = <String, List<String>>{
+        'source': ['direct_download'],
+        'query': [query],
+        'sort': ['relevance'],
+        if (filter != null) ..._buildFilterParams(filter),
+      };
+
+      final queryString = queryParameters.entries
+          .expand(
+            (entry) => entry.value.map(
+              (value) =>
+                  '${Uri.encodeQueryComponent(entry.key)}=${Uri.encodeQueryComponent(value)}',
+            ),
+          )
+          .join('&');
+
+      final uri = Uri.parse('$baseUrl/api/releases?$queryString');
 
       logger.i('Searching with URI: $uri');
 
@@ -137,7 +148,8 @@ class DownloadServiceRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> results = json.decode(response.body);
+        final decoded = json.decode(response.body);
+        final results = _extractSearchResults(decoded);
         logger.d(response.body);
         final books =
             results
@@ -160,20 +172,43 @@ class DownloadServiceRemoteDataSource {
     }
   }
 
-  Map<String, dynamic> _buildFilterParams(DownloadFilterModel filter) {
-    final params = <String, dynamic>{};
+  List<Map<String, dynamic>> _extractSearchResults(dynamic decoded) {
+    if (decoded is List) {
+      return decoded.whereType<Map<String, dynamic>>().toList();
+    }
+
+    if (decoded is Map<String, dynamic>) {
+      final listCandidates = [
+        decoded['results'],
+        decoded['releases'],
+        decoded['items'],
+        decoded['data'],
+      ];
+
+      for (final candidate in listCandidates) {
+        if (candidate is List) {
+          return candidate.whereType<Map<String, dynamic>>().toList();
+        }
+      }
+    }
+
+    throw const FormatException('Unexpected search response format');
+  }
+
+  Map<String, List<String>> _buildFilterParams(DownloadFilterModel filter) {
+    final params = <String, List<String>>{};
 
     if (filter.isbn != null && filter.isbn!.isNotEmpty) {
-      params['isbn'] = filter.isbn;
+      params['isbn'] = [filter.isbn!];
     }
     if (filter.author != null && filter.author!.isNotEmpty) {
-      params['author'] = filter.author;
+      params['author'] = [filter.author!];
     }
     if (filter.title != null && filter.title!.isNotEmpty) {
-      params['title'] = filter.title;
+      params['title'] = [filter.title!];
     }
     if (filter.content != null && filter.content!.isNotEmpty) {
-      params['content'] = filter.content;
+      params['content'] = [filter.content!];
     }
 
     if (filter.languages.isNotEmpty) {
@@ -186,15 +221,29 @@ class DownloadServiceRemoteDataSource {
     return params;
   }
 
-  Future<bool> downloadBook(String bookId) async {
+  Future<bool> downloadBook(DownloadServiceBookModel book) async {
     try {
       final baseUrl = await _getBaseUrl();
-      final uri = Uri.parse('$baseUrl/api/download?id=$bookId');
+      final uri = Uri.parse('$baseUrl/api/releases/download');
 
-      logger.i('Making download request for $bookId');
+      final payload = {
+        'source': 'direct_download',
+        'source_id': book.id,
+        'title': book.title,
+        'author': book.author,
+        'year': book.year,
+        'format': book.format,
+        'size': book.size,
+        'preview': book.preview,
+        'content_type': 'ebook',
+        'search_mode': 'direct',
+      };
+
+      logger.i('Making download request for ${book.id}');
 
       final response = await _executeWithRetry(
-        (headers) => client.get(uri, headers: headers),
+        (headers) =>
+            client.post(uri, headers: headers, body: jsonEncode(payload)),
       );
 
       if (response.statusCode == 200) {
