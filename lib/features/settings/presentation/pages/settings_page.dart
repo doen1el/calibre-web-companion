@@ -881,6 +881,8 @@ class _SettingsPageState extends State<SettingsPage> {
       {'code': 'tr', 'name': 'Türkçe', 'flag': '🇹🇷'},
       {'code': 'ca', 'name': 'Català', 'flag': '🇦🇩'},
       {'code': 'ru', 'name': 'Русский', 'flag': '🇷🇺'},
+      {'code': 'ar', 'name': 'العربية', 'flag': '🇸🇦'},
+      {'code': 'zh', 'name': '中文', 'flag': '🇨🇳'},
     ];
 
     return Card(
