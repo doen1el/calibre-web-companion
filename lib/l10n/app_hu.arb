@@ -184,7 +184,7 @@
     "title": "Cím",
     "required": "Kötelező",
     "submit": "Küldés",
-    "bookActions": "Könyvakciók",
+    "bookActions": "Könyvműveletek",
     "openBookInBrowser": "Könyv megnyitása böngészőben",
     "metadataUpdateSuccessfully": "Metaadatok sikeresen frissítve",
     "editBookMetadata": "Metaadatok szerkesztése",
@@ -411,5 +411,15 @@
     "deleteBook": "Könyv törlése",
     "deleteBookConfirmation": "Biztosan törölni szeretnéd ezt a könyvet?",
     "bookDeletedSuccessfully": "Könyv sikeresen törölve",
-    "failedToDeleteBook": "Nem sikerült törölni a könyvet"
+    "failedToDeleteBook": "Nem sikerült törölni a könyvet",
+    "discoverAllSectionsDisabledTitle": "Minden Felfedezés szekció ki van kapcsolva",
+    "discoverAllSectionsDisabledDescription": "Szekciók engedélyezése: Beállítások > Felfedezés.",
+    "bookDetailsAllSectionsDisabledTitle": "Minden Könyv részletek szekció ki van kapcsolva",
+    "bookDetailsAllSectionsDisabledDescription": "Szekciók engedélyezése: Beállítások > Könyv részletek.",
+    "appLogs": "Alkalmazás naplók",
+    "openAndCopyLogs": "Naplók megnyitása és másolása hibabejelentéshez",
+    "noLogsAvailable": "Még nincs elérhető napló.",
+    "logsCopied": "Naplók kimásolva vágólapra",
+    "copyLogs": "Naplók másolása",
+    "clearLogs": "Naplók törlése"
 }

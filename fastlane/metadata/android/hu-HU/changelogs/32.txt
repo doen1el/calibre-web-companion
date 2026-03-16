@@ -1,0 +1,2 @@
+- Könyvek törlésének a lehetősége a könyv részleteknél
+- Animációk letiltásának lehetősége e-ink eszközökhöz

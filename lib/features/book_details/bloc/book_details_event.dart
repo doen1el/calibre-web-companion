@@ -213,6 +213,9 @@ class SendToEReaderViaBrowser extends BookDetailsEvent {
   final bool isKindle;
   final String title;
   final String send2ereaderUrl;
+  final bool downloadToDeviceFirst;
+  final DocumentFile? selectedDirectory;
+  final DownloadSchema? schema;
 
   const SendToEReaderViaBrowser({
     required this.bookId,
@@ -220,10 +223,22 @@ class SendToEReaderViaBrowser extends BookDetailsEvent {
     required this.isKindle,
     required this.title,
     required this.send2ereaderUrl,
+    this.downloadToDeviceFirst = false,
+    this.selectedDirectory,
+    this.schema,
   });
 
   @override
-  List<Object?> get props => [bookId, code, isKindle, title, send2ereaderUrl];
+  List<Object?> get props => [
+    bookId,
+    code,
+    isKindle,
+    title,
+    send2ereaderUrl,
+    downloadToDeviceFirst,
+    selectedDirectory,
+    schema,
+  ];
 }
 
 class SendToEReaderByEmail extends BookDetailsEvent {

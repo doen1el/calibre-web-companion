@@ -1,0 +1,3 @@
+- Arabic and Chinese translations have been added.
+- Fixed: Adjusted Shelfmark integration for the new version.
+- Added: Option to save books sent to eReader to specified downloads folder.

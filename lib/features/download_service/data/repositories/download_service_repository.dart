@@ -26,9 +26,9 @@ class DownloadServiceRepository {
     }
   }
 
-  Future<bool> downloadBook(String bookId) async {
+  Future<bool> downloadBook(DownloadServiceBookModel book) async {
     try {
-      return await remoteDataSource.downloadBook(bookId);
+      return await remoteDataSource.downloadBook(book);
     } catch (e) {
       rethrow;
     }

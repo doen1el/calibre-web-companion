@@ -140,13 +140,13 @@ class DownloadServiceBloc
     emit(
       state.copyWith(
         downloadStatus: DownloadServiceStatus.loading,
-        downloadingBookId: event.bookId,
+        downloadingBookId: event.book.id,
         errorMessage: null,
       ),
     );
 
     try {
-      final success = await repository.downloadBook(event.bookId);
+      final success = await repository.downloadBook(event.book);
       if (success) {
         emit(
           state.copyWith(

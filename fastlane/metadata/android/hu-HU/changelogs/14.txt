@@ -1,0 +1,5 @@
+- oszlop szám megadása könyv lista módban
+- könyv feltöltés lehetősége calibre-webre
+- egyéni send2ereader hozzáadásának lehetősége
+- pdf-et nem lehet megnyitni külső alkalmazásban hiba javítva
+- író általi rendezésnél nincs minden könyv megjelenítve hiba javítva

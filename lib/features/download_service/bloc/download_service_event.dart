@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
+import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
 
 abstract class DownloadServiceEvent extends Equatable {
   const DownloadServiceEvent();
@@ -20,12 +21,12 @@ class SearchBooks extends DownloadServiceEvent {
 }
 
 class DownloadBook extends DownloadServiceEvent {
-  final String bookId;
+  final DownloadServiceBookModel book;
 
-  const DownloadBook(this.bookId);
+  const DownloadBook(this.book);
 
   @override
-  List<Object?> get props => [bookId];
+  List<Object?> get props => [book];
 }
 
 class GetDownloadStatus extends DownloadServiceEvent {}

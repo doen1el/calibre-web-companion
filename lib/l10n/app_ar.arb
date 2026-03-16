@@ -1,1 +1,12 @@
-{}
+{
+    "loginToCalibreWb": "تسجيل الدخول إلى Calibre Web",
+    "calibreWebUrl": "https://calibre.example.com",
+    "enterCalibreWebUrl": "أدخل عنوان Calibre Web",
+    "username": "اسم المستخدم",
+    "enterYourUsername": "أدخل اسم المستخدم الخاص بك",
+    "password": "كلمة السر",
+    "enterYourPassword": "أدخل كلمة السر الخاصة بك",
+    "login": "تسجيل الدخول",
+    "pleaseFillInAllFields": "يُرجى ملء جميع الحقول",
+    "failedToLognIn": "فشل تسجيل الدخول"
+}

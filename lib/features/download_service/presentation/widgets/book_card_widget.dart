@@ -377,7 +377,7 @@ class _BookCardWidgetState extends State<BookCardWidget> {
                   ? null
                   : () async {
                     context.read<DownloadServiceBloc>().add(
-                      DownloadBook(widget.book.id),
+                      DownloadBook(widget.book),
                     );
                     context.showSnackBar(
                       localizations.addedBookToTheDownloadQueue,
@@ -431,7 +431,7 @@ class _BookCardWidgetState extends State<BookCardWidget> {
                   isLoadingThisBook
                       ? null
                       : () => context.read<DownloadServiceBloc>().add(
-                        DownloadBook(widget.book.id),
+                        DownloadBook(widget.book),
                       ),
               icon:
                   isLoadingThisBook

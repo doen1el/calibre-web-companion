@@ -34,21 +34,71 @@ class DownloadServiceBookModel extends Equatable {
   factory DownloadServiceBookModel.fromSearchResponse(
     Map<String, dynamic> json,
   ) {
+    final extra =
+        json['extra'] is Map<String, dynamic>
+            ? json['extra'] as Map<String, dynamic>
+            : const <String, dynamic>{};
+
+    final topLevelDownloadUrls = _toStringList(json['download_urls']);
+    final extraDownloadUrls = _toStringList(extra['download_urls']);
+    final fallbackDownloadUrl = _stringOrEmpty(json['download_url']);
+
     return DownloadServiceBookModel(
-      id: json['id'] ?? '',
-      title: json['title'] ?? '',
-      author: json['author'] ?? '',
-      format: json['format'] ?? '',
-      size: json['size'] ?? '',
-      preview: json['preview'] ?? '',
-      publisher: json['publisher'] ?? '',
-      year: json['year']?.toString() ?? '',
-      language: json['language'] ?? '',
+      id:
+          _stringOrEmpty(json['id']).isNotEmpty
+              ? _stringOrEmpty(json['id'])
+              : _stringOrEmpty(json['source_id']),
+      title: _stringOrEmpty(json['title']),
+      author:
+          _stringOrEmpty(json['author']).isNotEmpty
+              ? _stringOrEmpty(json['author'])
+              : _stringOrEmpty(extra['author']),
+      format: _stringOrEmpty(json['format']),
+      size: _stringOrEmpty(json['size']),
+      preview:
+          _stringOrEmpty(json['preview']).isNotEmpty
+              ? _stringOrEmpty(json['preview'])
+              : _stringOrEmpty(extra['preview']),
+      publisher:
+          _stringOrEmpty(json['publisher']).isNotEmpty
+              ? _stringOrEmpty(json['publisher'])
+              : _stringOrEmpty(extra['publisher']),
+      year:
+          _stringOrEmpty(json['year']).isNotEmpty
+              ? _stringOrEmpty(json['year'])
+              : _stringOrEmpty(extra['year']),
+      language:
+          _stringOrEmpty(json['language']).isNotEmpty
+              ? _stringOrEmpty(json['language'])
+              : _stringOrEmpty(extra['language']),
       downloadUrls:
-          json['download_urls'] != null
-              ? List<String>.from(json['download_urls'])
-              : [],
+          topLevelDownloadUrls.isNotEmpty
+              ? topLevelDownloadUrls
+              : extraDownloadUrls.isNotEmpty
+              ? extraDownloadUrls
+              : fallbackDownloadUrl.isNotEmpty
+              ? [fallbackDownloadUrl]
+              : const [],
     );
+  }
+
+  static String _stringOrEmpty(dynamic value) {
+    if (value == null) {
+      return '';
+    }
+
+    return value.toString().trim();
+  }
+
+  static List<String> _toStringList(dynamic value) {
+    if (value is! List) {
+      return const [];
+    }
+
+    return value
+        .map((item) => item?.toString().trim() ?? '')
+        .where((item) => item.isNotEmpty)
+        .toList();
   }
 
   DownloadServiceBookModel copyWith({

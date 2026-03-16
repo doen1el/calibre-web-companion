@@ -1,0 +1,5 @@
+- Téma szín megváltoztatásának lehetősége
+- Letöltési útvonal megadásának lehetősége
+- Könyv ajánló oldal hozzáadva
+- Letöltési lehetőség ajánló oldalon
+- Több kisebb hiba javítása és felhasználói felület változások

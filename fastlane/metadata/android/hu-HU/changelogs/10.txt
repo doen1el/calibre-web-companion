@@ -1,0 +1,3 @@
+- Verzió kód generálás frissítve
+- Hot fix könyvletöltéshez
+- Könyvajánlások eltávolítva (egyelőre)

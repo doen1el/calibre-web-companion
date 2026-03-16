@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:docman/docman.dart';
 import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
@@ -569,12 +570,27 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       emit(state.copyWith(sendToEReaderState: SendToEReaderState.downloading));
 
       final List<int> bookBytes = [];
-      final response = await repository.getDownloadStream(event.bookId, 'epub');
 
-      var contentLength = response.contentLength ?? -1;
-      int receivedBytes = 0;
+      if (event.downloadToDeviceFirst) {
+        if (state.bookDetails == null) {
+          throw Exception('Book details not available for device download');
+        }
+        if (event.selectedDirectory == null || event.schema == null) {
+          throw Exception('Download directory is missing');
+        }
 
-      await for (final chunk in response.stream) {
+        final localFileUri = await repository.downloadBook(
+          state.bookDetails!,
+          event.selectedDirectory!,
+          event.schema!,
+          format: 'epub',
+          progressCallback: (progress) {
+            if (!_sendToEReaderCancelled) {
+              emit(state.copyWith(sendToEReaderProgress: progress));
+            }
+          },
+        );
+
         if (_sendToEReaderCancelled) {
           emit(
             state.copyWith(sendToEReaderState: SendToEReaderState.cancelled),
@@ -582,13 +598,41 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           return;
         }
 
-        receivedBytes += chunk.length;
-        bookBytes.addAll(chunk);
+        final downloadedFile = await DocumentFile.fromUri(localFileUri);
+        if (downloadedFile == null || !downloadedFile.isFile) {
+          throw Exception('Downloaded file could not be read from device');
+        }
 
-        if (contentLength > 0) {
-          final progress = (receivedBytes / contentLength * 100).round();
-          logger.d('Download progress: $progress%');
-          emit(state.copyWith(sendToEReaderProgress: progress));
+        final bytes = await downloadedFile.read();
+        if (bytes == null || bytes.isEmpty) {
+          throw Exception('Downloaded file is empty');
+        }
+        bookBytes.addAll(bytes);
+      } else {
+        final response = await repository.getDownloadStream(
+          event.bookId,
+          'epub',
+        );
+
+        var contentLength = response.contentLength ?? -1;
+        int receivedBytes = 0;
+
+        await for (final chunk in response.stream) {
+          if (_sendToEReaderCancelled) {
+            emit(
+              state.copyWith(sendToEReaderState: SendToEReaderState.cancelled),
+            );
+            return;
+          }
+
+          receivedBytes += chunk.length;
+          bookBytes.addAll(chunk);
+
+          if (contentLength > 0) {
+            final progress = (receivedBytes / contentLength * 100).round();
+            logger.d('Download progress: $progress%');
+            emit(state.copyWith(sendToEReaderProgress: progress));
+          }
         }
       }
 

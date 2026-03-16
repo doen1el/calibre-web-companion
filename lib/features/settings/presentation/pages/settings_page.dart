@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:docman/docman.dart';
 
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
@@ -815,6 +816,72 @@ class _SettingsPageState extends State<SettingsPage> {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(
+                    Icons.download_for_offline_rounded,
+                    size: 24,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          localizations.storeReadNowAndSendToEReaderOnDevice,
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          localizations
+                              .storeReadNowAndSendToEReaderOnDeviceDescription,
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: state.storeReadNowAndSendToEReaderOnDevice,
+                    onChanged: (value) async {
+                      if (!value) {
+                        context.read<SettingsBloc>().add(
+                          const SetStoreReadNowAndSendToEReaderOnDevice(false),
+                        );
+                        return;
+                      }
+
+                      if (state.defaultDownloadPath.isEmpty) {
+                        final selectedDirectory = await DocMan.pick.directory();
+                        if (selectedDirectory == null) {
+                          if (context.mounted) {
+                            context.showSnackBar(
+                              localizations.noFolderWasSelected,
+                              isError: true,
+                            );
+                          }
+                          return;
+                        }
+
+                        if (context.mounted) {
+                          context.read<SettingsBloc>().add(
+                            SetDownloadFolder(selectedDirectory.uri),
+                          );
+                        }
+                      }
+
+                      if (context.mounted) {
+                        context.read<SettingsBloc>().add(
+                          const SetStoreReadNowAndSendToEReaderOnDevice(true),
+                        );
+                      }
+                    },
+                    activeThumbColor: Theme.of(context).colorScheme.primary,
+                  ),
+                ],
+              ),
             ],
           ],
         ),
@@ -881,6 +948,8 @@ class _SettingsPageState extends State<SettingsPage> {
       {'code': 'tr', 'name': 'Türkçe', 'flag': '🇹🇷'},
       {'code': 'ca', 'name': 'Català', 'flag': '🇦🇩'},
       {'code': 'ru', 'name': 'Русский', 'flag': '🇷🇺'},
+      {'code': 'ar', 'name': 'العربية', 'flag': '🇸🇦'},
+      {'code': 'zh', 'name': '中文', 'flag': '🇨🇳'},
     ];
 
     return Card(

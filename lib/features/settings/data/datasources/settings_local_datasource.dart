@@ -46,6 +46,11 @@ class SettingsLocalDataSource {
             sharedPreferences.getBool('show_read_now_button') ?? false,
         'show_send_to_ereader_button':
             sharedPreferences.getBool('show_send_to_ereader_button') ?? true,
+        'store_read_now_send_to_ereader_on_device':
+            sharedPreferences.getBool(
+              'store_read_now_send_to_ereader_on_device',
+            ) ??
+            false,
         'webdav_url': sharedPreferences.getString('webdav_url') ?? '',
         'webdav_username': sharedPreferences.getString('webdav_username') ?? '',
         'webdav_password': sharedPreferences.getString('webdav_password') ?? '',
@@ -260,6 +265,20 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error saving show read now button: $e');
       throw Exception('Failed to save show read now button: $e');
+    }
+  }
+
+  Future<void> saveStoreReadNowAndSendToEReaderOnDevice(bool enabled) async {
+    try {
+      await sharedPreferences.setBool(
+        'store_read_now_send_to_ereader_on_device',
+        enabled,
+      );
+    } catch (e) {
+      logger.e('Error saving device storage mode for reader actions: $e');
+      throw Exception(
+        'Failed to save device storage mode for reader actions: $e',
+      );
     }
   }
 
