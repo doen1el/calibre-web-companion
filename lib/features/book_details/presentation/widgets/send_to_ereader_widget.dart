@@ -83,6 +83,17 @@ class SendToEreaderWidget extends StatelessWidget {
     AppLocalizations localizations,
     SettingsState settingsState,
   ) async {
+    if (settingsState.storeReadNowAndSendToEReaderOnDevice &&
+        settingsState.defaultDownloadPath.isEmpty) {
+      if (context.mounted) {
+        context.showSnackBar(
+          localizations.pleaseSetDefaultDownloadFolderFirst,
+          isError: true,
+        );
+      }
+      return;
+    }
+
     DocumentFile? selectedDirectory;
 
     if (settingsState.defaultDownloadPath.isEmpty) {
@@ -125,6 +136,7 @@ class SendToEreaderWidget extends StatelessWidget {
     BuildContext context,
     AppLocalizations localizations,
   ) {
+    final parentContext = context;
     final TextEditingController codeController = TextEditingController();
     bool isKindle = false;
     SendMethod sendMethod = SendMethod.browser;
@@ -176,6 +188,7 @@ class SendToEreaderWidget extends StatelessWidget {
                       ),
                       onPressed:
                           () => _handleSendAction(
+                            parentContext,
                             context,
                             localizations,
                             sendMethod,
@@ -434,7 +447,8 @@ class SendToEreaderWidget extends StatelessWidget {
   }
 
   void _handleSendAction(
-    BuildContext context,
+    BuildContext parentContext,
+    BuildContext dialogContext,
     AppLocalizations localizations,
     SendMethod sendMethod,
     TextEditingController codeController,
@@ -443,18 +457,18 @@ class SendToEreaderWidget extends StatelessWidget {
     if (sendMethod == SendMethod.browser) {
       final code = codeController.text.trim().toUpperCase();
       if (code.length != 4) {
-        context.showSnackBar(
+        parentContext.showSnackBar(
           localizations.pleaseEnter4DigitCode,
           isError: true,
         );
         return;
       }
 
-      Navigator.pop(context);
-      _sendToEReaderViaBrowser(context, localizations, code, isKindle);
+      Navigator.pop(dialogContext);
+      _sendToEReaderViaBrowser(parentContext, localizations, code, isKindle);
     } else {
-      Navigator.pop(context);
-      _sendToEReaderByEmail(context, localizations);
+      Navigator.pop(dialogContext);
+      _sendToEReaderByEmail(parentContext, localizations);
     }
   }
 
@@ -463,7 +477,36 @@ class SendToEreaderWidget extends StatelessWidget {
     AppLocalizations localizations,
     String code,
     bool isKindle,
-  ) {
+  ) async {
+    final settingsState = context.read<SettingsBloc>().state;
+    DocumentFile? selectedDirectory;
+
+    if (settingsState.storeReadNowAndSendToEReaderOnDevice) {
+      final uri = settingsState.defaultDownloadPath;
+      if (uri.isEmpty) {
+        context.showSnackBar(
+          localizations.pleaseSetDefaultDownloadFolderFirst,
+          isError: true,
+        );
+        return;
+      }
+
+      selectedDirectory = await DocumentFile.fromUri(uri);
+      if (selectedDirectory == null || !selectedDirectory.isDirectory) {
+        if (context.mounted) {
+          context.showSnackBar(
+            localizations.noFolderWasSelected,
+            isError: true,
+          );
+        }
+        return;
+      }
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
     _showTransferStatusDialog(context, localizations);
 
     context.read<BookDetailsBloc>().add(
@@ -473,6 +516,10 @@ class SendToEreaderWidget extends StatelessWidget {
         isKindle: isKindle,
         title: book.title,
         send2ereaderUrl: context.read<SettingsBloc>().state.send2ereaderUrl,
+        downloadToDeviceFirst:
+            settingsState.storeReadNowAndSendToEReaderOnDevice,
+        selectedDirectory: selectedDirectory,
+        schema: settingsState.downloadSchema,
       ),
     );
   }
@@ -492,6 +539,8 @@ class SendToEreaderWidget extends StatelessWidget {
     BuildContext context,
     AppLocalizations localizations,
   ) {
+    final outerContext = context;
+
     showModalBottomSheet(
       context: context,
       isDismissible: false,
@@ -500,180 +549,191 @@ class SendToEreaderWidget extends StatelessWidget {
       builder: (BuildContext context) {
         return PopScope(
           canPop: false,
-          child: BlocConsumer<BookDetailsBloc, BookDetailsState>(
-            listenWhen:
-                (previous, current) =>
-                    previous.sendToEReaderState != current.sendToEReaderState,
-            listener: (context, state) {
-              if (state.sendToEReaderState == SendToEReaderState.success) {
-                context.showSnackBar(
-                  localizations.successfullySentToEReader,
-                  isError: false,
-                );
-              } else if (state.sendToEReaderState == SendToEReaderState.error) {
-                context.showSnackBar(
-                  state.errorMessage ?? localizations.transferFailed,
-                  isError: true,
-                );
-              }
-            },
-            buildWhen:
-                (previous, current) =>
-                    previous.sendToEReaderState != current.sendToEReaderState ||
-                    previous.sendToEReaderProgress !=
-                        current.sendToEReaderProgress,
-            builder: (context, state) {
-              return SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildStatusIcon(state.sendToEReaderState, context),
-                      const SizedBox(height: 20),
-
-                      Text(
-                        _getStatusMessage(
-                          state.sendToEReaderState,
-                          localizations,
+          child: BlocProvider.value(
+            value: BlocProvider.of<BookDetailsBloc>(outerContext),
+            child: BlocConsumer<BookDetailsBloc, BookDetailsState>(
+              listenWhen:
+                  (previous, current) =>
+                      previous.sendToEReaderState != current.sendToEReaderState,
+              listener: (context, state) {
+                if (state.sendToEReaderState == SendToEReaderState.success) {
+                  outerContext.showSnackBar(
+                    localizations.successfullySentToEReader,
+                    isError: false,
+                  );
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  }
+                } else if (state.sendToEReaderState ==
+                    SendToEReaderState.error) {
+                  outerContext.showSnackBar(
+                    state.errorMessage ?? localizations.transferFailed,
+                    isError: true,
+                  );
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  }
+                }
+              },
+              buildWhen:
+                  (previous, current) =>
+                      previous.sendToEReaderState !=
+                          current.sendToEReaderState ||
+                      previous.sendToEReaderProgress !=
+                          current.sendToEReaderProgress,
+              builder: (context, state) {
+                return SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildStatusIcon(state.sendToEReaderState, context),
+                        const SizedBox(height: 20),
+                        Text(
+                          _getStatusMessage(
+                            state.sendToEReaderState,
+                            localizations,
+                          ),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+                        const SizedBox(height: 20),
 
-                      if (state.errorMessage != null &&
-                          state.sendToEReaderState == SendToEReaderState.error)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            state.errorMessage!,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                              fontSize: 12,
+                        if (state.sendToEReaderState ==
+                            SendToEReaderState.loading)
+                          LinearProgressIndicator(
+                            backgroundColor: Colors.grey[200],
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Theme.of(context).primaryColor,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
                           ),
-                        ),
 
-                      const SizedBox(height: 20),
-
-                      if (state.sendToEReaderState ==
-                          SendToEReaderState.loading)
-                        LinearProgressIndicator(
-                          backgroundColor: Colors.grey[200],
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Theme.of(context).primaryColor,
-                          ),
-                        ),
-
-                      if (state.sendToEReaderState ==
-                              SendToEReaderState.downloading ||
-                          state.sendToEReaderState ==
-                              SendToEReaderState.uploading)
-                        Column(
-                          children: [
-                            LinearProgressIndicator(
-                              backgroundColor: Colors.grey[200],
-                              value:
-                                  state.sendToEReaderProgress > 0
-                                      ? state.sendToEReaderProgress / 100
-                                      : null,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Theme.of(context).primaryColor,
+                        if (state.sendToEReaderState ==
+                                SendToEReaderState.downloading ||
+                            state.sendToEReaderState ==
+                                SendToEReaderState.uploading)
+                          Column(
+                            children: [
+                              LinearProgressIndicator(
+                                backgroundColor: Colors.grey[200],
+                                value:
+                                    state.sendToEReaderProgress > 0
+                                        ? state.sendToEReaderProgress / 100
+                                        : null,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Theme.of(context).primaryColor,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${state.sendToEReaderProgress}%',
+                              const SizedBox(height: 8),
+                              Text(
+                                '${state.sendToEReaderProgress}%',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                        if (state.errorMessage != null &&
+                            state.sendToEReaderState ==
+                                SendToEReaderState.error)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              state.errorMessage!,
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 12,
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
                             ),
-                          ],
-                        ),
+                          ),
 
-                      const SizedBox(height: 20),
-
-                      Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: Material(
-                          color:
-                              Theme.of(context).colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(12.0),
-                          child: InkWell(
+                        const SizedBox(height: 20),
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12.0),
-                            onTap: () {
-                              if (state.sendToEReaderState ==
-                                      SendToEReaderState.loading ||
-                                  state.sendToEReaderState ==
-                                      SendToEReaderState.downloading ||
-                                  state.sendToEReaderState ==
-                                      SendToEReaderState.uploading) {
-                                context.read<BookDetailsBloc>().add(
-                                  CancelSendToEReader(),
-                                );
-                              }
-                              Navigator.of(context).pop();
-                            },
-                            child: Container(
-                              width: double.infinity,
-                              height: 50,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
+                          ),
+                          child: Material(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(12.0),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12.0),
+                              onTap: () {
+                                if (state.sendToEReaderState ==
+                                        SendToEReaderState.loading ||
                                     state.sendToEReaderState ==
-                                                SendToEReaderState.success ||
-                                            state.sendToEReaderState ==
-                                                SendToEReaderState.error
-                                        ? Icons.close
-                                        : Icons.cancel_rounded,
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.onSecondaryContainer,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
+                                        SendToEReaderState.downloading ||
                                     state.sendToEReaderState ==
-                                                SendToEReaderState.success ||
-                                            state.sendToEReaderState ==
-                                                SendToEReaderState.error
-                                        ? localizations.close
-                                        : localizations.cancel,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                                        SendToEReaderState.uploading) {
+                                  context.read<BookDetailsBloc>().add(
+                                    CancelSendToEReader(),
+                                  );
+                                }
+                                Navigator.of(context).pop();
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                height: 50,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      state.sendToEReaderState ==
+                                                  SendToEReaderState.success ||
+                                              state.sendToEReaderState ==
+                                                  SendToEReaderState.error
+                                          ? Icons.close
+                                          : Icons.cancel_rounded,
                                       color:
                                           Theme.of(
                                             context,
                                           ).colorScheme.onSecondaryContainer,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      state.sendToEReaderState ==
+                                                  SendToEReaderState.success ||
+                                              state.sendToEReaderState ==
+                                                  SendToEReaderState.error
+                                          ? localizations.close
+                                          : localizations.cancel,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.onSecondaryContainer,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         );
       },

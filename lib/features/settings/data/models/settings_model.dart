@@ -22,6 +22,7 @@ class SettingsModel extends Equatable {
   final String languageCode;
   final bool showReadNowButton;
   final bool showSendToEReaderButton;
+  final bool storeReadNowAndSendToEReaderOnDevice;
   final String webDavUrl;
   final String webDavUsername;
   final String webDavPassword;
@@ -54,6 +55,7 @@ class SettingsModel extends Equatable {
     required this.languageCode,
     required this.showReadNowButton,
     required this.showSendToEReaderButton,
+    required this.storeReadNowAndSendToEReaderOnDevice,
     required this.webDavUrl,
     required this.webDavUsername,
     required this.webDavPassword,
@@ -88,6 +90,8 @@ class SettingsModel extends Equatable {
       languageCode: json['language_code'] ?? 'en',
       showReadNowButton: json['show_read_now_button'] ?? false,
       showSendToEReaderButton: json['show_send_to_ereader_button'] ?? true,
+      storeReadNowAndSendToEReaderOnDevice:
+          json['store_read_now_send_to_ereader_on_device'] ?? false,
       webDavUrl: json['webdav_url'] ?? '',
       webDavUsername: json['webdav_username'] ?? '',
       webDavPassword: json['webdav_password'] ?? '',
@@ -173,6 +177,7 @@ class SettingsModel extends Equatable {
     languageCode,
     showReadNowButton,
     showSendToEReaderButton,
+    storeReadNowAndSendToEReaderOnDevice,
     webDavUrl,
     webDavUsername,
     webDavPassword,

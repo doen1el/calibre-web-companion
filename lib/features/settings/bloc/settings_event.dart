@@ -132,6 +132,15 @@ class SetShowReadNowButton extends SettingsEvent {
   List<Object?> get props => [enabled];
 }
 
+class SetStoreReadNowAndSendToEReaderOnDevice extends SettingsEvent {
+  final bool enabled;
+
+  const SetStoreReadNowAndSendToEReaderOnDevice(this.enabled);
+
+  @override
+  List<Object?> get props => [enabled];
+}
+
 class BuyMeACoffee extends SettingsEvent {
   const BuyMeACoffee();
 

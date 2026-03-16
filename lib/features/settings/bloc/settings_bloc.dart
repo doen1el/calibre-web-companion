@@ -27,6 +27,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SubmitFeedback>(_onSubmitFeedback);
     on<SetLanguage>(_onSetLanguage);
     on<SetShowReadNowButton>(_onSetShowReadNowButton);
+    on<SetStoreReadNowAndSendToEReaderOnDevice>(
+      _onSetStoreReadNowAndSendToEReaderOnDevice,
+    );
     on<BuyMeACoffee>(_onBuyMeACoffee);
     on<SetWebDavSyncEnabled>(_onSetWebDavSyncEnabled);
     on<SetWebDavUrl>(_onSetWebDavUrl);
@@ -83,6 +86,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           appVersion: packageInfo.version,
           buildNumber: packageInfo.buildNumber,
           languageCode: settings.languageCode,
+          storeReadNowAndSendToEReaderOnDevice:
+              settings.storeReadNowAndSendToEReaderOnDevice,
           webDavUrl: settings.webDavUrl,
           webDavUsername: settings.webDavUsername,
           webDavPassword: settings.webDavPassword,
@@ -336,6 +341,23 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setShowReadNowButton(event.enabled);
       emit(state.copyWith(showReadNowButton: event.enabled));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetStoreReadNowAndSendToEReaderOnDevice(
+    SetStoreReadNowAndSendToEReaderOnDevice event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      await repository.setStoreReadNowAndSendToEReaderOnDevice(event.enabled);
+      emit(state.copyWith(storeReadNowAndSendToEReaderOnDevice: event.enabled));
     } catch (e) {
       emit(
         state.copyWith(

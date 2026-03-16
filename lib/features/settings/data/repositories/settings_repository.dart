@@ -133,6 +133,14 @@ class SettingsRepository {
     }
   }
 
+  Future<void> setStoreReadNowAndSendToEReaderOnDevice(bool enabled) async {
+    try {
+      await dataSource.saveStoreReadNowAndSendToEReaderOnDevice(enabled);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> setShowSendToEReaderButton(bool enabled) async {
     try {
       await dataSource.saveShowSendToEReaderButton(enabled);
