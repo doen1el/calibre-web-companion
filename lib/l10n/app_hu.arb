@@ -421,5 +421,8 @@
     "noLogsAvailable": "Még nincs elérhető napló.",
     "logsCopied": "Naplók kimásolva vágólapra",
     "copyLogs": "Naplók másolása",
-    "clearLogs": "Naplók törlése"
+    "clearLogs": "Naplók törlése",
+    "storeReadNowAndSendToEReaderOnDevice": "Send2Ereader/\"Olvasás most\" könyvek tárolása az eszközön",
+    "storeReadNowAndSendToEReaderOnDeviceDescription": "Szükséges egy alapértelmezett letöltési mappa. A könyvek le lesznek töltve az eszközre küldés vagy megnyitás előtt.",
+    "pleaseSetDefaultDownloadFolderFirst": "Kérlek először állíts be egy alapértelmezett letöltési mappát a Beállításokban!"
 }
