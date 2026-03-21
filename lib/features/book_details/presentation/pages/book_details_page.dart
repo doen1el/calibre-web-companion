@@ -127,15 +127,11 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     final localizations = AppLocalizations.of(context)!;
 
     return PopScope(
-      canPop: false,
+      canPop: true,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            Navigator.of(context).pop(result ?? _didUpdateMetadata);
-          }
-        });
+        if (!didPop && mounted) {
+          Navigator.of(context).pop(result ?? _didUpdateMetadata);
+        }
       },
       child: BlocProvider(
         create:
