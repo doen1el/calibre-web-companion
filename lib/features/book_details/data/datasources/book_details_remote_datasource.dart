@@ -40,6 +40,7 @@ class BookDetailsRemoteDatasource {
       final prefs = GetIt.instance<SharedPreferences>();
       final isOpds =
           prefs.getString('server_type') == 'opds' ||
+          prefs.getString('server_type') == 'grimmory' ||
           prefs.getString('server_type') == 'booklore';
 
       if (isOpds) {
@@ -223,6 +224,7 @@ class BookDetailsRemoteDatasource {
       final prefs = GetIt.instance<SharedPreferences>();
       final isOpds =
           prefs.getString('server_type') == 'opds' ||
+          prefs.getString('server_type') == 'grimmory' ||
           prefs.getString('server_type') == 'booklore';
 
       String endpoint;

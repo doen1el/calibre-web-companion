@@ -351,7 +351,7 @@
     "testing": "Provant...",
     "saveCredentials": "Desa credencials",
     "testConnection": "Prova Connexió",
-    "appendsBookLorePath": "Afegeix '/api/v1/opds' a l'URL de BookLore si no hi és.",
+    "appendsGrimmoryPath": "Afegeix '/api/v1/opds' a l'URL de Grimmory si no hi és.",
     "licenses": "Llicències",
     "syncsReadingProgress": "Sincronitza el progrés de lectura entre dispositius mitjançant un fitxer JSON al vostre emmagatzematge WebDAV.",
     "webDavSync": "Sincronització WebDAV",

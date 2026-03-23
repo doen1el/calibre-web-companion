@@ -911,7 +911,10 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     final serverType = GetIt.instance<SharedPreferences>().getString(
       'server_type',
     );
-    final isOpds = serverType == 'opds' || serverType == 'booklore';
+    final isOpds =
+        serverType == 'opds' ||
+        serverType == 'grimmory' ||
+        serverType == 'booklore';
 
     final actionBuilders = <String, Widget Function()>{
       BookDetailsAction.toggleReadStatus.key:

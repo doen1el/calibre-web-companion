@@ -127,9 +127,9 @@ class _LoginFormState extends State<LoginForm> {
             typeIcon = Icons.menu_book_rounded;
             break;
           case ServerType.booklore:
-            urlLabel = 'Booklore URL';
-            urlHint = 'your-booklore.com';
-            urlHelper = localizations.appendsBookLorePath;
+            urlLabel = 'Grimmory URL';
+            urlHint = 'your-grimmory.com';
+            urlHelper = localizations.appendsGrimmoryPath;
             typeIcon = Icons.auto_stories_rounded;
             break;
           case ServerType.opds:
@@ -167,7 +167,7 @@ class _LoginFormState extends State<LoginForm> {
                             ),
                             ButtonSegment<ServerType>(
                               value: ServerType.booklore,
-                              label: Text('Booklore'),
+                              label: Text('Grimmory'),
                             ),
                             ButtonSegment<ServerType>(
                               value: ServerType.opds,

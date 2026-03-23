@@ -349,7 +349,7 @@
     "testing": "Tesztelés...",
     "saveCredentials": "Hitelesítő adatok mentése",
     "testConnection": "Kapcsolat tesztelése",
-    "appendsBookLorePath": "Hozzáadja a \"/api/v1/opds\"-t a BookLore URL-hez ha nincs ott.",
+    "appendsGrimmoryPath": "Hozzáadja a \"/api/v1/opds\"-t a Grimmory URL-hez ha nincs ott.",
     "licenses": "Licenszek",
     "syncsReadingProgress": "Szinkronizálja az olvasási állapotot egy JSON fájl segítségével a WebDAV tárolódon.",
     "webDavSync": "WebDAV szinkronizáció",
