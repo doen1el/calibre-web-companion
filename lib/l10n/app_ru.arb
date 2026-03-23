@@ -411,5 +411,18 @@
     "bookDeletedSuccessfully": "Книга успешно удалена",
     "failedToDeleteBook": "Не удалось удалить книгу",
     "showSendToEReaderButton": "Показывать кнопку «Отправить на E-Reader»",
-    "showSendToEReaderButtonDescription": "Отображать кнопку «Отправить на E-Reader» на странице сведений о книге для быстрой отправки."
+    "showSendToEReaderButtonDescription": "Отображать кнопку «Отправить на E-Reader» на странице сведений о книге для быстрой отправки.",
+    "storeReadNowAndSendToEReaderOnDevice": "Сохранять скачанные Send2EReader/Read Now на устройстве",
+    "storeReadNowAndSendToEReaderOnDeviceDescription": "Требуется папка загрузок по умолчанию. Книги скачиваются на устройство перед отправкой или открытием.",
+    "pleaseSetDefaultDownloadFolderFirst": "Сначала задайте папку загрузок по умолчанию в настройках.",
+    "discoverAllSectionsDisabledTitle": "Все разделы Discover отключены",
+    "discoverAllSectionsDisabledDescription": "Включите разделы в Настройки > Discover.",
+    "bookDetailsAllSectionsDisabledTitle": "Все разделы подробностей книг отключены",
+    "bookDetailsAllSectionsDisabledDescription": "Включите разделы в Настройки > Book Details.",
+    "appLogs": "Логи приложения",
+    "openAndCopyLogs": "Открыть и скопировать логи для отчетов об ошибках",
+    "noLogsAvailable": "Логов пока нет.",
+    "logsCopied": "Логи скопированы в буфер обмена",
+    "copyLogs": "Копировать логи",
+    "clearLogs": "Очистка логов"
 }
