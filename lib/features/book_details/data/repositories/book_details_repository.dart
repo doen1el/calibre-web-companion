@@ -184,13 +184,14 @@ class BookDetailsRepository {
     DocumentFile selectedDirectory,
     DownloadSchema schema,
     BookDetailsModel book, {
+    String format = 'epub',
     Function(int)? progressCallback,
   }) async {
     return await datasource.downloadBookForReader(
       book,
       selectedDirectory,
       schema,
-      format: 'epub',
+      format: format,
       progressCallback: progressCallback,
     );
   }

@@ -332,6 +332,8 @@
   "pleaseEnterSSOUrl": "Please enter the SSO URL",
   "openInInternalReader": "Open in Internal Reader",
   "errorOpeningBookInInternalReader": "Error opening book in internal reader",
+  "internalReaderSupportsOnlyEpub": "The internal reader only supports EPUB. Available formats: {formats}",
+  "internalReaderSupportsOnlyEpubShort": "Only EPUB is supported",
   "readNow": "Read Now",
   "showSendToEReaderButton": "Show 'Send to E-Reader' button",
   "showSendToEReaderButtonDescription": "Display a 'Send to E-Reader' button on book details pages to easily send books to your E-Reader.",

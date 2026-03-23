@@ -406,6 +406,7 @@ class BookDetailsRemoteDatasource {
     required DownloadSchema schema,
     String format = 'epub',
     Function(int)? progressCallback,
+    bool reuseExistingFile = true,
     bool deleteOnError = true,
   }) async {
     try {
@@ -491,7 +492,7 @@ class BookDetailsRemoteDatasource {
 
       final existingFile = await targetDir.find(fileName.replaceAll(' ', '_'));
 
-      if (existingFile != null && existingFile.isFile) {
+      if (reuseExistingFile && existingFile != null && existingFile.isFile) {
         logger.w('File already exists: $fileName');
         return existingFile.uri.toString();
       }
@@ -631,7 +632,9 @@ class BookDetailsRemoteDatasource {
         contentType: 'application/x-www-form-urlencoded',
       );
 
-      if (response.statusCode == 200 || response.statusCode == 204 || response.statusCode == 302) {
+      if (response.statusCode == 200 ||
+          response.statusCode == 204 ||
+          response.statusCode == 302) {
         logger.i('Successfully added book to shelf');
         return true;
       } else {
@@ -656,7 +659,9 @@ class BookDetailsRemoteDatasource {
         contentType: 'application/x-www-form-urlencoded',
       );
 
-      if (response.statusCode == 200 || response.statusCode == 204 || response.statusCode == 302) {
+      if (response.statusCode == 200 ||
+          response.statusCode == 204 ||
+          response.statusCode == 302) {
         logger.i('Successfully removed book from shelf');
         return true;
       } else {
@@ -712,15 +717,14 @@ class BookDetailsRemoteDatasource {
     try {
       logger.i('Preparing book for internal reader: ${book.title}');
 
-      if (book.formats.isNotEmpty) {
-        format = book.formats.first.toLowerCase();
-      }
+      final selectedFormat = format.toLowerCase();
 
       final safFileUri = await downloadBookToPath(
         book: book,
         selectedDirectory: selectedDirectory,
         schema: schema,
-        format: format,
+        format: selectedFormat,
+        reuseExistingFile: false,
         progressCallback: progressCallback,
       );
 
