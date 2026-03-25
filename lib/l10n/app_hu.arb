@@ -424,5 +424,7 @@
     "clearLogs": "Naplók törlése",
     "storeReadNowAndSendToEReaderOnDevice": "Send2Ereader/\"Olvasás most\" könyvek tárolása az eszközön",
     "storeReadNowAndSendToEReaderOnDeviceDescription": "Szükséges egy alapértelmezett letöltési mappa. A könyvek le lesznek töltve az eszközre küldés vagy megnyitás előtt.",
-    "pleaseSetDefaultDownloadFolderFirst": "Kérlek először állíts be egy alapértelmezett letöltési mappát a Beállításokban!"
+    "pleaseSetDefaultDownloadFolderFirst": "Kérlek először állíts be egy alapértelmezett letöltési mappát a Beállításokban!",
+    "internalReaderSupportsOnlyEpub": "A beépített olvasó csak EPUB-ot támogat. Elérhető formátumok: {formats}",
+    "internalReaderSupportsOnlyEpubShort": "Csak EPUB a támogatott"
 }
