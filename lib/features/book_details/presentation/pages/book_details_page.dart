@@ -1072,15 +1072,22 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       return const SizedBox.shrink();
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children:
-            visibleOrder
-                .map((actionKey) => actionBuilders[actionKey]!())
-                .toList(),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children:
+                  visibleOrder
+                      .map((actionKey) => actionBuilders[actionKey]!())
+                      .toList(),
+            ),
+          ),
+        );
+      },
     );
   }
 
