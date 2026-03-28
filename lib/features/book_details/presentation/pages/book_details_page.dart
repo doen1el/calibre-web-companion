@@ -54,6 +54,117 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
   StreamSubscription<dynamic>? _locatorSubscription;
   late final WebDavSyncService _webDavService;
 
+  bool _isInternalReaderSupportedFormat(String format) {
+    return format.toLowerCase() == 'epub';
+  }
+
+  void _showUnsupportedInternalReaderFormatMessage(
+    BuildContext context,
+    AppLocalizations localizations,
+    List<String> availableFormats,
+  ) {
+    final formats = availableFormats.map((f) => f.toUpperCase()).join(', ');
+
+    context.showSnackBar(
+      localizations.internalReaderSupportsOnlyEpub(formats),
+      isError: true,
+      duration: const Duration(seconds: 10),
+    );
+  }
+
+  Future<String?> _selectInternalReaderFormat(
+    BuildContext context,
+    AppLocalizations localizations,
+    BookDetailsModel book,
+  ) async {
+    final formats =
+        book.formats.map((format) => format.toLowerCase()).toSet().toList();
+
+    if (formats.isEmpty) {
+      context.showSnackBar(
+        localizations.errorOpeningBookInInternalReader,
+        isError: true,
+      );
+      return null;
+    }
+
+    final supportedFormats =
+        formats
+            .where((format) => _isInternalReaderSupportedFormat(format))
+            .toList();
+
+    if (supportedFormats.isEmpty) {
+      _showUnsupportedInternalReaderFormatMessage(
+        context,
+        localizations,
+        formats,
+      );
+      return null;
+    }
+
+    if (formats.length == 1) {
+      return supportedFormats.first;
+    }
+
+    return showModalBottomSheet<String>(
+      context: context,
+      builder:
+          (sheetContext) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  title: Text(localizations.downlaodFomat),
+                  leading: const Icon(Icons.menu_book_rounded),
+                ),
+                const Divider(),
+                ...formats.map((format) {
+                  final isSupported = _isInternalReaderSupportedFormat(format);
+                  IconData icon;
+
+                  switch (format) {
+                    case 'epub':
+                      icon = Icons.menu_book;
+                      break;
+                    case 'pdf':
+                      icon = Icons.picture_as_pdf;
+                      break;
+                    case 'kepub':
+                      icon = Icons.book;
+                      break;
+                    default:
+                      icon = Icons.file_present;
+                  }
+
+                  return ListTile(
+                    leading: Icon(
+                      icon,
+                      color:
+                          isSupported
+                              ? null
+                              : Theme.of(context).colorScheme.outline,
+                    ),
+                    title: Text(format.toUpperCase()),
+                    subtitle:
+                        isSupported
+                            ? null
+                            : Text(
+                              localizations.internalReaderSupportsOnlyEpubShort,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                            ),
+                    onTap: () {
+                      Navigator.pop(sheetContext, isSupported ? format : null);
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -88,7 +199,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     final lastLocation = context.read<BookDetailsBloc>().state.startLocation;
     final settingsState = context.read<SettingsBloc>().state;
 
-    if (filePath.endsWith('.pdf')) {
+    if (!filePath.toLowerCase().endsWith('.epub')) {
       final localization = AppLocalizations.of(context)!;
       context.showSnackBar(
         localization.errorOpeningBookInInternalReaderPdf,
@@ -800,7 +911,10 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     final serverType = GetIt.instance<SharedPreferences>().getString(
       'server_type',
     );
-    final isOpds = serverType == 'opds' || serverType == 'booklore';
+    final isOpds =
+        serverType == 'opds' ||
+        serverType == 'grimmory' ||
+        serverType == 'booklore';
 
     final actionBuilders = <String, Widget Function()>{
       BookDetailsAction.toggleReadStatus.key:
@@ -879,6 +993,15 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                 isLoading
                     ? null
                     : () async {
+                      final selectedFormat = await _selectInternalReaderFormat(
+                        context,
+                        localizations,
+                        book,
+                      );
+                      if (selectedFormat == null) {
+                        return;
+                      }
+
                       DocumentFile? selectedDirectory;
 
                       if (settingsState.defaultDownloadPath.isEmpty) {
@@ -914,6 +1037,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                           selectedDirectory: selectedDirectory,
                           schema: settingsState.downloadSchema,
                           book: book,
+                          format: selectedFormat,
                         ),
                       );
                     },

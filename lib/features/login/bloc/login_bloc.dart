@@ -258,8 +258,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   ) async {
     emit(state.copyWith(status: LoginStatus.loading));
 
+    final accountServerType = event.credentials.serverType;
     ServerType targetServerType = ServerType.values.firstWhere(
-      (e) => e.name == event.credentials.serverType,
+      (e) =>
+          e.name == accountServerType ||
+          (accountServerType == 'grimmory' && e == ServerType.booklore),
       orElse: () => ServerType.calibreWeb,
     );
 

@@ -24,7 +24,9 @@ class ShelfViewRemoteDataSource {
     try {
       final serverType = preferences.getString('server_type');
 
-      if (serverType == 'opds' || serverType == 'booklore') {
+      if (serverType == 'opds' ||
+          serverType == 'grimmory' ||
+          serverType == 'booklore') {
         return _loadOpdsShelves();
       }
 
@@ -153,6 +155,7 @@ class ShelfViewRemoteDataSource {
 
   bool getIsOpds() {
     return preferences.getString('server_type') == 'opds' ||
+        preferences.getString('server_type') == 'grimmory' ||
         preferences.getString('server_type') == 'booklore';
   }
 }

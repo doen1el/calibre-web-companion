@@ -208,6 +208,7 @@ class DiscoverDetailsRemoteDatasource {
   String _getBookListPath(DiscoverType type, String? subPath) {
     final isOpds =
         preferences.getString('server_type') == 'opds' ||
+        preferences.getString('server_type') == 'grimmory' ||
         preferences.getString('server_type') == 'booklore';
 
     final Map<DiscoverType, String> paths = {

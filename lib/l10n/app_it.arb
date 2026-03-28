@@ -351,7 +351,7 @@
     "testing": "Provando...",
     "saveCredentials": "Salva Credenziali",
     "testConnection": "Testa la Connessione",
-    "appendsBookLorePath": "Aggiunge /booklore al percorso di base",
+    "appendsGrimmoryPath": "Aggiunge /grimmory al percorso di base",
     "licenses": "Licenze",
     "syncsReadingProgress": "Sincronizza i progressi di lettura tra i dispositivi tramite un file JSON sul tuo spazio di archiviazione WebDAV.",
     "webDavSync": "Sincronizzazione WebDAV",

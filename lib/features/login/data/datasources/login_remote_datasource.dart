@@ -21,11 +21,13 @@ class LoginRemoteDataSource {
   ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final storedServerType =
+          serverType == ServerType.booklore ? 'grimmory' : serverType.name;
 
       await prefs.setString('base_url', credentials.baseUrl);
       await prefs.setString('username', credentials.username);
       await prefs.setString('password', credentials.password);
-      await prefs.setString('server_type', serverType.name);
+      await prefs.setString('server_type', storedServerType);
 
       bool isLoggedIn = false;
 
@@ -156,11 +158,11 @@ class LoginRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        logger.i('Booklore access check successful.');
+        logger.i('Grimmory access check successful.');
         return true;
       } else {
         logger.w(
-          'Booklore access check failed with status: ${response.statusCode}',
+          'Grimmory access check failed with status: ${response.statusCode}',
         );
         return false;
       }
@@ -244,7 +246,7 @@ class LoginRemoteDataSource {
     });
 
     final entry = credentials.toJson();
-    entry['serverType'] = type.name;
+    entry['serverType'] = type == ServerType.booklore ? 'grimmory' : type.name;
 
     history.insert(0, jsonEncode(entry));
 
@@ -340,7 +342,7 @@ class LoginRemoteDataSource {
     final typeStr = prefs.getString('server_type');
     if (typeStr == ServerType.opds.name) {
       return ServerType.opds;
-    } else if (typeStr == ServerType.booklore.name) {
+    } else if (typeStr == ServerType.booklore.name || typeStr == 'grimmory') {
       return ServerType.booklore;
     }
     return ServerType.calibreWeb;

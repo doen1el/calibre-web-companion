@@ -351,7 +351,7 @@
     "testing": "Provant...",
     "saveCredentials": "Desa credencials",
     "testConnection": "Prova Connexió",
-    "appendsBookLorePath": "Afegeix '/api/v1/opds' a l'URL de BookLore si no hi és.",
+    "appendsGrimmoryPath": "Afegeix '/api/v1/opds' a l'URL de Grimmory si no hi és.",
     "licenses": "Llicències",
     "syncsReadingProgress": "Sincronitza el progrés de lectura entre dispositius mitjançant un fitxer JSON al vostre emmagatzematge WebDAV.",
     "webDavSync": "Sincronització WebDAV",
@@ -421,5 +421,10 @@
     "openAndCopyLogs": "Obre i copia logs per a reports d'error",
     "noLogsAvailable": "Sense logs disponibles.",
     "logsCopied": "Logs copiats al porta-retalls",
-    "copyLogs": "Còpia logs"
+    "copyLogs": "Còpia logs",
+    "pleaseSetDefaultDownloadFolderFirst": "Configura abans el directori predeterminat a les opcions.",
+    "internalReaderSupportsOnlyEpub": "El lector intern només suporta EPUB. Formats Disponibles: {formats}",
+    "internalReaderSupportsOnlyEpubShort": "Només EPUB suportat",
+    "storeReadNowAndSendToEReaderOnDevice": "Desa EnviaaLector/Llegeix ara descàrregues del dispositiu",
+    "storeReadNowAndSendToEReaderOnDeviceDescription": "Requereix carpeta de descàrrega per defecte. Llibres descarregats al dispositiu abans de llegir o obrir."
 }

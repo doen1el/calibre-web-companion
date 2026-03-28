@@ -426,6 +426,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         event.selectedDirectory,
         event.schema,
         event.book,
+        format: event.format,
         progressCallback: (progress) {
           logger.d('Reader download progress: $progress%');
           emit(state.copyWith(downloadProgress: progress));

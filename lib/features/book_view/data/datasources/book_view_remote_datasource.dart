@@ -36,7 +36,7 @@ class BookViewRemoteDatasource {
     try {
       final serverType = _preferences.getString('server_type');
 
-      if (serverType == 'booklore') {
+      if (serverType == 'grimmory' || serverType == 'booklore') {
         return _fetchBooksBooklore(
           offset: offset,
           limit: limit,
@@ -381,6 +381,8 @@ class BookViewRemoteDatasource {
   }
 
   bool getIsOpds() {
-    return _preferences.getString('server_type') == 'opds';
+    return _preferences.getString('server_type') == 'opds' ||
+        _preferences.getString('server_type') == 'grimmory' ||
+        _preferences.getString('server_type') == 'booklore';
   }
 }
