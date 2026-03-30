@@ -351,7 +351,7 @@
     "testing": "Provando...",
     "saveCredentials": "Salva Credenziali",
     "testConnection": "Testa la Connessione",
-    "appendsGrimmoryPath": "Aggiunge /grimmory al percorso di base",
+    "appendsGrimmoryPath": "Aggiunge '/api/v1/opds' all'URL di Grimmory se non è già presente.",
     "licenses": "Licenze",
     "syncsReadingProgress": "Sincronizza i progressi di lettura tra i dispositivi tramite un file JSON sul tuo spazio di archiviazione WebDAV.",
     "webDavSync": "Sincronizzazione WebDAV",
@@ -421,5 +421,7 @@
     "openAndCopyLogs": "Apri e copia i logs per il report di bug",
     "noLogsAvailable": "Nessun log ancora disponibile.",
     "logsCopied": "Log copiati negli appunti",
-    "copyLogs": "Copia logs"
+    "copyLogs": "Copia logs",
+    "internalReaderSupportsOnlyEpubShort": "Sono supportati solo gli EPUB",
+    "internalReaderSupportsOnlyEpub": "Il lettore interno supporta solo gli EPUB. Formati disponibili: {formats}"
 }
