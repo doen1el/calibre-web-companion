@@ -9,10 +9,10 @@
 
 <p align="center">
     <a href="https://github.com/doen1el/calibre-web-companion/releases">
-        <img src="https://img.shields.io/github/downloads/doen1el/calibre-web-companion/total?color=green&label=github%20downloads" alt="GitHub all releases">
+        <img src="https://img.shields.io/github/downloads/doen1el/calibre-web-companion/total?color=green&label=Downloads%20(GitHub)" alt="GitHub all releases">
     </a>
     <a href="https://f-droid.org/en/packages/de.doen1el.calibreWebCompanion/" >
-        <img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgithub.com%2Fkitswas%2Ffdroid-metrics-dashboard%2Fraw%2Frefs%2Fheads%2Fmain%2Fprocessed%2Ftotal%2Fde.doen1el.calibreWebCompanion.json&query=%24.total_downloads&logo=fdroid&label=Downloads%20(all%20time)">
+        <img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgithub.com%2Fkitswas%2Ffdroid-metrics-dashboard%2Fraw%2Frefs%2Fheads%2Fmain%2Fprocessed%2Ftotal%2Fde.doen1el.calibreWebCompanion.json&query=%24.total_downloads&logo=fdroid&label=Downloads%20(F-Droid)">
     </a>
     <a href="https://github.com/doen1el/calibre-web-companion/releases">
         <img src="https://img.shields.io/github/v/release/doen1el/calibre-web-companion?color=green&label=download&sort=semver" alt="GitHub release (latest SemVer)">
