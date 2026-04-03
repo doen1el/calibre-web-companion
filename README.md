@@ -11,6 +11,9 @@
     <a href="https://github.com/doen1el/calibre-web-companion/releases">
         <img src="https://img.shields.io/github/downloads/doen1el/calibre-web-companion/total?color=green&label=github%20downloads" alt="GitHub all releases">
     </a>
+    <a href="https://f-droid.org/en/packages/de.doen1el.calibreWebCompanion/" >
+        <img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgithub.com%2Fkitswas%2Ffdroid-metrics-dashboard%2Fraw%2Frefs%2Fheads%2Fmain%2Fprocessed%2Ftotal%2Fde.doen1el.calibreWebCompanion.json&query=%24.total_downloads&logo=fdroid&label=Downloads%20(all%20time)">
+    </a>
     <a href="https://github.com/doen1el/calibre-web-companion/releases">
         <img src="https://img.shields.io/github/v/release/doen1el/calibre-web-companion?color=green&label=download&sort=semver" alt="GitHub release (latest SemVer)">
     </a>
@@ -20,6 +23,8 @@
     <a href="https://hosted.weblate.org/engage/calibre-web-companion/">
         <img src="https://hosted.weblate.org/widget/calibre-web-companion/svg-badge.svg" alt="Translation status" />
     </a>
+    
+    
 </p>
 
 # Calibre Web Companion
