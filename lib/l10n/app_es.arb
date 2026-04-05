@@ -422,5 +422,9 @@
     "deleteAccount": "Borrar cuenta",
     "deleteAccountConfirmation": "¿estas seguro que quieres eliminar esta cuenta de la lista?",
     "user": "Usuario",
-    "userFirstLetter": "U"
+    "userFirstLetter": "U",
+    "discoverAllSectionsDisabledTitle": "Todas las secciones descubiertas estan deshabilitadas",
+    "bookDetailsAllSectionsDisabledTitle": "Todas las secciones de detalles del libro estan deshabilitadas",
+    "sourceShelf": "Estante de origen",
+    "criteria": "Criterio"
 }
