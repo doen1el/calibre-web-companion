@@ -121,7 +121,7 @@
     "downloads": "التنزيلات",
     "searchForABook": "ابحث عن كتاب",
     "noDownloadsFound": "لم يتم العثور على أي تنزيلات",
-    "foundBooks": "تم العثور على {count} من الكتب",
+    "foundBooks": "عُثر على {count} من الكتب",
     "addedBookToTheDownloadQueue": "تمت إضافة الكتاب إلى قائمة التنزيل",
     "download": "التنزيل",
     "available": "متوفر",
