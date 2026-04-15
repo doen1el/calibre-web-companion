@@ -1,0 +1,1 @@
+- Afhankelijkheidsinformatie voor f-droid build verwijderd

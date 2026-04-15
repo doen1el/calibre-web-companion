@@ -1,0 +1,5 @@
+- Klikbare serienaam toegevoegd
+- Klikbare tag toegevoegd
+- Automatisch invullen toegevoegd aan de inlogpagina
+- Mogelijkheid toegevoegd om boeken te openen in geïnstalleerde e-readers
+- Ondersteuning toegevoegd voor authenticatie via een reverse proxy
