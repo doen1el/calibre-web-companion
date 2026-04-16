@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:convert';
 import 'package:docman/docman.dart';
 import 'package:logger/logger.dart';
@@ -33,8 +34,12 @@ class DownloadManager {
 
   Future<bool> _doesFileExist(String path) async {
     try {
-      final doc = await DocumentFile.fromUri(path);
-      return doc?.exists ?? false;
+      if (Platform.isAndroid) {
+        final doc = await DocumentFile.fromUri(path);
+        return doc?.exists ?? false;
+      } else {
+        return File(path).existsSync();
+      }
     } catch (e) {
       _logger.w('Failed to check existence for $path: $e');
       return false;

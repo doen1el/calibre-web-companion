@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:docman/docman.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -69,9 +71,18 @@ class DownloadOptionsWidget extends StatelessWidget {
                     backgroundColor: Theme.of(context).colorScheme.primary,
                   ),
                   onPressed: () async {
-                    DocumentFile? selectedDirectory =
-                        await DocMan.pick.directory();
-                    if (selectedDirectory == null) {
+                    String? selectedPath;
+
+                    if (Platform.isAndroid) {
+                      DocumentFile? selectedDirectory =
+                          await DocMan.pick.directory();
+                      selectedPath = selectedDirectory?.uri;
+                    } else {
+                      selectedPath =
+                          await FilePicker.platform.getDirectoryPath();
+                    }
+
+                    if (selectedPath == null) {
                       // ignore: use_build_context_synchronously
                       context.showSnackBar(
                         localizations.noFolderWasSelected,
@@ -81,14 +92,11 @@ class DownloadOptionsWidget extends StatelessWidget {
                     }
 
                     final prefs = await SharedPreferences.getInstance();
-                    await prefs.setString(
-                      'download_folder_path',
-                      selectedDirectory.uri,
-                    );
+                    await prefs.setString('download_folder_path', selectedPath);
 
                     // ignore: use_build_context_synchronously
                     context.read<SettingsBloc>().add(
-                      SetDownloadFolder(selectedDirectory.uri),
+                      SetDownloadFolder(selectedPath),
                     );
 
                     // ignore: use_build_context_synchronously
