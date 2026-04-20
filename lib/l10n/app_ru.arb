@@ -424,5 +424,7 @@
     "noLogsAvailable": "Логов пока нет.",
     "logsCopied": "Логи скопированы в буфер обмена",
     "copyLogs": "Копировать логи",
-    "clearLogs": "Очистка логов"
+    "clearLogs": "Очистка логов",
+    "internalReaderSupportsOnlyEpub": "Встроенная читалка поддерживает только EPUB. Доступные форматы: {formats}",
+    "internalReaderSupportsOnlyEpubShort": "Поддерживается только EPUB"
 }
