@@ -1104,10 +1104,21 @@ class ApiService {
       throw Exception('Failed to get CSRF token for upload');
     }
 
+    // Start with the stored session cookie and merge any new cookies from the
+    // CSRF GET response. Without this, the upload POST sends an empty Cookie
+    // header whenever the server doesn't re-issue cookies on the CSRF fetch
+    // (i.e. when the session is already valid), causing a 400.
+    String sessionCookie = _cookie ?? '';
+    final rawSetCookie = csrfResult['cookies'];
+    if (rawSetCookie != null && rawSetCookie.isNotEmpty) {
+      final newCookie = buildCookieHeaderFromSetCookie(rawSetCookie);
+      sessionCookie = _mergeCookieHeaders(sessionCookie, newCookie);
+    }
+
     final uri = _buildUri(endpoint: endpoint);
     final request = http.MultipartRequest('POST', uri);
 
-    request.headers['Cookie'] = csrfResult['cookies'] ?? '';
+    request.headers['Cookie'] = sessionCookie;
 
     request.fields['csrf_token'] = csrfToken;
 
@@ -1118,7 +1129,21 @@ class ApiService {
     final customHeaders = await _processCustomHeaders();
     request.headers.addAll(customHeaders);
 
-    final fileName = file.path.split('/').last;
+    final rawFileName = file.path.split('/').last;
+    // Sanitize filename to match werkzeug secure_filename behavior: calibre-web
+    // rejects filenames with parentheses, brackets, spaces, and other special
+    // characters, returning a 400. Strip to ASCII alphanumeric + hyphens + dots.
+    final dotIndex = rawFileName.lastIndexOf('.');
+    final rawName = dotIndex != -1 ? rawFileName.substring(0, dotIndex) : rawFileName;
+    final ext = dotIndex != -1 ? rawFileName.substring(dotIndex) : '';
+    final sanitizedName = rawName
+        .replaceAll(RegExp(r'[^a-zA-Z0-9_\-]'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+    final fileName = '${sanitizedName.isEmpty ? 'upload' : sanitizedName}$ext';
+    if (fileName != rawFileName) {
+      _logger.i('Sanitized filename: $rawFileName → $fileName');
+    }
     final fileExtension = fileName.split('.').last.toLowerCase();
 
     String contentType = 'application/octet-stream';
