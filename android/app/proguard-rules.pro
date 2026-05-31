@@ -41,3 +41,11 @@
 -keepclassmembers class org.nanohttpd.** {
     public <init>();
 }
+-dontwarn org.nanohttpd.protocols.http.IHTTPSession
+-dontwarn org.nanohttpd.protocols.http.request.Method
+-dontwarn org.nanohttpd.protocols.http.response.IStatus
+-dontwarn org.nanohttpd.protocols.http.response.Response
+-dontwarn org.nanohttpd.protocols.http.response.Status
+-dontwarn org.nanohttpd.router.RouterNanoHTTPD$DefaultHandler
+-dontwarn org.nanohttpd.router.RouterNanoHTTPD$UriResource
+-dontwarn org.nanohttpd.router.RouterNanoHTTPD
