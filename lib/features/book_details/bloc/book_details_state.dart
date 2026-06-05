@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
-import 'package:vocsy_epub_viewer/epub_viewer.dart';
 
 enum BookDetailsStatus { initial, loading, loaded, error }
 
@@ -64,7 +63,7 @@ class BookDetailsState extends Equatable {
   final BookViewModel? bookViewModel;
   final SeriesNavigationStatus seriesNavigationStatus;
   final String? seriesNavigationPath;
-  final EpubLocator? startLocation;
+  final String? startCfi;
   final bool isDownloaded;
 
   const BookDetailsState({
@@ -90,7 +89,7 @@ class BookDetailsState extends Equatable {
     this.bookViewModel,
     this.seriesNavigationStatus = SeriesNavigationStatus.initial,
     this.seriesNavigationPath,
-    this.startLocation,
+    this.startCfi,
     this.isDownloaded = false,
   });
 
@@ -117,7 +116,7 @@ class BookDetailsState extends Equatable {
     BookViewModel? bookViewModel,
     SeriesNavigationStatus? seriesNavigationStatus,
     String? seriesNavigationPath,
-    EpubLocator? startLocation,
+    String? startCfi,
     bool? isDownloaded,
   }) {
     return BookDetailsState(
@@ -146,7 +145,7 @@ class BookDetailsState extends Equatable {
       seriesNavigationStatus:
           seriesNavigationStatus ?? this.seriesNavigationStatus,
       seriesNavigationPath: seriesNavigationPath ?? this.seriesNavigationPath,
-      startLocation: startLocation ?? this.startLocation,
+      startCfi: startCfi ?? this.startCfi,
       isDownloaded: isDownloaded ?? this.isDownloaded,
     );
   }
@@ -175,7 +174,7 @@ class BookDetailsState extends Equatable {
     bookViewModel,
     seriesNavigationStatus,
     seriesNavigationPath,
-    startLocation,
+    startCfi,
     isDownloaded,
   ];
 }

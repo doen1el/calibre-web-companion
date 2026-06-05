@@ -87,9 +87,13 @@ class ShelfViewRemoteDataSource {
         endpoint: '/shelf/remove/$shelfId/$bookId',
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfTokenUrl: '/me',
+        contentType: 'application/x-www-form-urlencoded',
       );
 
-      if (response.statusCode != 204) {
+      if (response.statusCode != 200 &&
+          response.statusCode != 204 &&
+          response.statusCode != 302) {
         logger.e('Failed to remove book from shelf: ${response.body}');
         throw Exception('Failed to remove book from shelf: ${response.body}');
       }
@@ -108,9 +112,13 @@ class ShelfViewRemoteDataSource {
         endpoint: '/shelf/add/$shelfId/$bookId',
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfTokenUrl: '/me',
+        contentType: 'application/x-www-form-urlencoded',
       );
 
-      if (response.statusCode != 204) {
+      if (response.statusCode != 200 &&
+          response.statusCode != 204 &&
+          response.statusCode != 302) {
         logger.e('Failed to add book to shelf: ${response.body}');
         throw Exception('Failed to add book to shelf: ${response.body}');
       }

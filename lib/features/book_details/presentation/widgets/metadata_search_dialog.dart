@@ -5,6 +5,7 @@ import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 
 class MetadataSearchDialog extends StatefulWidget {
   final String initialQuery;
@@ -242,8 +243,9 @@ class _MetadataMergeDialogState extends State<_MetadataMergeDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text("Select Metadata to Import"),
+      title: Text(localizations.selectMetadataToImport),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -305,11 +307,11 @@ class _MetadataMergeDialogState extends State<_MetadataMergeDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text("Cancel"),
+          child: Text(localizations.cancel),
         ),
-        ElevatedButton(
+        AppDialogButton(
           onPressed: () => Navigator.of(context).pop(_selection),
-          child: const Text("Apply"),
+          label: localizations.apply,
         ),
       ],
     );

@@ -27,7 +27,6 @@ class SettingsModel extends Equatable {
   final String webDavUsername;
   final String webDavPassword;
   final bool isWebDavSyncEnabled;
-  final String epubScrollDirection;
   final bool isEInkMode;
   final List<String> bookActionsOrder;
   final List<String> enabledBookActions;
@@ -60,7 +59,6 @@ class SettingsModel extends Equatable {
     required this.webDavUsername,
     required this.webDavPassword,
     required this.isWebDavSyncEnabled,
-    required this.epubScrollDirection,
     required this.isEInkMode,
     required this.bookActionsOrder,
     required this.enabledBookActions,
@@ -96,7 +94,6 @@ class SettingsModel extends Equatable {
       webDavUsername: json['webdav_username'] ?? '',
       webDavPassword: json['webdav_password'] ?? '',
       isWebDavSyncEnabled: json['webdav_enabled'] ?? false,
-      epubScrollDirection: json['epub_scroll_direction'] ?? 'vertical',
       isEInkMode: json['is_eink_mode'] ?? false,
       bookActionsOrder: BookDetailsActionConfig.normalizeOrder(
         List<String>.from(
@@ -182,7 +179,6 @@ class SettingsModel extends Equatable {
     webDavUsername,
     webDavPassword,
     isWebDavSyncEnabled,
-    epubScrollDirection,
     isEInkMode,
     bookActionsOrder,
     enabledBookActions,

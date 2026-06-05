@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
@@ -275,9 +276,9 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
                       ),
                     ),
                     actions: [
-                      ElevatedButton(
+                      AppDialogButton(
                         onPressed: () => Navigator.pop(context),
-                        child: Text(localizations.close),
+                        label: localizations.close,
                       ),
                     ],
                   );

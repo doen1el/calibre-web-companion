@@ -49,3 +49,5 @@ de.doen1el.calibreWebCompanion.yml
 
 # Don't track generated localization files
 lib/l10n/app_localizations*.dart
+lib/l10n/app_localizations*.darttest/test_env.dart
+test/test_env.dart

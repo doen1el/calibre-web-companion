@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
@@ -141,7 +142,9 @@ class FeedbackWidget extends StatelessWidget {
                 final isSubmitting =
                     state.feedbackStatus == SettingsFeedbackStatus.loading;
 
-                return ElevatedButton(
+                return AppDialogButton(
+                  isLoading: isSubmitting,
+                  label: localizations.submit,
                   onPressed:
                       isSubmitting
                           ? null
@@ -172,19 +175,6 @@ class FeedbackWidget extends StatelessWidget {
 
                             Navigator.pop(context);
                           },
-                  child:
-                      isSubmitting
-                          ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Theme.of(context).colorScheme.onPrimary,
-                              ),
-                            ),
-                          )
-                          : Text(localizations.submit),
                 );
               },
             ),

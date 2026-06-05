@@ -293,6 +293,7 @@ class BookDetailsRemoteDatasource {
         body: body,
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfTokenUrl: '/me',
         csrfOnlyInHeader: true,
         contentType: 'application/x-www-form-urlencoded',
       );
@@ -726,7 +727,9 @@ class BookDetailsRemoteDatasource {
         selectedDirectory: selectedDirectory,
         schema: schema,
         format: selectedFormat,
-        reuseExistingFile: false,
+        // Reuse an already-downloaded file instead of fetching it again every
+        // time the reader is opened.
+        reuseExistingFile: true,
         progressCallback: progressCallback,
       );
 

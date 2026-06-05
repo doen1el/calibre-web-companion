@@ -8,6 +8,7 @@ import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:calibre_web_companion/features/login/presentation/widgets/login_text_field.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
@@ -517,20 +518,12 @@ class _LoginFormState extends State<LoginForm> {
               title: Text(localizations.credentialsRequiredForSSO),
               content: Text(localizations.enterUsernamePasswordForSSO),
               actions: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                  ),
+                AppDialogButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                     if (_usernameController.text.isEmpty) {}
                   },
-                  child: Text(
-                    localizations.ok,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                  ),
+                  label: localizations.ok,
                 ),
               ],
             ),

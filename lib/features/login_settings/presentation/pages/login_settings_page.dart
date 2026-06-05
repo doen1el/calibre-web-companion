@@ -7,6 +7,7 @@ import 'package:calibre_web_companion/features/login_settings/bloc/login_setting
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:calibre_web_companion/features/login_settings/presentation/widgets/header_section_widget.dart';
 
 class LoginSettingsPage extends StatefulWidget {
@@ -177,8 +178,8 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
                               child: Text(localizations.cancel),
                               onPressed: () => Navigator.of(ctx).pop(false),
                             ),
-                            ElevatedButton(
-                              child: Text(localizations.ok),
+                            AppDialogButton(
+                              label: localizations.ok,
                               onPressed: () => Navigator.of(ctx).pop(true),
                             ),
                           ],

@@ -15,6 +15,8 @@ import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_b
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:calibre_web_companion/main.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_book_item_model.dart';
@@ -515,7 +517,7 @@ class ShelfDetailsPage extends StatelessWidget {
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(localizations.cancel),
             ),
-            ElevatedButton(
+            AppDialogButton.destructive(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 context.read<ShelfDetailsBloc>().add(DeleteShelf(shelfId));
@@ -526,11 +528,7 @@ class ShelfDetailsPage extends StatelessWidget {
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-                foregroundColor: Theme.of(context).colorScheme.onError,
-              ),
-              child: Text(localizations.delete),
+              label: localizations.delete,
             ),
           ],
         );
@@ -606,6 +604,8 @@ class ShelfDetailsPage extends StatelessWidget {
       builder: (context, snapshot) {
         final headers = snapshot.data ?? const <String, String>{};
         return CachedNetworkImage(
+          cacheManager: CustomCacheManager(),
+          key: ValueKey('${bookId}_$imageUrl'),
           imageUrl: imageUrl,
           httpHeaders: headers,
           fit: BoxFit.cover,

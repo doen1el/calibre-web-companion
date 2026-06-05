@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
+import 'package:calibre_web_companion/shared/utils/status_colors.dart';
 
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
@@ -317,32 +318,32 @@ class _BookCardWidgetState extends State<BookCardWidget> {
 
     switch (widget.book.status) {
       case DownloaderStatus.available:
-        statusColor = Colors.blue;
+        statusColor = StatusColors.info(context);
         statusIcon = Icons.download_rounded;
         statusText = localizations.available;
         break;
       case DownloaderStatus.downloading:
-        statusColor = Colors.amber;
+        statusColor = StatusColors.warning(context);
         statusIcon = Icons.downloading_rounded;
         statusText = localizations.downloading;
         break;
       case DownloaderStatus.done:
-        statusColor = Colors.green;
+        statusColor = StatusColors.success(context);
         statusIcon = Icons.check_circle_outline_rounded;
         statusText = localizations.completed;
         break;
       case DownloaderStatus.error:
-        statusColor = Colors.red;
+        statusColor = StatusColors.error(context);
         statusIcon = Icons.error_outline_rounded;
         statusText = localizations.failed;
         break;
       case DownloaderStatus.queued:
-        statusColor = Colors.purple;
+        statusColor = StatusColors.pending(context);
         statusIcon = Icons.queue_rounded;
         statusText = localizations.queued;
         break;
       case DownloaderStatus.notDownloaded:
-        statusColor = Colors.grey;
+        statusColor = StatusColors.neutral(context);
         statusIcon = Icons.download_rounded;
         statusText = localizations.notDownloaded;
         break;

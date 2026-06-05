@@ -143,7 +143,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           _buildSettingsCategoryNavCard(
                             context,
                             title: localizations.readerSettings,
-                            subtitle: localizations.scrollDirection,
+                            subtitle: localizations.webDavSync,
                             icon: Icons.chrome_reader_mode_rounded,
                             onTap: () => _openReaderSettingsSubPage(context),
                           ),
@@ -334,8 +334,7 @@ class _SettingsPageState extends State<SettingsPage> {
       title: localizations.readerSettings,
       bodyBuilder:
           (context, state, localizations) => [
-            _buildSectionTitle(context, localizations.readerSettings),
-            _buildReaderSettings(context, state, localizations),
+            _buildSectionTitle(context, localizations.webDavSync),
             _buildWebDavSettings(context, state, localizations),
           ],
     );
@@ -2131,76 +2130,4 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildReaderSettings(
-    BuildContext context,
-    SettingsState state,
-    AppLocalizations localizations,
-  ) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.chrome_reader_mode_rounded,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    localizations.scrollDirection,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-              ),
-              initialValue: state.epubScrollDirection,
-              icon: const Icon(Icons.arrow_drop_down),
-              elevation: 16,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 16,
-              ),
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  context.read<SettingsBloc>().add(
-                    SetEpubScrollDirection(newValue),
-                  );
-                }
-              },
-              items: [
-                DropdownMenuItem<String>(
-                  value: 'vertical',
-                  child: Text(localizations.vertical),
-                ),
-                DropdownMenuItem<String>(
-                  value: 'horizontal',
-                  child: Text(localizations.horizontal),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

@@ -779,9 +779,9 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     LoadReadingProgress event,
     Emitter<BookDetailsState> emit,
   ) async {
-    final location = await progressRepository.getBestLocation(event.bookUuid);
+    final cfi = await progressRepository.getBestLocation(event.bookUuid);
 
-    emit(state.copyWith(startLocation: location));
+    emit(state.copyWith(startCfi: cfi));
   }
 
   Future<void> _onSyncReadingProgress(

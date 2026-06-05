@@ -8,6 +8,7 @@ import 'package:calibre_web_companion/features/book_details/bloc/book_details_st
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
@@ -181,11 +182,7 @@ class SendToEreaderWidget extends StatelessWidget {
                       onPressed: () => Navigator.pop(context),
                       child: Text(localizations.cancel),
                     ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.primaryContainer,
-                      ),
+                    AppDialogButton(
                       onPressed:
                           () => _handleSendAction(
                             parentContext,
@@ -195,13 +192,7 @@ class SendToEreaderWidget extends StatelessWidget {
                             codeController,
                             isKindle,
                           ),
-                      child: Text(
-                        localizations.send,
-                        style: TextStyle(
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
-                        ),
-                      ),
+                      label: localizations.send,
                     ),
                   ],
                 ),

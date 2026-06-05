@@ -9,6 +9,7 @@ import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -329,11 +330,11 @@ class DownloadOptionsWidget extends StatelessWidget {
                 ),
               ),
               actions: <Widget>[
-                ElevatedButton(
-                  child: Text(localizations.cancel),
+                AppDialogButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
+                  label: localizations.cancel,
                 ),
               ],
             );

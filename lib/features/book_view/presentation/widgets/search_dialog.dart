@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 
 class SearchDialog extends StatefulWidget {
   const SearchDialog({super.key});
@@ -47,14 +48,11 @@ class SearchDialogState extends State<SearchDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(localizations.cancel),
         ),
-        ElevatedButton(
+        AppDialogButton(
           onPressed: () {
             Navigator.of(context).pop(_controller.text);
           },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [Text(localizations.search)],
-          ),
+          label: localizations.search,
         ),
       ],
     );

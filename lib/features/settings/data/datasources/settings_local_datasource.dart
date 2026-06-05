@@ -310,15 +310,6 @@ class SettingsLocalDataSource {
     }
   }
 
-  Future<void> saveEpubScrollDirection(String direction) async {
-    try {
-      await sharedPreferences.setString('epub_scroll_direction', direction);
-    } catch (e) {
-      logger.e('Error saving epub scroll direction: $e');
-      throw Exception('Failed to save epub scroll direction: $e');
-    }
-  }
-
   Future<void> saveShowSendToEReaderButton(bool enabled) async {
     try {
       await sharedPreferences.setBool('show_send_to_ereader_button', enabled);

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,10 @@ import 'package:calibre_web_companion/features/settings/presentation/pages/setti
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:vocsy_epub_viewer/epub_viewer.dart';
+import 'package:cosmos_epub/cosmos_epub.dart';
+// Exposes cosmos_epub's `bookProgress` singleton for cross-device WebDAV sync.
+import 'package:cosmos_epub/show_epub.dart' as cosmos_reader;
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 
 class BookDetailsPage extends StatefulWidget {
@@ -51,7 +55,6 @@ class BookDetailsPage extends StatefulWidget {
 
 class _BookDetailsPageState extends State<BookDetailsPage> {
   bool _didUpdateMetadata = false;
-  StreamSubscription<dynamic>? _locatorSubscription;
   late final WebDavSyncService _webDavService;
 
   bool _isInternalReaderSupportedFormat(String format) {
@@ -184,23 +187,13 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     }
   }
 
-  @override
-  void dispose() {
-    _locatorSubscription?.cancel();
-    VocsyEpub.closeReader();
-    super.dispose();
-  }
-
   Future<void> _openInternalReader(
     BuildContext context,
     String filePath,
     BookDetailsModel bookDetailsModel,
   ) async {
-    final lastLocation = context.read<BookDetailsBloc>().state.startLocation;
-    final settingsState = context.read<SettingsBloc>().state;
-
+    final localization = AppLocalizations.of(context)!;
     if (!filePath.toLowerCase().endsWith('.epub')) {
-      final localization = AppLocalizations.of(context)!;
       context.showSnackBar(
         localization.errorOpeningBookInInternalReaderPdf,
         isError: true,
@@ -209,28 +202,88 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       return;
     }
 
-    VocsyEpub.setConfig(
-      themeColor: Theme.of(context).primaryColor,
-      identifier: "book_${bookDetailsModel.uuid}",
-      scrollDirection:
-          settingsState.epubScrollDirection == 'horizontal'
-              ? EpubScrollDirection.HORIZONTAL
-              : EpubScrollDirection.VERTICAL,
-      allowSharing: true,
-      enableTts: true,
-      nightMode: Theme.of(context).brightness == Brightness.dark,
-    );
+    final bookUuid = bookDetailsModel.uuid;
 
-    await _locatorSubscription?.cancel();
+    await _restoreReaderProgressFromCloud(bookUuid);
+    if (!context.mounted) return;
 
-    _locatorSubscription = VocsyEpub.locatorStream.listen((locator) {
-      // ignore: use_build_context_synchronously
-      context.read<BookDetailsBloc>().add(
-        SyncReadingProgress(bookDetailsModel.uuid, locator),
+    try {
+      await CosmosEpub.openLocalBook(
+        context: context,
+        localPath: filePath,
+        bookId: bookUuid,
+        accentColor: Theme.of(context).colorScheme.primary,
       );
-    });
+    } catch (e) {
+      if (context.mounted) {
+        context.showSnackBar(
+          '${localization.errorOpeningBookInInternalReader} $e',
+          isError: true,
+        );
+      }
+      return;
+    }
 
-    VocsyEpub.open(filePath, lastLocation: lastLocation);
+    await _saveReaderProgressToCloud(bookUuid);
+  }
+
+  Future<void> _restoreReaderProgressFromCloud(String bookUuid) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!(prefs.getBool('webdav_enabled') ?? false)) return;
+    final url = prefs.getString('webdav_url') ?? '';
+    if (url.isEmpty) return;
+    try {
+      _webDavService.init(
+        url,
+        prefs.getString('webdav_username') ?? '',
+        prefs.getString('webdav_password') ?? '',
+      );
+
+      final localTs = prefs.getInt('reader_progress_ts_$bookUuid') ?? 0;
+      final serverData = await _webDavService.fetchProgress();
+      final entry = serverData[bookUuid];
+      if (entry is! Map) return;
+      final serverTs = (entry['timestamp'] as int?) ?? 0;
+      if (serverTs <= localTs) return;
+
+      final decoded = jsonDecode(entry['locator'] as String);
+      if (decoded is! Map) return;
+      final chapter = decoded['chapter'] as int?;
+      final page = decoded['page'] as int?;
+      if (chapter != null) {
+        await cosmos_reader.bookProgress.setCurrentChapterIndex(
+          bookUuid,
+          chapter,
+        );
+      }
+      if (page != null) {
+        await cosmos_reader.bookProgress.setCurrentPageIndex(bookUuid, page);
+      }
+      await prefs.setInt('reader_progress_ts_$bookUuid', serverTs);
+    } catch (_) {}
+  }
+
+  Future<void> _saveReaderProgressToCloud(String bookUuid) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!(prefs.getBool('webdav_enabled') ?? false)) return;
+    final url = prefs.getString('webdav_url') ?? '';
+    if (url.isEmpty) return;
+    try {
+      _webDavService.init(
+        url,
+        prefs.getString('webdav_username') ?? '',
+        prefs.getString('webdav_password') ?? '',
+      );
+
+      final progress = cosmos_reader.bookProgress.getBookProgress(bookUuid);
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final locator = jsonEncode({
+        'chapter': progress.currentChapterIndex ?? 0,
+        'page': progress.currentPageIndex ?? 0,
+      });
+      await _webDavService.saveProgress(bookUuid, locator, now);
+      await prefs.setInt('reader_progress_ts_$bookUuid', now);
+    } catch (_) {}
   }
 
   @override
@@ -1139,25 +1192,15 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                             title: Text(localizations.deleteBook),
                             content: Text(localizations.deleteBookConfirmation),
                             actions: [
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.error,
-                                ),
-                                onPressed:
-                                    () => Navigator.of(context).pop(true),
-                                child: Text(
-                                  localizations.delete,
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.onError,
-                                  ),
-                                ),
-                              ),
-                              ElevatedButton(
+                              TextButton(
                                 onPressed:
                                     () => Navigator.of(context).pop(false),
                                 child: Text(localizations.cancel),
+                              ),
+                              AppDialogButton.destructive(
+                                onPressed:
+                                    () => Navigator.of(context).pop(true),
+                                label: localizations.delete,
                               ),
                             ],
                           );

@@ -35,7 +35,6 @@ class ApiService {
   /// Returns the base URL with base path if available
   String getBaseUrl() {
     if (_basePath == null || _basePath!.isEmpty) {
-      _logger.d('Base URL (no path): $_baseUrl');
       return _baseUrl!;
     } else {
       final normalizedBasePath = _basePath!.trim();
@@ -228,12 +227,6 @@ class ApiService {
       queryParams: queryParams,
     );
     try {
-      if (response.body.length > 50) {
-        _logger.d('Response body: ${response.body.substring(0, 50)}...');
-      } else {
-        _logger.d('Response body: ${response.body}');
-      }
-
       return _sanitizeJsonResponse(response.body);
     } catch (e) {
       _logger.e('Failed to parse JSON response: $e');
@@ -287,12 +280,6 @@ class ApiService {
       queryParams: queryParams,
     );
     try {
-      if (response.body.length > 50) {
-        _logger.d('Response body: ${response.body.substring(0, 50)}...');
-      } else {
-        _logger.d('Response body: ${response.body}');
-      }
-
       transformer.parse(response.body);
 
       String jsonString = transformer.toParkerWithAttrs();
@@ -333,12 +320,9 @@ class ApiService {
     headers.addAll(customHeaders);
 
     if (followRedirects) {
-      _logger.d('GET request to: $uri');
-      _logger.d('Headers: $headers');
-
       try {
         final response = await _client!.get(uri, headers: headers);
-        _logger.i('Response status: ${response.statusCode}');
+        _logger.d('GET $uri -> ${response.statusCode}');
 
         if (response.headers.containsKey('set-cookie')) {
           final prefs = await SharedPreferences.getInstance();
@@ -625,12 +609,6 @@ class ApiService {
         }
         request.files.addAll(files);
 
-        _logger.d('Multipart POST request headers: ${request.headers}');
-        _logger.d('Multipart POST request fields: ${request.fields}');
-        _logger.d(
-          'Multipart POST request files: ${request.files.length} files',
-        );
-
         try {
           final streamedResponse = await request.send();
           final response = await http.Response.fromStream(streamedResponse);
@@ -694,9 +672,6 @@ class ApiService {
           contentType: contentType,
         );
 
-        _logger.d('CSRF-protected POST headers: $postHeaders');
-        _logger.d('CSRF-protected POST body: $encodedBody');
-
         try {
           final response = await _client!.post(
             uri,
@@ -749,13 +724,10 @@ class ApiService {
 
         request.files.addAll(files);
 
-        _logger.d('Multipart POST request to: $uri');
-        _logger.d('Multipart headers: ${request.headers}');
-
         try {
           final streamedResponse = await request.send();
           final response = await http.Response.fromStream(streamedResponse);
-          _logger.i('Multipart POST response status: ${response.statusCode}');
+          _logger.d('Multipart POST $uri -> ${response.statusCode}');
 
           if (response.headers.containsKey('set-cookie')) {
             final prefs = await SharedPreferences.getInstance();
@@ -785,9 +757,6 @@ class ApiService {
 
         headers.addAll(customHeaders);
 
-        _logger.d('POST request to: $uri');
-        _logger.d('Headers: $headers');
-
         final encodedBody = _encodeBody(body: body, contentType: contentType);
 
         try {
@@ -796,7 +765,7 @@ class ApiService {
             headers: headers,
             body: encodedBody ?? "",
           );
-          _logger.i('POST response status: ${response.statusCode}');
+          _logger.d('POST $uri -> ${response.statusCode}');
 
           if (response.headers.containsKey('set-cookie')) {
             final prefs = await SharedPreferences.getInstance();
@@ -847,12 +816,9 @@ class ApiService {
 
     request.headers.addAll(headers);
 
-    _logger.d('GET stream request to: ${uri.toString()}');
-    _logger.d('Headers: $headers');
-
     try {
       final response = await _client!.send(request);
-      _logger.i('Stream response status: ${response.statusCode}');
+      _logger.d('GET (stream) $uri -> ${response.statusCode}');
       _checkResponseStatus(statusCode: response.statusCode);
       return response;
     } catch (e) {
@@ -945,7 +911,6 @@ class ApiService {
       fullPath = '/$endpoint';
     }
 
-    _logger.d('Built URL: $_baseUrl$fullPath');
     return Uri.parse(
       '$_baseUrl$fullPath',
     ).replace(queryParameters: queryParams);
@@ -996,13 +961,10 @@ class ApiService {
     if (resolvedAuthMethod == AuthMethod.auto) {
       if (_username != null && _username!.isNotEmpty && _password != null) {
         resolvedAuthMethod = AuthMethod.basic;
-        _logger.d('Auto-Auth: Resolved to Basic (Credentials available)');
       } else if (_cookie != null && _cookie!.isNotEmpty) {
         resolvedAuthMethod = AuthMethod.cookie;
-        _logger.d('Auto-Auth: Resolved to Cookie (No credentials)');
       } else {
         resolvedAuthMethod = AuthMethod.none;
-        _logger.d('Auto-Auth: Resolved to None');
       }
     }
 
@@ -1104,10 +1066,21 @@ class ApiService {
       throw Exception('Failed to get CSRF token for upload');
     }
 
+    // Start with the stored session cookie and merge any new cookies from the
+    // CSRF GET response. Without this, the upload POST sends an empty Cookie
+    // header whenever the server doesn't re-issue cookies on the CSRF fetch
+    // (i.e. when the session is already valid), causing a 400.
+    String sessionCookie = _cookie ?? '';
+    final rawSetCookie = csrfResult['cookies'];
+    if (rawSetCookie != null && rawSetCookie.isNotEmpty) {
+      final newCookie = buildCookieHeaderFromSetCookie(rawSetCookie);
+      sessionCookie = _mergeCookieHeaders(sessionCookie, newCookie);
+    }
+
     final uri = _buildUri(endpoint: endpoint);
     final request = http.MultipartRequest('POST', uri);
 
-    request.headers['Cookie'] = csrfResult['cookies'] ?? '';
+    request.headers['Cookie'] = sessionCookie;
 
     request.fields['csrf_token'] = csrfToken;
 
@@ -1118,7 +1091,22 @@ class ApiService {
     final customHeaders = await _processCustomHeaders();
     request.headers.addAll(customHeaders);
 
-    final fileName = file.path.split('/').last;
+    final rawFileName = file.path.split('/').last;
+    // Sanitize filename to match werkzeug secure_filename behavior: calibre-web
+    // rejects filenames with parentheses, brackets, spaces, and other special
+    // characters, returning a 400. Strip to ASCII alphanumeric + hyphens + dots.
+    final dotIndex = rawFileName.lastIndexOf('.');
+    final rawName =
+        dotIndex != -1 ? rawFileName.substring(0, dotIndex) : rawFileName;
+    final ext = dotIndex != -1 ? rawFileName.substring(dotIndex) : '';
+    final sanitizedName = rawName
+        .replaceAll(RegExp(r'[^a-zA-Z0-9_\-]'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+    final fileName = '${sanitizedName.isEmpty ? 'upload' : sanitizedName}$ext';
+    if (fileName != rawFileName) {
+      _logger.i('Sanitized filename: $rawFileName → $fileName');
+    }
     final fileExtension = fileName.split('.').last.toLowerCase();
 
     String contentType = 'application/octet-stream';

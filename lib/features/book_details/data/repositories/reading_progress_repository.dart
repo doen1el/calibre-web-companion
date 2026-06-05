@@ -1,14 +1,13 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
-import 'package:vocsy_epub_viewer/epub_viewer.dart';
 
 class ReadingProgressRepository {
   final WebDavSyncService webDavService;
 
   ReadingProgressRepository({required this.webDavService});
 
-  Future<EpubLocator?> getBestLocation(String bookUuid) async {
+  Future<String?> getBestLocation(String bookUuid) async {
     final prefs = await SharedPreferences.getInstance();
     final String progressKey = 'book_progress_$bookUuid';
     final String timestampKey = 'book_timestamp_$bookUuid';
@@ -45,13 +44,28 @@ class ReadingProgressRepository {
     }
 
     if (locationJsonToUse != null && locationJsonToUse.isNotEmpty) {
-      try {
-        final Map<String, dynamic> decodedMap = jsonDecode(locationJsonToUse);
-        return EpubLocator.fromJson(decodedMap);
-      } catch (e) {
-        return null;
-      }
+      return _extractCfi(locationJsonToUse);
     }
+    return null;
+  }
+
+  String? _extractCfi(String stored) {
+    final trimmed = stored.trim();
+
+    if (!trimmed.startsWith('{')) {
+      return trimmed.isEmpty ? null : trimmed;
+    }
+
+    try {
+      final decoded = jsonDecode(trimmed);
+      if (decoded is Map<String, dynamic>) {
+        final locations = decoded['locations'];
+        if (locations is Map && locations['cfi'] is String) {
+          final cfi = locations['cfi'] as String;
+          return cfi.isEmpty ? null : cfi;
+        }
+      }
+    } catch (_) {}
     return null;
   }
 

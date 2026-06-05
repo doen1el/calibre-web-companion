@@ -235,14 +235,6 @@ class SettingsRepository {
     }
   }
 
-  Future<void> setEpubScrollDirection(String direction) async {
-    try {
-      await dataSource.saveEpubScrollDirection(direction);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
   Future<void> setEInkMode(bool enabled) async {
     try {
       await dataSource.saveEInkMode(enabled);

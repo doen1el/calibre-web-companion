@@ -53,10 +53,13 @@ class ShelfDetailsRemoteDataSource {
         endpoint: '/shelf/remove/$shelfId/$bookId',
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfTokenUrl: '/me',
         contentType: 'application/x-www-form-urlencoded',
       );
 
-      return response.statusCode == 204;
+      return response.statusCode == 200 ||
+          response.statusCode == 204 ||
+          response.statusCode == 302;
     } catch (e) {
       logger.e('Error removing from shelf: $e');
       throw Exception('Failed to remove from shelf: $e');
