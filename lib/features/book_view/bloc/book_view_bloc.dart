@@ -58,8 +58,11 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
         state.copyWith(
           isLoading: false,
           books: books,
-          offset: books.length,
-          hasMoreBooks: books.length >= state.limit,
+          offset: state.limit,
+          // OPDS returns the whole feed at once; everything else paginates until
+          // an empty page. Don't gate on the parsed count (a dropped/short page
+          // would falsely stop pagination — e.g. the authors sort).
+          hasMoreBooks: isOpds ? false : books.isNotEmpty,
           isOpds: isOpds,
         ),
       );
@@ -93,16 +96,13 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
       );
 
       final allBooks = [...state.books, ...moreBooks];
-      final hasMoreBooks = moreBooks.length == state.limit;
-      final adjustedHasMoreBooks =
-          state.sortBy == 'authors' ? true : hasMoreBooks;
 
       emit(
         state.copyWith(
           books: allBooks,
           isLoading: false,
-          hasMoreBooks: adjustedHasMoreBooks,
-          offset: state.offset + moreBooks.length,
+          hasMoreBooks: moreBooks.isNotEmpty,
+          offset: state.offset + state.limit,
         ),
       );
     } catch (e) {
