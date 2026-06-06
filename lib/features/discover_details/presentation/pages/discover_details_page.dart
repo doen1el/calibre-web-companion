@@ -9,12 +9,16 @@ import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
 import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
 import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_view_mode_selector.dart';
+import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_feed_model.dart';
+import 'package:calibre_web_companion/features/discover_details/data/models/discover_details_model.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/widgets/category_list_item_skeleton_widget.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/widgets/category_list_item_widget.dart';
 import 'package:calibre_web_companion/main.dart';
@@ -71,6 +75,8 @@ class DiscoverDetailsPage extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               title: _buildAppBarTitle(context, title, categoryType),
+              actions:
+                  state.isShowingBooks ? const [BookViewModeSelector()] : null,
             ),
             body: _buildBody(context, state, localizations),
           );
@@ -216,11 +222,23 @@ class DiscoverDetailsPage extends StatelessWidget {
   Widget _buildBookGrid(BuildContext context, DiscoverFeedModel feed) {
     return BlocBuilder<DiscoverDetailsBloc, DiscoverDetailsState>(
       builder: (context, state) {
+        final viewState = context.watch<BookViewBloc>().state;
+
+        if (viewState.isListView) {
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: feed.books.length,
+            itemBuilder:
+                (context, index) =>
+                    _buildBookListTile(context, feed.books[index], state),
+          );
+        }
+
         return GridView.builder(
           padding: const EdgeInsets.all(16.0),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.7,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: viewState.columnCount,
+            childAspectRatio: viewState.columnCount <= 2 ? 0.7 : 0.9,
             crossAxisSpacing: 16.0,
             mainAxisSpacing: 16.0,
           ),
@@ -233,43 +251,108 @@ class DiscoverDetailsPage extends StatelessWidget {
               title: book.title,
               authors: book.authors,
               isLoading: state.loadingBookId == book.id,
-              onTap: () async {
-                final int parsedId = int.tryParse(book.id)!;
-
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder:
-                        (context) => BookDetailsPage(
-                          bookViewModel: BookDetailsModel(
-                            id: parsedId,
-                            uuid: book.uuid,
-                            title: book.title,
-                            authors: book.authors,
-                            cover: book.coverUrl ?? '',
-                            coverUrl: book.coverUrl,
-                            comments: book.summary ?? '',
-                            data:
-                                book.summary ??
-                                '', // <--- DAS HIER HAT GEFEHLT!
-                            tags: book.tags,
-                            hasCover: book.coverUrl != null,
-                            path: '',
-                            pubdate: '',
-                            series: '',
-                            seriesIndex: 0,
-                            rating: 0,
-                            languages: '',
-                            publishers: '',
-                          ),
-                          bookUuid: book.uuid,
-                        ),
-                  ),
-                );
-              },
+              onTap: () => _openBook(context, book),
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildBookListTile(
+    BuildContext context,
+    DiscoverDetailsModel book,
+    DiscoverDetailsState state,
+  ) {
+    final parsedId = int.tryParse(book.id) ?? 0;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _openBook(context, book),
+        child: SizedBox(
+          height: 140,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AspectRatio(
+                aspectRatio: 2 / 3,
+                child: BookCoverWidget(
+                  bookId: parsedId,
+                  coverUrl: book.coverUrl,
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        book.title,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        book.authors,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (state.loadingBookId == book.id)
+                const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openBook(BuildContext context, DiscoverDetailsModel book) {
+    final int parsedId = int.tryParse(book.id)!;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (context) => BookDetailsPage(
+              bookViewModel: BookDetailsModel(
+                id: parsedId,
+                uuid: book.uuid,
+                title: book.title,
+                authors: book.authors,
+                cover: book.coverUrl ?? '',
+                coverUrl: book.coverUrl,
+                comments: book.summary ?? '',
+                data: book.summary ?? '',
+                tags: book.tags,
+                hasCover: book.coverUrl != null,
+                path: '',
+                pubdate: '',
+                series: '',
+                seriesIndex: 0,
+                rating: 0,
+                languages: '',
+                publishers: '',
+              ),
+              bookUuid: book.uuid,
+            ),
+      ),
     );
   }
 

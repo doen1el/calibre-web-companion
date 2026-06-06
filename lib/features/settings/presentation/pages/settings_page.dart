@@ -300,6 +300,7 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildSectionTitle(context, localizations.appearance),
             const ThemeSelectorWidget(),
             _buildEInkModeToggle(context, state, localizations),
+            _buildTextScaleSelector(context, state, localizations),
             const SizedBox(height: 24),
             _buildSectionTitle(context, localizations.language),
             _buildLanguageSelector(context, state, localizations),
@@ -481,6 +482,83 @@ class _SettingsPageState extends State<SettingsPage> {
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.secondary,
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextScaleSelector(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    double current = state.textScale;
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: StatefulBuilder(
+        builder: (context, setLocal) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.format_size_rounded,
+                      size: 28,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            localizations.fontSize,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            localizations.fontSizeDescription,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      '${(current * 100).round()}%',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Slider(
+                  value: current.clamp(0.8, 1.6),
+                  min: 0.8,
+                  max: 1.6,
+                  divisions: 8,
+                  label: '${(current * 100).round()}%',
+                  onChanged: (value) => setLocal(() => current = value),
+                  onChangeEnd:
+                      (value) => context.read<SettingsBloc>().add(
+                        SetTextScale(value),
+                      ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

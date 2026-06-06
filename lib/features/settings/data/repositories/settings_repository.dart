@@ -243,6 +243,14 @@ class SettingsRepository {
     }
   }
 
+  Future<void> setTextScale(double scale) async {
+    try {
+      await dataSource.saveTextScale(scale);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> setBookActionsOrder(List<String> actionKeys) async {
     try {
       await dataSource.saveBookActionsOrder(actionKeys);

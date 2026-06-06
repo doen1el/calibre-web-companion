@@ -166,7 +166,8 @@ class _MyAppState extends State<MyApp> {
               previous.themeSource != current.themeSource ||
               previous.selectedColorKey != current.selectedColorKey ||
               previous.languageCode != current.languageCode ||
-              previous.isEInkMode != current.isEInkMode,
+              previous.isEInkMode != current.isEInkMode ||
+              previous.textScale != current.textScale,
 
       builder: (context, settingsState) {
         return DynamicColorBuilder(
@@ -226,6 +227,15 @@ class _MyAppState extends State<MyApp> {
                 themeMode: settingsState.themeMode,
                 navigatorKey: navigatorKey,
                 navigatorObservers: [routeObserver],
+                builder: (context, child) {
+                  final mediaQuery = MediaQuery.of(context);
+                  return MediaQuery(
+                    data: mediaQuery.copyWith(
+                      textScaler: TextScaler.linear(settingsState.textScale),
+                    ),
+                    child: child ?? const SizedBox.shrink(),
+                  );
+                },
                 localizationsDelegates: AppLocalizations.localizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
                 locale: Locale(settingsState.languageCode ?? 'en'),

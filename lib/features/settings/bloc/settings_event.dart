@@ -220,6 +220,15 @@ class SetEInkMode extends SettingsEvent {
   List<Object?> get props => [enabled];
 }
 
+class SetTextScale extends SettingsEvent {
+  final double scale;
+
+  const SetTextScale(this.scale);
+
+  @override
+  List<Object?> get props => [scale];
+}
+
 class SetBookActionsOrder extends SettingsEvent {
   final List<String> actionKeys;
 

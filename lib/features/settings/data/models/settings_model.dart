@@ -28,6 +28,7 @@ class SettingsModel extends Equatable {
   final String webDavPassword;
   final bool isWebDavSyncEnabled;
   final bool isEInkMode;
+  final double textScale;
   final List<String> bookActionsOrder;
   final List<String> enabledBookActions;
   final List<String> bookDetailsSectionsOrder;
@@ -60,6 +61,7 @@ class SettingsModel extends Equatable {
     required this.webDavPassword,
     required this.isWebDavSyncEnabled,
     required this.isEInkMode,
+    required this.textScale,
     required this.bookActionsOrder,
     required this.enabledBookActions,
     required this.bookDetailsSectionsOrder,
@@ -95,6 +97,7 @@ class SettingsModel extends Equatable {
       webDavPassword: json['webdav_password'] ?? '',
       isWebDavSyncEnabled: json['webdav_enabled'] ?? false,
       isEInkMode: json['is_eink_mode'] ?? false,
+      textScale: (json['text_scale'] as num?)?.toDouble() ?? 1.0,
       bookActionsOrder: BookDetailsActionConfig.normalizeOrder(
         List<String>.from(
           json['book_actions_order'] ?? BookDetailsActionConfig.defaultOrder,
@@ -180,6 +183,7 @@ class SettingsModel extends Equatable {
     webDavPassword,
     isWebDavSyncEnabled,
     isEInkMode,
+    textScale,
     bookActionsOrder,
     enabledBookActions,
     bookDetailsSectionsOrder,

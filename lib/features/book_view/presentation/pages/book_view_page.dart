@@ -19,6 +19,7 @@ import 'package:calibre_web_companion/features/book_view/presentation/widgets/se
 import 'package:calibre_web_companion/features/scan_book/presentation/pages/scan_book_page.dart';
 import 'package:calibre_web_companion/features/scan_book/presentation/scan_flow.dart';
 import 'package:calibre_web_companion/shared/widgets/app_options_sheet.dart';
+import 'package:calibre_web_companion/shared/widgets/book_view_mode_selector.dart';
 
 class BookViewPage extends StatefulWidget {
   const BookViewPage({super.key});
@@ -76,13 +77,32 @@ class _BookViewPageState extends State<BookViewPage> {
         }
       },
       builder: (context, state) {
+        final bool isSearching = (state.searchQuery ?? '').isNotEmpty;
         return Scaffold(
           appBar: AppBar(
-            title: Text(localizations.books),
+            leading:
+                isSearching
+                    ? IconButton(
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      tooltip: localizations.clearSearch,
+                      onPressed: () => _clearSearch(context),
+                    )
+                    : null,
+            title:
+                isSearching
+                    ? Text('${localizations.search}: ${state.searchQuery}')
+                    : Text(localizations.books),
             actions: [
-              _buildColumnSelector(context, state, localizations),
+              const BookViewModeSelector(),
               if (!state.isOpds) _buildSortOptions(context, localizations),
-              _buildSearchButton(context, localizations),
+              if (isSearching)
+                IconButton(
+                  icon: const Icon(Icons.close_rounded),
+                  tooltip: localizations.clearSearch,
+                  onPressed: () => _clearSearch(context),
+                )
+              else
+                _buildSearchButton(context, localizations),
             ],
           ),
           body: _buildBody(context, state, localizations),
@@ -259,71 +279,6 @@ class _BookViewPageState extends State<BookViewPage> {
     );
   }
 
-  Widget _buildColumnSelector(
-    BuildContext context,
-    BookViewState state,
-    AppLocalizations localizations,
-  ) {
-    return PopupMenuButton<dynamic>(
-      icon: Icon(
-        state.isListView ? Icons.view_list_rounded : Icons.grid_view_rounded,
-      ),
-      tooltip: localizations.columnsCount,
-      onSelected: (dynamic value) {
-        if (value == 'list') {
-          context.read<BookViewBloc>().add(const SetViewMode(true));
-        } else if (value is int) {
-          context.read<BookViewBloc>().add(ChangeColumnCount(value));
-        }
-      },
-      itemBuilder:
-          (context) => [
-            PopupMenuItem(
-              value: 'list',
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.view_list,
-                    color:
-                        state.isListView
-                            ? Theme.of(context).colorScheme.primary
-                            : null,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(localizations.listView),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            for (int i = 1; i <= 5; i++)
-              PopupMenuItem<int>(
-                value: i,
-                child: Row(
-                  children: [
-                    Icon(
-                      i == 1
-                          ? Icons.looks_one
-                          : i == 2
-                          ? Icons.looks_two
-                          : i == 3
-                          ? Icons.looks_3
-                          : i == 4
-                          ? Icons.looks_4
-                          : Icons.looks_5,
-                      color:
-                          !state.isListView && state.columnCount == i
-                              ? Theme.of(context).colorScheme.primary
-                              : null,
-                    ),
-                    const SizedBox(width: 8),
-                    Text('$i ${localizations.columns}'),
-                  ],
-                ),
-              ),
-          ],
-    );
-  }
-
   Widget _buildSortOptions(
     BuildContext context,
     AppLocalizations localizations,
@@ -431,6 +386,10 @@ class _BookViewPageState extends State<BookViewPage> {
         }
       },
     );
+  }
+
+  void _clearSearch(BuildContext context) {
+    context.read<BookViewBloc>().add(const SearchBooks(''));
   }
 
   Future<void> _pickAndUploadBook(

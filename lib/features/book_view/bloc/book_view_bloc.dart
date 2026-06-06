@@ -59,9 +59,6 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
           isLoading: false,
           books: books,
           offset: state.limit,
-          // OPDS returns the whole feed at once; everything else paginates until
-          // an empty page. Don't gate on the parsed count (a dropped/short page
-          // would falsely stop pagination — e.g. the authors sort).
           hasMoreBooks: isOpds ? false : books.isNotEmpty,
           isOpds: isOpds,
         ),

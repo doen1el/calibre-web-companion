@@ -37,6 +37,7 @@ class SettingsState extends Equatable {
   final String webDavUsername;
   final String webDavPassword;
   final bool isEInkMode;
+  final double textScale;
   final List<String> bookActionsOrder;
   final List<String> enabledBookActions;
   final List<String> bookDetailsSectionsOrder;
@@ -78,6 +79,7 @@ class SettingsState extends Equatable {
     this.webDavUsername = '',
     this.webDavPassword = '',
     this.isEInkMode = false,
+    this.textScale = 1.0,
     this.bookActionsOrder = const [],
     this.enabledBookActions = const [],
     this.bookDetailsSectionsOrder = const [],
@@ -122,6 +124,7 @@ class SettingsState extends Equatable {
     String? webDavUsername,
     String? webDavPassword,
     bool? isEInkMode,
+    double? textScale,
     List<String>? bookActionsOrder,
     List<String>? enabledBookActions,
     List<String>? bookDetailsSectionsOrder,
@@ -166,6 +169,7 @@ class SettingsState extends Equatable {
       webDavUsername: webDavUsername ?? this.webDavUsername,
       webDavPassword: webDavPassword ?? this.webDavPassword,
       isEInkMode: isEInkMode ?? this.isEInkMode,
+      textScale: textScale ?? this.textScale,
       bookActionsOrder: bookActionsOrder ?? this.bookActionsOrder,
       enabledBookActions: enabledBookActions ?? this.enabledBookActions,
       bookDetailsSectionsOrder:
@@ -213,6 +217,7 @@ class SettingsState extends Equatable {
     webDavUsername,
     webDavPassword,
     isEInkMode,
+    textScale,
     bookActionsOrder,
     enabledBookActions,
     bookDetailsSectionsOrder,
