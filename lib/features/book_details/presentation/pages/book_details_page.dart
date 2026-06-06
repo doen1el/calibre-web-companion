@@ -8,6 +8,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:logger/logger.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_options_sheet.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -111,16 +112,19 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
     return showModalBottomSheet<String>(
       context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder:
           (sheetContext) => SafeArea(
+            top: false,
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ListTile(
-                  title: Text(localizations.downlaodFomat),
-                  leading: const Icon(Icons.menu_book_rounded),
-                ),
-                const Divider(),
+                AppOptionsSheetHeader(title: localizations.downlaodFomat),
                 ...formats.map((format) {
                   final isSupported = _isInternalReaderSupportedFormat(format);
                   IconData icon;
@@ -139,29 +143,18 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                       icon = Icons.file_present;
                   }
 
-                  return ListTile(
-                    leading: Icon(
-                      icon,
-                      color:
-                          isSupported
-                              ? null
-                              : Theme.of(context).colorScheme.outline,
-                    ),
-                    title: Text(format.toUpperCase()),
+                  return AppOptionTile(
+                    icon: icon,
+                    title: format.toUpperCase(),
+                    enabled: isSupported,
                     subtitle:
                         isSupported
                             ? null
-                            : Text(
-                              localizations.internalReaderSupportsOnlyEpubShort,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.outline,
-                              ),
-                            ),
-                    onTap: () {
-                      Navigator.pop(sheetContext, isSupported ? format : null);
-                    },
+                            : localizations.internalReaderSupportsOnlyEpubShort,
+                    onTap: () => Navigator.pop(sheetContext, format),
                   );
                 }),
+                const SizedBox(height: 12),
               ],
             ),
           ),

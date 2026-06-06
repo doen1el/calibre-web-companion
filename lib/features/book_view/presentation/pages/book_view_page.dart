@@ -16,6 +16,9 @@ import 'package:calibre_web_companion/shared/widgets/book_list_tile_widget.dart'
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_view/presentation/widgets/search_dialog.dart';
+import 'package:calibre_web_companion/features/scan_book/presentation/pages/scan_book_page.dart';
+import 'package:calibre_web_companion/features/scan_book/presentation/scan_flow.dart';
+import 'package:calibre_web_companion/shared/widgets/app_options_sheet.dart';
 
 class BookViewPage extends StatefulWidget {
   const BookViewPage({super.key});
@@ -87,9 +90,10 @@ class _BookViewPageState extends State<BookViewPage> {
               state.isOpds
                   ? null
                   : FloatingActionButton(
-                    onPressed: () => _pickAndUploadBook(context, localizations),
-                    tooltip: localizations.uploadEbook,
-                    child: const Icon(Icons.upload_rounded),
+                    onPressed:
+                        () => _showAddBookOptions(context, localizations),
+                    tooltip: localizations.addBook,
+                    child: const Icon(Icons.add_rounded),
                   ),
         );
       },
@@ -358,6 +362,54 @@ class _BookViewPageState extends State<BookViewPage> {
             ),
           ],
     );
+  }
+
+  void _showAddBookOptions(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    showAppOptionsSheet(
+      context,
+      title: localizations.addBook,
+      options: [
+        AppSheetOption(
+          icon: Icons.qr_code_scanner_rounded,
+          title: localizations.scan,
+          subtitle: localizations.scanBarcodeDescription,
+          onTap: () => _openScanner(context),
+        ),
+        AppSheetOption(
+          icon: Icons.keyboard_rounded,
+          title: localizations.enterIsbn,
+          subtitle: localizations.enterIsbnDescription,
+          onTap: () => _startIsbnEntry(context),
+        ),
+        AppSheetOption(
+          icon: Icons.upload_file_rounded,
+          title: localizations.uploadFromDevice,
+          subtitle: localizations.uploadFromDeviceDescription,
+          onTap: () => _pickAndUploadBook(context, localizations),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _openScanner(BuildContext context) async {
+    final added = await Navigator.of(
+      context,
+    ).push<bool>(AppTransitions.createSlideRoute(const ScanBookPage()));
+    if (added == true && context.mounted) {
+      context.read<BookViewBloc>().add(const RefreshBooks());
+    }
+  }
+
+  Future<void> _startIsbnEntry(BuildContext context) async {
+    final isbn = await promptForIsbn(context);
+    if (isbn == null || isbn.isEmpty || !context.mounted) return;
+    final added = await runIsbnLookupFlow(context, isbn);
+    if (added && context.mounted) {
+      context.read<BookViewBloc>().add(const RefreshBooks());
+    }
   }
 
   Widget _buildSearchButton(

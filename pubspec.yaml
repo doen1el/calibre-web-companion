@@ -57,6 +57,7 @@ dependencies:
   equatable:
   get_it:
   image_picker:
+  mobile_scanner:
   path_provider:
   http_parser:
   docman:
@@ -64,6 +65,7 @@ dependencies:
   html_unescape:
   webdav_client:
   cosmos_epub:
+  archive:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
