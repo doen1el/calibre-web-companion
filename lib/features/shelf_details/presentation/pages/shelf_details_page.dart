@@ -150,7 +150,12 @@ class ShelfDetailsPage extends StatelessWidget {
       return _buildEmptyShelfState(context, localizations);
     }
 
-    return _buildBookGrid(context, state.currentShelfDetail!, localizations);
+    return _buildBookGrid(
+      context,
+      state.currentShelfDetail!,
+      state,
+      localizations,
+    );
   }
 
   Widget _buildLoadingSkeleton(
@@ -178,7 +183,12 @@ class ShelfDetailsPage extends StatelessWidget {
         baseColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         highlightColor: Theme.of(context).colorScheme.surface,
       ),
-      child: _buildBookGrid(context, dummyShelf, localizations),
+      child: _buildBookGrid(
+        context,
+        dummyShelf,
+        const ShelfDetailsState(),
+        localizations,
+      ),
     );
   }
 
@@ -316,6 +326,7 @@ class ShelfDetailsPage extends StatelessWidget {
   Widget _buildBookGrid(
     BuildContext context,
     ShelfDetailsModel shelf,
+    ShelfDetailsState state,
     AppLocalizations localizations,
   ) {
     return RefreshIndicator(
@@ -324,46 +335,92 @@ class ShelfDetailsPage extends StatelessWidget {
           LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
         );
       },
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    localizations.shelfContains(shelf.books.length),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (state.hasMoreBooks &&
+              !state.isLoadingMore &&
+              notification.metrics.pixels >=
+                  notification.metrics.maxScrollExtent - 600) {
+            context.read<ShelfDetailsBloc>().add(LoadMoreShelfDetails(shelfId));
+          }
+          return false;
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      localizations.shelfContains(shelf.books.length),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
+                    const Divider(),
+                  ],
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.6,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _buildBookItem(
+                    context,
+                    shelf.books[index],
+                    localizations,
                   ),
-                  const Divider(),
-                ],
+                  childCount: shelf.books.length,
+                ),
               ),
             ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.6,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) =>
-                    _buildBookItem(context, shelf.books[index], localizations),
-                childCount: shelf.books.length,
-              ),
+            SliverToBoxAdapter(
+              child: _buildPaginationFooter(context, state, localizations),
             ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 16)),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildPaginationFooter(
+    BuildContext context,
+    ShelfDetailsState state,
+    AppLocalizations localizations,
+  ) {
+    if (state.isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (state.hasMoreBooks) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        child: Center(
+          child: OutlinedButton.icon(
+            onPressed: () {
+              context.read<ShelfDetailsBloc>().add(
+                LoadMoreShelfDetails(shelfId),
+              );
+            },
+            icon: const Icon(Icons.expand_more_rounded),
+            label: Text(localizations.loadMore),
+          ),
+        ),
+      );
+    }
+    return const SizedBox(height: 16);
   }
 
   Widget _buildBookItem(
@@ -557,7 +614,8 @@ class ShelfDetailsPage extends StatelessWidget {
 
     return FutureBuilder<Map<String, String>>(
       future: () async {
-        final headers = <String, String>{}; headers.addAll(apiService.getAuthHeaders(authMethod: AuthMethod.auto));
+        final headers = <String, String>{};
+        headers.addAll(apiService.getAuthHeaders(authMethod: AuthMethod.auto));
 
         final username = apiService.getUsername();
         final password = apiService.getPassword();

@@ -24,6 +24,15 @@ class LoadShelfDetails extends ShelfDetailsEvent {
   List<Object?> get props => [shelfId, shelfTitle, isPublic];
 }
 
+class LoadMoreShelfDetails extends ShelfDetailsEvent {
+  final String shelfId;
+
+  const LoadMoreShelfDetails(this.shelfId);
+
+  @override
+  List<Object?> get props => [shelfId];
+}
+
 class RemoveFromShelf extends ShelfDetailsEvent {
   final String shelfId;
   final String bookId;

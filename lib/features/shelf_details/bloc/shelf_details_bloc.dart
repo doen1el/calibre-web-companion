@@ -14,6 +14,7 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
   ShelfDetailsBloc({required this.repository, required this.shelfViewBloc})
     : super(const ShelfDetailsState()) {
     on<LoadShelfDetails>(_onLoadShelfDetails);
+    on<LoadMoreShelfDetails>(_onLoadMoreShelfDetails);
     on<RemoveFromShelf>(_onRemoveFromShelf);
     on<EditShelf>(_onEditShelf);
     on<DeleteShelf>(_onDeleteShelf);
@@ -40,6 +41,9 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
           currentShelfDetail: mergedResult,
           errorMessage: null,
           isOpds: isOpds,
+          isLoadingMore: false,
+          hasMoreBooks: result.nextOffset != null,
+          nextOffset: result.nextOffset,
         ),
       );
     } catch (e) {
@@ -49,6 +53,43 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
           errorMessage: e.toString(),
         ),
       );
+    }
+  }
+
+  Future<void> _onLoadMoreShelfDetails(
+    LoadMoreShelfDetails event,
+    Emitter<ShelfDetailsState> emit,
+  ) async {
+    final current = state.currentShelfDetail;
+    if (state.isLoadingMore ||
+        !state.hasMoreBooks ||
+        state.nextOffset == null ||
+        current == null) {
+      return;
+    }
+
+    emit(state.copyWith(isLoadingMore: true));
+
+    try {
+      final page = await repository.getShelfDetails(
+        event.shelfId,
+        offset: state.nextOffset!,
+      );
+
+      final existingIds = current.books.map((b) => b.id).toSet();
+      final newBooks = page.books.where((b) => !existingIds.contains(b.id));
+      final mergedBooks = [...current.books, ...newBooks];
+
+      emit(
+        state.copyWith(
+          currentShelfDetail: current.copyWith(books: mergedBooks),
+          isLoadingMore: false,
+          hasMoreBooks: page.nextOffset != null,
+          nextOffset: page.nextOffset,
+        ),
+      );
+    } catch (e) {
+      emit(state.copyWith(isLoadingMore: false));
     }
   }
 

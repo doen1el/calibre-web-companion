@@ -15,7 +15,10 @@ class ShelfDetailsRemoteDataSource {
     required this.preferences,
   });
 
-  Future<ShelfDetailsModel> getShelfDetails(String shelfId) async {
+  Future<ShelfDetailsModel> getShelfDetails(
+    String shelfId, {
+    int offset = 0,
+  }) async {
     try {
       final serverType = preferences.getString('server_type');
 
@@ -28,6 +31,7 @@ class ShelfDetailsRemoteDataSource {
       final response = await apiService.getXmlAsJson(
         endpoint: '/opds/shelf/$shelfId',
         authMethod: AuthMethod.auto,
+        queryParams: offset > 0 ? {'offset': '$offset'} : const {},
       );
 
       return ShelfDetailsModel.fromFeedJson(response);
