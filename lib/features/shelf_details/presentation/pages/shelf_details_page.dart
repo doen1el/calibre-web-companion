@@ -1,10 +1,6 @@
-import 'dart:convert';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 
@@ -15,14 +11,16 @@ import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_b
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
 import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_view_mode_selector.dart';
+import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
 import 'package:calibre_web_companion/main.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_book_item_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/presentation/widgets/edit_shelf_dialog_widget.dart';
-import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
 
 class ShelfDetailsPage extends StatelessWidget {
@@ -83,44 +81,40 @@ class ShelfDetailsPage extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               title: Text(showPublic ? "$displayTitle (Public)" : displayTitle),
-              actions:
-                  state.isOpds
-                      ? []
-                      : [
-                        IconButton(
-                          icon: CircleAvatar(
-                            backgroundColor:
-                                Theme.of(
-                                  context,
-                                ).colorScheme.secondaryContainer,
-                            child: const Icon(Icons.edit_rounded),
-                          ),
-                          tooltip: localizations.editShelf,
-                          onPressed:
-                              () => _showEditShelfDialog(
-                                context,
-                                state,
-                                localizations,
-                                displayTitle,
-                              ),
+              actions: [
+                const BookViewModeSelector(),
+                if (!state.isOpds) ...[
+                  IconButton(
+                    icon: CircleAvatar(
+                      backgroundColor:
+                          Theme.of(context).colorScheme.secondaryContainer,
+                      child: const Icon(Icons.edit_rounded),
+                    ),
+                    tooltip: localizations.editShelf,
+                    onPressed:
+                        () => _showEditShelfDialog(
+                          context,
+                          state,
+                          localizations,
+                          displayTitle,
                         ),
-                        IconButton(
-                          icon: CircleAvatar(
-                            backgroundColor:
-                                Theme.of(
-                                  context,
-                                ).colorScheme.secondaryContainer,
-                            child: const Icon(Icons.delete_rounded),
-                          ),
-                          tooltip: localizations.deleteShelf,
-                          onPressed:
-                              () => _showDeleteShelfDialog(
-                                context,
-                                state,
-                                localizations,
-                              ),
+                  ),
+                  IconButton(
+                    icon: CircleAvatar(
+                      backgroundColor:
+                          Theme.of(context).colorScheme.secondaryContainer,
+                      child: const Icon(Icons.delete_rounded),
+                    ),
+                    tooltip: localizations.deleteShelf,
+                    onPressed:
+                        () => _showDeleteShelfDialog(
+                          context,
+                          state,
+                          localizations,
                         ),
-                      ],
+                  ),
+                ],
+              ],
             ),
             body: _buildBody(context, state, localizations),
           );
@@ -365,25 +359,7 @@ class ShelfDetailsPage extends StatelessWidget {
                 ),
               ),
             ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.6,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildBookItem(
-                    context,
-                    shelf.books[index],
-                    localizations,
-                  ),
-                  childCount: shelf.books.length,
-                ),
-              ),
-            ),
+            _buildBooksSliver(context, shelf),
             SliverToBoxAdapter(
               child: _buildPaginationFooter(context, state, localizations),
             ),
@@ -423,103 +399,128 @@ class ShelfDetailsPage extends StatelessWidget {
     return const SizedBox(height: 16);
   }
 
-  Widget _buildBookItem(
-    BuildContext context,
-    ShelfBookItem book,
-    AppLocalizations localizations,
-  ) {
-    return BlocBuilder<ShelfDetailsBloc, ShelfDetailsState>(
-      builder: (context, state) {
-        final bool isLoading = state.loadingBookId == book.id;
+  Widget _buildBooksSliver(BuildContext context, ShelfDetailsModel shelf) {
+    final viewState = context.watch<BookViewBloc>().state;
 
-        return Card(
-          elevation: 4.0,
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () async {
-              final cleanUuid = book.id.toLowerCase().replaceAll(
-                'urn:uuid:',
-                '',
-              );
-
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) => BookDetailsPage(
-                        bookUuid: cleanUuid,
-                        bookViewModel: BookViewModel(
-                          id: 0,
-                          uuid: cleanUuid,
-                          title: book.title,
-                          authors: book.authors,
-                        ),
-                      ),
-                ),
-              );
-            },
-
-            child: Stack(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _buildCoverImage(context, book.id, book.coverUrl),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            book.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            book.authors,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                if (isLoading)
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.secondaryContainer.withValues(alpha: .6),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color:
-                              Theme.of(context).colorScheme.secondaryContainer,
-                          strokeWidth: 3,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+    if (viewState.isListView) {
+      return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildShelfBookListTile(context, shelf.books[index]),
             ),
+            childCount: shelf.books.length,
           ),
+        ),
+      );
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverGrid(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: viewState.columnCount,
+          childAspectRatio: viewState.columnCount <= 2 ? 0.7 : 0.9,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => _buildShelfBookCard(context, shelf.books[index]),
+          childCount: shelf.books.length,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShelfBookCard(BuildContext context, ShelfBookItem book) {
+    return BlocBuilder<ShelfDetailsBloc, ShelfDetailsState>(
+      buildWhen:
+          (previous, current) =>
+              previous.loadingBookId != current.loadingBookId,
+      builder: (context, state) {
+        return BookCard(
+          bookId: book.id,
+          coverUrl: book.coverUrl,
+          title: book.title,
+          authors: book.authors,
+          isLoading: state.loadingBookId == book.id,
+          onTap: () => _openShelfBook(context, book),
         );
       },
+    );
+  }
+
+  Widget _buildShelfBookListTile(BuildContext context, ShelfBookItem book) {
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _openShelfBook(context, book),
+        // Ripple feedback on long-press (no action).
+        onLongPress: () {},
+        child: SizedBox(
+          height: 140,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AspectRatio(
+                aspectRatio: 2 / 3,
+                child: BookCoverWidget(
+                  bookId: int.tryParse(book.id) ?? 0,
+                  coverUrl: book.coverUrl,
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        book.title,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        book.authors,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openShelfBook(BuildContext context, ShelfBookItem book) {
+    final cleanUuid = book.id.toLowerCase().replaceAll('urn:uuid:', '');
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (context) => BookDetailsPage(
+              bookUuid: cleanUuid,
+              bookViewModel: BookViewModel(
+                id: 0,
+                uuid: cleanUuid,
+                title: book.title,
+                authors: book.authors,
+              ),
+            ),
+      ),
     );
   }
 
@@ -588,112 +589,6 @@ class ShelfDetailsPage extends StatelessWidget {
               label: localizations.delete,
             ),
           ],
-        );
-      },
-    );
-  }
-
-  Widget _buildCoverImage(
-    BuildContext context,
-    String bookId,
-    String? coverUrl,
-  ) {
-    final apiService = ApiService();
-    final baseUrl = apiService.getBaseUrl();
-
-    String imageUrl;
-    if (coverUrl != null && coverUrl.isNotEmpty) {
-      var cleanCoverURL = coverUrl.split("/api/v1/opds/").last;
-      if (cleanCoverURL.startsWith('/')) {
-        cleanCoverURL = cleanCoverURL.substring(1);
-      }
-      imageUrl = '$baseUrl/$cleanCoverURL';
-    } else {
-      imageUrl = '$baseUrl/opds/cover/$bookId';
-    }
-
-    return FutureBuilder<Map<String, String>>(
-      future: () async {
-        final headers = <String, String>{};
-        headers.addAll(apiService.getAuthHeaders(authMethod: AuthMethod.auto));
-
-        final username = apiService.getUsername();
-        final password = apiService.getPassword();
-        if (username.isNotEmpty &&
-            password.isNotEmpty &&
-            !headers.containsKey('Authorization')) {
-          headers['Authorization'] =
-              'Basic ${base64.encode(utf8.encode('$username:$password'))}';
-        }
-
-        try {
-          final prefs = await SharedPreferences.getInstance();
-          final headersJson = prefs.getString('custom_login_headers') ?? '[]';
-          final List<dynamic> decodedList = jsonDecode(headersJson);
-
-          for (final dynamic item in decodedList) {
-            if (item is Map) {
-              final map = Map<String, dynamic>.from(item);
-              String? key = map['key']?.toString();
-              String? value = map['value']?.toString();
-
-              if (key == null && map.isNotEmpty) {
-                key = map.keys.first;
-                value = map.values.first;
-              }
-
-              if (key != null && value != null) {
-                if (value.contains('\${USERNAME}') && username.isNotEmpty) {
-                  value = value.replaceAll('\${USERNAME}', username);
-                }
-                headers[key] = value;
-              }
-            }
-          }
-        } catch (e) {
-          // Error loading custom headers; proceed without them
-        }
-
-        headers['Accept'] =
-            'image/avif;q=0,image/webp;q=0,image/jpeg,image/png,*/*;q=0.5';
-        headers['Cache-Control'] = 'no-transform';
-        return headers;
-      }(),
-      builder: (context, snapshot) {
-        final headers = snapshot.data ?? const <String, String>{};
-        return CachedNetworkImage(
-          cacheManager: CustomCacheManager(),
-          key: ValueKey('${bookId}_$imageUrl'),
-          imageUrl: imageUrl,
-          httpHeaders: headers,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          placeholder:
-              (context, url) => Container(
-                color: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
-                child: AppSkeletonizer(
-                  enabled: true,
-                  effect: ShimmerEffect(
-                    baseColor: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: .2),
-                    highlightColor: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: .4),
-                  ),
-                  child: const SizedBox(),
-                ),
-              ),
-          errorWidget: (context, url, error) {
-            return Container(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: const Center(child: Icon(Icons.broken_image_rounded)),
-            );
-          },
-          memCacheWidth: 300,
-          memCacheHeight: 400,
         );
       },
     );

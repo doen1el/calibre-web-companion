@@ -270,6 +270,7 @@ class DiscoverDetailsPage extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _openBook(context, book),
+        onLongPress: () {},
         child: SizedBox(
           height: 140,
           child: Row(

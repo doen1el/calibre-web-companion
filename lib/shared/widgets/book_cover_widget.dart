@@ -29,7 +29,10 @@ class BookCoverWidget extends StatelessWidget {
 
     String imageUrl;
     if (coverUrl != null && coverUrl!.isNotEmpty) {
-      final cleanCoverURL = coverUrl?.split("/api/v1/opds/").last;
+      var cleanCoverURL = coverUrl!.split("/api/v1/opds/").last;
+      if (cleanCoverURL.startsWith('/')) {
+        cleanCoverURL = cleanCoverURL.substring(1);
+      }
       imageUrl = '$baseUrl/$cleanCoverURL';
     } else {
       imageUrl = '$baseUrl/opds/cover/$bookId';

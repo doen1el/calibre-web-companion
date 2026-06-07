@@ -16,6 +16,7 @@ class BookListTile extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
+        onLongPress: () {},
         child: SizedBox(
           height: 140,
           child: Row(
