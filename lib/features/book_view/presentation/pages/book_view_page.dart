@@ -276,6 +276,7 @@ class _BookViewPageState extends State<BookViewPage> {
   ) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.sort),
+      tooltip: localizations.sorting,
       onSelected: (String value) {
         final sortParts = value.split(':');
         if (sortParts.length == 2) {

@@ -465,5 +465,6 @@
   "bookAddedToCalibre": "Book added to Calibre",
   "addToCalibreFailed": "Could not add the book to Calibre",
   "pages": "pages",
-  "bookFound": "Book found"
+  "bookFound": "Book found",
+  "sorting": "Sorting"
 }

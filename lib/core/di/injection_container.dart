@@ -50,6 +50,8 @@ Future<void> init() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   final appLogService = AppLogService();
   final logger = Logger(
+    filter: ProductionFilter(),
+    level: Level.trace,
     output: MultiOutput([ConsoleOutput(), AppLogOutput(appLogService)]),
   );
   final client = http.Client();

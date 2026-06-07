@@ -465,5 +465,6 @@
   "bookAddedToCalibre": "Buch zu Calibre hinzugefügt",
   "addToCalibreFailed": "Buch konnte nicht zu Calibre hinzugefügt werden",
   "pages": "Seiten",
-  "bookFound": "Buch gefunden"
+  "bookFound": "Buch gefunden",
+  "sorting": "Sortierung"
 }
