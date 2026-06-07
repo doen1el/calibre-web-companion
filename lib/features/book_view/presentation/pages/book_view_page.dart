@@ -80,29 +80,19 @@ class _BookViewPageState extends State<BookViewPage> {
         final bool isSearching = (state.searchQuery ?? '').isNotEmpty;
         return Scaffold(
           appBar: AppBar(
-            leading:
-                isSearching
-                    ? IconButton(
-                      icon: const Icon(Icons.arrow_back_rounded),
-                      tooltip: localizations.clearSearch,
-                      onPressed: () => _clearSearch(context),
-                    )
-                    : null,
+            titleSpacing: isSearching ? 8 : null,
             title:
                 isSearching
-                    ? Text('${localizations.search}: ${state.searchQuery}')
+                    ? _buildActiveSearchBar(
+                      context,
+                      state.searchQuery!,
+                      localizations,
+                    )
                     : Text(localizations.books),
             actions: [
               const BookViewModeSelector(),
               if (!state.isOpds) _buildSortOptions(context, localizations),
-              if (isSearching)
-                IconButton(
-                  icon: const Icon(Icons.close_rounded),
-                  tooltip: localizations.clearSearch,
-                  onPressed: () => _clearSearch(context),
-                )
-              else
-                _buildSearchButton(context, localizations),
+              if (!isSearching) _buildSearchButton(context, localizations),
             ],
           ),
           body: _buildBody(context, state, localizations),
@@ -229,6 +219,7 @@ class _BookViewPageState extends State<BookViewPage> {
                     authors: book.authors,
                     coverUrl: book.coverUrl,
                     readStatus: book.readStatus,
+                    topLeftBadge: book.seriesBadge,
                     onTap: () async {
                       final changed = await Navigator.of(context).push<bool>(
                         AppTransitions.createSlideRoute(
@@ -315,6 +306,14 @@ class _BookViewPageState extends State<BookViewPage> {
               value: 'added:desc',
               child: Text(localizations.newestFirst),
             ),
+            PopupMenuItem(
+              value: 'series:asc',
+              child: Text(localizations.seriesAZ),
+            ),
+            PopupMenuItem(
+              value: 'series:desc',
+              child: Text(localizations.seriesZA),
+            ),
           ],
     );
   }
@@ -374,17 +373,61 @@ class _BookViewPageState extends State<BookViewPage> {
     return IconButton(
       icon: const Icon(Icons.search),
       tooltip: localizations.search,
-      onPressed: () async {
-        final searchQuery = await showDialog<String>(
-          context: context,
-          builder: (context) => const SearchDialog(),
-        );
+      onPressed: () => _openSearchDialog(context),
+    );
+  }
 
-        if (searchQuery != null) {
-          if (!context.mounted) return;
-          context.read<BookViewBloc>().add(SearchBooks(searchQuery));
-        }
-      },
+  Future<void> _openSearchDialog(
+    BuildContext context, {
+    String? initialQuery,
+  }) async {
+    final searchQuery = await showDialog<String>(
+      context: context,
+      builder: (context) => SearchDialog(initialQuery: initialQuery),
+    );
+    if (searchQuery != null && context.mounted) {
+      context.read<BookViewBloc>().add(SearchBooks(searchQuery));
+    }
+  }
+
+  Widget _buildActiveSearchBar(
+    BuildContext context,
+    String query,
+    AppLocalizations localizations,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: scheme.secondaryContainer,
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _openSearchDialog(context, initialQuery: query),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: Row(
+            children: [
+              Icon(Icons.search, color: scheme.onSecondaryContainer),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  query,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: scheme.onSecondaryContainer,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded),
+                color: scheme.onSecondaryContainer,
+                tooltip: localizations.clearSearch,
+                onPressed: () => _clearSearch(context),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

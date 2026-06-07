@@ -56,7 +56,6 @@ class BookDetailsModel extends BookViewModel {
   @override
   List<Object?> get props => [
     ...super.props,
-    // tags, // ENTFERNT
     cover,
     formatMetadata,
     mainFormat,

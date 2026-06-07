@@ -10,6 +10,7 @@ class BookCard extends StatelessWidget {
   final bool isLoading;
   final String? coverUrl;
   final bool readStatus;
+  final String? topLeftBadge;
 
   const BookCard({
     super.key,
@@ -20,6 +21,7 @@ class BookCard extends StatelessWidget {
     this.isLoading = false,
     this.coverUrl,
     this.readStatus = false,
+    this.topLeftBadge,
   });
 
   @override
@@ -60,6 +62,26 @@ class BookCard extends StatelessWidget {
                   Icons.check_circle,
                   size: 25,
                   color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
+
+          if (topLeftBadge != null)
+            Positioned(
+              top: 6,
+              left: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  topLeftBadge!,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),

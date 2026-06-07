@@ -219,18 +219,25 @@ class DiscoverDetailsPage extends StatelessWidget {
     );
   }
 
+  bool get _isSeriesView => fullPath != null && fullPath!.contains('/series/');
+
   Widget _buildBookGrid(BuildContext context, DiscoverFeedModel feed) {
     return BlocBuilder<DiscoverDetailsBloc, DiscoverDetailsState>(
       builder: (context, state) {
         final viewState = context.watch<BookViewBloc>().state;
+        final seriesView = _isSeriesView;
 
         if (viewState.isListView) {
           return ListView.builder(
             padding: const EdgeInsets.all(16.0),
             itemCount: feed.books.length,
             itemBuilder:
-                (context, index) =>
-                    _buildBookListTile(context, feed.books[index], state),
+                (context, index) => _buildBookListTile(
+                  context,
+                  feed.books[index],
+                  state,
+                  seriesNumber: seriesView ? index + 1 : null,
+                ),
           );
         }
 
@@ -252,6 +259,7 @@ class DiscoverDetailsPage extends StatelessWidget {
               authors: book.authors,
               isLoading: state.loadingBookId == book.id,
               onTap: () => _openBook(context, book),
+              topLeftBadge: seriesView ? '${index + 1}' : null,
             );
           },
         );
@@ -262,8 +270,9 @@ class DiscoverDetailsPage extends StatelessWidget {
   Widget _buildBookListTile(
     BuildContext context,
     DiscoverDetailsModel book,
-    DiscoverDetailsState state,
-  ) {
+    DiscoverDetailsState state, {
+    int? seriesNumber,
+  }) {
     final parsedId = int.tryParse(book.id) ?? 0;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -278,9 +287,39 @@ class DiscoverDetailsPage extends StatelessWidget {
             children: [
               AspectRatio(
                 aspectRatio: 2 / 3,
-                child: BookCoverWidget(
-                  bookId: parsedId,
-                  coverUrl: book.coverUrl,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: BookCoverWidget(
+                        bookId: parsedId,
+                        coverUrl: book.coverUrl,
+                      ),
+                    ),
+                    if (seriesNumber != null)
+                      Positioned(
+                        top: 4,
+                        left: 4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '$seriesNumber',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.labelSmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
               Expanded(

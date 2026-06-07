@@ -36,6 +36,8 @@
   "authorAZ": "Author (A-Z)",
   "authorZA": "Author (Z-A)",
   "newestFirst": "Newest first",
+  "seriesAZ": "Series (A-Z)",
+  "seriesZA": "Series (Z-A)",
   "oldestFirst": "Oldest first",
   "authors": "Authors",
   "categories": "Categories",
