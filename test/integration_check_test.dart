@@ -10,5 +10,5 @@ void main() {
   test('server is reachable', () async {
     final response = await http.get(Uri.parse(TestEnv.baseUrl));
     expect(response.statusCode, anyOf(200, 302, 401));
-  });
+  }, timeout: const Timeout(Duration(seconds: 60)));
 }

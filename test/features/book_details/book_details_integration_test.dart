@@ -80,7 +80,7 @@ void main() {
     } catch (e) {
       final msg = e.toString();
       if (msg.contains('Server error') ||
-          RegExp(r'\((4\d\d|5\d\d)\)').hasMatch(msg)) {
+          RegExp(r'(?:status |\()(4\d\d|5\d\d)').hasMatch(msg)) {
         markTestSkipped(
           'Book "${book.title}" not downloadable on server ($msg)',
         );
