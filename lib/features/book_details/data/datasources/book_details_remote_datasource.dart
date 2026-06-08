@@ -235,7 +235,7 @@ class BookDetailsRemoteDatasource {
         authMethod = AuthMethod.basic;
       } else {
         final lowerFormat = format.toLowerCase();
-        endpoint = '/download/$bookId/$lowerFormat';
+        endpoint = '/download/$bookId/$lowerFormat/$bookId.$lowerFormat';
         authMethod = AuthMethod.cookie;
       }
 

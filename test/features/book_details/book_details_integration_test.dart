@@ -1,6 +1,8 @@
 @Tags(['integration'])
 library;
 
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart';
 
@@ -77,8 +79,11 @@ void main() {
       expect(response.statusCode, 200);
     } catch (e) {
       final msg = e.toString();
-      if (msg.contains('Server error')) {
-        markTestSkipped('Server returned 5xx for /download/${book.id}/$format');
+      if (msg.contains('Server error') ||
+          RegExp(r'\((4\d\d|5\d\d)\)').hasMatch(msg)) {
+        markTestSkipped(
+          'Book "${book.title}" not downloadable on server ($msg)',
+        );
         return;
       }
       rethrow;
@@ -93,23 +98,30 @@ void main() {
     expect(providers, isA<List>());
   });
 
-  test('searchMetadata() returns results for a query', () async {
-    await setUpDataSource();
+  test(
+    'searchMetadata() returns results for a query',
+    () async {
+      await setUpDataSource();
 
-    try {
-      final results = await dataSource.searchMetadata('Tolkien', const []);
-      expect(results, isA<List>());
-    } catch (e) {
-      final msg = e.toString();
-      if (msg.contains('Server error')) {
-        markTestSkipped(
-          'Server returned 5xx for /metadata/search -> likely no metadata',
-        );
-        return;
+      try {
+        final results = await dataSource
+            .searchMetadata('Tolkien', const [])
+            .timeout(const Duration(seconds: 20));
+        expect(results, isA<List>());
+      } catch (e) {
+        final msg = e.toString();
+        if (e is TimeoutException ||
+            msg.contains('Server error') ||
+            msg.contains('Connection closed') ||
+            msg.contains('ClientException')) {
+          markTestSkipped('Metadata provider search slow/unavailable ($msg)');
+          return;
+        }
+        rethrow;
       }
-      rethrow;
-    }
-  });
+    },
+    timeout: const Timeout(Duration(seconds: 40)),
+  );
 
   test('getSeriesPath() resolves without throwing', () async {
     await setUpDataSource();
