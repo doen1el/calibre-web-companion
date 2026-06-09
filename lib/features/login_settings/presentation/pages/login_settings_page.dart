@@ -24,30 +24,13 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
 
     return BlocConsumer<LoginSettingsBloc, LoginSettingsState>(
       listener: (context, state) {
-        if (state.isSaved) {
-          context.showSnackBar(localizations.settingsSaved);
-        }
-
         if (state.errorMessage != null) {
           context.showSnackBar(state.errorMessage!, isError: true);
         }
       },
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(
-            title: Text(localizations.connectionSettings),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.save),
-                tooltip: localizations.save,
-                onPressed: () {
-                  context.read<LoginSettingsBloc>().add(
-                    const SaveLoginSettings(),
-                  );
-                },
-              ),
-            ],
-          ),
+          appBar: AppBar(title: Text(localizations.connectionSettings)),
           body:
               state.isLoading
                   ? const Center(child: CircularProgressIndicator())
