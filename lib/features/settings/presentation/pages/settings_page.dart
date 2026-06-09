@@ -679,6 +679,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 onResult: (url, status) {
                   if (status == UrlFieldStatus.ok) {
                     context.read<SettingsBloc>().add(SetDownloaderUrl(url));
+                    _reloadDownloadService(context);
                     setState(() => _showDownloaderAuth = false);
                   } else if (status == UrlFieldStatus.authRequired) {
                     context.read<SettingsBloc>().add(SetDownloaderUrl(url));
@@ -761,6 +762,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           _downloaderPasswordController.text,
                         ),
                       );
+                      _reloadDownloadService(context);
                       context.showSnackBar(localizations.settingsSaved);
                       FocusScope.of(context).unfocus();
                     },
@@ -774,6 +776,13 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
     );
+  }
+
+  void _reloadDownloadService(BuildContext context) {
+    final bloc = context.read<DownloadServiceBloc>();
+    bloc.add(LoadDownloadConfig());
+    bloc.add(LoadSavedFilter());
+    bloc.add(GetDownloadStatus());
   }
 
   Widget _buildSend2EreaderToggle(

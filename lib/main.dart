@@ -22,6 +22,7 @@ import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.da
 import 'package:calibre_web_companion/features/discover/blocs/discover_bloc.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
+import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 import 'package:calibre_web_companion/features/homepage/bloc/homepage_bloc.dart';
 import 'package:calibre_web_companion/features/homepage/presentation/pages/home_page.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_event.dart';
@@ -99,7 +100,8 @@ void main() async {
               create: (_) => getIt<SettingsBloc>()..add(LoadSettings()),
             ),
             BlocProvider<DownloadServiceBloc>(
-              create: (_) => getIt<DownloadServiceBloc>(),
+              create:
+                  (_) => getIt<DownloadServiceBloc>()..add(LoadSavedFilter()),
             ),
             BlocProvider<HomePageBloc>(create: (_) => getIt<HomePageBloc>()),
             BlocProvider<BookDetailsBloc>(

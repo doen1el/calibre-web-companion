@@ -288,7 +288,7 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
       _selectedLanguages =
           config.defaultLanguage.isNotEmpty
               ? List.from(config.defaultLanguage)
-              : ['de'];
+              : <String>[];
 
       _selectedFormats =
           config.supportedFormats.isNotEmpty
