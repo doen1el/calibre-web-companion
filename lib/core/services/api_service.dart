@@ -26,6 +26,7 @@ class ApiService {
   String? _userAgent;
 
   bool _allowSelfSigned = false;
+  bool _reauthInProgress = false;
 
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
@@ -221,23 +222,84 @@ class ApiService {
     AuthMethod authMethod = AuthMethod.basic,
     Map<String, String> queryParams = const {},
   }) async {
-    final response = await get(
+    var response = await get(
       endpoint: endpoint,
       authMethod: authMethod,
       queryParams: queryParams,
     );
-    try {
-      return _sanitizeJsonResponse(response.body);
-    } catch (e) {
-      _logger.e('Failed to parse JSON response: $e');
 
-      _logger.d('Response body: ${response.body}...');
-      throw FormatException('Invalid JSON response: $e');
+    var parsed = _tryDecodeJsonMap(response.body);
+    if (parsed != null) return parsed;
+
+    if (_looksLikeHtml(response.body) && _hasStoredCredentials) {
+      _logger.w(
+        'Got HTML instead of JSON from "$endpoint", session likely lost; re-authenticating and retrying.',
+      );
+      if (await _reauthenticate()) {
+        response = await get(
+          endpoint: endpoint,
+          authMethod: authMethod,
+          queryParams: queryParams,
+        );
+        parsed = _tryDecodeJsonMap(response.body);
+        if (parsed != null) return parsed;
+      }
+    }
+
+    _logger.e('Invalid JSON from "$endpoint" (status ${response.statusCode})');
+    if (_looksLikeHtml(response.body)) {
+      throw Exception(
+        'Session not accepted by the server (received a login page instead of data).',
+      );
+    }
+    throw const FormatException('Invalid JSON response');
+  }
+
+  bool _looksLikeHtml(String body) {
+    final t = body.trimLeft().toLowerCase();
+    return t.startsWith('<!doctype html') ||
+        t.startsWith('<html') ||
+        t.contains('name="username"') ||
+        t.contains('id="login"');
+  }
+
+  bool get _hasStoredCredentials =>
+      (_username?.isNotEmpty ?? false) && (_password?.isNotEmpty ?? false);
+
+  Future<bool> _reauthenticate() async {
+    if (_reauthInProgress || !_hasStoredCredentials) return false;
+    _reauthInProgress = true;
+    try {
+      final response = await post(
+        endpoint: '/login',
+        body: {'username': _username!, 'password': _password!},
+        authMethod: AuthMethod.none,
+        contentType: 'application/x-www-form-urlencoded',
+        useCsrf: true,
+      );
+
+      final ok =
+          (response.statusCode == 200 || response.statusCode == 302) &&
+          !response.body.contains('flash_danger');
+      final setCookie = response.headers['set-cookie'];
+      if (ok && setCookie != null && setCookie.isNotEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('calibre_web_session', setCookie);
+        await initialize();
+        _logger.i('Re-authentication successful');
+        return true;
+      }
+      _logger.w('Re-authentication failed (status ${response.statusCode})');
+      return false;
+    } catch (e) {
+      _logger.e('Re-authentication error: $e');
+      return false;
+    } finally {
+      _reauthInProgress = false;
     }
   }
 
-  /// Sanitizes JSON response that contains HTML in the comments field
-  Map<String, dynamic> _sanitizeJsonResponse(String responseBody) {
+  Map<String, dynamic>? _tryDecodeJsonMap(String responseBody) {
     try {
       return json.decode(responseBody) as Map<String, dynamic>;
     } catch (e) {
@@ -254,7 +316,7 @@ class ApiService {
         return json.decode(sanitized) as Map<String, dynamic>;
       } catch (sanitizationError) {
         _logger.e('Error during sanitization process: $sanitizationError');
-        return {'error': 'Sanitization failed', 'comments': '', 'formats': []};
+        return null;
       }
     }
   }
