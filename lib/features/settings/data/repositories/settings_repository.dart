@@ -11,6 +11,8 @@ import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+enum DownloaderUrlStatus { reachable, authRequired, unreachable }
+
 class SettingsRepository {
   final SettingsLocalDataSource dataSource;
 
@@ -192,8 +194,6 @@ class SettingsRepository {
       final baseUrl =
           url.endsWith('/') ? url.substring(0, url.length - 1) : url;
 
-      // Use the shared DI client so the self-signed-certificate setting applies
-      // here too — matching what the real download service uses.
       final client = getIt<http.Client>();
 
       if (username.isEmpty && password.isEmpty) {
@@ -223,6 +223,35 @@ class SettingsRepository {
         throw Exception("Authentication required");
       }
       throw Exception("Connection failed: $e");
+    }
+  }
+
+  Future<DownloaderUrlStatus> probeDownloaderUrl(String url) async {
+    if (url.trim().isEmpty) return DownloaderUrlStatus.unreachable;
+    try {
+      final baseUrl =
+          url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+      final client = getIt<http.Client>();
+      final response = await client
+          .get(Uri.parse('$baseUrl/api/config'))
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        return DownloaderUrlStatus.authRequired;
+      }
+      return DownloaderUrlStatus.reachable;
+    } catch (_) {
+      return DownloaderUrlStatus.unreachable;
+    }
+  }
+
+  Future<bool> isUrlReachable(String url) async {
+    if (url.trim().isEmpty) return false;
+    try {
+      final client = getIt<http.Client>();
+      await client.get(Uri.parse(url)).timeout(const Duration(seconds: 8));
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 

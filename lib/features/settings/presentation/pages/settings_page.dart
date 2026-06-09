@@ -22,6 +22,9 @@ import 'package:calibre_web_companion/features/settings/presentation/widgets/syn
 import 'package:calibre_web_companion/features/settings/presentation/pages/app_logs_page.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/reachable_url_field.dart';
+import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
+import 'package:calibre_web_companion/core/di/injection_container.dart';
 
 enum SettingsSubPage { discover, bookDetails }
 
@@ -551,9 +554,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   label: '${(current * 100).round()}%',
                   onChanged: (value) => setLocal(() => current = value),
                   onChangeEnd:
-                      (value) => context.read<SettingsBloc>().add(
-                        SetTextScale(value),
-                      ),
+                      (value) =>
+                          context.read<SettingsBloc>().add(SetTextScale(value)),
                 ),
               ],
             ),
@@ -658,26 +660,33 @@ class _SettingsPageState extends State<SettingsPage> {
 
             if (state.isDownloaderEnabled) ...[
               const SizedBox(height: 16),
-              TextField(
+              ReachableUrlField(
                 controller: _downloaderUrlController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  labelText: localizations.downloadServiceUrl,
-                  hintText: "https://downloader.example.com",
-                  prefixIcon: const Icon(Icons.link),
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 14.0,
-                  ),
-                ),
-                onChanged:
-                    (_) => context.read<SettingsBloc>().add(
-                      ResetConnectionTestStatus(),
-                    ),
+                label: localizations.downloadServiceUrl,
+                hint: "https://downloader.example.com",
+                check: (url) async {
+                  final status = await getIt<SettingsRepository>()
+                      .probeDownloaderUrl(url);
+                  switch (status) {
+                    case DownloaderUrlStatus.reachable:
+                      return UrlFieldStatus.ok;
+                    case DownloaderUrlStatus.authRequired:
+                      return UrlFieldStatus.authRequired;
+                    case DownloaderUrlStatus.unreachable:
+                      return UrlFieldStatus.error;
+                  }
+                },
+                onResult: (url, status) {
+                  if (status == UrlFieldStatus.ok) {
+                    context.read<SettingsBloc>().add(SetDownloaderUrl(url));
+                    setState(() => _showDownloaderAuth = false);
+                  } else if (status == UrlFieldStatus.authRequired) {
+                    context.read<SettingsBloc>().add(SetDownloaderUrl(url));
+                    setState(() => _showDownloaderAuth = true);
+                  } else {
+                    setState(() => _showDownloaderAuth = false);
+                  }
+                },
               ),
               const SizedBox(height: 8),
               Text(
@@ -686,32 +695,23 @@ class _SettingsPageState extends State<SettingsPage> {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Icon(
-                    Icons.lock_person,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      localizations.authentication,
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                  ),
-                  Switch(
-                    value: _showDownloaderAuth,
-                    activeThumbColor: Theme.of(context).colorScheme.primary,
-                    onChanged: (value) {
-                      setState(() {
-                        _showDownloaderAuth = value;
-                      });
-                    },
-                  ),
-                ],
-              ),
               if (_showDownloaderAuth) ...[
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.lock_person,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        localizations.authentication,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _downloaderUsernameController,
@@ -728,10 +728,6 @@ class _SettingsPageState extends State<SettingsPage> {
                       vertical: 14.0,
                     ),
                   ),
-                  onChanged:
-                      (_) => context.read<SettingsBloc>().add(
-                        ResetConnectionTestStatus(),
-                      ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -750,76 +746,29 @@ class _SettingsPageState extends State<SettingsPage> {
                       vertical: 14.0,
                     ),
                   ),
-                  onChanged:
-                      (_) => context.read<SettingsBloc>().add(
-                        ResetConnectionTestStatus(),
-                      ),
                 ),
-              ],
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    if (state.downloaderTestStatus ==
-                        ConnectionTestStatus.loading) {
-                      return;
-                    }
-
-                    final username =
-                        _showDownloaderAuth
-                            ? _downloaderUsernameController.text.trim()
-                            : '';
-                    final password =
-                        _showDownloaderAuth
-                            ? _downloaderPasswordController.text
-                            : '';
-
-                    if (state.downloaderTestStatus ==
-                        ConnectionTestStatus.success) {
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () {
                       context.read<SettingsBloc>().add(
                         SetDownloaderUrl(_downloaderUrlController.text.trim()),
                       );
                       context.read<SettingsBloc>().add(
-                        SetDownloaderCredentials(username, password),
+                        SetDownloaderCredentials(
+                          _downloaderUsernameController.text.trim(),
+                          _downloaderPasswordController.text,
+                        ),
                       );
                       context.showSnackBar(localizations.settingsSaved);
                       FocusScope.of(context).unfocus();
-                    } else {
-                      context.read<SettingsBloc>().add(
-                        TestDownloaderConnection(
-                          url: _downloaderUrlController.text.trim(),
-                          username: username,
-                          password: password,
-                        ),
-                      );
-                    }
-                  },
-                  icon:
-                      state.downloaderTestStatus == ConnectionTestStatus.loading
-                          ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(),
-                          )
-                          : Icon(
-                            state.downloaderTestStatus ==
-                                    ConnectionTestStatus.success
-                                ? Icons.check_circle
-                                : Icons.wifi_find,
-                          ),
-                  label: Text(
-                    state.downloaderTestStatus == ConnectionTestStatus.loading
-                        ? localizations.testing
-                        : (state.downloaderTestStatus ==
-                                ConnectionTestStatus.success
-                            ? (_showDownloaderAuth
-                                ? localizations.saveCredentials
-                                : localizations.save)
-                            : localizations.testConnection),
+                    },
+                    icon: const Icon(Icons.save),
+                    label: Text(localizations.saveCredentials),
                   ),
                 ),
-              ),
+              ],
             ],
           ],
         ),
@@ -867,26 +816,19 @@ class _SettingsPageState extends State<SettingsPage> {
 
             if (state.isSend2ereaderEnabled) ...[
               const SizedBox(height: 16),
-              TextField(
+              ReachableUrlField(
                 controller: _send2ereaderUrlController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  labelText: localizations.send2ereaderServiceUrl,
-                  hintText: "https://send.djazz.se",
-                  prefixIcon: const Icon(Icons.link),
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 14.0,
-                  ),
-                ),
+                label: localizations.send2ereaderServiceUrl,
+                hint: "https://send.djazz.se",
                 onChanged:
                     (value) => context.read<SettingsBloc>().add(
                       SetCostumSend2EreaderUrl(value),
                     ),
+                check: (url) async {
+                  final reachable = await getIt<SettingsRepository>()
+                      .isUrlReachable(url);
+                  return reachable ? UrlFieldStatus.ok : UrlFieldStatus.error;
+                },
               ),
               const SizedBox(height: 8),
               Text(
@@ -2207,5 +2149,4 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
-
 }
