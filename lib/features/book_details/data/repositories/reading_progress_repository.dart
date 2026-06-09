@@ -25,7 +25,12 @@ class ReadingProgressRepository {
         final pass = prefs.getString('webdav_password') ?? '';
 
         if (url.isNotEmpty) {
-          webDavService.init(url, user, pass);
+          webDavService.init(
+            url,
+            user,
+            pass,
+            allowSelfSigned: prefs.getBool('allow_self_signed') ?? false,
+          );
           final serverData = await webDavService.fetchProgress();
 
           if (serverData.containsKey(bookUuid)) {
@@ -86,7 +91,12 @@ class ReadingProgressRepository {
       final pass = prefs.getString('webdav_password') ?? '';
 
       if (url.isNotEmpty) {
-        webDavService.init(url, user, pass);
+        webDavService.init(
+          url,
+          user,
+          pass,
+          allowSelfSigned: prefs.getBool('allow_self_signed') ?? false,
+        );
         await webDavService.saveProgress(bookUuid, locatorJson, now);
       }
     }

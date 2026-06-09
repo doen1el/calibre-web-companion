@@ -102,6 +102,14 @@ class ApiService {
     _httpClient?.close(force: true);
   }
 
+  http.Client _createClient() {
+    final httpClient = HttpClient();
+    if (_allowSelfSigned) {
+      httpClient.badCertificateCallback = (cert, host, port) => true;
+    }
+    return IOClient(httpClient);
+  }
+
   Future<void> reset() async {
     _logger.i('Resetting ApiService state.');
     _baseUrl = null;
@@ -672,7 +680,7 @@ class ApiService {
         request.files.addAll(files);
 
         try {
-          final streamedResponse = await request.send();
+          final streamedResponse = await _client!.send(request);
           final response = await http.Response.fromStream(streamedResponse);
           _logger.i('Multipart POST response status: ${response.statusCode}');
 
@@ -787,7 +795,7 @@ class ApiService {
         request.files.addAll(files);
 
         try {
-          final streamedResponse = await request.send();
+          final streamedResponse = await _client!.send(request);
           final response = await http.Response.fromStream(streamedResponse);
           _logger.d('Multipart POST $uri -> ${response.statusCode}');
 
@@ -1194,7 +1202,7 @@ class ApiService {
       ),
     );
 
-    final client = http.Client();
+    final client = _createClient();
     try {
       if (cancelToken?.isCancelled == true) {
         _logger.i('Upload cancelled before sending request');

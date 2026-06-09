@@ -6,6 +6,8 @@ import 'package:calibre_web_companion/features/login_settings/bloc/login_setting
 
 import 'package:calibre_web_companion/features/login_settings/data/models/custom_header.dart';
 import 'package:calibre_web_companion/features/login_settings/data/repositories/login_settings_repository.dart';
+import 'package:calibre_web_companion/core/di/injection_container.dart';
+import 'package:calibre_web_companion/core/services/api_service.dart';
 
 class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
   final Logger _logger = Logger();
@@ -33,11 +35,14 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
       final headers = await loginSettingsRepository.getCustomHeaders();
       final basePath =
           await loginSettingsRepository.getBasePath(); // Base Path laden
+      final allowSelfSigned =
+          await loginSettingsRepository.getAllowSelfSigned();
 
       emit(
         state.copyWith(
           customHeaders: headers,
           basePath: basePath,
+          allowSelfSigned: allowSelfSigned,
           isLoading: false,
         ),
       );
@@ -126,6 +131,12 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
       await loginSettingsRepository.saveBasePath(state.basePath.trim());
 
       await loginSettingsRepository.saveAllowSelfSigned(state.allowSelfSigned);
+
+      try {
+        await getIt<ApiService>().initialize();
+      } catch (e) {
+        _logger.w('Could not re-initialize ApiService after save: $e');
+      }
 
       emit(state.copyWith(isLoading: false, isSaved: true));
     } catch (e) {

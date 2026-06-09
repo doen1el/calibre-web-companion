@@ -176,6 +176,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
         prefs.getString('webdav_url') ?? '',
         prefs.getString('webdav_username') ?? '',
         prefs.getString('webdav_password') ?? '',
+        allowSelfSigned: prefs.getBool('allow_self_signed') ?? false,
       );
     }
   }
@@ -230,6 +231,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
         url,
         prefs.getString('webdav_username') ?? '',
         prefs.getString('webdav_password') ?? '',
+        allowSelfSigned: prefs.getBool('allow_self_signed') ?? false,
       );
 
       final localTs = prefs.getInt('reader_progress_ts_$bookUuid') ?? 0;
@@ -266,6 +268,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
         url,
         prefs.getString('webdav_username') ?? '',
         prefs.getString('webdav_password') ?? '',
+        allowSelfSigned: prefs.getBool('allow_self_signed') ?? false,
       );
 
       final progress = cosmos_reader.bookProgress.getBookProgress(bookUuid);
