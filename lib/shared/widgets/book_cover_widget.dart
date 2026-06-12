@@ -65,6 +65,11 @@ class BookCoverWidget extends StatelessWidget {
     final authHeaders = api.getAuthHeaders(authMethod: AuthMethod.auto);
     headers.addAll(authHeaders);
 
+    final userAgent = api.getUserAgent();
+    if (userAgent != null && userAgent.isNotEmpty) {
+      headers['User-Agent'] = userAgent;
+    }
+
     final username = api.getUsername();
     final password = api.getPassword();
     if (username.isNotEmpty &&

@@ -10,6 +10,7 @@ import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:http/io_client.dart';
 
 import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
+import 'package:calibre_web_companion/core/services/connection_diagnostics.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 
 enum AuthMethod { none, cookie, basic, auto }
@@ -64,6 +65,8 @@ class ApiService {
   String getPassword() {
     return _password ?? '';
   }
+
+  String? getUserAgent() => _userAgent;
 
   /// Initializes the API service with credentials from shared preferences
   Future<void> initialize() async {
@@ -1085,6 +1088,175 @@ class ApiService {
     } else if (statusCode >= 400) {
       throw Exception('Request failed with status $statusCode');
     }
+  }
+
+  Future<List<DiagnosticResult>> runConnectionDiagnostics() async {
+    await _ensureInitialized();
+    return [
+      await _probe(
+        DiagnosticProbeId.serverReachable,
+        'Server reachable',
+        '/',
+        AuthMethod.auto,
+        connectivityOnly: true,
+      ),
+      await _probe(
+        DiagnosticProbeId.bookList,
+        'Book list (AJAX)',
+        '/ajax/listbooks',
+        AuthMethod.cookie,
+        queryParams: const {'limit': '1'},
+      ),
+      await _probe(
+        DiagnosticProbeId.opdsFeed,
+        'OPDS feed',
+        '/opds',
+        AuthMethod.basic,
+      ),
+      await _probe(
+        DiagnosticProbeId.opdsStats,
+        'OPDS stats',
+        '/opds/stats',
+        AuthMethod.basic,
+      ),
+      await _probe(
+        DiagnosticProbeId.coverImage,
+        'Cover image',
+        '/opds/cover/1',
+        AuthMethod.auto,
+        expectBinary: true,
+      ),
+    ];
+  }
+
+  Future<DiagnosticResult> _probe(
+    DiagnosticProbeId id,
+    String label,
+    String endpoint,
+    AuthMethod authMethod, {
+    Map<String, String> queryParams = const {},
+    bool expectBinary = false,
+    bool connectivityOnly = false,
+  }) async {
+    final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
+    final httpClient = HttpClient();
+    httpClient.connectionTimeout = const Duration(seconds: 10);
+    if (_allowSelfSigned) {
+      httpClient.badCertificateCallback = (cert, host, port) => true;
+    }
+
+    try {
+      final request = await httpClient.getUrl(uri);
+      request.followRedirects = false;
+
+      final headers = getAuthHeaders(authMethod: authMethod);
+      if (_userAgent != null) headers['User-Agent'] = _userAgent!;
+      headers.addAll(await _processCustomHeaders());
+      headers.forEach((key, value) => request.headers.set(key, value));
+
+      final response = await request.close().timeout(
+        const Duration(seconds: 12),
+      );
+      final code = response.statusCode;
+      final contentType = response.headers.contentType?.toString();
+
+      if (response.isRedirect) {
+        final location = response.headers.value('location');
+        await response.drain<void>();
+        return DiagnosticResult(
+          id: id,
+          label: label,
+          path: uri.path,
+          statusCode: code,
+          redirectLocation: location,
+          contentType: contentType,
+          verdict: connectivityOnly ? ProbeVerdict.ok : ProbeVerdict.redirect,
+          detail:
+              connectivityOnly
+                  ? 'Reachable ($code → ${location ?? 'redirect'})'
+                  : 'Redirected to ${location ?? 'unknown'}',
+        );
+      }
+
+      final bytes = await response
+          .fold<List<int>>(<int>[], (acc, chunk) => acc..addAll(chunk))
+          .timeout(const Duration(seconds: 12));
+      final snippet = utf8.decode(bytes, allowMalformed: true);
+
+      return _classifyProbe(
+        id: id,
+        label: label,
+        path: uri.path,
+        code: code,
+        contentType: contentType,
+        snippet: snippet,
+        expectBinary: expectBinary,
+        connectivityOnly: connectivityOnly,
+      );
+    } catch (e) {
+      return DiagnosticResult(
+        id: id,
+        label: label,
+        path: uri.path,
+        verdict: ProbeVerdict.networkError,
+        detail: e.toString(),
+      );
+    } finally {
+      httpClient.close();
+    }
+  }
+
+  DiagnosticResult _classifyProbe({
+    required DiagnosticProbeId id,
+    required String label,
+    required String path,
+    required int code,
+    required String? contentType,
+    required String snippet,
+    required bool expectBinary,
+    bool connectivityOnly = false,
+  }) {
+    ProbeVerdict verdict;
+    String detail;
+
+    final isHtml = _looksLikeHtml(snippet);
+
+    if (connectivityOnly && code < 400) {
+      verdict = ProbeVerdict.ok;
+      detail = 'Reachable ($code)';
+    } else if (code == 401 || code == 403) {
+      verdict = ProbeVerdict.authRequired;
+      detail = 'Authentication required ($code)';
+    } else if (code >= 500) {
+      verdict = ProbeVerdict.serverError;
+      detail = 'Server error ($code)';
+    } else if (isHtml) {
+      verdict = ProbeVerdict.loginPage;
+      detail = 'Received an HTML/login page instead of data';
+    } else if (code >= 400) {
+      verdict = ProbeVerdict.networkError;
+      detail = 'HTTP $code';
+    } else if (expectBinary) {
+      final isImage = contentType?.startsWith('image/') ?? false;
+      verdict = isImage ? ProbeVerdict.ok : ProbeVerdict.empty;
+      detail = isImage ? 'Image OK ($code)' : 'Not an image ($code)';
+    } else if (snippet.trim().isEmpty) {
+      verdict = ProbeVerdict.empty;
+      detail = 'Empty response ($code)';
+    } else {
+      verdict = ProbeVerdict.ok;
+      detail = 'OK ($code)';
+    }
+
+    return DiagnosticResult(
+      id: id,
+      label: label,
+      path: path,
+      statusCode: code,
+      contentType: contentType,
+      verdict: verdict,
+      detail: detail,
+    );
   }
 
   /// Uploads a file to the specified endpoint with cancellation support

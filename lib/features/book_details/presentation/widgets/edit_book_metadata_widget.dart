@@ -663,6 +663,11 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
           headers['Cookie'] = cookieHeaders['Cookie']!;
         }
 
+        final userAgent = apiService.getUserAgent();
+        if (userAgent != null && userAgent.isNotEmpty) {
+          headers['User-Agent'] = userAgent;
+        }
+
         final username = apiService.getUsername();
         final password = apiService.getPassword();
         if (username.isNotEmpty && password.isNotEmpty) {
