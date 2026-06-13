@@ -4,7 +4,7 @@
 <p align="center">
     <img src="docs/icon/icon.png" alt="App Icon" width="100" />
     <br>
-    v1.8.9
+    v2.0.0
 </p>
 
 <p align="center">
@@ -47,19 +47,21 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 
 ## 💪 Features
 
-- Log into your Calibre Web (Automated) server.
-- Enjoy seamless navigation through your book collection.
-- Explore books organized by various categories, such as author, series, trending, and more.
-- View detailed information about each book.
-- Easily mark books as read or unread, organize them into shelves, or archive them.
-- Access comprehensive collection statistics at a glance.
-- Instantly send books to your e-reader using [send2ereader](https://github.com/daniel-j/send2ereader) or via Calibre Web's mail function. You can also use your own send2ereader instance.
-- Automatically download books to your collection with [shelfmark](https://github.com/calibrain/shelfmark).
-- Read books directly within the app using the built-in eBook reader and sync your reading progress using WebDAV.
-- Manage and customize your shelves.
-- Upload books to your Calibre Web server.
-- Edit your book's metadata and upload new covers.
-- Sync your whole librarby or selected books for offline reading.
+- Connect to your Calibre‑Web (Automated) server, including reverse‑proxy / SSO setups, custom HTTP headers and self‑signed certificates.
+- Browse your whole library with smooth, fast navigation.
+- Discover books by category, authors, series, publishers, ratings, hot & trending, and more.
+- View rich details for every book, edit its metadata, and upload new covers.
+- Mark books as read or unread, archive them, and organize them into shelves.
+- Create, edit and browse Magic Shelves, dynamic, rule‑based shelves (Calibre‑Web Automated only).
+- Add books quickly by scanning their ISBN barcode.
+- Read books in the built‑in eBook reader and sync your reading progress across devices via WebDAV.
+- Send books to your e‑reader via [send2ereader](https://github.com/daniel-j/send2ereader) (or your own instance) or Calibre‑Web's email function.
+- Download books straight into your collection with [shelfmark](https://github.com/calibrain/shelfmark).
+  - ⚠️ This app does **not** support, encourage or facilitate the piracy of copyrighted works. Please only download content you are legally entitled to, respecting copyright is your responsibility.
+- Upload books to your Calibre‑Web server.
+- Sync your whole library or selected books for offline reading.
+- Check your collection statistics at a glance.
+- Make it yours: reorder or hide book actions, detail sections and Discover sections, choose a theme, enable e‑ink mode, and adjust the text size, available in 15 languages.
 
 ## 🖼️ Impressions
 
@@ -84,18 +86,6 @@ You can help translate Calibre Web Companion on [Weblate](https://hosted.weblate
 
 You can of course open issues for bugs, feedback, and feature ideas. All suggestions are very welcome :)
 
-## 🚧 Roadmap
-
-- [x] Add localization
-- [x] Add dark mode
-- [x] Toggle read/unread status
-- [x] Add bookmark function
-- [x] Calibre Web Automated Download integration
-- [x] Add and remove from shelfs
-- [x] Code refactoring
-- [x] Better error handling
-- [x] Integrate [Weblate](https://hosted.weblate.org/) for translations
-
 ## 📜 Credits
 
 - [Calibre Web](https://github.com/janeczku/calibre-web)
@@ -105,3 +95,4 @@ You can of course open issues for bugs, feedback, and feature ideas. All suggest
 - [Flutter](https://github.com/flutter/flutter)
 - [IconKitchen](https://icon.kitchen)
 - [Weblate](https://hosted.weblate.org/)
+- [CosmosEpub](https://github.com/Mamasodikov/cosmos_epub)
