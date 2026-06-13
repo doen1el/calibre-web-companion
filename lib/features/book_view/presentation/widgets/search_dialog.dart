@@ -94,6 +94,8 @@ class SearchDialogState extends State<SearchDialog> {
         return Icons.bookmark_rounded;
       case VocabularyType.tags:
         return Icons.label_rounded;
+      case VocabularyType.publishers:
+        return Icons.business_rounded;
     }
   }
 
@@ -105,6 +107,8 @@ class SearchDialogState extends State<SearchDialog> {
         return localizations.series;
       case VocabularyType.tags:
         return localizations.tags;
+      case VocabularyType.publishers:
+        return localizations.publisher;
     }
   }
 

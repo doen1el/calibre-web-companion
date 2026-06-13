@@ -18,8 +18,18 @@ class ShelfDetailsRemoteDataSource {
   Future<ShelfDetailsModel> getShelfDetails(
     String shelfId, {
     int offset = 0,
+    bool isMagic = false,
   }) async {
     try {
+      if (isMagic) {
+        final response = await apiService.getXmlAsJson(
+          endpoint: '/opds/magicshelf/$shelfId',
+          authMethod: AuthMethod.auto,
+          queryParams: offset > 0 ? {'offset': '$offset'} : const {},
+        );
+        return ShelfDetailsModel.fromFeedJson(response);
+      }
+
       final serverType = preferences.getString('server_type');
 
       if (serverType == 'opds' ||

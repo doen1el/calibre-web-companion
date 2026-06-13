@@ -28,7 +28,10 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
 
     try {
       final isOpds = repository.getIsOpds();
-      final result = await repository.getShelfDetails(event.shelfId);
+      final result = await repository.getShelfDetails(
+        event.shelfId,
+        isMagic: event.isMagic,
+      );
 
       final mergedResult = result.copyWith(
         name: event.shelfTitle,
@@ -44,6 +47,8 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
           isLoadingMore: false,
           hasMoreBooks: result.nextOffset != null,
           nextOffset: result.nextOffset,
+          isMagic: event.isMagic,
+          magicIcon: event.icon,
         ),
       );
     } catch (e) {
@@ -74,6 +79,7 @@ class ShelfDetailsBloc extends Bloc<ShelfDetailsEvent, ShelfDetailsState> {
       final page = await repository.getShelfDetails(
         event.shelfId,
         offset: state.nextOffset!,
+        isMagic: state.isMagic,
       );
 
       final existingIds = current.books.map((b) => b.id).toSet();

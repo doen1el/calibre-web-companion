@@ -1,6 +1,8 @@
 import 'package:calibre_web_companion/features/shelf_view.dart/data/datasources/shelf_view_remote_datasource.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_list_view_model.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_shelf_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_rule_models.dart';
 
 class ShelfViewRepository {
   final ShelfViewRemoteDataSource dataSource;
@@ -60,4 +62,60 @@ class ShelfViewRepository {
   }
 
   bool getIsOpds() => dataSource.getIsOpds();
+
+  Future<bool> supportsMagicShelves() => dataSource.supportsMagicShelves();
+
+  Future<MagicShelfListModel> loadMagicShelves() =>
+      dataSource.loadMagicShelves();
+
+  Future<void> deleteMagicShelf(String shelfId) =>
+      dataSource.deleteMagicShelf(shelfId);
+
+  Future<String> duplicateMagicShelf(String shelfId) =>
+      dataSource.duplicateMagicShelf(shelfId);
+
+  Future<void> hideMagicShelf(String shelfId) =>
+      dataSource.hideMagicShelf(shelfId);
+
+  Future<void> unhideMagicShelf(String shelfId) =>
+      dataSource.unhideMagicShelf(shelfId);
+
+  Future<String> createMagicShelf({
+    required String name,
+    required Map<String, dynamic> rules,
+    required String icon,
+    bool koboSync = false,
+    bool isPublic = false,
+  }) => dataSource.createMagicShelf(
+    name: name,
+    rules: rules,
+    icon: icon,
+    koboSync: koboSync,
+    isPublic: isPublic,
+  );
+
+  Future<void> editMagicShelf({
+    required String shelfId,
+    required String name,
+    required Map<String, dynamic> rules,
+    required String icon,
+    bool koboSync = false,
+    bool isPublic = false,
+  }) => dataSource.editMagicShelf(
+    shelfId: shelfId,
+    name: name,
+    rules: rules,
+    icon: icon,
+    koboSync: koboSync,
+    isPublic: isPublic,
+  );
+
+  Future<Map<String, dynamic>> previewMagicShelf(Map<String, dynamic> rules) =>
+      dataSource.previewMagicShelf(rules);
+
+  Future<MagicShelfFormData> getMagicShelfFormData({String? shelfId}) =>
+      dataSource.getMagicShelfFormData(shelfId: shelfId);
+
+  Future<List<MagicShelfModel>> findMagicShelvesContainingBook(String bookId) =>
+      dataSource.findMagicShelvesContainingBook(bookId);
 }

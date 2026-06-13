@@ -4,7 +4,7 @@ import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 
-enum VocabularyType { authors, series, tags }
+enum VocabularyType { authors, series, tags, publishers }
 
 class VocabularyRemoteDataSource {
   final ApiService apiService;
@@ -21,6 +21,8 @@ class VocabularyRemoteDataSource {
         return '/get_series_json';
       case VocabularyType.tags:
         return '/get_tags_json';
+      case VocabularyType.publishers:
+        return '/get_publishers_json';
     }
   }
 

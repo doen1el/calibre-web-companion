@@ -9,6 +9,7 @@ import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_state.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_state.dart';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
@@ -22,17 +23,22 @@ import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_b
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/presentation/widgets/edit_shelf_dialog_widget.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/presentation/pages/magic_shelf_edit_page.dart';
 
 class ShelfDetailsPage extends StatelessWidget {
   final String shelfId;
   final String shelfTitle;
   final bool isPublic;
+  final bool isMagic;
+  final String? icon;
 
   const ShelfDetailsPage({
     super.key,
     required this.shelfId,
     required this.shelfTitle,
     required this.isPublic,
+    this.isMagic = false,
+    this.icon,
   });
 
   @override
@@ -47,6 +53,8 @@ class ShelfDetailsPage extends StatelessWidget {
                   shelfId,
                   shelfTitle: shelfTitle,
                   isPublic: isPublic,
+                  isMagic: isMagic,
+                  icon: icon,
                 ),
               ),
       child: BlocConsumer<ShelfDetailsBloc, ShelfDetailsState>(
@@ -78,12 +86,33 @@ class ShelfDetailsPage extends StatelessWidget {
             displayTitle = displayTitle.substring(0, displayTitle.length - 9);
           }
 
-          return Scaffold(
+          final scaffold = Scaffold(
             appBar: AppBar(
-              title: Text(showPublic ? "$displayTitle (Public)" : displayTitle),
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isMagic && (state.magicIcon ?? icon) != null) ...[
+                    Text(state.magicIcon ?? icon!),
+                    const SizedBox(width: 8),
+                  ],
+                  Flexible(
+                    child: Text(displayTitle, overflow: TextOverflow.ellipsis),
+                  ),
+                  if (showPublic) ...[
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.public_rounded,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ],
+              ),
               actions: [
                 const BookViewModeSelector(),
-                if (!state.isOpds) ...[
+                if (isMagic)
+                  ..._buildMagicActions(context, localizations)
+                else if (!state.isOpds) ...[
                   IconButton(
                     icon: CircleAvatar(
                       backgroundColor:
@@ -118,8 +147,149 @@ class ShelfDetailsPage extends StatelessWidget {
             ),
             body: _buildBody(context, state, localizations),
           );
+
+          if (!isMagic) return scaffold;
+
+          return BlocListener<ShelfViewBloc, ShelfViewState>(
+            listenWhen: (p, c) => p.magicActionStatus != c.magicActionStatus,
+            listener: (context, sv) {
+              if (sv.magicActionStatus == MagicShelfActionStatus.success &&
+                  (sv.magicActionMessage == 'deleted' ||
+                      sv.magicActionMessage == 'hidden')) {
+                Navigator.of(context).pop();
+              }
+            },
+            child: scaffold,
+          );
         },
       ),
+    );
+  }
+
+  List<Widget> _buildMagicActions(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    Widget action(IconData iconData, String tooltip, VoidCallback onPressed) {
+      return IconButton(
+        icon: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+          child: Icon(iconData),
+        ),
+        tooltip: tooltip,
+        onPressed: onPressed,
+      );
+    }
+
+    return [
+      action(
+        Icons.edit_rounded,
+        localizations.editMagicShelf,
+        () => _openMagicEditor(context),
+      ),
+      PopupMenuButton<String>(
+        icon: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+          child: const Icon(Icons.more_vert_rounded),
+        ),
+        onSelected: (value) {
+          switch (value) {
+            case 'duplicate':
+              context.read<ShelfViewBloc>().add(DuplicateMagicShelf(shelfId));
+              break;
+            case 'delete':
+              _showMagicDeleteDialog(context, localizations);
+              break;
+          }
+        },
+        itemBuilder:
+            (context) => [
+              PopupMenuItem(
+                value: 'duplicate',
+                child: Row(
+                  children: [
+                    const Icon(Icons.copy_rounded),
+                    const SizedBox(width: 12),
+                    Text(localizations.duplicateShelf),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.delete_rounded,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(localizations.deleteShelf),
+                  ],
+                ),
+              ),
+            ],
+      ),
+    ];
+  }
+
+  Future<void> _openMagicEditor(BuildContext context) async {
+    final shelfViewBloc = context.read<ShelfViewBloc>();
+    final detailsBloc = context.read<ShelfDetailsBloc>();
+    final result = await Navigator.of(context).push<Object?>(
+      MaterialPageRoute(
+        builder:
+            (_) => BlocProvider.value(
+              value: shelfViewBloc,
+              child: MagicShelfEditPage(
+                shelfId: shelfId,
+                fallbackName: shelfTitle,
+                fallbackIcon: icon,
+              ),
+            ),
+      ),
+    );
+
+    var newTitle = shelfTitle;
+    var newIcon = icon;
+    if (result is ({String name, String icon})) {
+      newTitle = result.name;
+      newIcon = result.icon;
+    }
+    detailsBloc.add(
+      LoadShelfDetails(
+        shelfId,
+        shelfTitle: newTitle,
+        isMagic: true,
+        icon: newIcon,
+      ),
+    );
+  }
+
+  void _showMagicDeleteDialog(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    final bloc = context.read<ShelfViewBloc>();
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: Text(localizations.deleteShelf),
+            content: Text(localizations.deleteShelfConfirmation(shelfTitle)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(localizations.cancel),
+              ),
+              AppDialogButton.destructive(
+                label: localizations.delete,
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  bloc.add(DeleteMagicShelf(shelfId));
+                },
+              ),
+            ],
+          ),
     );
   }
 
@@ -194,7 +364,7 @@ class ShelfDetailsPage extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () async {
         context.read<ShelfDetailsBloc>().add(
-          LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
+          LoadShelfDetails(shelfId, shelfTitle: shelfTitle, isMagic: isMagic),
         );
       },
       child: ListView(
@@ -220,7 +390,11 @@ class ShelfDetailsPage extends StatelessWidget {
                 ElevatedButton(
                   onPressed:
                       () => context.read<ShelfDetailsBloc>().add(
-                        LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
+                        LoadShelfDetails(
+                          shelfId,
+                          shelfTitle: shelfTitle,
+                          isMagic: isMagic,
+                        ),
                       ),
                   child: Text(localizations.tryAgain),
                 ),
@@ -239,7 +413,7 @@ class ShelfDetailsPage extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () async {
         context.read<ShelfDetailsBloc>().add(
-          LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
+          LoadShelfDetails(shelfId, shelfTitle: shelfTitle, isMagic: isMagic),
         );
       },
       child: ListView(
@@ -274,7 +448,7 @@ class ShelfDetailsPage extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () async {
         context.read<ShelfDetailsBloc>().add(
-          LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
+          LoadShelfDetails(shelfId, shelfTitle: shelfTitle, isMagic: isMagic),
         );
       },
       child: ListView(
@@ -326,7 +500,7 @@ class ShelfDetailsPage extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () async {
         context.read<ShelfDetailsBloc>().add(
-          LoadShelfDetails(shelfId, shelfTitle: shelfTitle),
+          LoadShelfDetails(shelfId, shelfTitle: shelfTitle, isMagic: isMagic),
         );
       },
       child: NotificationListener<ScrollNotification>(

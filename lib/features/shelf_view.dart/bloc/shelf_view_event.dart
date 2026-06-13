@@ -73,3 +73,30 @@ class RemoveBookFromShelf extends ShelfViewEvent {
   @override
   List<Object> get props => [bookId, shelfId];
 }
+
+class DeleteMagicShelf extends ShelfViewEvent {
+  final String shelfId;
+
+  const DeleteMagicShelf(this.shelfId);
+
+  @override
+  List<Object> get props => [shelfId];
+}
+
+class DuplicateMagicShelf extends ShelfViewEvent {
+  final String shelfId;
+
+  const DuplicateMagicShelf(this.shelfId);
+
+  @override
+  List<Object> get props => [shelfId];
+}
+
+class HideMagicShelf extends ShelfViewEvent {
+  final String shelfId;
+
+  const HideMagicShelf(this.shelfId);
+
+  @override
+  List<Object> get props => [shelfId];
+}

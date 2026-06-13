@@ -14,6 +14,9 @@ import 'package:calibre_web_companion/features/shelf_view.dart/presentation/widg
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/features/shelf_details/presentation/pages/shelf_details_page.dart';
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_bloc.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_shelf_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/presentation/pages/magic_shelf_edit_page.dart';
 
 class ShelfViewPage extends StatelessWidget {
   const ShelfViewPage({super.key});
@@ -41,6 +44,21 @@ class ShelfViewPage extends StatelessWidget {
               isError: true,
             );
           }
+
+          if (state.magicActionStatus == MagicShelfActionStatus.success) {
+            final msg = switch (state.magicActionMessage) {
+              'deleted' => localizations.magicShelfDeleted,
+              'duplicated' => localizations.magicShelfDuplicated,
+              'hidden' => localizations.magicShelfHidden,
+              _ => '',
+            };
+            if (msg.isNotEmpty) context.showSnackBar(msg, isError: false);
+          } else if (state.magicActionStatus == MagicShelfActionStatus.error) {
+            context.showSnackBar(
+              state.magicActionMessage ?? localizations.unknownError,
+              isError: true,
+            );
+          }
         },
         builder: (context, state) {
           return Scaffold(
@@ -51,21 +69,6 @@ class ShelfViewPage extends StatelessWidget {
               },
               child: _buildBody(context, state, localizations),
             ),
-            floatingActionButton:
-                state.isOpds
-                    ? null
-                    : FloatingActionButton.extended(
-                      onPressed:
-                          () => _showCreateShelfDialog(context, localizations),
-                      label: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.add_rounded),
-                          const SizedBox(width: 8),
-                          Text(localizations.createShelf),
-                        ],
-                      ),
-                    ),
           );
         },
       ),
@@ -85,11 +88,194 @@ class ShelfViewPage extends StatelessWidget {
       return _buildErrorWidget(context, state, localizations);
     }
 
-    if (state.shelves.isEmpty) {
-      return _buildEmptyState(context, localizations);
+    return _buildContent(context, state, localizations);
+  }
+
+  Widget _buildContent(
+    BuildContext context,
+    ShelfViewState state,
+    AppLocalizations localizations,
+  ) {
+    final bothEmpty = state.shelves.isEmpty && state.magicShelves.isEmpty;
+
+    Widget addButton(String tooltip, VoidCallback onPressed) {
+      return IconButton.filledTonal(
+        icon: const Icon(Icons.add_rounded),
+        tooltip: tooltip,
+        onPressed: onPressed,
+      );
     }
 
-    return _buildShelfsList(context, state, localizations);
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.only(bottom: 24),
+      children: [
+        if (!state.isOpds)
+          _buildSectionTitle(
+            context,
+            localizations.shelfs,
+            trailing: addButton(
+              localizations.createShelf,
+              () => _showCreateShelfDialog(context, localizations),
+            ),
+          ),
+        ...state.shelves.map(
+          (shelf) => _buildShelfCard(context, shelf, localizations),
+        ),
+        if (state.supportsMagicShelves) ...[
+          _buildSectionTitle(
+            context,
+            localizations.magicShelves,
+            trailing: addButton(
+              localizations.createMagicShelf,
+              () => _openMagicShelfEditor(context),
+            ),
+          ),
+          ...state.magicShelves.map(
+            (shelf) => _buildMagicShelfCard(context, shelf, localizations),
+          ),
+        ],
+        if (bothEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 32, 16, 16),
+            child: Center(
+              child: Text(
+                localizations.noShelvesFoundCreateOne,
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _openMagicShelfEditor(BuildContext context, {String? shelfId}) {
+    Navigator.of(context).push(
+      AppTransitions.createSlideRoute(
+        BlocProvider.value(
+          value: context.read<ShelfViewBloc>(),
+          child: MagicShelfEditPage(shelfId: shelfId),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(
+    BuildContext context,
+    String title, {
+    Widget? trailing,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+            ),
+          ),
+          if (trailing != null) trailing,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShelfCard(
+    BuildContext context,
+    ShelfViewModel shelf,
+    AppLocalizations localizations,
+  ) {
+    final cleanTitle =
+        shelf.title.endsWith(' (Public)')
+            ? shelf.title.substring(0, shelf.title.length - 9)
+            : shelf.title;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: ListTile(
+        leading: const Icon(Icons.list_rounded),
+        title: Text(cleanTitle),
+        trailing: _trailing(context, isPublic: shelf.isPublic),
+        onTap: () {
+          Navigator.of(context).push(
+            AppTransitions.createSlideRoute(
+              MultiBlocProvider(
+                providers: [
+                  BlocProvider.value(value: context.read<ShelfViewBloc>()),
+                  BlocProvider(create: (context) => getIt<ShelfDetailsBloc>()),
+                ],
+                child: ShelfDetailsPage(
+                  shelfId: shelf.id,
+                  shelfTitle: cleanTitle,
+                  isPublic: shelf.isPublic,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _trailing(BuildContext context, {required bool isPublic}) {
+    if (!isPublic) return const Icon(Icons.chevron_right_rounded);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.public_rounded,
+          size: 18,
+          color: Theme.of(context).colorScheme.secondary,
+        ),
+        const SizedBox(width: 4),
+        const Icon(Icons.chevron_right_rounded),
+      ],
+    );
+  }
+
+  Widget _buildMagicShelfCard(
+    BuildContext context,
+    MagicShelfModel shelf,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: ListTile(
+        leading:
+            shelf.icon != null
+                ? Text(shelf.icon!, style: const TextStyle(fontSize: 24))
+                : Icon(
+                  Icons.auto_awesome_rounded,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+        title: Text(shelf.name),
+        trailing: _trailing(context, isPublic: shelf.isPublic),
+        onTap: () {
+          Navigator.of(context).push(
+            AppTransitions.createSlideRoute(
+              MultiBlocProvider(
+                providers: [
+                  BlocProvider.value(value: context.read<ShelfViewBloc>()),
+                  BlocProvider(create: (context) => getIt<ShelfDetailsBloc>()),
+                ],
+                child: ShelfDetailsPage(
+                  shelfId: shelf.id,
+                  shelfTitle: shelf.name,
+                  isPublic: shelf.isPublic,
+                  isMagic: true,
+                  icon: shelf.icon,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildLoadingSkeleton(BuildContext context) {
@@ -145,76 +331,6 @@ class ShelfViewPage extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildEmptyState(
-    BuildContext context,
-    AppLocalizations localizations,
-  ) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.list_rounded,
-            size: 64,
-            color: Theme.of(
-              context,
-            ).colorScheme.secondary.withValues(alpha: .5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            localizations.noShelvesFoundCreateOne,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShelfsList(
-    BuildContext context,
-    ShelfViewState state,
-    AppLocalizations localizations,
-  ) {
-    return ListView.builder(
-      itemCount: state.shelves.length,
-      itemBuilder: (context, index) {
-        final shelf = state.shelves[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: ListTile(
-            leading: const Icon(Icons.list_rounded),
-            title: Text(shelf.title),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () {
-              String cleanTitle = shelf.title;
-              if (shelf.isPublic && cleanTitle.endsWith(' (Public)')) {
-                cleanTitle = cleanTitle.substring(0, cleanTitle.length - 9);
-              }
-
-              Navigator.of(context).push(
-                AppTransitions.createSlideRoute(
-                  MultiBlocProvider(
-                    providers: [
-                      BlocProvider.value(value: context.read<ShelfViewBloc>()),
-                      BlocProvider(
-                        create: (context) => getIt<ShelfDetailsBloc>(),
-                      ),
-                    ],
-                    child: ShelfDetailsPage(
-                      shelfId: shelf.id,
-                      shelfTitle: cleanTitle,
-                      isPublic: shelf.isPublic,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        );
-      },
     );
   }
 

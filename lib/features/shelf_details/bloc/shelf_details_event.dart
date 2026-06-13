@@ -13,15 +13,19 @@ class LoadShelfDetails extends ShelfDetailsEvent {
   final String shelfId;
   final String shelfTitle;
   final bool isPublic;
+  final bool isMagic;
+  final String? icon;
 
   const LoadShelfDetails(
     this.shelfId, {
     required this.shelfTitle,
     this.isPublic = false,
+    this.isMagic = false,
+    this.icon,
   });
 
   @override
-  List<Object?> get props => [shelfId, shelfTitle, isPublic];
+  List<Object?> get props => [shelfId, shelfTitle, isPublic, isMagic, icon];
 }
 
 class LoadMoreShelfDetails extends ShelfDetailsEvent {
