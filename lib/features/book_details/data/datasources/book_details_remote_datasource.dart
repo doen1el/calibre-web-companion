@@ -8,7 +8,6 @@ import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -710,63 +709,63 @@ class BookDetailsRemoteDatasource {
     }
   }
 
-  Future<String> downloadBookForReader(
-    BookDetailsModel book,
-    DocumentFile selectedDirectory,
-    DownloadSchema schema, {
+  Future<Uint8List> streamBookBytes(
+    BookDetailsModel book, {
     String format = 'epub',
     Function(int)? progressCallback,
   }) async {
+    final response = await getDownloadStream(book.id.toString(), format);
+    final contentLength = response.contentLength ?? -1;
+
+    final List<int> bytes = [];
+    int received = 0;
+    await for (final chunk in response.stream) {
+      bytes.addAll(chunk);
+      received += chunk.length;
+      if (contentLength > 0 && progressCallback != null) {
+        progressCallback((received / contentLength * 100).round());
+      }
+    }
+    return Uint8List.fromList(bytes);
+  }
+
+  Future<Uint8List?> readLocalEpubBytes(String path) async {
     try {
-      logger.i('Preparing book for internal reader: ${book.title}');
+      String name;
+      Uint8List bytes;
 
-      final selectedFormat = format.toLowerCase();
-
-      final safFileUri = await downloadBookToPath(
-        book: book,
-        selectedDirectory: selectedDirectory,
-        schema: schema,
-        format: selectedFormat,
-        // Reuse an already-downloaded file instead of fetching it again every
-        // time the reader is opened.
-        reuseExistingFile: true,
-        progressCallback: progressCallback,
-      );
-
-      DocumentFile? safFile =
-          safFileUri.isNotEmpty ? await DocumentFile.fromUri(safFileUri) : null;
-
-      if (safFile == null || !safFile.isFile) {
-        logger.e('Downloaded file is not a valid file: $safFileUri');
-        throw Exception('Downloaded file is not a valid file: $safFileUri');
+      if (Platform.isAndroid &&
+          (path.startsWith('content://') || path.startsWith('file://'))) {
+        final doc = await DocumentFile.fromUri(path);
+        if (doc == null || !doc.isFile) return null;
+        name = doc.name;
+        final read = await doc.read();
+        if (read == null || read.isEmpty) return null;
+        bytes = read;
+      } else {
+        final file = File(path);
+        if (!file.existsSync()) return null;
+        name = file.path.split('/').last;
+        bytes = await file.readAsBytes();
+        if (bytes.isEmpty) return null;
       }
 
-      final bytes = await safFile.read();
-      if (bytes == null) {
-        logger.e('Could not read bytes from SAF file.');
-        throw Exception('Could not read bytes from SAF file.');
+      final lower = name.toLowerCase();
+      final isEpubName = lower.endsWith('.epub') || lower.endsWith('.kepub');
+      final looksLikeZip =
+          bytes.length >= 2 && bytes[0] == 0x50 && bytes[1] == 0x4B;
+
+      if (!isEpubName || !looksLikeZip) {
+        logger.i(
+          'Local copy "$name" is not a readable EPUB — will stream instead.',
+        );
+        return null;
       }
 
-      final tempDir = await getTemporaryDirectory();
-
-      final safeFileName = safFile.name.replaceAll(
-        RegExp(r'[^a-zA-Z0-9.\-_]'),
-        '_',
-      );
-
-      final localFile = File('${tempDir.path}/$safeFileName');
-      await localFile.writeAsBytes(bytes, flush: true);
-
-      if (!await localFile.exists()) {
-        logger.e('Failed to create local cache file at ${localFile.path}');
-        throw Exception('Failed to create local cache file.');
-      }
-
-      logger.i('File prepared for reader at: ${localFile.path}');
-      return localFile.path;
+      return Uint8List.fromList(bytes);
     } catch (e) {
-      logger.e('Error preparing book for reader: $e');
-      throw Exception('Error preparing book for reader: $e');
+      logger.w('Could not read local copy ($path), will stream instead: $e');
+      return null;
     }
   }
 

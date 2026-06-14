@@ -45,7 +45,7 @@ dependencies:
   xml2json:
   cached_network_image:
   intl:
-  skeletonizer: ^2.1.0+1
+  skeletonizer:
   flutter_launcher_icons:
   package_info_plus:
   url_launcher:
@@ -67,7 +67,7 @@ dependencies:
   dio:
   cosmos_epub:
   archive:
-  emoji_picker_flutter: ^4.4.0
+  emoji_picker_flutter:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -83,6 +83,15 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+# Use a locally vendored, patched epubx. Upstream epubx 4.0.0 fails the entire
+# book parse when the TOC/navigation document can't be resolved (common with
+# EPUB3 nav.xhtml / missing files), which crashed the internal reader. The local
+# copy makes navigation/chapter parsing non-fatal so the reader falls back to
+# spine order. See packages/epubx/lib/src/readers/schema_reader.dart.
+dependency_overrides:
+  epubx:
+    path: packages/epubx
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:docman/docman.dart';
 import 'package:logger/logger.dart';
@@ -422,32 +424,34 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         ),
       );
 
-      final downloadedPath = await repository.openInInternalReader(
-        event.selectedDirectory,
-        event.schema,
-        event.book,
-        format: event.format,
-        progressCallback: (progress) {
-          logger.d('Reader download progress: $progress%');
-          emit(state.copyWith(downloadProgress: progress));
-        },
-      );
+      final uuid = state.bookViewModel?.uuid ?? state.bookDetails!.uuid;
 
-      if (downloadedPath.isNotEmpty) {
-        emit(
-          state.copyWith(
-            openInInternalReaderState: OpenInInternalReaderState.success,
-            downloadFilePath: downloadedPath,
-          ),
-        );
-      } else {
-        emit(
-          state.copyWith(
-            openInInternalReaderState: OpenInInternalReaderState.error,
-            errorMessage: 'Failed to open book in internal reader',
-          ),
+      Uint8List? bytes;
+
+      if (await downloadManager.checkFileExistence(uuid)) {
+        final path = downloadManager.getBookPath(uuid)!;
+        logger.i('Trying downloaded copy for reader from: $path');
+        bytes = await repository.readLocalEpubBytes(path);
+      }
+
+      if (bytes == null) {
+        logger.i('Streaming EPUB bytes into reader (no local EPUB copy).');
+        bytes = await repository.streamBookBytes(
+          event.book,
+          format: event.format,
+          progressCallback: (progress) {
+            logger.d('Reader stream progress: $progress%');
+            emit(state.copyWith(downloadProgress: progress));
+          },
         );
       }
+
+      emit(
+        state.copyWith(
+          openInInternalReaderState: OpenInInternalReaderState.success,
+          readerBytes: bytes,
+        ),
+      );
     } catch (e) {
       logger.e('Error opening book in internal reader: $e');
       emit(

@@ -180,21 +180,18 @@ class BookDetailsRepository {
     }
   }
 
-  Future<String> openInInternalReader(
-    DocumentFile selectedDirectory,
-    DownloadSchema schema,
+  Future<Uint8List> streamBookBytes(
     BookDetailsModel book, {
     String format = 'epub',
     Function(int)? progressCallback,
-  }) async {
-    return await datasource.downloadBookForReader(
-      book,
-      selectedDirectory,
-      schema,
-      format: format,
-      progressCallback: progressCallback,
-    );
-  }
+  }) => datasource.streamBookBytes(
+    book,
+    format: format,
+    progressCallback: progressCallback,
+  );
+
+  Future<Uint8List?> readLocalEpubBytes(String path) =>
+      datasource.readLocalEpubBytes(path);
 
   Future<String?> getSeriesPath(String seriesName) async {
     try {

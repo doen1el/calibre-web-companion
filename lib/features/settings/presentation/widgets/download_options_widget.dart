@@ -69,7 +69,8 @@ class DownloadOptionsWidget extends StatelessWidget {
                 const SizedBox(width: 16),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
                   ),
                   onPressed: () async {
                     String? selectedPath;
@@ -79,8 +80,7 @@ class DownloadOptionsWidget extends StatelessWidget {
                           await DocMan.pick.directory();
                       selectedPath = selectedDirectory?.uri;
                     } else {
-                      selectedPath =
-                          await FilePicker.platform.getDirectoryPath();
+                      selectedPath = await FilePicker.getDirectoryPath();
                     }
 
                     if (selectedPath == null) {
@@ -109,7 +109,7 @@ class DownloadOptionsWidget extends StatelessWidget {
                   child: Text(
                     localizations.select,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
                   ),
                 ),
@@ -174,7 +174,8 @@ class DownloadOptionsWidget extends StatelessWidget {
                 const SizedBox(width: 16),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
                   ),
                   onPressed: () async {
                     final result = await _showSchemaSelectionDialog(
@@ -198,7 +199,7 @@ class DownloadOptionsWidget extends StatelessWidget {
                   child: Text(
                     localizations.select,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
                   ),
                 ),

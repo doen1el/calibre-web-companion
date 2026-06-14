@@ -135,7 +135,7 @@ class _SyncSettingsWidgetState extends State<SyncSettingsWidget> {
           width: double.infinity,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             ),
             onPressed: () => _openConfigurationSheet(context, state),
             child: Row(
@@ -143,13 +143,13 @@ class _SyncSettingsWidgetState extends State<SyncSettingsWidget> {
               children: [
                 Icon(
                   Icons.sync,
-                  color: Theme.of(context).colorScheme.onPrimary,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
                 ),
                 SizedBox(width: 8),
                 Text(
                   localization.configureAndSync,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
                 ),
               ],

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:docman/docman.dart';
@@ -57,6 +58,13 @@ class BookDetailsPage extends StatefulWidget {
 class _BookDetailsPageState extends State<BookDetailsPage> {
   bool _didUpdateMetadata = false;
   late final WebDavSyncService _webDavService;
+  Timer? _readerProgressTimer;
+
+  @override
+  void dispose() {
+    _readerProgressTimer?.cancel();
+    super.dispose();
+  }
 
   bool _isInternalReaderSupportedFormat(String format) {
     return format.toLowerCase() == 'epub';
@@ -183,30 +191,40 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
   Future<void> _openInternalReader(
     BuildContext context,
-    String filePath,
+    Uint8List bytes,
     BookDetailsModel bookDetailsModel,
   ) async {
     final localization = AppLocalizations.of(context)!;
-    if (!filePath.toLowerCase().endsWith('.epub')) {
-      context.showSnackBar(
-        localization.errorOpeningBookInInternalReaderPdf,
-        isError: true,
-        duration: const Duration(seconds: 10),
-      );
-      return;
-    }
-
     final bookUuid = bookDetailsModel.uuid;
 
     await _restoreReaderProgressFromCloud(bookUuid);
     if (!context.mounted) return;
 
+    final looksLikeZip =
+        bytes.length >= 4 &&
+        bytes[0] == 0x50 &&
+        bytes[1] == 0x4B &&
+        bytes[2] == 0x03 &&
+        bytes[3] == 0x04;
+    if (!looksLikeZip) {
+      if (context.mounted) {
+        context.showSnackBar(
+          localization.errorOpeningBookInInternalReader,
+          isError: true,
+        );
+      }
+      return;
+    }
+
     try {
-      await CosmosEpub.openLocalBook(
+      await CosmosEpub.openFileBook(
         context: context,
-        localPath: filePath,
+        bytes: bytes,
         bookId: bookUuid,
         accentColor: Theme.of(context).colorScheme.primary,
+        onPageFlip: (currentPage, totalPages) {
+          _scheduleReaderProgressSync(bookUuid);
+        },
       );
     } catch (e) {
       if (context.mounted) {
@@ -218,7 +236,17 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       return;
     }
 
+    // Flush any pending debounced upload immediately when the reader closes.
+    _readerProgressTimer?.cancel();
     await _saveReaderProgressToCloud(bookUuid);
+  }
+
+  void _scheduleReaderProgressSync(String bookUuid) {
+    _readerProgressTimer?.cancel();
+    _readerProgressTimer = Timer(
+      const Duration(seconds: 5),
+      () => _saveReaderProgressToCloud(bookUuid),
+    );
   }
 
   Future<void> _restoreReaderProgressFromCloud(String bookUuid) async {
@@ -376,12 +404,12 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
             if (state.openInInternalReaderState ==
                     OpenInInternalReaderState.success &&
-                state.downloadFilePath != null) {
+                state.readerBytes != null) {
               context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
 
               _openInternalReader(
                 context,
-                state.downloadFilePath!,
+                state.readerBytes!,
                 state.bookDetails!,
               );
             }
@@ -1051,40 +1079,9 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                         return;
                       }
 
-                      DocumentFile? selectedDirectory;
-
-                      if (settingsState.defaultDownloadPath.isEmpty) {
-                        selectedDirectory = await DocMan.pick.directory();
-                        if (selectedDirectory == null) {
-                          // ignore: use_build_context_synchronously
-                          context.showSnackBar(
-                            localizations.noFolderWasSelected,
-                            isError: true,
-                          );
-                          return;
-                        }
-                      } else {
-                        final uri = settingsState.defaultDownloadPath;
-                        selectedDirectory =
-                            uri.isNotEmpty
-                                ? await DocumentFile.fromUri(uri)
-                                : null;
-                        if (selectedDirectory == null ||
-                            !selectedDirectory.isDirectory) {
-                          // ignore: use_build_context_synchronously
-                          context.showSnackBar(
-                            localizations.noFolderWasSelected,
-                            isError: true,
-                          );
-                          return;
-                        }
-                      }
-
                       // ignore: use_build_context_synchronously
                       context.read<BookDetailsBloc>().add(
                         OpenBookInInternalReader(
-                          selectedDirectory: selectedDirectory,
-                          schema: settingsState.downloadSchema,
                           book: book,
                           format: selectedFormat,
                         ),

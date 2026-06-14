@@ -391,7 +391,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Icon(
                 icon,
                 size: 28,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -443,7 +443,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Icon(
                 Icons.vpn_key_rounded,
                 size: 28,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -483,7 +483,7 @@ class _SettingsPageState extends State<SettingsPage> {
         title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.secondary,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
     );
@@ -511,7 +511,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Icon(
                       Icons.format_size_rounded,
                       size: 28,
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -581,7 +581,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Icon(
               Icons.e_mobiledata,
               size: 28,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -632,7 +632,7 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 Icon(
                   Icons.download_rounded,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -702,7 +702,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   children: [
                     Icon(
                       Icons.lock_person,
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -803,7 +803,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Icon(
                   Icons.send_rounded,
                   size: 28,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -854,7 +854,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   Icon(
                     Icons.download_for_offline_rounded,
                     size: 24,
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -891,8 +891,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               await DocMan.pick.directory();
                           selectedPath = selectedDirectory?.uri;
                         } else {
-                          selectedPath =
-                              await FilePicker.platform.getDirectoryPath();
+                          selectedPath = await FilePicker.getDirectoryPath();
                         }
 
                         if (selectedPath == null) {
@@ -945,7 +944,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Icon(
               Icons.info_outline,
               size: 28,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -1007,7 +1006,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Icon(
                   Icons.language,
                   size: 28,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1085,7 +1084,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Icon(
                 Icons.coffee,
                 size: 28,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 16),
 
@@ -1115,7 +1114,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Icon(
                   Icons.send,
                   size: 28,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1153,7 +1152,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Icon(
                   Icons.visibility_rounded,
                   size: 28,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1222,7 +1221,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Icon(
               Icons.tune_rounded,
               size: 24,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 12),
             Text(
@@ -1277,7 +1276,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                 leading: Icon(
                   _bookActionIcon(action),
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 title: Text(_bookActionTitle(action, localizations)),
                 trailing: Row(
@@ -1383,7 +1382,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Icon(
               Icons.view_list_rounded,
               size: 24,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 12),
             Text(
@@ -1444,7 +1443,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                 leading: Icon(
                   _bookSectionIcon(section),
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 title: Text(_bookSectionTitle(section, localizations)),
                 trailing: Row(
@@ -1597,7 +1596,7 @@ class _SettingsPageState extends State<SettingsPage> {
           keyValue: sectionKey,
           leading: Icon(
             _discoverMainSectionIcon(section),
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.primary,
           ),
           title: _discoverMainSectionTitle(section, localizations),
           value: enabledSections.contains(sectionKey),
@@ -1652,7 +1651,7 @@ class _SettingsPageState extends State<SettingsPage> {
           keyValue: itemKey,
           leading: Icon(
             _discoverItemIcon(item),
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.primary,
           ),
           title: _discoverItemTitle(item, localizations),
           value: enabledItems.contains(itemKey),
@@ -1704,7 +1703,7 @@ class _SettingsPageState extends State<SettingsPage> {
           keyValue: itemKey,
           leading: Icon(
             _categoryItemIcon(item),
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.primary,
           ),
           title: _categoryItemTitle(item, localizations),
           value: enabledItems.contains(itemKey),
@@ -1733,11 +1732,7 @@ class _SettingsPageState extends State<SettingsPage> {
       children: [
         Row(
           children: [
-            Icon(
-              icon,
-              size: 24,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
+            Icon(icon, size: 24, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 12),
             Text(title, style: Theme.of(context).textTheme.titleMedium),
             if (onReset != null) ...[
@@ -1759,6 +1754,7 @@ class _SettingsPageState extends State<SettingsPage> {
               (child, index, animation) =>
                   Material(type: MaterialType.transparency, child: child),
           itemCount: itemCount,
+          // ignore: deprecated_member_use
           onReorder: onReorder,
           itemBuilder: (context, index) => tileBuilder(index),
         ),
@@ -1920,7 +1916,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Icon(
                 Icons.description_outlined,
                 size: 28,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -1963,7 +1959,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Icon(
                 Icons.bug_report_rounded,
                 size: 28,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -2013,7 +2009,7 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 Icon(
                   Icons.cloud_sync_rounded,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 16),
                 Expanded(

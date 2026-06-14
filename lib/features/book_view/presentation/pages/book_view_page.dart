@@ -440,7 +440,7 @@ class _BookViewPageState extends State<BookViewPage> {
     BuildContext context,
     AppLocalizations localizations,
   ) async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'epub', 'mobi', 'fb2', 'cbr', 'djvu', 'cbz'],
       allowMultiple: false,

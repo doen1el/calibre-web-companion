@@ -38,7 +38,7 @@ class FeedbackWidget extends StatelessWidget {
                   Icon(
                     Icons.bug_report_outlined,
                     size: 28,
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(width: 16),
                   Expanded(

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
 
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
@@ -57,6 +59,7 @@ class BookDetailsState extends Equatable {
   final OpenInInternalReaderState openInInternalReaderState;
   final String? downloadErrorMessage;
   final String? downloadFilePath;
+  final Uint8List? readerBytes;
   final MetadataUpdateState metadataUpdateState;
   final SendToEReaderState sendToEReaderState;
   final int sendToEReaderProgress;
@@ -83,6 +86,7 @@ class BookDetailsState extends Equatable {
     this.openInInternalReaderState = OpenInInternalReaderState.initial,
     this.downloadErrorMessage,
     this.downloadFilePath,
+    this.readerBytes,
     this.metadataUpdateState = MetadataUpdateState.initial,
     this.sendToEReaderState = SendToEReaderState.initial,
     this.sendToEReaderProgress = 0,
@@ -110,6 +114,7 @@ class BookDetailsState extends Equatable {
     OpenInInternalReaderState? openInInternalReaderState,
     String? downloadErrorMessage,
     String? downloadFilePath,
+    Uint8List? readerBytes,
     MetadataUpdateState? metadataUpdateState,
     SendToEReaderState? sendToEReaderState,
     int? sendToEReaderProgress,
@@ -137,6 +142,7 @@ class BookDetailsState extends Equatable {
           openInInternalReaderState ?? this.openInInternalReaderState,
       downloadErrorMessage: downloadErrorMessage ?? this.downloadErrorMessage,
       downloadFilePath: downloadFilePath ?? this.downloadFilePath,
+      readerBytes: readerBytes ?? this.readerBytes,
       metadataUpdateState: metadataUpdateState ?? this.metadataUpdateState,
       sendToEReaderState: sendToEReaderState ?? this.sendToEReaderState,
       sendToEReaderProgress:
