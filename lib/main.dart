@@ -12,7 +12,7 @@ import 'package:cosmos_epub/cosmos_epub.dart';
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/di/injection_container.dart' as di;
-import 'package:calibre_web_companion/core/services/download_manager.dart'; // Import
+import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/core/services/app_log_service.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
@@ -64,7 +64,6 @@ void main() async {
 
   await di.getIt<DownloadManager>().initialize();
 
-  // Initialize the in-app EPUB reader (cosmos_epub) once before it is used.
   await CosmosEpub.initialize();
 
   final savedThemeMode = await AdaptiveTheme.getThemeMode();
@@ -200,19 +199,11 @@ class _MyAppState extends State<MyApp> {
             final lightTheme = ThemeData(
               useMaterial3: true,
               colorScheme: lightScheme,
-              cardTheme: CardThemeData(
-                color: lightScheme.surfaceContainerHigh,
-                surfaceTintColor: Colors.transparent,
-              ),
             );
 
             final darkTheme = ThemeData(
               useMaterial3: true,
               colorScheme: darkScheme,
-              cardTheme: CardThemeData(
-                color: darkScheme.surfaceContainerHigh,
-                surfaceTintColor: Colors.transparent,
-              ),
             );
 
             return SkeletonizerConfig(
