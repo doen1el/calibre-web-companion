@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:barcode_scan2/barcode_scan2.dart';
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/scan_book/presentation/scan_flow.dart';
 
 class ScanBookPage extends StatefulWidget {
@@ -13,40 +15,68 @@ class ScanBookPage extends StatefulWidget {
 }
 
 class _ScanBookPageState extends State<ScanBookPage> {
-  final MobileScannerController _controller = MobileScannerController(
-    formats: const [BarcodeFormat.ean13],
-    detectionSpeed: DetectionSpeed.normal,
-  );
   final Logger _logger = Logger();
 
-  bool _handling = false;
+  bool _busy = false;
 
   @override
   void initState() {
     super.initState();
     _logger.i('ScanBookPage opened');
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scan());
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  Future<void> _scan() async {
+    if (_busy) return;
+    setState(() => _busy = true);
 
-  void _onDetect(BarcodeCapture capture) {
-    if (_handling) return;
-    final raw = capture.barcodes
-        .map((b) => b.rawValue)
-        .firstWhere((v) => v != null && v.isNotEmpty, orElse: () => null);
-    if (raw == null) return;
-    _logger.i('Barcode detected: $raw');
-    _handleIsbn(raw);
+    final localizations = AppLocalizations.of(context)!;
+    try {
+      final result = await BarcodeScanner.scan(
+        options: ScanOptions(
+          restrictFormat: const [BarcodeFormat.ean13],
+          android: AndroidOptions(appBarTitle: localizations.scanBook),
+          strings: {
+            'cancel': localizations.cancel,
+            'flash_on': 'Flash on',
+            'flash_off': 'Flash off',
+          },
+        ),
+      );
+
+      if (!mounted) return;
+
+      switch (result.type) {
+        case ResultType.Barcode:
+          if (result.rawContent.isNotEmpty) {
+            _logger.i('Barcode detected: ${result.rawContent}');
+            await _handleIsbn(result.rawContent);
+            return;
+          }
+          break;
+        case ResultType.Error:
+          _logger.e('Scan error: ${result.rawContent}');
+          context.showSnackBar(localizations.isbnLookupFailed, isError: true);
+          break;
+        case ResultType.Cancelled:
+          _logger.d('Scan cancelled');
+          break;
+      }
+      setState(() => _busy = false);
+    } on PlatformException catch (e) {
+      _logger.e('Scanner platform error: ${e.code}');
+      if (!mounted) return;
+      context.showSnackBar(
+        e.code == BarcodeScanner.cameraAccessDenied
+            ? localizations.cameraPermissionRequired
+            : localizations.isbnLookupFailed,
+        isError: true,
+      );
+      setState(() => _busy = false);
+    }
   }
 
   Future<void> _handleIsbn(String isbn) async {
-    if (_handling) return;
-    setState(() => _handling = true);
-
     final added = await runIsbnLookupFlow(context, isbn);
     if (!mounted) return;
 
@@ -54,27 +84,25 @@ class _ScanBookPageState extends State<ScanBookPage> {
       _logger.i('Book added — closing scanner');
       Navigator.of(context).pop(true);
     } else {
-      _logger.d('Resuming scanning');
-      setState(() => _handling = false);
+      _logger.d('Back to scan launcher');
+      setState(() => _busy = false);
     }
   }
 
   Future<void> _enterIsbnManually() async {
-    if (_handling) return;
-    setState(() => _handling = true);
+    if (_busy) return;
     final isbn = await promptForIsbn(context);
     if (!mounted) return;
     if (isbn != null && isbn.isNotEmpty) {
-      _handling = false;
-      _handleIsbn(isbn);
-    } else {
-      setState(() => _handling = false);
+      await _handleIsbn(isbn);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.scanBook),
@@ -82,47 +110,44 @@ class _ScanBookPageState extends State<ScanBookPage> {
           IconButton(
             tooltip: localizations.enterIsbn,
             icon: const Icon(Icons.keyboard_rounded),
-            onPressed: _enterIsbnManually,
-          ),
-          IconButton(
-            tooltip: 'Torch',
-            icon: const Icon(Icons.flash_on_rounded),
-            onPressed: () => _controller.toggleTorch(),
+            onPressed: _busy ? null : _enterIsbnManually,
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          MobileScanner(controller: _controller, onDetect: _onDetect),
-          if (!_handling) ...[
-            IgnorePointer(
-              child: Center(
-                child: Container(
-                  width: 260,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white, width: 3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.qr_code_scanner_rounded,
+                size: 96,
+                color: theme.colorScheme.primary,
               ),
-            ),
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 24,
-              child: Text(
+              const SizedBox(height: 24),
+              Text(
                 localizations.pointCameraAtBarcode,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  shadows: [Shadow(blurRadius: 6, color: Colors.black)],
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-            ),
-          ],
-        ],
+              const SizedBox(height: 32),
+              FilledButton.icon(
+                onPressed: _busy ? null : _scan,
+                icon: const Icon(Icons.qr_code_scanner_rounded),
+                label: Text(localizations.scanBook),
+              ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: _busy ? null : _enterIsbnManually,
+                icon: const Icon(Icons.keyboard_rounded),
+                label: Text(localizations.enterIsbn),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
