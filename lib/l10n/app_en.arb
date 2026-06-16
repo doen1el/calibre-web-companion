@@ -448,6 +448,7 @@
   "enterIsbnManually": "Enter ISBN manually",
   "isbn": "ISBN",
   "pointCameraAtBarcode": "Point the camera at the book's barcode",
+  "cameraPermissionRequired": "Camera permission is required to scan barcodes",
   "lookingUpBook": "Looking up book…",
   "isbnNotFound": "No book found for this ISBN",
   "scanAgain": "Scan again",

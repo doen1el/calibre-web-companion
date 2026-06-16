@@ -1,0 +1,1 @@
+- Fixed: swapped mobile_scanner package to barcode_scan2
