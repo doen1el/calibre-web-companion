@@ -21,10 +21,10 @@ for dir in "$META_DIR"/*/; do
   text="$(cat "$changelog")"
   if [[ "${#text}" -gt "$MAX_LEN" ]]; then
     echo "::warning::Changelog for $locale ($VERSION_CODE) is ${#text} chars (>$MAX_LEN); truncating."
-    text="${text:0:$((MAX_LEN - 1))}…"
+    text="${text:0:$((MAX_LEN - 10))}..."
   fi
 
-  printf '%s\n' "$text" > "$OUT_DIR/whatsnew-${locale}"
+  printf '%s' "$text" > "$OUT_DIR/whatsnew-${locale}"
   echo "  $locale -> whatsnew-${locale}"
   found=$((found + 1))
 done
