@@ -19,6 +19,7 @@ class DownloadServicePage extends StatefulWidget {
 class _DownloadServicePageState extends State<DownloadServicePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  int _lastTabIndex = 0;
 
   @override
   void initState() {
@@ -32,9 +33,11 @@ class _DownloadServicePageState extends State<DownloadServicePage>
     });
 
     _tabController.addListener(() {
-      if (_tabController.index == 1) {
+      if (_tabController.indexIsChanging) return;
+      if (_tabController.index == 1 && _lastTabIndex != 1) {
         context.read<DownloadServiceBloc>().add(GetDownloadStatus());
       }
+      _lastTabIndex = _tabController.index;
     });
   }
 
