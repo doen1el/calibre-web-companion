@@ -35,18 +35,20 @@ class MePage extends StatelessWidget {
     return MultiBlocListener(
       listeners: [
         BlocListener<LoginBloc, LoginState>(
+          listenWhen:
+              (previous, current) =>
+                  previous.status != current.status &&
+                  current.status == LoginStatus.success,
           listener: (context, loginState) {
-            if (loginState.status == LoginStatus.success) {
-              context.read<LoginBloc>().add(const ResetLoginStatus());
+            context.read<LoginBloc>().add(const ResetLoginStatus());
 
-              context.read<MeBloc>().add(const LoadStats());
-              context.read<BookViewBloc>().add(const RefreshBooks());
+            context.read<MeBloc>().add(const LoadStats());
+            context.read<BookViewBloc>().add(const RefreshBooks());
 
-              Navigator.of(context).pushAndRemoveUntil(
-                AppTransitions.createSlideRoute(const HomePage()),
-                (route) => false,
-              );
-            }
+            Navigator.of(context).pushAndRemoveUntil(
+              AppTransitions.createSlideRoute(const HomePage()),
+              (route) => false,
+            );
           },
         ),
       ],
@@ -62,8 +64,6 @@ class MePage extends StatelessWidget {
             }
 
             if (state.logoutStatus == LogoutStatus.success) {
-              context.read<BookViewBloc>().add(const RefreshBooks());
-
               Navigator.of(
                 // ignore: use_build_context_synchronously
                 context,
@@ -418,7 +418,7 @@ class MePage extends StatelessWidget {
                 onPressed: () => Navigator.of(dialogContext).pop(),
                 child: Text(localizations.cancel),
               ),
-              AppDialogButton(
+              AppDialogButton.destructive(
                 onPressed: () {
                   Navigator.of(dialogContext).pop();
                   _performLogout(context);
