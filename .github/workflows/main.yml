@@ -21,7 +21,7 @@ jobs:
       - name: Set Up Java
         uses: actions/setup-java@v3.12.0
         with:
-          distribution: 'oracle'
+          distribution: 'temurin'
           java-version: '17'
 
       #3 Setup Flutter
