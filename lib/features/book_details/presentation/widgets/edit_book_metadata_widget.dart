@@ -16,7 +16,6 @@ import 'package:calibre_web_companion/features/book_details/data/models/metadata
 import 'package:calibre_web_companion/features/book_details/presentation/widgets/metadata_search_dialog.dart';
 
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
-import 'package:calibre_web_companion/shared/widgets/coming_soon_widget.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
@@ -245,14 +244,8 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
                         Theme.of(context).colorScheme.primaryContainer,
                     child: const Icon(Icons.search),
                   ),
-                  tooltip: "Fetch Metadata",
-                  onPressed:
-                      isLoading
-                          ? null
-                          : () => showComingSoonDialog(
-                            context,
-                            "The metadata search feature is coming soon!",
-                          ),
+                  tooltip: localizations.fetchMetadata,
+                  onPressed: isLoading ? null : _openMetadataSearch,
                 ),
                 IconButton(
                   icon: CircleAvatar(
@@ -668,6 +661,11 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
         );
         if (cookieHeaders.containsKey('Cookie')) {
           headers['Cookie'] = cookieHeaders['Cookie']!;
+        }
+
+        final userAgent = apiService.getUserAgent();
+        if (userAgent != null && userAgent.isNotEmpty) {
+          headers['User-Agent'] = userAgent;
         }
 
         final username = apiService.getUsername();

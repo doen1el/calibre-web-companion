@@ -1,0 +1,9 @@
+- New: Magic Shelves, create, edit and browse dynamic, rule-based shelves (Calibre-Web Automated only).
+- New: Scan a book's ISBN barcode to add it to Calibre or download it via Shelfmark.
+- New: Connection Diagnostics screen plus improved reverse-proxy / SSO login.
+- New: Search book metadata from online providers while editing a book.
+- New: Series index and series filter on book cards, with search autosuggestions.
+- New: Pagination and a list/grid toggle in shelves; adjustable font size and grid/list view in Discover.
+- New: Refreshed built-in eBook reader with selectable reading format.
+- Added Dutch translation and many translation updates.
+- Fixed: self-signed certificates, "logged in but no data" on reverse proxies, Shelfmark config, the Author (A-Z) filter and a swipe-back crash.

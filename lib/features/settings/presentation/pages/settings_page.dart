@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:docman/docman.dart';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
@@ -20,6 +22,9 @@ import 'package:calibre_web_companion/features/settings/presentation/widgets/syn
 import 'package:calibre_web_companion/features/settings/presentation/pages/app_logs_page.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/reachable_url_field.dart';
+import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
+import 'package:calibre_web_companion/core/di/injection_container.dart';
 
 enum SettingsSubPage { discover, bookDetails }
 
@@ -141,7 +146,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           _buildSettingsCategoryNavCard(
                             context,
                             title: localizations.readerSettings,
-                            subtitle: localizations.scrollDirection,
+                            subtitle: localizations.webDavSync,
                             icon: Icons.chrome_reader_mode_rounded,
                             onTap: () => _openReaderSettingsSubPage(context),
                           ),
@@ -298,6 +303,7 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildSectionTitle(context, localizations.appearance),
             const ThemeSelectorWidget(),
             _buildEInkModeToggle(context, state, localizations),
+            _buildTextScaleSelector(context, state, localizations),
             const SizedBox(height: 24),
             _buildSectionTitle(context, localizations.language),
             _buildLanguageSelector(context, state, localizations),
@@ -332,8 +338,7 @@ class _SettingsPageState extends State<SettingsPage> {
       title: localizations.readerSettings,
       bodyBuilder:
           (context, state, localizations) => [
-            _buildSectionTitle(context, localizations.readerSettings),
-            _buildReaderSettings(context, state, localizations),
+            _buildSectionTitle(context, localizations.webDavSync),
             _buildWebDavSettings(context, state, localizations),
           ],
     );
@@ -386,7 +391,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Icon(
                 icon,
                 size: 28,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -438,7 +443,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Icon(
                 Icons.vpn_key_rounded,
                 size: 28,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -478,8 +483,84 @@ class _SettingsPageState extends State<SettingsPage> {
         title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.secondary,
+          color: Theme.of(context).colorScheme.primary,
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextScaleSelector(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    double current = state.textScale;
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: StatefulBuilder(
+        builder: (context, setLocal) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.format_size_rounded,
+                      size: 28,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            localizations.fontSize,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            localizations.fontSizeDescription,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      '${(current * 100).round()}%',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Slider(
+                  value: current.clamp(0.8, 1.6),
+                  min: 0.8,
+                  max: 1.6,
+                  divisions: 8,
+                  label: '${(current * 100).round()}%',
+                  onChanged: (value) => setLocal(() => current = value),
+                  onChangeEnd:
+                      (value) =>
+                          context.read<SettingsBloc>().add(SetTextScale(value)),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -500,7 +581,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Icon(
               Icons.e_mobiledata,
               size: 28,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -551,7 +632,7 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 Icon(
                   Icons.download_rounded,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -579,26 +660,34 @@ class _SettingsPageState extends State<SettingsPage> {
 
             if (state.isDownloaderEnabled) ...[
               const SizedBox(height: 16),
-              TextField(
+              ReachableUrlField(
                 controller: _downloaderUrlController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  labelText: localizations.downloadServiceUrl,
-                  hintText: "https://downloader.example.com",
-                  prefixIcon: const Icon(Icons.link),
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 14.0,
-                  ),
-                ),
-                onChanged:
-                    (_) => context.read<SettingsBloc>().add(
-                      ResetConnectionTestStatus(),
-                    ),
+                label: localizations.downloadServiceUrl,
+                hint: "https://downloader.example.com",
+                check: (url) async {
+                  final status = await getIt<SettingsRepository>()
+                      .probeDownloaderUrl(url);
+                  switch (status) {
+                    case DownloaderUrlStatus.reachable:
+                      return UrlFieldStatus.ok;
+                    case DownloaderUrlStatus.authRequired:
+                      return UrlFieldStatus.authRequired;
+                    case DownloaderUrlStatus.unreachable:
+                      return UrlFieldStatus.error;
+                  }
+                },
+                onResult: (url, status) {
+                  if (status == UrlFieldStatus.ok) {
+                    context.read<SettingsBloc>().add(SetDownloaderUrl(url));
+                    _reloadDownloadService(context);
+                    setState(() => _showDownloaderAuth = false);
+                  } else if (status == UrlFieldStatus.authRequired) {
+                    context.read<SettingsBloc>().add(SetDownloaderUrl(url));
+                    setState(() => _showDownloaderAuth = true);
+                  } else {
+                    setState(() => _showDownloaderAuth = false);
+                  }
+                },
               ),
               const SizedBox(height: 8),
               Text(
@@ -607,32 +696,23 @@ class _SettingsPageState extends State<SettingsPage> {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Icon(
-                    Icons.lock_person,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      localizations.authentication,
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                  ),
-                  Switch(
-                    value: _showDownloaderAuth,
-                    activeThumbColor: Theme.of(context).colorScheme.primary,
-                    onChanged: (value) {
-                      setState(() {
-                        _showDownloaderAuth = value;
-                      });
-                    },
-                  ),
-                ],
-              ),
               if (_showDownloaderAuth) ...[
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.lock_person,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        localizations.authentication,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _downloaderUsernameController,
@@ -649,10 +729,6 @@ class _SettingsPageState extends State<SettingsPage> {
                       vertical: 14.0,
                     ),
                   ),
-                  onChanged:
-                      (_) => context.read<SettingsBloc>().add(
-                        ResetConnectionTestStatus(),
-                      ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -671,81 +747,42 @@ class _SettingsPageState extends State<SettingsPage> {
                       vertical: 14.0,
                     ),
                   ),
-                  onChanged:
-                      (_) => context.read<SettingsBloc>().add(
-                        ResetConnectionTestStatus(),
-                      ),
                 ),
-              ],
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    if (state.downloaderTestStatus ==
-                        ConnectionTestStatus.loading) {
-                      return;
-                    }
-
-                    final username =
-                        _showDownloaderAuth
-                            ? _downloaderUsernameController.text.trim()
-                            : '';
-                    final password =
-                        _showDownloaderAuth
-                            ? _downloaderPasswordController.text
-                            : '';
-
-                    if (state.downloaderTestStatus ==
-                        ConnectionTestStatus.success) {
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () {
                       context.read<SettingsBloc>().add(
                         SetDownloaderUrl(_downloaderUrlController.text.trim()),
                       );
                       context.read<SettingsBloc>().add(
-                        SetDownloaderCredentials(username, password),
-                      );
-                      context.showSnackBar(localizations.settingsSaved);
-                      FocusScope.of(context).unfocus();
-                    } else {
-                      context.read<SettingsBloc>().add(
-                        TestDownloaderConnection(
-                          url: _downloaderUrlController.text.trim(),
-                          username: username,
-                          password: password,
+                        SetDownloaderCredentials(
+                          _downloaderUsernameController.text.trim(),
+                          _downloaderPasswordController.text,
                         ),
                       );
-                    }
-                  },
-                  icon:
-                      state.downloaderTestStatus == ConnectionTestStatus.loading
-                          ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(),
-                          )
-                          : Icon(
-                            state.downloaderTestStatus ==
-                                    ConnectionTestStatus.success
-                                ? Icons.check_circle
-                                : Icons.wifi_find,
-                          ),
-                  label: Text(
-                    state.downloaderTestStatus == ConnectionTestStatus.loading
-                        ? localizations.testing
-                        : (state.downloaderTestStatus ==
-                                ConnectionTestStatus.success
-                            ? (_showDownloaderAuth
-                                ? localizations.saveCredentials
-                                : localizations.save)
-                            : localizations.testConnection),
+                      _reloadDownloadService(context);
+                      context.showSnackBar(localizations.settingsSaved);
+                      FocusScope.of(context).unfocus();
+                    },
+                    icon: const Icon(Icons.save),
+                    label: Text(localizations.saveCredentials),
                   ),
                 ),
-              ),
+              ],
             ],
           ],
         ),
       ),
     );
+  }
+
+  void _reloadDownloadService(BuildContext context) {
+    final bloc = context.read<DownloadServiceBloc>();
+    bloc.add(LoadDownloadConfig());
+    bloc.add(LoadSavedFilter());
+    bloc.add(GetDownloadStatus());
   }
 
   Widget _buildSend2EreaderToggle(
@@ -766,7 +803,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Icon(
                   Icons.send_rounded,
                   size: 28,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -788,26 +825,19 @@ class _SettingsPageState extends State<SettingsPage> {
 
             if (state.isSend2ereaderEnabled) ...[
               const SizedBox(height: 16),
-              TextField(
+              ReachableUrlField(
                 controller: _send2ereaderUrlController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  labelText: localizations.send2ereaderServiceUrl,
-                  hintText: "https://send.djazz.se",
-                  prefixIcon: const Icon(Icons.link),
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 14.0,
-                  ),
-                ),
+                label: localizations.send2ereaderServiceUrl,
+                hint: "https://send.djazz.se",
                 onChanged:
                     (value) => context.read<SettingsBloc>().add(
                       SetCostumSend2EreaderUrl(value),
                     ),
+                check: (url) async {
+                  final reachable = await getIt<SettingsRepository>()
+                      .isUrlReachable(url);
+                  return reachable ? UrlFieldStatus.ok : UrlFieldStatus.error;
+                },
               ),
               const SizedBox(height: 8),
               Text(
@@ -816,72 +846,85 @@ class _SettingsPageState extends State<SettingsPage> {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(
-                    Icons.download_for_offline_rounded,
-                    size: 24,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          localizations.storeReadNowAndSendToEReaderOnDevice,
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          localizations
-                              .storeReadNowAndSendToEReaderOnDeviceDescription,
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ],
+              if (Platform.isAndroid) ...[
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.download_for_offline_rounded,
+                      size: 24,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                  ),
-                  Switch(
-                    value: state.storeReadNowAndSendToEReaderOnDevice,
-                    onChanged: (value) async {
-                      if (!value) {
-                        context.read<SettingsBloc>().add(
-                          const SetStoreReadNowAndSendToEReaderOnDevice(false),
-                        );
-                        return;
-                      }
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            localizations.storeReadNowAndSendToEReaderOnDevice,
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            localizations
+                                .storeReadNowAndSendToEReaderOnDeviceDescription,
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: state.storeReadNowAndSendToEReaderOnDevice,
+                      onChanged: (value) async {
+                        if (!value) {
+                          context.read<SettingsBloc>().add(
+                            const SetStoreReadNowAndSendToEReaderOnDevice(
+                              false,
+                            ),
+                          );
+                          return;
+                        }
 
-                      if (state.defaultDownloadPath.isEmpty) {
-                        final selectedDirectory = await DocMan.pick.directory();
-                        if (selectedDirectory == null) {
+                        if (state.defaultDownloadPath.isEmpty) {
+                          String? selectedPath;
+
+                          if (Platform.isAndroid) {
+                            final selectedDirectory =
+                                await DocMan.pick.directory();
+                            selectedPath = selectedDirectory?.uri;
+                          } else {
+                            selectedPath = await FilePicker.getDirectoryPath();
+                          }
+
+                          if (selectedPath == null) {
+                            if (context.mounted) {
+                              context.showSnackBar(
+                                localizations.noFolderWasSelected,
+                                isError: true,
+                              );
+                            }
+                            return;
+                          }
+
                           if (context.mounted) {
-                            context.showSnackBar(
-                              localizations.noFolderWasSelected,
-                              isError: true,
+                            context.read<SettingsBloc>().add(
+                              SetDownloadFolder(selectedPath),
                             );
                           }
-                          return;
                         }
 
                         if (context.mounted) {
                           context.read<SettingsBloc>().add(
-                            SetDownloadFolder(selectedDirectory.uri),
+                            const SetStoreReadNowAndSendToEReaderOnDevice(true),
                           );
                         }
-                      }
-
-                      if (context.mounted) {
-                        context.read<SettingsBloc>().add(
-                          const SetStoreReadNowAndSendToEReaderOnDevice(true),
-                        );
-                      }
-                    },
-                    activeThumbColor: Theme.of(context).colorScheme.primary,
-                  ),
-                ],
-              ),
+                      },
+                      activeThumbColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  ],
+                ),
+              ],
             ],
           ],
         ),
@@ -905,7 +948,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Icon(
               Icons.info_outline,
               size: 28,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -950,6 +993,7 @@ class _SettingsPageState extends State<SettingsPage> {
       {'code': 'ru', 'name': 'Русский', 'flag': '🇷🇺'},
       {'code': 'ar', 'name': 'العربية', 'flag': '🇸🇦'},
       {'code': 'zh', 'name': '中文', 'flag': '🇨🇳'},
+      {'code': 'nl', 'name': 'Nederlands', 'flag': '🇳🇱'},
     ];
 
     return Card(
@@ -966,7 +1010,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Icon(
                   Icons.language,
                   size: 28,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1044,7 +1088,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Icon(
                 Icons.coffee,
                 size: 28,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 16),
 
@@ -1074,7 +1118,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Icon(
                   Icons.send,
                   size: 28,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1112,7 +1156,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Icon(
                   Icons.visibility_rounded,
                   size: 28,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1181,7 +1225,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Icon(
               Icons.tune_rounded,
               size: 24,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 12),
             Text(
@@ -1236,7 +1280,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                 leading: Icon(
                   _bookActionIcon(action),
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 title: Text(_bookActionTitle(action, localizations)),
                 trailing: Row(
@@ -1342,7 +1386,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Icon(
               Icons.view_list_rounded,
               size: 24,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 12),
             Text(
@@ -1403,7 +1447,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                 leading: Icon(
                   _bookSectionIcon(section),
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 title: Text(_bookSectionTitle(section, localizations)),
                 trailing: Row(
@@ -1556,7 +1600,7 @@ class _SettingsPageState extends State<SettingsPage> {
           keyValue: sectionKey,
           leading: Icon(
             _discoverMainSectionIcon(section),
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.primary,
           ),
           title: _discoverMainSectionTitle(section, localizations),
           value: enabledSections.contains(sectionKey),
@@ -1611,7 +1655,7 @@ class _SettingsPageState extends State<SettingsPage> {
           keyValue: itemKey,
           leading: Icon(
             _discoverItemIcon(item),
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.primary,
           ),
           title: _discoverItemTitle(item, localizations),
           value: enabledItems.contains(itemKey),
@@ -1663,7 +1707,7 @@ class _SettingsPageState extends State<SettingsPage> {
           keyValue: itemKey,
           leading: Icon(
             _categoryItemIcon(item),
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.primary,
           ),
           title: _categoryItemTitle(item, localizations),
           value: enabledItems.contains(itemKey),
@@ -1692,11 +1736,7 @@ class _SettingsPageState extends State<SettingsPage> {
       children: [
         Row(
           children: [
-            Icon(
-              icon,
-              size: 24,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
+            Icon(icon, size: 24, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 12),
             Text(title, style: Theme.of(context).textTheme.titleMedium),
             if (onReset != null) ...[
@@ -1718,6 +1758,7 @@ class _SettingsPageState extends State<SettingsPage> {
               (child, index, animation) =>
                   Material(type: MaterialType.transparency, child: child),
           itemCount: itemCount,
+          // ignore: deprecated_member_use
           onReorder: onReorder,
           itemBuilder: (context, index) => tileBuilder(index),
         ),
@@ -1879,7 +1920,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Icon(
                 Icons.description_outlined,
                 size: 28,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -1922,7 +1963,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Icon(
                 Icons.bug_report_rounded,
                 size: 28,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -1972,7 +2013,7 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 Icon(
                   Icons.cloud_sync_rounded,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -2112,79 +2153,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReaderSettings(
-    BuildContext context,
-    SettingsState state,
-    AppLocalizations localizations,
-  ) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.chrome_reader_mode_rounded,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    localizations.scrollDirection,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-              ),
-              initialValue: state.epubScrollDirection,
-              icon: const Icon(Icons.arrow_drop_down),
-              elevation: 16,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 16,
-              ),
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  context.read<SettingsBloc>().add(
-                    SetEpubScrollDirection(newValue),
-                  );
-                }
-              },
-              items: [
-                DropdownMenuItem<String>(
-                  value: 'vertical',
-                  child: Text(localizations.vertical),
-                ),
-                DropdownMenuItem<String>(
-                  value: 'horizontal',
-                  child: Text(localizations.horizontal),
-                ),
-              ],
-            ),
           ],
         ),
       ),

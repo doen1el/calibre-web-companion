@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +10,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:logger/logger.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_options_sheet.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -32,7 +36,10 @@ import 'package:calibre_web_companion/features/settings/presentation/pages/setti
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:vocsy_epub_viewer/epub_viewer.dart';
+import 'package:cosmos_epub/cosmos_epub.dart';
+// Exposes cosmos_epub's `bookProgress` singleton for cross-device WebDAV sync.
+import 'package:cosmos_epub/show_epub.dart' as cosmos_reader;
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 
 class BookDetailsPage extends StatefulWidget {
@@ -51,8 +58,117 @@ class BookDetailsPage extends StatefulWidget {
 
 class _BookDetailsPageState extends State<BookDetailsPage> {
   bool _didUpdateMetadata = false;
-  StreamSubscription<dynamic>? _locatorSubscription;
   late final WebDavSyncService _webDavService;
+  Timer? _readerProgressTimer;
+
+  @override
+  void dispose() {
+    _readerProgressTimer?.cancel();
+    super.dispose();
+  }
+
+  bool _isInternalReaderSupportedFormat(String format) {
+    return format.toLowerCase() == 'epub';
+  }
+
+  void _showUnsupportedInternalReaderFormatMessage(
+    BuildContext context,
+    AppLocalizations localizations,
+    List<String> availableFormats,
+  ) {
+    final formats = availableFormats.map((f) => f.toUpperCase()).join(', ');
+
+    context.showSnackBar(
+      localizations.internalReaderSupportsOnlyEpub(formats),
+      isError: true,
+      duration: const Duration(seconds: 10),
+    );
+  }
+
+  Future<String?> _selectInternalReaderFormat(
+    BuildContext context,
+    AppLocalizations localizations,
+    BookDetailsModel book,
+  ) async {
+    final formats =
+        book.formats.map((format) => format.toLowerCase()).toSet().toList();
+
+    if (formats.isEmpty) {
+      context.showSnackBar(
+        localizations.errorOpeningBookInInternalReader,
+        isError: true,
+      );
+      return null;
+    }
+
+    final supportedFormats =
+        formats
+            .where((format) => _isInternalReaderSupportedFormat(format))
+            .toList();
+
+    if (supportedFormats.isEmpty) {
+      _showUnsupportedInternalReaderFormatMessage(
+        context,
+        localizations,
+        formats,
+      );
+      return null;
+    }
+
+    if (formats.length == 1) {
+      return supportedFormats.first;
+    }
+
+    return showModalBottomSheet<String>(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (sheetContext) => SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppOptionsSheetHeader(title: localizations.downlaodFomat),
+                ...formats.map((format) {
+                  final isSupported = _isInternalReaderSupportedFormat(format);
+                  IconData icon;
+
+                  switch (format) {
+                    case 'epub':
+                      icon = Icons.menu_book;
+                      break;
+                    case 'pdf':
+                      icon = Icons.picture_as_pdf;
+                      break;
+                    case 'kepub':
+                      icon = Icons.book;
+                      break;
+                    default:
+                      icon = Icons.file_present;
+                  }
+
+                  return AppOptionTile(
+                    icon: icon,
+                    title: format.toUpperCase(),
+                    enabled: isSupported,
+                    subtitle:
+                        isSupported
+                            ? null
+                            : localizations.internalReaderSupportsOnlyEpubShort,
+                    onTap: () => Navigator.pop(sheetContext, format),
+                  );
+                }),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+    );
+  }
 
   @override
   void initState() {
@@ -69,57 +185,130 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
         prefs.getString('webdav_url') ?? '',
         prefs.getString('webdav_username') ?? '',
         prefs.getString('webdav_password') ?? '',
+        allowSelfSigned: prefs.getBool('allow_self_signed') ?? false,
       );
     }
-  }
-
-  @override
-  void dispose() {
-    _locatorSubscription?.cancel();
-    VocsyEpub.closeReader();
-    super.dispose();
   }
 
   Future<void> _openInternalReader(
     BuildContext context,
-    String filePath,
+    Uint8List bytes,
     BookDetailsModel bookDetailsModel,
   ) async {
-    final lastLocation = context.read<BookDetailsBloc>().state.startLocation;
-    final settingsState = context.read<SettingsBloc>().state;
+    final localization = AppLocalizations.of(context)!;
+    final bookUuid = bookDetailsModel.uuid;
 
-    if (filePath.endsWith('.pdf')) {
-      final localization = AppLocalizations.of(context)!;
-      context.showSnackBar(
-        localization.errorOpeningBookInInternalReaderPdf,
-        isError: true,
-        duration: const Duration(seconds: 10),
-      );
+    await _restoreReaderProgressFromCloud(bookUuid);
+    if (!context.mounted) return;
+
+    final looksLikeZip =
+        bytes.length >= 4 &&
+        bytes[0] == 0x50 &&
+        bytes[1] == 0x4B &&
+        bytes[2] == 0x03 &&
+        bytes[3] == 0x04;
+    if (!looksLikeZip) {
+      if (context.mounted) {
+        context.showSnackBar(
+          localization.errorOpeningBookInInternalReader,
+          isError: true,
+        );
+      }
       return;
     }
 
-    VocsyEpub.setConfig(
-      themeColor: Theme.of(context).primaryColor,
-      identifier: "book_${bookDetailsModel.uuid}",
-      scrollDirection:
-          settingsState.epubScrollDirection == 'horizontal'
-              ? EpubScrollDirection.HORIZONTAL
-              : EpubScrollDirection.VERTICAL,
-      allowSharing: true,
-      enableTts: true,
-      nightMode: Theme.of(context).brightness == Brightness.dark,
-    );
-
-    await _locatorSubscription?.cancel();
-
-    _locatorSubscription = VocsyEpub.locatorStream.listen((locator) {
-      // ignore: use_build_context_synchronously
-      context.read<BookDetailsBloc>().add(
-        SyncReadingProgress(bookDetailsModel.uuid, locator),
+    try {
+      await CosmosEpub.openFileBook(
+        context: context,
+        bytes: bytes,
+        bookId: bookUuid,
+        accentColor: Theme.of(context).colorScheme.primary,
+        onPageFlip: (currentPage, totalPages) {
+          _scheduleReaderProgressSync(bookUuid);
+        },
       );
-    });
+    } catch (e) {
+      if (context.mounted) {
+        context.showSnackBar(
+          '${localization.errorOpeningBookInInternalReader} $e',
+          isError: true,
+        );
+      }
+      return;
+    }
 
-    VocsyEpub.open(filePath, lastLocation: lastLocation);
+    // Flush any pending debounced upload immediately when the reader closes.
+    _readerProgressTimer?.cancel();
+    await _saveReaderProgressToCloud(bookUuid);
+  }
+
+  void _scheduleReaderProgressSync(String bookUuid) {
+    _readerProgressTimer?.cancel();
+    _readerProgressTimer = Timer(
+      const Duration(seconds: 5),
+      () => _saveReaderProgressToCloud(bookUuid),
+    );
+  }
+
+  Future<void> _restoreReaderProgressFromCloud(String bookUuid) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!(prefs.getBool('webdav_enabled') ?? false)) return;
+    final url = prefs.getString('webdav_url') ?? '';
+    if (url.isEmpty) return;
+    try {
+      _webDavService.init(
+        url,
+        prefs.getString('webdav_username') ?? '',
+        prefs.getString('webdav_password') ?? '',
+        allowSelfSigned: prefs.getBool('allow_self_signed') ?? false,
+      );
+
+      final localTs = prefs.getInt('reader_progress_ts_$bookUuid') ?? 0;
+      final serverData = await _webDavService.fetchProgress();
+      final entry = serverData[bookUuid];
+      if (entry is! Map) return;
+      final serverTs = (entry['timestamp'] as int?) ?? 0;
+      if (serverTs <= localTs) return;
+
+      final decoded = jsonDecode(entry['locator'] as String);
+      if (decoded is! Map) return;
+      final chapter = decoded['chapter'] as int?;
+      final page = decoded['page'] as int?;
+      if (chapter != null) {
+        await cosmos_reader.bookProgress.setCurrentChapterIndex(
+          bookUuid,
+          chapter,
+        );
+      }
+      if (page != null) {
+        await cosmos_reader.bookProgress.setCurrentPageIndex(bookUuid, page);
+      }
+      await prefs.setInt('reader_progress_ts_$bookUuid', serverTs);
+    } catch (_) {}
+  }
+
+  Future<void> _saveReaderProgressToCloud(String bookUuid) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!(prefs.getBool('webdav_enabled') ?? false)) return;
+    final url = prefs.getString('webdav_url') ?? '';
+    if (url.isEmpty) return;
+    try {
+      _webDavService.init(
+        url,
+        prefs.getString('webdav_username') ?? '',
+        prefs.getString('webdav_password') ?? '',
+        allowSelfSigned: prefs.getBool('allow_self_signed') ?? false,
+      );
+
+      final progress = cosmos_reader.bookProgress.getBookProgress(bookUuid);
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final locator = jsonEncode({
+        'chapter': progress.currentChapterIndex ?? 0,
+        'page': progress.currentPageIndex ?? 0,
+      });
+      await _webDavService.saveProgress(bookUuid, locator, now);
+      await prefs.setInt('reader_progress_ts_$bookUuid', now);
+    } catch (_) {}
   }
 
   @override
@@ -127,15 +316,11 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     final localizations = AppLocalizations.of(context)!;
 
     return PopScope(
-      canPop: false,
+      canPop: true,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            Navigator.of(context).pop(result ?? _didUpdateMetadata);
-          }
-        });
+        if (!didPop && mounted) {
+          Navigator.of(context).pop(result ?? _didUpdateMetadata);
+        }
       },
       child: BlocProvider(
         create:
@@ -220,12 +405,12 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
             if (state.openInInternalReaderState ==
                     OpenInInternalReaderState.success &&
-                state.downloadFilePath != null) {
+                state.readerBytes != null) {
               context.read<BookDetailsBloc>().add(const ClearSnackBarStates());
 
               _openInternalReader(
                 context,
-                state.downloadFilePath!,
+                state.readerBytes!,
                 state.bookDetails!,
               );
             }
@@ -804,7 +989,10 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     final serverType = GetIt.instance<SharedPreferences>().getString(
       'server_type',
     );
-    final isOpds = serverType == 'opds' || serverType == 'booklore';
+    final isOpds =
+        serverType == 'opds' ||
+        serverType == 'grimmory' ||
+        serverType == 'booklore';
 
     final actionBuilders = <String, Widget Function()>{
       BookDetailsAction.toggleReadStatus.key:
@@ -883,41 +1071,20 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                 isLoading
                     ? null
                     : () async {
-                      DocumentFile? selectedDirectory;
-
-                      if (settingsState.defaultDownloadPath.isEmpty) {
-                        selectedDirectory = await DocMan.pick.directory();
-                        if (selectedDirectory == null) {
-                          // ignore: use_build_context_synchronously
-                          context.showSnackBar(
-                            localizations.noFolderWasSelected,
-                            isError: true,
-                          );
-                          return;
-                        }
-                      } else {
-                        final uri = settingsState.defaultDownloadPath;
-                        selectedDirectory =
-                            uri.isNotEmpty
-                                ? await DocumentFile.fromUri(uri)
-                                : null;
-                        if (selectedDirectory == null ||
-                            !selectedDirectory.isDirectory) {
-                          // ignore: use_build_context_synchronously
-                          context.showSnackBar(
-                            localizations.noFolderWasSelected,
-                            isError: true,
-                          );
-                          return;
-                        }
+                      final selectedFormat = await _selectInternalReaderFormat(
+                        context,
+                        localizations,
+                        book,
+                      );
+                      if (selectedFormat == null) {
+                        return;
                       }
 
                       // ignore: use_build_context_synchronously
                       context.read<BookDetailsBloc>().add(
                         OpenBookInInternalReader(
-                          selectedDirectory: selectedDirectory,
-                          schema: settingsState.downloadSchema,
                           book: book,
+                          format: selectedFormat,
                         ),
                       );
                     },
@@ -942,33 +1109,35 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                     : () async {
                       DocumentFile? selectedDirectory;
 
-                      if (settingsState.defaultDownloadPath.isEmpty) {
-                        selectedDirectory = await DocMan.pick.directory();
-                        if (selectedDirectory == null) {
-                          // ignore: use_build_context_synchronously
-                          Navigator.pop(context);
+                      if (Platform.isAndroid) {
+                        if (settingsState.defaultDownloadPath.isEmpty) {
+                          selectedDirectory = await DocMan.pick.directory();
+                          if (selectedDirectory == null) {
+                            // ignore: use_build_context_synchronously
+                            Navigator.pop(context);
 
-                          // ignore: use_build_context_synchronously
-                          context.showSnackBar(
-                            localizations.noFolderWasSelected,
-                            isError: true,
-                          );
-                          return;
-                        }
-                      } else {
-                        final uri = settingsState.defaultDownloadPath;
-                        selectedDirectory =
-                            uri.isNotEmpty
-                                ? await DocumentFile.fromUri(uri)
-                                : null;
-                        if (selectedDirectory == null ||
-                            !selectedDirectory.isDirectory) {
-                          // ignore: use_build_context_synchronously
-                          context.showSnackBar(
-                            localizations.noFolderWasSelected,
-                            isError: true,
-                          );
-                          return;
+                            // ignore: use_build_context_synchronously
+                            context.showSnackBar(
+                              localizations.noFolderWasSelected,
+                              isError: true,
+                            );
+                            return;
+                          }
+                        } else {
+                          final uri = settingsState.defaultDownloadPath;
+                          selectedDirectory =
+                              uri.isNotEmpty
+                                  ? await DocumentFile.fromUri(uri)
+                                  : null;
+                          if (selectedDirectory == null ||
+                              !selectedDirectory.isDirectory) {
+                            // ignore: use_build_context_synchronously
+                            context.showSnackBar(
+                              localizations.noFolderWasSelected,
+                              isError: true,
+                            );
+                            return;
+                          }
                         }
                       }
 
@@ -1019,25 +1188,15 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                             title: Text(localizations.deleteBook),
                             content: Text(localizations.deleteBookConfirmation),
                             actions: [
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.error,
-                                ),
-                                onPressed:
-                                    () => Navigator.of(context).pop(true),
-                                child: Text(
-                                  localizations.delete,
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.onError,
-                                  ),
-                                ),
-                              ),
-                              ElevatedButton(
+                              TextButton(
                                 onPressed:
                                     () => Navigator.of(context).pop(false),
                                 child: Text(localizations.cancel),
+                              ),
+                              AppDialogButton.destructive(
+                                onPressed:
+                                    () => Navigator.of(context).pop(true),
+                                label: localizations.delete,
                               ),
                             ],
                           );
@@ -1076,15 +1235,22 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       return const SizedBox.shrink();
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children:
-            visibleOrder
-                .map((actionKey) => actionBuilders[actionKey]!())
-                .toList(),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children:
+                  visibleOrder
+                      .map((actionKey) => actionBuilders[actionKey]!())
+                      .toList(),
+            ),
+          ),
+        );
+      },
     );
   }
 

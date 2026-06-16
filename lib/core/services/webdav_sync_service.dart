@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:dio/io.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 import 'package:logger/logger.dart';
 
@@ -11,7 +13,12 @@ class WebDavSyncService {
 
   WebDavSyncService({required this.logger});
 
-  void init(String url, String user, String password) {
+  void init(
+    String url,
+    String user,
+    String password, {
+    bool allowSelfSigned = false,
+  }) {
     if (url.isEmpty) return;
 
     _client = webdav.newClient(
@@ -20,6 +27,17 @@ class WebDavSyncService {
       password: password,
       debug: false,
     );
+
+    if (allowSelfSigned) {
+      _client!.c.httpClientAdapter = IOHttpClientAdapter(
+        createHttpClient: () {
+          final httpClient = HttpClient();
+          httpClient.badCertificateCallback = (cert, host, port) => true;
+          return httpClient;
+        },
+      );
+    }
+
     try {
       _client!.ping();
     } catch (e) {

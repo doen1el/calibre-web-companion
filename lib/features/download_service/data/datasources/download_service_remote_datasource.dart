@@ -347,6 +347,8 @@ class DownloadServiceRemoteDataSource {
   }
 
   Future<DownloadFilterModel> getSavedFilterSettings() async {
+    final appLanguage = sharedPreferences.getString('language_code') ?? 'en';
+
     try {
       final jsonString = sharedPreferences.getString('dl_filter_settings');
 
@@ -356,7 +358,7 @@ class DownloadServiceRemoteDataSource {
         final languages =
             map['languages'] != null
                 ? List<String>.from(map['languages'])
-                : <String>['de'];
+                : <String>[appLanguage];
 
         final formats =
             map['formats'] != null
@@ -371,6 +373,6 @@ class DownloadServiceRemoteDataSource {
       logger.e('Error loading saved filter settings: $e');
     }
 
-    return const DownloadFilterModel(languages: ['de']);
+    return DownloadFilterModel(languages: [appLanguage]);
   }
 }

@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -50,9 +53,17 @@ Future<void> init() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   final appLogService = AppLogService();
   final logger = Logger(
+    filter: ProductionFilter(),
+    level: Level.trace,
     output: MultiOutput([ConsoleOutput(), AppLogOutput(appLogService)]),
   );
-  final client = http.Client();
+  final allowSelfSigned =
+      sharedPreferences.getBool('allow_self_signed') ?? false;
+  final ioHttpClient = HttpClient();
+  if (allowSelfSigned) {
+    ioHttpClient.badCertificateCallback = (cert, host, port) => true;
+  }
+  final client = IOClient(ioHttpClient);
 
   //! Core
   // Singletons

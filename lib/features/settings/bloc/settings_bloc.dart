@@ -36,10 +36,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SetWebDavCredentials>(_onSetWebDavCredentials);
     on<TestDownloaderConnection>(_onTestDownloaderConnection);
     on<TestWebDavConnection>(_onTestWebDavConnection);
-    on<SetEpubScrollDirection>(_onSetEpubScrollDirection);
     on<ResetConnectionTestStatus>(_onResetConnectionTestStatus);
     on<SetShowSendToEReaderButton>(_onSetShowSendToEReaderButton);
     on<SetEInkMode>(_onSetEInkMode);
+    on<SetTextScale>(_onSetTextScale);
     on<SetBookActionsOrder>(_onSetBookActionsOrder);
     on<SetBookActionEnabled>(_onSetBookActionEnabled);
     on<ResetBookActionsCustomization>(_onResetBookActionsCustomization);
@@ -92,8 +92,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           webDavUsername: settings.webDavUsername,
           webDavPassword: settings.webDavPassword,
           isWebDavSyncEnabled: settings.isWebDavSyncEnabled,
-          epubScrollDirection: settings.epubScrollDirection,
           isEInkMode: settings.isEInkMode,
+          textScale: settings.textScale,
           bookActionsOrder: settings.bookActionsOrder,
           enabledBookActions: settings.enabledBookActions,
           bookDetailsSectionsOrder: settings.bookDetailsSectionsOrder,
@@ -499,23 +499,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     }
   }
 
-  Future<void> _onSetEpubScrollDirection(
-    SetEpubScrollDirection event,
-    Emitter<SettingsState> emit,
-  ) async {
-    try {
-      await repository.setEpubScrollDirection(event.direction);
-      emit(state.copyWith(epubScrollDirection: event.direction));
-    } catch (e) {
-      emit(
-        state.copyWith(
-          status: SettingsStatus.error,
-          errorMessage: e.toString(),
-        ),
-      );
-    }
-  }
-
   void _onResetConnectionTestStatus(
     ResetConnectionTestStatus event,
     Emitter<SettingsState> emit,
@@ -536,6 +519,23 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setShowSendToEReaderButton(event.enabled);
       emit(state.copyWith(showSendToEReaderButton: event.enabled));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetTextScale(
+    SetTextScale event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      await repository.setTextScale(event.scale);
+      emit(state.copyWith(textScale: event.scale));
     } catch (e) {
       emit(
         state.copyWith(

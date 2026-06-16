@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 
 class CreateShelfDialog extends StatefulWidget {
   final Function(String, bool) onCreateShelf;
@@ -46,7 +47,7 @@ class _CreateShelfDialogState extends State<CreateShelfDialog> {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: const Text('Public'),
+              title: Text(localizations.public),
               value: _isPublic,
               onChanged:
                   _isCreating
@@ -66,24 +67,11 @@ class _CreateShelfDialogState extends State<CreateShelfDialog> {
           onPressed: _isCreating ? null : () => Navigator.of(context).pop(),
           child: Text(localizations.cancel),
         ),
-        ElevatedButton(
+        AppDialogButton(
           onPressed: _isCreating ? null : _createShelf,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (_isCreating)
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
-              if (_isCreating) const SizedBox(width: 8),
-              Text(_isCreating ? localizations.creating : localizations.create),
-            ],
-          ),
+          isLoading: _isCreating,
+          loadingLabel: localizations.creating,
+          label: localizations.create,
         ),
       ],
     );

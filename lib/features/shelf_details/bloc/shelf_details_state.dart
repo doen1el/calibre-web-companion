@@ -16,6 +16,11 @@ class ShelfDetailsState extends Equatable {
   final BookViewModel? bookDetails;
   final String? loadingBookId;
   final bool isOpds;
+  final bool isLoadingMore;
+  final bool hasMoreBooks;
+  final int? nextOffset;
+  final bool isMagic;
+  final String? magicIcon;
 
   const ShelfDetailsState({
     this.status = ShelfDetailsStatus.initial,
@@ -26,6 +31,11 @@ class ShelfDetailsState extends Equatable {
     this.bookDetails,
     this.loadingBookId,
     this.isOpds = false,
+    this.isLoadingMore = false,
+    this.hasMoreBooks = false,
+    this.nextOffset,
+    this.isMagic = false,
+    this.magicIcon,
   });
 
   ShelfDetailsState copyWith({
@@ -37,6 +47,11 @@ class ShelfDetailsState extends Equatable {
     BookViewModel? bookDetails,
     String? loadingBookId,
     bool? isOpds,
+    bool? isLoadingMore,
+    bool? hasMoreBooks,
+    int? nextOffset,
+    bool? isMagic,
+    String? magicIcon,
   }) {
     return ShelfDetailsState(
       status: status ?? this.status,
@@ -47,6 +62,11 @@ class ShelfDetailsState extends Equatable {
       bookDetails: bookDetails ?? this.bookDetails,
       loadingBookId: loadingBookId ?? this.loadingBookId,
       isOpds: isOpds ?? this.isOpds,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      hasMoreBooks: hasMoreBooks ?? this.hasMoreBooks,
+      nextOffset: nextOffset ?? this.nextOffset,
+      isMagic: isMagic ?? this.isMagic,
+      magicIcon: magicIcon ?? this.magicIcon,
     );
   }
 
@@ -60,5 +80,10 @@ class ShelfDetailsState extends Equatable {
     bookDetails,
     loadingBookId,
     isOpds,
+    isLoadingMore,
+    hasMoreBooks,
+    nextOffset,
+    isMagic,
+    magicIcon,
   ];
 }

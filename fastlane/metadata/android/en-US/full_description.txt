@@ -1,35 +1,21 @@
-Unofficial companion application for Calibre Web and Calibre Web Automated that lets you browse your book collection and manage your digital library on the go.
+Unofficial companion app for Calibre-Web and Calibre-Web Automated. Browse your book collection and manage your digital library on the go.
 
-Built with <b>Flutter</b> and <b>Material You</b> to deliver a modern, intuitive and responsive user experience.
+Built with Flutter and Material You for a modern, intuitive and responsive experience. Available for Android, in 15 languages.
 
-<b>Supported features:</b>
-<ul>
-    <li>Browse your Calibre Web library</li>
-    <ul>
-        <li>View books by author, series, trending, and more</li>
-        <li>View detailed book information</li>
-        <li>Access comprehensive collection statistics</li>
-    </ul>
-    <li>Library management</li>
-    <ul>
-        <li>Mark books as read or unread</li>
-        <li>Archive and unarchive books</li>
-        <li>Organize books into shelves</li>
-        <li>Manage and customize your shelves</li>
-    </ul>
-    <li>Reading & devices</li>
-    <ul>
-        <li>Download books directly to your device</li>
-        <li>Send books to your e-reader (Kindle/Kobo) via send2ereader</li>
-        <li>Use Calibre Web's mail function for device delivery</li>
-    </ul>
-    <li>Automation integration</li>
-    <ul>
-        <li>Works with Calibre Web Automated</li>
-        <li>Automatically download books with calibre-web-automated-book-downloader</li>
-    </ul>
-</ul>
+Features:
 
-Please note that the app is currently in active development. You can open issues on GitHub for bugs, feedback, and feature ideas.
+- Connect to your Calibre-Web (Automated) server, including reverse-proxy / SSO setups, custom HTTP headers and self-signed certificates.
+- Browse your whole library and discover books by author, series, publisher, rating, hot & trending, and more.
+- View rich details for every book, edit its metadata, and upload new covers.
+- Mark books as read or unread, archive them, and organize them into shelves.
+- Create, edit and browse Magic Shelves: dynamic, rule-based shelves (Calibre-Web Automated only).
+- Add books quickly by scanning their ISBN barcode.
+- Read books in the built-in eBook reader and sync your reading progress across devices via WebDAV.
+- Send books to your e-reader (Kindle/Kobo) via send2ereader or Calibre-Web's email function.
+- Download books into your collection with Shelfmark. This app does not support or encourage the piracy of copyrighted works; please only download content you are legally entitled to.
+- Upload books to your server, and sync your whole library or selected books for offline reading.
+- Make it yours: reorder or hide book actions and sections, choose a theme, enable e-ink mode, and adjust the text size.
 
-Credits: Calibre Web, Calibre Web Automated, send2ereader, calibre-web-automated-book-downloader
+The app is in active development. You can open issues on GitHub for bugs, feedback and feature ideas.
+
+Credits: Calibre-Web, Calibre-Web Automated, Shelfmark, send2ereader, Flutter.

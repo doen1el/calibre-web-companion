@@ -44,10 +44,6 @@ class UpdateCustomHeaderValue extends LoginSettingsEvent {
   List<Object?> get props => [index, newValue];
 }
 
-class SaveLoginSettings extends LoginSettingsEvent {
-  const SaveLoginSettings();
-}
-
 class UpdateBasePath extends LoginSettingsEvent {
   final String basePath;
 

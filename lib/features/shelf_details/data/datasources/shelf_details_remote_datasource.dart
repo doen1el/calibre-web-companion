@@ -15,17 +15,33 @@ class ShelfDetailsRemoteDataSource {
     required this.preferences,
   });
 
-  Future<ShelfDetailsModel> getShelfDetails(String shelfId) async {
+  Future<ShelfDetailsModel> getShelfDetails(
+    String shelfId, {
+    int offset = 0,
+    bool isMagic = false,
+  }) async {
     try {
+      if (isMagic) {
+        final response = await apiService.getXmlAsJson(
+          endpoint: '/opds/magicshelf/$shelfId',
+          authMethod: AuthMethod.auto,
+          queryParams: offset > 0 ? {'offset': '$offset'} : const {},
+        );
+        return ShelfDetailsModel.fromFeedJson(response);
+      }
+
       final serverType = preferences.getString('server_type');
 
-      if (serverType == 'opds' || serverType == 'booklore') {
+      if (serverType == 'opds' ||
+          serverType == 'grimmory' ||
+          serverType == 'booklore') {
         return _getOpdsShelfDetails(shelfId);
       }
 
       final response = await apiService.getXmlAsJson(
         endpoint: '/opds/shelf/$shelfId',
         authMethod: AuthMethod.auto,
+        queryParams: offset > 0 ? {'offset': '$offset'} : const {},
       );
 
       return ShelfDetailsModel.fromFeedJson(response);
@@ -51,10 +67,13 @@ class ShelfDetailsRemoteDataSource {
         endpoint: '/shelf/remove/$shelfId/$bookId',
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfTokenUrl: '/me',
         contentType: 'application/x-www-form-urlencoded',
       );
 
-      return response.statusCode == 204;
+      return response.statusCode == 200 ||
+          response.statusCode == 204 ||
+          response.statusCode == 302;
     } catch (e) {
       logger.e('Error removing from shelf: $e');
       throw Exception('Failed to remove from shelf: $e');
@@ -101,6 +120,7 @@ class ShelfDetailsRemoteDataSource {
 
   bool getIsOpds() {
     return preferences.getString('server_type') == 'opds' ||
+        preferences.getString('server_type') == 'grimmory' ||
         preferences.getString('server_type') == 'booklore';
   }
 }

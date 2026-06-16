@@ -43,7 +43,7 @@ class ThemeSelectorWidget extends StatelessWidget {
                     Icon(
                       Icons.dark_mode,
                       size: 28,
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -107,7 +107,7 @@ class ThemeSelectorWidget extends StatelessWidget {
           decoration: BoxDecoration(
             color:
                 isSelected
-                    ? Theme.of(context).colorScheme.secondaryContainer
+                    ? Theme.of(context).colorScheme.primaryContainer
                     : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
@@ -117,7 +117,7 @@ class ThemeSelectorWidget extends StatelessWidget {
                 icon,
                 color:
                     isSelected
-                        ? Theme.of(context).colorScheme.secondary
+                        ? Theme.of(context).colorScheme.primary
                         : Theme.of(context).colorScheme.onSurface,
               ),
               const SizedBox(height: 8),
@@ -126,7 +126,7 @@ class ThemeSelectorWidget extends StatelessWidget {
                 style: TextStyle(
                   color:
                       isSelected
-                          ? Theme.of(context).colorScheme.secondary
+                          ? Theme.of(context).colorScheme.primary
                           : Theme.of(context).colorScheme.onSurface,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -164,7 +164,7 @@ class ThemeSelectorWidget extends StatelessWidget {
                     Icon(
                       Icons.palette,
                       size: 28,
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(width: 16),
                     Expanded(

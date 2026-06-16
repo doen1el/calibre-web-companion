@@ -14,19 +14,21 @@ jobs:
       #1 Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       #2 Setup Java
       - name: Set Up Java
         uses: actions/setup-java@v3.12.0
         with:
-          distribution: 'oracle'
+          distribution: 'temurin'
           java-version: '17'
 
       #3 Setup Flutter
       - name: Set Up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.38.5'
+          flutter-version: '3.44.2'
           channel: 'stable'
 
       #4 Install Dependencies
@@ -57,6 +59,23 @@ jobs:
       - name: Build APKs (Split per ABI)
         run: flutter build apk --release --split-per-abi --no-tree-shake-icons
 
+      #6.3 Version + previous tag (used by Play changelogs and release notes)
+      - name: Extract version and previous tag
+        id: version
+        run: |
+          full=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r ')
+          version="${full%%+*}"
+          code="${full##*+}"
+          prev_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$code" >> "$GITHUB_ENV"
+          echo "PREV_TAG=$prev_tag" >> "$GITHUB_ENV"
+          echo "Version $version (code $code), previous tag: '${prev_tag:-none}'"
+
+      #6.4 Generate Play Store "What's New" from the Fastlane changelogs
+      - name: Generate Play Store changelogs
+        run: bash .github/scripts/generate_whatsnew.sh "$VERSION_CODE"
+
       #7 Upload to Play Store
       - name: Upload to Google Play
         uses: r0adkll/upload-google-play@v1
@@ -64,9 +83,10 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.doen1el.calibreWebCompanion
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
-          track: production
+          tracks: production
           status: completed
           releaseName: 'Release ${{ github.run_number }}'
+          whatsNewDirectory: distribution/whatsnew
 
       # #8 Build iOS (.app)
       # - name: Build iOS (Unsigned)
@@ -87,12 +107,34 @@ jobs:
           path: |
             build/app/outputs/flutter-apk/*.apk
 
-      #11 Extract Version
-      - name: Extract version from pubspec.yaml
-        id: extract_version
+      #11 Build the GitHub release body from the fastlane changelog and template
+      - name: Build release notes
         run: |
-          version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r' | sed 's/+.*//')
-          echo "VERSION=$version" >> $GITHUB_ENV
+          changelog="fastlane/metadata/android/en-US/changelogs/${VERSION_CODE}.txt"
+          {
+            echo "_TODO: Write a short summary of this release._"
+            echo
+            echo "Special thanks to:"
+            echo "_TODO: @mention the contributors_"
+            echo
+            echo "And everyone else who created issues! ❤️"
+            echo
+            echo "## What's Changed"
+            if [ -f "$changelog" ]; then
+              # Normalise trailing newlines so the next heading renders.
+              printf '%s\n' "$(cat "$changelog")"
+            else
+              echo "- _No changelog found for build ${VERSION_CODE}._"
+            fi
+            echo
+            if [ -n "$PREV_TAG" ]; then
+              echo
+              echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...v${VERSION}"
+            fi
+            echo "## 📥 Download"
+          } > release_notes.md
+          echo "----- release_notes.md -----"
+          cat release_notes.md
 
       #12 Create GitHub Release
       - name: Create Release Draft
@@ -103,4 +145,4 @@ jobs:
           draft: true
           token: ${{ secrets.TOKEN }}
           name: 'Release v${{ env.VERSION }}'
-          generateReleaseNotes: true
+          bodyFile: release_notes.md

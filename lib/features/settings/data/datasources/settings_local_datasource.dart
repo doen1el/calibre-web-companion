@@ -58,6 +58,7 @@ class SettingsLocalDataSource {
         'epub_scroll_direction':
             sharedPreferences.getString('epub_scroll_direction') ?? 'vertical',
         'is_eink_mode': sharedPreferences.getBool('is_eink_mode') ?? false,
+        'text_scale': sharedPreferences.getDouble('text_scale') ?? 1.0,
         'book_actions_order':
             sharedPreferences.getStringList('book_actions_order') ??
             BookDetailsActionConfig.defaultOrder,
@@ -310,15 +311,6 @@ class SettingsLocalDataSource {
     }
   }
 
-  Future<void> saveEpubScrollDirection(String direction) async {
-    try {
-      await sharedPreferences.setString('epub_scroll_direction', direction);
-    } catch (e) {
-      logger.e('Error saving epub scroll direction: $e');
-      throw Exception('Failed to save epub scroll direction: $e');
-    }
-  }
-
   Future<void> saveShowSendToEReaderButton(bool enabled) async {
     try {
       await sharedPreferences.setBool('show_send_to_ereader_button', enabled);
@@ -334,6 +326,15 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error saving E-Ink mode: $e');
       throw Exception('Failed to save E-Ink mode: $e');
+    }
+  }
+
+  Future<void> saveTextScale(double scale) async {
+    try {
+      await sharedPreferences.setDouble('text_scale', scale);
+    } catch (e) {
+      logger.e('Error saving text scale: $e');
+      throw Exception('Failed to save text scale: $e');
     }
   }
 

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:docman/docman.dart';
 import 'package:logger/logger.dart';
@@ -280,15 +282,26 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
 
       final schema = event.schema;
 
-      final filePath = await repository.downloadBook(
-        state.bookDetails!,
-        event.directory,
-        schema,
-        format: event.format,
-        progressCallback: (progress) {
-          emit(state.copyWith(downloadProgress: progress));
-        },
-      );
+      final String filePath;
+      if (event.directory == null) {
+        filePath = await repository.downloadBookToDevice(
+          state.bookDetails!,
+          format: event.format,
+          progressCallback: (progress) {
+            emit(state.copyWith(downloadProgress: progress));
+          },
+        );
+      } else {
+        filePath = await repository.downloadBook(
+          state.bookDetails!,
+          event.directory!,
+          schema,
+          format: event.format,
+          progressCallback: (progress) {
+            emit(state.copyWith(downloadProgress: progress));
+          },
+        );
+      }
 
       if (state.bookViewModel != null) {
         await downloadManager.registerDownload(
@@ -422,31 +435,34 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         ),
       );
 
-      final downloadedPath = await repository.openInInternalReader(
-        event.selectedDirectory,
-        event.schema,
-        event.book,
-        progressCallback: (progress) {
-          logger.d('Reader download progress: $progress%');
-          emit(state.copyWith(downloadProgress: progress));
-        },
-      );
+      final uuid = state.bookViewModel?.uuid ?? state.bookDetails!.uuid;
 
-      if (downloadedPath.isNotEmpty) {
-        emit(
-          state.copyWith(
-            openInInternalReaderState: OpenInInternalReaderState.success,
-            downloadFilePath: downloadedPath,
-          ),
-        );
-      } else {
-        emit(
-          state.copyWith(
-            openInInternalReaderState: OpenInInternalReaderState.error,
-            errorMessage: 'Failed to open book in internal reader',
-          ),
+      Uint8List? bytes;
+
+      if (await downloadManager.checkFileExistence(uuid)) {
+        final path = downloadManager.getBookPath(uuid)!;
+        logger.i('Trying downloaded copy for reader from: $path');
+        bytes = await repository.readLocalEpubBytes(path);
+      }
+
+      if (bytes == null) {
+        logger.i('Streaming EPUB bytes into reader (no local EPUB copy).');
+        bytes = await repository.streamBookBytes(
+          event.book,
+          format: event.format,
+          progressCallback: (progress) {
+            logger.d('Reader stream progress: $progress%');
+            emit(state.copyWith(downloadProgress: progress));
+          },
         );
       }
+
+      emit(
+        state.copyWith(
+          openInInternalReaderState: OpenInInternalReaderState.success,
+          readerBytes: bytes,
+        ),
+      );
     } catch (e) {
       logger.e('Error opening book in internal reader: $e');
       emit(
@@ -778,9 +794,9 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     LoadReadingProgress event,
     Emitter<BookDetailsState> emit,
   ) async {
-    final location = await progressRepository.getBestLocation(event.bookUuid);
+    final cfi = await progressRepository.getBestLocation(event.bookUuid);
 
-    emit(state.copyWith(startLocation: location));
+    emit(state.copyWith(startCfi: cfi));
   }
 
   Future<void> _onSyncReadingProgress(

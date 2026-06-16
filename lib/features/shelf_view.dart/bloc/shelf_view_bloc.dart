@@ -5,6 +5,7 @@ import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_s
 
 import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_shelf_model.dart';
 
 class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
   final ShelfViewRepository repository;
@@ -17,6 +18,9 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
     on<FindShelvesContainingBook>(_onFindShelvesContainingBook);
     on<AddBookToShelf>(_onAddBookToShelf);
     on<RemoveBookFromShelf>(_onRemoveBookFromShelf);
+    on<DeleteMagicShelf>(_onDeleteMagicShelf);
+    on<DuplicateMagicShelf>(_onDuplicateMagicShelf);
+    on<HideMagicShelf>(_onHideMagicShelf);
   }
 
   Future<void> _onLoadShelves(
@@ -28,12 +32,28 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
 
     try {
       final isOpds = repository.getIsOpds();
-      final shelves = await repository.loadShelves();
+      final shelvesFuture = repository.loadShelves();
+      final Future<List<MagicShelfModel>>? magicFuture =
+          isOpds ? null : repository.loadMagicShelves().then((m) => m.shelves);
+
+      final shelves = await shelvesFuture;
+
+      var supportsMagic = false;
+      var magicShelves = const <MagicShelfModel>[];
+      if (magicFuture != null) {
+        try {
+          magicShelves = await magicFuture;
+          supportsMagic = true;
+        } catch (_) {}
+      }
+
       emit(
         state.copyWith(
           status: ShelfViewStatus.loaded,
           shelves: shelves.shelves,
           isOpds: isOpds,
+          supportsMagicShelves: supportsMagic,
+          magicShelves: magicShelves,
         ),
       );
     } catch (e) {
@@ -41,6 +61,83 @@ class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
         state.copyWith(
           status: ShelfViewStatus.error,
           errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onDeleteMagicShelf(
+    DeleteMagicShelf event,
+    Emitter<ShelfViewState> emit,
+  ) async {
+    emit(state.copyWith(magicActionStatus: MagicShelfActionStatus.loading));
+    try {
+      await repository.deleteMagicShelf(event.shelfId);
+      final updated =
+          state.magicShelves.where((s) => s.id != event.shelfId).toList();
+      emit(
+        state.copyWith(
+          magicShelves: updated,
+          magicActionStatus: MagicShelfActionStatus.success,
+          magicActionMessage: 'deleted',
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          magicActionStatus: MagicShelfActionStatus.error,
+          magicActionMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onDuplicateMagicShelf(
+    DuplicateMagicShelf event,
+    Emitter<ShelfViewState> emit,
+  ) async {
+    emit(state.copyWith(magicActionStatus: MagicShelfActionStatus.loading));
+    try {
+      await repository.duplicateMagicShelf(event.shelfId);
+      final magic = await repository.loadMagicShelves();
+      emit(
+        state.copyWith(
+          magicShelves: magic.shelves,
+          magicActionStatus: MagicShelfActionStatus.success,
+          magicActionMessage: 'duplicated',
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          magicActionStatus: MagicShelfActionStatus.error,
+          magicActionMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onHideMagicShelf(
+    HideMagicShelf event,
+    Emitter<ShelfViewState> emit,
+  ) async {
+    emit(state.copyWith(magicActionStatus: MagicShelfActionStatus.loading));
+    try {
+      await repository.hideMagicShelf(event.shelfId);
+      final updated =
+          state.magicShelves.where((s) => s.id != event.shelfId).toList();
+      emit(
+        state.copyWith(
+          magicShelves: updated,
+          magicActionStatus: MagicShelfActionStatus.success,
+          magicActionMessage: 'hidden',
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          magicActionStatus: MagicShelfActionStatus.error,
+          magicActionMessage: e.toString(),
         ),
       );
     }

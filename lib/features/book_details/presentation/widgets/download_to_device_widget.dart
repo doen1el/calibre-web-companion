@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_file/open_file.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
@@ -8,6 +11,7 @@ import 'package:calibre_web_companion/features/book_details/bloc/book_details_st
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/shared/widgets/app_options_sheet.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 
@@ -90,47 +94,31 @@ class DownloadToDeviceWidget extends StatelessWidget {
       return;
     }
 
-    showModalBottomSheet(
-      context: context,
-      builder:
-          (sheetContext) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  title: Text(localizations.downlaodFomat),
-                  leading: const Icon(Icons.download),
-                ),
-                const Divider(),
-                ...book.formats.map((format) {
-                  IconData icon;
-                  switch (format.toLowerCase()) {
-                    case 'epub':
-                      icon = Icons.menu_book;
-                      break;
-                    case 'pdf':
-                      icon = Icons.picture_as_pdf;
-                      break;
-                    case 'mobi':
-                      icon = Icons.book_online;
-                      break;
-                    default:
-                      icon = Icons.file_present;
-                  }
-
-                  return ListTile(
-                    leading: Icon(icon),
-                    title: Text(format.toUpperCase()),
-                    onTap: () {
-                      Navigator.pop(sheetContext);
-                      _downloadBook(context, localizations, book, format);
-                    },
-                  );
-                }),
-              ],
-            ),
+    showAppOptionsSheet(
+      context,
+      title: localizations.downlaodFomat,
+      options: [
+        for (final format in book.formats)
+          AppSheetOption(
+            icon: _formatIcon(format),
+            title: format.toUpperCase(),
+            onTap: () => _downloadBook(context, localizations, book, format),
           ),
+      ],
     );
+  }
+
+  IconData _formatIcon(String format) {
+    switch (format.toLowerCase()) {
+      case 'epub':
+        return Icons.menu_book;
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'mobi':
+        return Icons.book_online;
+      default:
+        return Icons.file_present;
+    }
   }
 
   void _downloadBook(
@@ -141,40 +129,61 @@ class DownloadToDeviceWidget extends StatelessWidget {
   ) async {
     final settingsState = context.read<SettingsBloc>().state;
     DocumentFile? selectedDirectory;
-    if (settingsState.defaultDownloadPath.isEmpty) {
-      _showDownloadStatusSheet(
-        // ignore: use_build_context_synchronously
-        context,
-        localizations,
-        DownloadState.selectingDestination,
-        null,
-        0,
-        () {
+
+    if (Platform.isAndroid) {
+      if (settingsState.defaultDownloadPath.isEmpty) {
+        _showDownloadStatusSheet(
+          // ignore: use_build_context_synchronously
+          context,
+          localizations,
+          DownloadState.selectingDestination,
+          null,
+          0,
+          () {
+            Navigator.pop(context);
+          },
+        );
+
+        selectedDirectory = await DocMan.pick.directory();
+        if (selectedDirectory == null) {
+          // ignore: use_build_context_synchronously
           Navigator.pop(context);
-        },
-      );
 
-      selectedDirectory = await DocMan.pick.directory();
-      if (selectedDirectory == null) {
-        // ignore: use_build_context_synchronously
-        Navigator.pop(context);
+          // ignore: use_build_context_synchronously
+          context.showSnackBar(
+            localizations.noFolderWasSelected,
+            isError: true,
+          );
+          return;
+        }
+      } else {
+        final uri = settingsState.defaultDownloadPath;
+        selectedDirectory =
+            uri.isNotEmpty ? await DocumentFile.fromUri(uri) : null;
+        if (selectedDirectory == null || !selectedDirectory.isDirectory) {
+          // ignore: use_build_context_synchronously
+          context.showSnackBar(
+            localizations.noFolderWasSelected,
+            isError: true,
+          );
+          return;
+        }
 
-        // ignore: use_build_context_synchronously
-        context.showSnackBar(localizations.noFolderWasSelected, isError: true);
-        return;
+        _showDownloadStatusSheet(
+          // ignore: use_build_context_synchronously
+          context,
+          localizations,
+          DownloadState.downloading,
+          null,
+          0,
+          () {
+            context.read<BookDetailsBloc>().add(CancelDownload());
+            Navigator.pop(context);
+          },
+        );
       }
     } else {
-      final uri = settingsState.defaultDownloadPath;
-      selectedDirectory =
-          uri.isNotEmpty ? await DocumentFile.fromUri(uri) : null;
-      if (selectedDirectory == null || !selectedDirectory.isDirectory) {
-        // ignore: use_build_context_synchronously
-        context.showSnackBar(localizations.noFolderWasSelected, isError: true);
-        return;
-      }
-
       _showDownloadStatusSheet(
-        // ignore: use_build_context_synchronously
         context,
         localizations,
         DownloadState.downloading,
@@ -229,8 +238,11 @@ class DownloadToDeviceWidget extends StatelessWidget {
                         current.downloadErrorMessage;
               },
               listener: (context, state) {
-                if (state.downloadState == DownloadState.success ||
-                    state.downloadState == DownloadState.failed) {}
+                if (state.downloadState == DownloadState.success &&
+                    !Platform.isAndroid &&
+                    state.downloadFilePath != null) {
+                  OpenFile.open(state.downloadFilePath!);
+                }
               },
               buildWhen: (previous, current) {
                 return previous.downloadState != current.downloadState ||

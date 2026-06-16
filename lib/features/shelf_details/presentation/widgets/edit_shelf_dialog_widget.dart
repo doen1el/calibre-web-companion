@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 
 class EditShelfDialog extends StatefulWidget {
   final String currentName;
@@ -60,7 +61,7 @@ class _EditShelfDialogState extends State<EditShelfDialog> {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: const Text('Public'),
+              title: Text(localizations.public),
               value: _isPublic,
               onChanged:
                   _isEditing
@@ -80,24 +81,11 @@ class _EditShelfDialogState extends State<EditShelfDialog> {
           onPressed: _isEditing ? null : () => Navigator.of(context).pop(),
           child: Text(localizations.cancel),
         ),
-        ElevatedButton(
+        AppDialogButton(
           onPressed: _isEditing ? null : _editShelf,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (_isEditing)
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
-              if (_isEditing) const SizedBox(width: 8),
-              Text(_isEditing ? localizations.editing : localizations.edit),
-            ],
-          ),
+          isLoading: _isEditing,
+          loadingLabel: localizations.editing,
+          label: localizations.edit,
         ),
       ],
     );

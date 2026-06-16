@@ -92,25 +92,36 @@ class _WebViewLoginPageState extends State<WebViewLoginPage> {
     }
   }
 
+  Set<String> _cookieUrlCandidates() {
+    final urls = <String>{};
+
+    void addForUrl(String raw) {
+      if (raw.isEmpty) return;
+      try {
+        final uri = Uri.parse(raw);
+        if (uri.host.isEmpty) return;
+        final scheme = uri.scheme.isEmpty ? 'https' : uri.scheme;
+        urls.add('$scheme://${uri.host}/');
+        final parts = uri.host.split('.');
+        for (int i = 1; i <= parts.length - 2; i++) {
+          urls.add('$scheme://${parts.sublist(i).join('.')}/');
+        }
+      } catch (_) {}
+    }
+
+    addForUrl(widget.baseUrl);
+    addForUrl(_currentUrl);
+    addForUrl(widget.redirectUrl);
+    return urls;
+  }
+
   Future<void> _extractCookiesAndFinish() async {
     if (_isExtracting) return;
     setState(() => _isExtracting = true);
 
     try {
-      final baseUri = Uri.parse(widget.baseUrl);
-      final origin = baseUri.origin;
-
-      final candidates =
-          <String>{
-            if (_currentUrl.isNotEmpty) _currentUrl,
-            widget.baseUrl,
-            '$origin/',
-            '$origin/login',
-            '$origin/login/',
-          }.toList();
-
       final allCookies = <Cookie>[];
-      for (final url in candidates) {
+      for (final url in _cookieUrlCandidates()) {
         allCookies.addAll(await _safeGetCookies(url));
       }
 
@@ -119,10 +130,11 @@ class _WebViewLoginPageState extends State<WebViewLoginPage> {
       );
 
       final cookieHeader = _cookieHeaderFromCookies(allCookies);
-      final hasSession = cookieHeader.contains('session=');
 
-      if (cookieHeader.isNotEmpty && hasSession) {
-        _logger.i('Cookies extracted. Delegating to Bloc...');
+      if (cookieHeader.isNotEmpty) {
+        _logger.i(
+          'Cookies extracted (${allCookies.length}). Delegating to Bloc...',
+        );
 
         if (!mounted) return;
 
@@ -136,7 +148,7 @@ class _WebViewLoginPageState extends State<WebViewLoginPage> {
           ),
         );
       } else {
-        _logger.w('No session cookie found yet.');
+        _logger.w('No cookies found yet.');
         if (mounted) setState(() => _isExtracting = false);
       }
     } catch (e) {

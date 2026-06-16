@@ -16,6 +16,10 @@ import 'package:calibre_web_companion/shared/widgets/book_list_tile_widget.dart'
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_view/presentation/widgets/search_dialog.dart';
+import 'package:calibre_web_companion/features/scan_book/presentation/pages/scan_book_page.dart';
+import 'package:calibre_web_companion/features/scan_book/presentation/scan_flow.dart';
+import 'package:calibre_web_companion/shared/widgets/app_options_sheet.dart';
+import 'package:calibre_web_companion/shared/widgets/book_view_mode_selector.dart';
 
 class BookViewPage extends StatefulWidget {
   const BookViewPage({super.key});
@@ -73,13 +77,22 @@ class _BookViewPageState extends State<BookViewPage> {
         }
       },
       builder: (context, state) {
+        final bool isSearching = (state.searchQuery ?? '').isNotEmpty;
         return Scaffold(
           appBar: AppBar(
-            title: Text(localizations.books),
+            titleSpacing: isSearching ? 8 : null,
+            title:
+                isSearching
+                    ? _buildActiveSearchBar(
+                      context,
+                      state.searchQuery!,
+                      localizations,
+                    )
+                    : Text(localizations.books),
             actions: [
-              _buildColumnSelector(context, state, localizations),
+              const BookViewModeSelector(),
               if (!state.isOpds) _buildSortOptions(context, localizations),
-              _buildSearchButton(context, localizations),
+              if (!isSearching) _buildSearchButton(context, localizations),
             ],
           ),
           body: _buildBody(context, state, localizations),
@@ -87,9 +100,10 @@ class _BookViewPageState extends State<BookViewPage> {
               state.isOpds
                   ? null
                   : FloatingActionButton(
-                    onPressed: () => _pickAndUploadBook(context, localizations),
-                    tooltip: localizations.uploadEbook,
-                    child: const Icon(Icons.upload_rounded),
+                    onPressed:
+                        () => _showAddBookOptions(context, localizations),
+                    tooltip: localizations.addBook,
+                    child: const Icon(Icons.add_rounded),
                   ),
         );
       },
@@ -205,6 +219,7 @@ class _BookViewPageState extends State<BookViewPage> {
                     authors: book.authors,
                     coverUrl: book.coverUrl,
                     readStatus: book.readStatus,
+                    topLeftBadge: book.seriesBadge,
                     onTap: () async {
                       final changed = await Navigator.of(context).push<bool>(
                         AppTransitions.createSlideRoute(
@@ -255,77 +270,13 @@ class _BookViewPageState extends State<BookViewPage> {
     );
   }
 
-  Widget _buildColumnSelector(
-    BuildContext context,
-    BookViewState state,
-    AppLocalizations localizations,
-  ) {
-    return PopupMenuButton<dynamic>(
-      icon: Icon(
-        state.isListView ? Icons.view_list_rounded : Icons.grid_view_rounded,
-      ),
-      tooltip: localizations.columnsCount,
-      onSelected: (dynamic value) {
-        if (value == 'list') {
-          context.read<BookViewBloc>().add(const SetViewMode(true));
-        } else if (value is int) {
-          context.read<BookViewBloc>().add(ChangeColumnCount(value));
-        }
-      },
-      itemBuilder:
-          (context) => [
-            PopupMenuItem(
-              value: 'list',
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.view_list,
-                    color:
-                        state.isListView
-                            ? Theme.of(context).colorScheme.primary
-                            : null,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(localizations.listView),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            for (int i = 1; i <= 5; i++)
-              PopupMenuItem<int>(
-                value: i,
-                child: Row(
-                  children: [
-                    Icon(
-                      i == 1
-                          ? Icons.looks_one
-                          : i == 2
-                          ? Icons.looks_two
-                          : i == 3
-                          ? Icons.looks_3
-                          : i == 4
-                          ? Icons.looks_4
-                          : Icons.looks_5,
-                      color:
-                          !state.isListView && state.columnCount == i
-                              ? Theme.of(context).colorScheme.primary
-                              : null,
-                    ),
-                    const SizedBox(width: 8),
-                    Text('$i ${localizations.columns}'),
-                  ],
-                ),
-              ),
-          ],
-    );
-  }
-
   Widget _buildSortOptions(
     BuildContext context,
     AppLocalizations localizations,
   ) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.sort),
+      tooltip: localizations.sorting,
       onSelected: (String value) {
         final sortParts = value.split(':');
         if (sortParts.length == 2) {
@@ -356,8 +307,64 @@ class _BookViewPageState extends State<BookViewPage> {
               value: 'added:desc',
               child: Text(localizations.newestFirst),
             ),
+            PopupMenuItem(
+              value: 'series:asc',
+              child: Text(localizations.seriesAZ),
+            ),
+            PopupMenuItem(
+              value: 'series:desc',
+              child: Text(localizations.seriesZA),
+            ),
           ],
     );
+  }
+
+  void _showAddBookOptions(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    showAppOptionsSheet(
+      context,
+      title: localizations.addBook,
+      options: [
+        AppSheetOption(
+          icon: Icons.qr_code_scanner_rounded,
+          title: localizations.scan,
+          subtitle: localizations.scanBarcodeDescription,
+          onTap: () => _openScanner(context),
+        ),
+        AppSheetOption(
+          icon: Icons.keyboard_rounded,
+          title: localizations.enterIsbn,
+          subtitle: localizations.enterIsbnDescription,
+          onTap: () => _startIsbnEntry(context),
+        ),
+        AppSheetOption(
+          icon: Icons.upload_file_rounded,
+          title: localizations.uploadFromDevice,
+          subtitle: localizations.uploadFromDeviceDescription,
+          onTap: () => _pickAndUploadBook(context, localizations),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _openScanner(BuildContext context) async {
+    final added = await Navigator.of(
+      context,
+    ).push<bool>(AppTransitions.createSlideRoute(const ScanBookPage()));
+    if (added == true && context.mounted) {
+      context.read<BookViewBloc>().add(const RefreshBooks());
+    }
+  }
+
+  Future<void> _startIsbnEntry(BuildContext context) async {
+    final isbn = await promptForIsbn(context);
+    if (isbn == null || isbn.isEmpty || !context.mounted) return;
+    final added = await runIsbnLookupFlow(context, isbn);
+    if (added && context.mounted) {
+      context.read<BookViewBloc>().add(const RefreshBooks());
+    }
   }
 
   Widget _buildSearchButton(
@@ -367,25 +374,73 @@ class _BookViewPageState extends State<BookViewPage> {
     return IconButton(
       icon: const Icon(Icons.search),
       tooltip: localizations.search,
-      onPressed: () async {
-        final searchQuery = await showDialog<String>(
-          context: context,
-          builder: (context) => const SearchDialog(),
-        );
-
-        if (searchQuery != null) {
-          if (!context.mounted) return;
-          context.read<BookViewBloc>().add(SearchBooks(searchQuery));
-        }
-      },
+      onPressed: () => _openSearchDialog(context),
     );
+  }
+
+  Future<void> _openSearchDialog(
+    BuildContext context, {
+    String? initialQuery,
+  }) async {
+    final searchQuery = await showDialog<String>(
+      context: context,
+      builder: (context) => SearchDialog(initialQuery: initialQuery),
+    );
+    if (searchQuery != null && context.mounted) {
+      context.read<BookViewBloc>().add(SearchBooks(searchQuery));
+    }
+  }
+
+  Widget _buildActiveSearchBar(
+    BuildContext context,
+    String query,
+    AppLocalizations localizations,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: scheme.secondaryContainer,
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _openSearchDialog(context, initialQuery: query),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: Row(
+            children: [
+              Icon(Icons.search, color: scheme.onSecondaryContainer),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  query,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: scheme.onSecondaryContainer,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded),
+                color: scheme.onSecondaryContainer,
+                tooltip: localizations.clearSearch,
+                onPressed: () => _clearSearch(context),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _clearSearch(BuildContext context) {
+    context.read<BookViewBloc>().add(const SearchBooks(''));
   }
 
   Future<void> _pickAndUploadBook(
     BuildContext context,
     AppLocalizations localizations,
   ) async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'epub', 'mobi', 'fb2', 'cbr', 'djvu', 'cbz'],
       allowMultiple: false,

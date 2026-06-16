@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/utils/status_colors.dart';
 import 'package:calibre_web_companion/features/sync/data/models/sync_filter.dart';
 import 'package:calibre_web_companion/features/sync/bloc/sync_bloc.dart';
 import 'package:calibre_web_companion/features/sync/bloc/sync_event.dart';
@@ -44,7 +45,7 @@ class _SyncSettingsWidgetState extends State<SyncSettingsWidget> {
                       content: Text(
                         state.errorMessage ?? localization.syncError,
                       ),
-                      backgroundColor: Colors.red,
+                      backgroundColor: Theme.of(context).colorScheme.error,
                     ),
                   );
                 } else if (state.status == SyncStatus.completed) {
@@ -59,7 +60,7 @@ class _SyncSettingsWidgetState extends State<SyncSettingsWidget> {
                         content: Text(
                           localization.syncFinishedWithXErrors(errorCount),
                         ),
-                        backgroundColor: Colors.red,
+                        backgroundColor: Theme.of(context).colorScheme.error,
                         duration: const Duration(seconds: 5),
                       ),
                     );
@@ -134,7 +135,7 @@ class _SyncSettingsWidgetState extends State<SyncSettingsWidget> {
           width: double.infinity,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             ),
             onPressed: () => _openConfigurationSheet(context, state),
             child: Row(
@@ -142,13 +143,13 @@ class _SyncSettingsWidgetState extends State<SyncSettingsWidget> {
               children: [
                 Icon(
                   Icons.sync,
-                  color: Theme.of(context).colorScheme.onPrimary,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
                 ),
                 SizedBox(width: 8),
                 Text(
                   localization.configureAndSync,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
                 ),
               ],
@@ -319,7 +320,7 @@ class _SyncSettingsWidgetState extends State<SyncSettingsWidget> {
     switch (item.status) {
       case 'done':
         icon = Icons.check_circle;
-        color = Colors.green;
+        color = StatusColors.success(context);
         break;
       case 'downloading':
         icon = Icons.downloading;
@@ -332,12 +333,12 @@ class _SyncSettingsWidgetState extends State<SyncSettingsWidget> {
         break;
       case 'error':
         icon = Icons.error_outline;
-        color = Colors.red;
+        color = StatusColors.error(context);
         break;
       case 'pending':
       default:
         icon = Icons.hourglass_empty;
-        color = Colors.grey;
+        color = StatusColors.neutral(context);
         break;
     }
 

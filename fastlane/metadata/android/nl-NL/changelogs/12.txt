@@ -1,0 +1,1 @@
+- Probleem opgelost waarbij je mogelijk kon inloggen met onjuiste inloggegevens

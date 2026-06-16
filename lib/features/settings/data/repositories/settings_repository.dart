@@ -8,6 +8,10 @@ import 'package:calibre_web_companion/features/settings/data/models/settings_mod
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
+import 'package:calibre_web_companion/core/di/injection_container.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+enum DownloaderUrlStatus { reachable, authRequired, unreachable }
 
 class SettingsRepository {
   final SettingsLocalDataSource dataSource;
@@ -190,9 +194,11 @@ class SettingsRepository {
       final baseUrl =
           url.endsWith('/') ? url.substring(0, url.length - 1) : url;
 
+      final client = getIt<http.Client>();
+
       if (username.isEmpty && password.isEmpty) {
         final uri = Uri.parse('$baseUrl/api/config');
-        final response = await http.get(uri);
+        final response = await client.get(uri);
 
         if (response.statusCode == 401 || response.statusCode == 403) {
           throw Exception("Authentication required");
@@ -202,7 +208,7 @@ class SettingsRepository {
       }
 
       final uri = Uri.parse('$baseUrl/api/auth/login');
-      final response = await http.post(
+      final response = await client.post(
         uri,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -220,24 +226,51 @@ class SettingsRepository {
     }
   }
 
+  Future<DownloaderUrlStatus> probeDownloaderUrl(String url) async {
+    if (url.trim().isEmpty) return DownloaderUrlStatus.unreachable;
+    try {
+      final baseUrl =
+          url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+      final client = getIt<http.Client>();
+      final response = await client
+          .get(Uri.parse('$baseUrl/api/config'))
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        return DownloaderUrlStatus.authRequired;
+      }
+      return DownloaderUrlStatus.reachable;
+    } catch (_) {
+      return DownloaderUrlStatus.unreachable;
+    }
+  }
+
+  Future<bool> isUrlReachable(String url) async {
+    if (url.trim().isEmpty) return false;
+    try {
+      final client = getIt<http.Client>();
+      await client.get(Uri.parse(url)).timeout(const Duration(seconds: 8));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> testWebDavConnection(
     String url,
     String username,
     String password,
   ) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
       final service = WebDavSyncService(logger: Logger());
-      service.init(url, username, password);
+      service.init(
+        url,
+        username,
+        password,
+        allowSelfSigned: prefs.getBool('allow_self_signed') ?? false,
+      );
       await service.testConnection();
       return true;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<void> setEpubScrollDirection(String direction) async {
-    try {
-      await dataSource.saveEpubScrollDirection(direction);
     } catch (e) {
       rethrow;
     }
@@ -246,6 +279,14 @@ class SettingsRepository {
   Future<void> setEInkMode(bool enabled) async {
     try {
       await dataSource.saveEInkMode(enabled);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setTextScale(double scale) async {
+    try {
+      await dataSource.saveTextScale(scale);
     } catch (e) {
       rethrow;
     }

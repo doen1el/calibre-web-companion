@@ -29,7 +29,10 @@ class BookCoverWidget extends StatelessWidget {
 
     String imageUrl;
     if (coverUrl != null && coverUrl!.isNotEmpty) {
-      final cleanCoverURL = coverUrl?.split("/api/v1/opds/").last;
+      var cleanCoverURL = coverUrl!.split("/api/v1/opds/").last;
+      if (cleanCoverURL.startsWith('/')) {
+        cleanCoverURL = cleanCoverURL.substring(1);
+      }
       imageUrl = '$baseUrl/$cleanCoverURL';
     } else {
       imageUrl = '$baseUrl/opds/cover/$bookId';
@@ -61,6 +64,11 @@ class BookCoverWidget extends StatelessWidget {
 
     final authHeaders = api.getAuthHeaders(authMethod: AuthMethod.auto);
     headers.addAll(authHeaders);
+
+    final userAgent = api.getUserAgent();
+    if (userAgent != null && userAgent.isNotEmpty) {
+      headers['User-Agent'] = userAgent;
+    }
 
     final username = api.getUsername();
     final password = api.getPassword();

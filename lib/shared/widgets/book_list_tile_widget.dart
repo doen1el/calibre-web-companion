@@ -16,6 +16,7 @@ class BookListTile extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
+        onLongPress: () {},
         child: SizedBox(
           height: 140,
           child: Row(
@@ -34,6 +35,30 @@ class BookListTile extends StatelessWidget {
                           Icons.check_circle,
                           size: 16,
                           color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    if (book.seriesBadge != null)
+                      Positioned(
+                        top: 4,
+                        left: 4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            book.seriesBadge!,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.labelSmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                   ],

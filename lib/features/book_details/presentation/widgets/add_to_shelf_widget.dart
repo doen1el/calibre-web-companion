@@ -2,13 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/main.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_state.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_shelf_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
+import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_bloc.dart';
+import 'package:calibre_web_companion/features/shelf_details/presentation/pages/shelf_details_page.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 class AddToShelfWidget extends StatefulWidget {
@@ -26,8 +33,11 @@ class AddToShelfWidget extends StatefulWidget {
 }
 
 class _AddToShelfWidgetState extends State<AddToShelfWidget> {
+  final _repo = getIt<ShelfViewRepository>();
   List<ShelfViewModel> _containingShelves = [];
+  List<MagicShelfModel> _magicShelves = const [];
   bool _hasChecked = false;
+  bool _magicLoading = false;
 
   @override
   void initState() {
@@ -65,6 +75,21 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
 
     shelfBloc.add(FindShelvesContainingBook(widget.book.uuid.toString()));
 
+    _magicLoading = true;
+    _repo
+        .findMagicShelvesContainingBook(widget.book.uuid.toString())
+        .then((shelves) {
+          if (mounted) {
+            setState(() {
+              _magicShelves = shelves;
+              _magicLoading = false;
+            });
+          }
+        })
+        .catchError((_) {
+          if (mounted) setState(() => _magicLoading = false);
+        });
+
     setState(() {
       _hasChecked = true;
     });
@@ -85,18 +110,21 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
         });
       },
       builder: (context, state) {
+        final totalContaining =
+            _containingShelves.length + _magicShelves.length;
         Widget icon;
-        if (state.checkBookInShelfStatus == CheckBookInShelfStatus.loading) {
+        if (state.checkBookInShelfStatus == CheckBookInShelfStatus.loading ||
+            _magicLoading) {
           icon = const SizedBox(
             width: 20,
             height: 20,
             child: CircularProgressIndicator(strokeWidth: 2),
           );
-        } else if (_containingShelves.isNotEmpty) {
+        } else if (totalContaining > 0) {
           icon = Badge(
             backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
             label: Text(
-              _containingShelves.length.toString(),
+              totalContaining.toString(),
               style: TextStyle(
                 fontSize: 10,
                 color: Theme.of(context).colorScheme.onTertiaryContainer,
@@ -138,6 +166,8 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
             builder: (context, shelfState) {
               return StatefulBuilder(
                 builder: (context, setDialogState) {
+                  final totalContaining =
+                      _containingShelves.length + _magicShelves.length;
                   return AlertDialog(
                     title: Text(
                       _containingShelves.isNotEmpty
@@ -149,22 +179,11 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (_containingShelves.isNotEmpty) ...[
-                            AppSkeletonizer(
-                              enabled:
-                                  shelfState.status == ShelfViewStatus.loading,
-                              effect: ShimmerEffect(
-                                baseColor: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withValues(alpha: .2),
-                                highlightColor: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withValues(alpha: .4),
-                              ),
+                          if (totalContaining > 0) ...[
+                            Align(
+                              alignment: Alignment.centerLeft,
                               child: Text(
-                                localizations.bookInShelfs(
-                                  _containingShelves.length,
-                                ),
+                                localizations.bookInShelfs(totalContaining),
                                 style: TextStyle(
                                   color:
                                       Theme.of(context).colorScheme.secondary,
@@ -205,7 +224,8 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
                                 ),
                               ),
                             )
-                          else if (shelfState.shelves.isEmpty)
+                          else if (shelfState.shelves.isEmpty &&
+                              _magicShelves.isEmpty)
                             Center(
                               child: Column(
                                 children: [
@@ -228,56 +248,90 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
                             )
                           else
                             Flexible(
-                              child: ListView.builder(
+                              child: ListView(
                                 shrinkWrap: true,
-                                itemCount: shelfState.shelves.length,
-                                itemBuilder: (context, index) {
-                                  final shelf = shelfState.shelves[index];
-                                  final isInShelf = _containingShelves.any(
-                                    (s) => s.id == shelf.id,
-                                  );
+                                children: [
+                                  ...List.generate(shelfState.shelves.length, (
+                                    index,
+                                  ) {
+                                    final shelf = shelfState.shelves[index];
+                                    final isInShelf = _containingShelves.any(
+                                      (s) => s.id == shelf.id,
+                                    );
 
-                                  return ListTile(
-                                    title: Text(shelf.title),
-                                    leading: Icon(
-                                      isInShelf
-                                          ? Icons.check_circle
-                                          : Icons.circle_outlined,
-                                      color:
-                                          isInShelf
-                                              ? Theme.of(
-                                                context,
-                                              ).colorScheme.primary
-                                              : null,
+                                    return ListTile(
+                                      title: Text(shelf.title),
+                                      leading: Icon(
+                                        isInShelf
+                                            ? Icons.check_circle
+                                            : Icons.circle_outlined,
+                                        color:
+                                            isInShelf
+                                                ? Theme.of(
+                                                  context,
+                                                ).colorScheme.primary
+                                                : null,
+                                      ),
+                                      enabled: !isDialogLoading,
+                                      onTap: () async {
+                                        setDialogState(() {
+                                          isDialogLoading = true;
+                                        });
+
+                                        await _handleShelfAction(
+                                          context,
+                                          shelf,
+                                          isInShelf,
+                                          onComplete: () {
+                                            setDialogState(() {
+                                              isDialogLoading = false;
+                                            });
+                                          },
+                                        );
+                                      },
+                                    );
+                                  }),
+                                  if (_magicShelves.isNotEmpty &&
+                                      shelfState.shelves.isNotEmpty)
+                                    const Divider(),
+                                  ..._magicShelves.map(
+                                    (shelf) => ListTile(
+                                      leading:
+                                          shelf.icon != null
+                                              ? Text(
+                                                shelf.icon!,
+                                                style: const TextStyle(
+                                                  fontSize: 22,
+                                                ),
+                                              )
+                                              : Icon(
+                                                Icons.auto_awesome_rounded,
+                                                color:
+                                                    Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
+                                              ),
+                                      title: Text(shelf.name),
+                                      trailing: const Icon(
+                                        Icons.chevron_right_rounded,
+                                      ),
+                                      onTap:
+                                          () => _openMagicShelf(
+                                            dialogContext,
+                                            shelf,
+                                          ),
                                     ),
-                                    enabled: !isDialogLoading,
-                                    onTap: () async {
-                                      setDialogState(() {
-                                        isDialogLoading = true;
-                                      });
-
-                                      await _handleShelfAction(
-                                        context,
-                                        shelf,
-                                        isInShelf,
-                                        onComplete: () {
-                                          setDialogState(() {
-                                            isDialogLoading = false;
-                                          });
-                                        },
-                                      );
-                                    },
-                                  );
-                                },
+                                  ),
+                                ],
                               ),
                             ),
                         ],
                       ),
                     ),
                     actions: [
-                      ElevatedButton(
+                      AppDialogButton(
                         onPressed: () => Navigator.pop(context),
-                        child: Text(localizations.close),
+                        label: localizations.close,
                       ),
                     ],
                   );
@@ -287,6 +341,28 @@ class _AddToShelfWidgetState extends State<AddToShelfWidget> {
           ),
         );
       },
+    );
+  }
+
+  void _openMagicShelf(BuildContext dialogContext, MagicShelfModel shelf) {
+    final shelfViewBloc = context.read<ShelfViewBloc>();
+    Navigator.of(dialogContext).pop();
+    Navigator.of(context).push(
+      AppTransitions.createSlideRoute(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: shelfViewBloc),
+            BlocProvider(create: (_) => getIt<ShelfDetailsBloc>()),
+          ],
+          child: ShelfDetailsPage(
+            shelfId: shelf.id,
+            shelfTitle: shelf.name,
+            isPublic: shelf.isPublic,
+            isMagic: true,
+            icon: shelf.icon,
+          ),
+        ),
+      ),
     );
   }
 

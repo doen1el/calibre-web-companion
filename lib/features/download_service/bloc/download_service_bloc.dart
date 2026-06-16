@@ -181,12 +181,21 @@ class DownloadServiceBloc
     GetDownloadStatus event,
     Emitter<DownloadServiceState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        statusLoadingStatus: DownloadServiceStatus.loading,
-        errorMessage: null,
-      ),
-    );
+    // Only show the loading skeleton on the very first load (or when retrying
+    // after an error). Switching to the Downloads tab re-dispatches this event,
+    // and getDownloadStatus is a fast local check — emitting `loading` every
+    // time made the skeleton flash. Subsequent refreshes update silently.
+    final showLoading =
+        state.statusLoadingStatus == DownloadServiceStatus.initial ||
+        state.statusLoadingStatus == DownloadServiceStatus.error;
+    if (showLoading) {
+      emit(
+        state.copyWith(
+          statusLoadingStatus: DownloadServiceStatus.loading,
+          errorMessage: null,
+        ),
+      );
+    }
 
     try {
       final books = await repository.getDownloadStatus();

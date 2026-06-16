@@ -144,51 +144,49 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
 
             const SizedBox(height: 20),
 
-            Text(
-              localizations.languages,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: [
-                ...availableLanguages.map((langMap) {
-                  final code = langMap['code']!;
-                  final name = langMap['language']!;
-                  final isSelected = _selectedLanguages.contains(code);
-                  return FilterChip(
-                    label: Text(name),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        if (selected) {
-                          _selectedLanguages.add(code);
-                        } else {
-                          _selectedLanguages.remove(code);
-                        }
-                      });
-                    },
-                  );
-                }),
-                ..._selectedLanguages
-                    .where(
-                      (code) =>
-                          !availableLanguages.any((l) => l['code'] == code),
-                    )
-                    .map((code) {
-                      return FilterChip(
-                        label: Text(code.toUpperCase()),
-                        selected: true,
-                        onSelected: (selected) {
-                          setState(() {
-                            if (!selected) {
-                              _selectedLanguages.remove(code);
-                            }
-                          });
-                        },
-                      );
-                    }),
-              ],
+            InkWell(
+              onTap:
+                  () => _showLanguagePicker(
+                    context,
+                    availableLanguages,
+                    localizations,
+                  ),
+              borderRadius: BorderRadius.circular(4),
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: localizations.languages,
+                  border: const OutlineInputBorder(),
+                  suffixIcon: const Icon(Icons.arrow_drop_down),
+                ),
+                child:
+                    _selectedLanguages.isEmpty
+                        ? Text(
+                          localizations.any,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        )
+                        : Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children:
+                              _selectedLanguages.map((code) {
+                                final name =
+                                    availableLanguages.firstWhere(
+                                      (l) => l['code'] == code,
+                                      orElse:
+                                          () => {
+                                            'code': code,
+                                            'language': code.toUpperCase(),
+                                          },
+                                    )['language']!;
+                                return Chip(
+                                  label: Text(name),
+                                  visualDensity: VisualDensity.compact,
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                );
+                              }).toList(),
+                        ),
+              ),
             ),
 
             const SizedBox(height: 20),
@@ -240,6 +238,10 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      Theme.of(context).colorScheme.primaryContainer,
+                ),
                 onPressed: () {
                   final filter = DownloadFilterModel(
                     isbn: _isbnController.text.trim(),
@@ -255,7 +257,12 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
                   widget.onApply(filter);
                   Navigator.pop(context);
                 },
-                child: Text(localizations.applyFilters),
+                child: Text(
+                  localizations.applyFilters,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -276,6 +283,39 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
     );
   }
 
+  void _showLanguagePicker(
+    BuildContext context,
+    List<Map<String, String>> availableLanguages,
+    AppLocalizations localizations,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (sheetContext) => _LanguagePickerSheet(
+            availableLanguages: availableLanguages,
+            selectedLanguages: _selectedLanguages,
+            title: localizations.languages,
+            searchHint: localizations.search,
+            onToggle: (code, selected) {
+              setState(() {
+                if (selected) {
+                  if (!_selectedLanguages.contains(code)) {
+                    _selectedLanguages.add(code);
+                  }
+                } else {
+                  _selectedLanguages.remove(code);
+                }
+              });
+            },
+          ),
+    );
+  }
+
   void _resetFilters() {
     final config = context.read<DownloadServiceBloc>().state.config;
 
@@ -288,12 +328,99 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
       _selectedLanguages =
           config.defaultLanguage.isNotEmpty
               ? List.from(config.defaultLanguage)
-              : ['de'];
+              : <String>[];
 
       _selectedFormats =
           config.supportedFormats.isNotEmpty
               ? List.from(config.supportedFormats)
               : List.from(DownloadFilterModel.allFormats);
     });
+  }
+}
+
+class _LanguagePickerSheet extends StatefulWidget {
+  final List<Map<String, String>> availableLanguages;
+  final List<String> selectedLanguages;
+  final String title;
+  final String searchHint;
+  final void Function(String code, bool selected) onToggle;
+
+  const _LanguagePickerSheet({
+    required this.availableLanguages,
+    required this.selectedLanguages,
+    required this.title,
+    required this.searchHint,
+    required this.onToggle,
+  });
+
+  @override
+  State<_LanguagePickerSheet> createState() => _LanguagePickerSheetState();
+}
+
+class _LanguagePickerSheetState extends State<_LanguagePickerSheet> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final query = _query.toLowerCase();
+    final filtered =
+        widget.availableLanguages.where((lang) {
+          return lang['language']!.toLowerCase().contains(query) ||
+              lang['code']!.toLowerCase().contains(query);
+        }).toList();
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.7,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(widget.title, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: widget.searchHint,
+                prefixIcon: const Icon(Icons.search),
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+              onChanged: (value) => setState(() => _query = value),
+            ),
+            const SizedBox(height: 8),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: filtered.length,
+                itemBuilder: (context, index) {
+                  final lang = filtered[index];
+                  final code = lang['code']!;
+                  final isSelected = widget.selectedLanguages.contains(code);
+                  return CheckboxListTile(
+                    value: isSelected,
+                    title: Text(lang['language']!),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    onChanged: (checked) {
+                      widget.onToggle(code, checked == true);
+                      setState(() {});
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

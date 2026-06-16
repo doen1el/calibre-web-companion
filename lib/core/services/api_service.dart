@@ -10,6 +10,7 @@ import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:http/io_client.dart';
 
 import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
+import 'package:calibre_web_companion/core/services/connection_diagnostics.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 
 enum AuthMethod { none, cookie, basic, auto }
@@ -26,6 +27,7 @@ class ApiService {
   String? _userAgent;
 
   bool _allowSelfSigned = false;
+  bool _reauthInProgress = false;
 
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
@@ -35,7 +37,6 @@ class ApiService {
   /// Returns the base URL with base path if available
   String getBaseUrl() {
     if (_basePath == null || _basePath!.isEmpty) {
-      _logger.d('Base URL (no path): $_baseUrl');
       return _baseUrl!;
     } else {
       final normalizedBasePath = _basePath!.trim();
@@ -64,6 +65,8 @@ class ApiService {
   String getPassword() {
     return _password ?? '';
   }
+
+  String? getUserAgent() => _userAgent;
 
   /// Initializes the API service with credentials from shared preferences
   Future<void> initialize() async {
@@ -100,6 +103,14 @@ class ApiService {
   void dispose() {
     _client!.close();
     _httpClient?.close(force: true);
+  }
+
+  http.Client _createClient() {
+    final httpClient = HttpClient();
+    if (_allowSelfSigned) {
+      httpClient.badCertificateCallback = (cert, host, port) => true;
+    }
+    return IOClient(httpClient);
   }
 
   Future<void> reset() async {
@@ -222,29 +233,84 @@ class ApiService {
     AuthMethod authMethod = AuthMethod.basic,
     Map<String, String> queryParams = const {},
   }) async {
-    final response = await get(
+    var response = await get(
       endpoint: endpoint,
       authMethod: authMethod,
       queryParams: queryParams,
     );
-    try {
-      if (response.body.length > 50) {
-        _logger.d('Response body: ${response.body.substring(0, 50)}...');
-      } else {
-        _logger.d('Response body: ${response.body}');
+
+    var parsed = _tryDecodeJsonMap(response.body);
+    if (parsed != null) return parsed;
+
+    if (_looksLikeHtml(response.body) && _hasStoredCredentials) {
+      _logger.w(
+        'Got HTML instead of JSON from "$endpoint", session likely lost; re-authenticating and retrying.',
+      );
+      if (await _reauthenticate()) {
+        response = await get(
+          endpoint: endpoint,
+          authMethod: authMethod,
+          queryParams: queryParams,
+        );
+        parsed = _tryDecodeJsonMap(response.body);
+        if (parsed != null) return parsed;
       }
+    }
 
-      return _sanitizeJsonResponse(response.body);
+    _logger.e('Invalid JSON from "$endpoint" (status ${response.statusCode})');
+    if (_looksLikeHtml(response.body)) {
+      throw Exception(
+        'Session not accepted by the server (received a login page instead of data).',
+      );
+    }
+    throw const FormatException('Invalid JSON response');
+  }
+
+  bool _looksLikeHtml(String body) {
+    final t = body.trimLeft().toLowerCase();
+    return t.startsWith('<!doctype html') ||
+        t.startsWith('<html') ||
+        t.contains('name="username"') ||
+        t.contains('id="login"');
+  }
+
+  bool get _hasStoredCredentials =>
+      (_username?.isNotEmpty ?? false) && (_password?.isNotEmpty ?? false);
+
+  Future<bool> _reauthenticate() async {
+    if (_reauthInProgress || !_hasStoredCredentials) return false;
+    _reauthInProgress = true;
+    try {
+      final response = await post(
+        endpoint: '/login',
+        body: {'username': _username!, 'password': _password!},
+        authMethod: AuthMethod.none,
+        contentType: 'application/x-www-form-urlencoded',
+        useCsrf: true,
+      );
+
+      final ok =
+          (response.statusCode == 200 || response.statusCode == 302) &&
+          !response.body.contains('flash_danger');
+      final setCookie = response.headers['set-cookie'];
+      if (ok && setCookie != null && setCookie.isNotEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('calibre_web_session', setCookie);
+        await initialize();
+        _logger.i('Re-authentication successful');
+        return true;
+      }
+      _logger.w('Re-authentication failed (status ${response.statusCode})');
+      return false;
     } catch (e) {
-      _logger.e('Failed to parse JSON response: $e');
-
-      _logger.d('Response body: ${response.body}...');
-      throw FormatException('Invalid JSON response: $e');
+      _logger.e('Re-authentication error: $e');
+      return false;
+    } finally {
+      _reauthInProgress = false;
     }
   }
 
-  /// Sanitizes JSON response that contains HTML in the comments field
-  Map<String, dynamic> _sanitizeJsonResponse(String responseBody) {
+  Map<String, dynamic>? _tryDecodeJsonMap(String responseBody) {
     try {
       return json.decode(responseBody) as Map<String, dynamic>;
     } catch (e) {
@@ -261,7 +327,7 @@ class ApiService {
         return json.decode(sanitized) as Map<String, dynamic>;
       } catch (sanitizationError) {
         _logger.e('Error during sanitization process: $sanitizationError');
-        return {'error': 'Sanitization failed', 'comments': '', 'formats': []};
+        return null;
       }
     }
   }
@@ -287,12 +353,6 @@ class ApiService {
       queryParams: queryParams,
     );
     try {
-      if (response.body.length > 50) {
-        _logger.d('Response body: ${response.body.substring(0, 50)}...');
-      } else {
-        _logger.d('Response body: ${response.body}');
-      }
-
       transformer.parse(response.body);
 
       String jsonString = transformer.toParkerWithAttrs();
@@ -333,12 +393,9 @@ class ApiService {
     headers.addAll(customHeaders);
 
     if (followRedirects) {
-      _logger.d('GET request to: $uri');
-      _logger.d('Headers: $headers');
-
       try {
         final response = await _client!.get(uri, headers: headers);
-        _logger.i('Response status: ${response.statusCode}');
+        _logger.d('GET $uri -> ${response.statusCode}');
 
         if (response.headers.containsKey('set-cookie')) {
           final prefs = await SharedPreferences.getInstance();
@@ -625,14 +682,8 @@ class ApiService {
         }
         request.files.addAll(files);
 
-        _logger.d('Multipart POST request headers: ${request.headers}');
-        _logger.d('Multipart POST request fields: ${request.fields}');
-        _logger.d(
-          'Multipart POST request files: ${request.files.length} files',
-        );
-
         try {
-          final streamedResponse = await request.send();
+          final streamedResponse = await _client!.send(request);
           final response = await http.Response.fromStream(streamedResponse);
           _logger.i('Multipart POST response status: ${response.statusCode}');
 
@@ -694,9 +745,6 @@ class ApiService {
           contentType: contentType,
         );
 
-        _logger.d('CSRF-protected POST headers: $postHeaders');
-        _logger.d('CSRF-protected POST body: $encodedBody');
-
         try {
           final response = await _client!.post(
             uri,
@@ -749,13 +797,10 @@ class ApiService {
 
         request.files.addAll(files);
 
-        _logger.d('Multipart POST request to: $uri');
-        _logger.d('Multipart headers: ${request.headers}');
-
         try {
-          final streamedResponse = await request.send();
+          final streamedResponse = await _client!.send(request);
           final response = await http.Response.fromStream(streamedResponse);
-          _logger.i('Multipart POST response status: ${response.statusCode}');
+          _logger.d('Multipart POST $uri -> ${response.statusCode}');
 
           if (response.headers.containsKey('set-cookie')) {
             final prefs = await SharedPreferences.getInstance();
@@ -785,9 +830,6 @@ class ApiService {
 
         headers.addAll(customHeaders);
 
-        _logger.d('POST request to: $uri');
-        _logger.d('Headers: $headers');
-
         final encodedBody = _encodeBody(body: body, contentType: contentType);
 
         try {
@@ -796,7 +838,7 @@ class ApiService {
             headers: headers,
             body: encodedBody ?? "",
           );
-          _logger.i('POST response status: ${response.statusCode}');
+          _logger.d('POST $uri -> ${response.statusCode}');
 
           if (response.headers.containsKey('set-cookie')) {
             final prefs = await SharedPreferences.getInstance();
@@ -847,12 +889,9 @@ class ApiService {
 
     request.headers.addAll(headers);
 
-    _logger.d('GET stream request to: ${uri.toString()}');
-    _logger.d('Headers: $headers');
-
     try {
       final response = await _client!.send(request);
-      _logger.i('Stream response status: ${response.statusCode}');
+      _logger.d('GET (stream) $uri -> ${response.statusCode}');
       _checkResponseStatus(statusCode: response.statusCode);
       return response;
     } catch (e) {
@@ -945,7 +984,6 @@ class ApiService {
       fullPath = '/$endpoint';
     }
 
-    _logger.d('Built URL: $_baseUrl$fullPath');
     return Uri.parse(
       '$_baseUrl$fullPath',
     ).replace(queryParameters: queryParams);
@@ -996,13 +1034,10 @@ class ApiService {
     if (resolvedAuthMethod == AuthMethod.auto) {
       if (_username != null && _username!.isNotEmpty && _password != null) {
         resolvedAuthMethod = AuthMethod.basic;
-        _logger.d('Auto-Auth: Resolved to Basic (Credentials available)');
       } else if (_cookie != null && _cookie!.isNotEmpty) {
         resolvedAuthMethod = AuthMethod.cookie;
-        _logger.d('Auto-Auth: Resolved to Cookie (No credentials)');
       } else {
         resolvedAuthMethod = AuthMethod.none;
-        _logger.d('Auto-Auth: Resolved to None');
       }
     }
 
@@ -1055,6 +1090,175 @@ class ApiService {
     }
   }
 
+  Future<List<DiagnosticResult>> runConnectionDiagnostics() async {
+    await _ensureInitialized();
+    return [
+      await _probe(
+        DiagnosticProbeId.serverReachable,
+        'Server reachable',
+        '/',
+        AuthMethod.auto,
+        connectivityOnly: true,
+      ),
+      await _probe(
+        DiagnosticProbeId.bookList,
+        'Book list (AJAX)',
+        '/ajax/listbooks',
+        AuthMethod.cookie,
+        queryParams: const {'limit': '1'},
+      ),
+      await _probe(
+        DiagnosticProbeId.opdsFeed,
+        'OPDS feed',
+        '/opds',
+        AuthMethod.basic,
+      ),
+      await _probe(
+        DiagnosticProbeId.opdsStats,
+        'OPDS stats',
+        '/opds/stats',
+        AuthMethod.basic,
+      ),
+      await _probe(
+        DiagnosticProbeId.coverImage,
+        'Cover image',
+        '/opds/cover/1',
+        AuthMethod.auto,
+        expectBinary: true,
+      ),
+    ];
+  }
+
+  Future<DiagnosticResult> _probe(
+    DiagnosticProbeId id,
+    String label,
+    String endpoint,
+    AuthMethod authMethod, {
+    Map<String, String> queryParams = const {},
+    bool expectBinary = false,
+    bool connectivityOnly = false,
+  }) async {
+    final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
+    final httpClient = HttpClient();
+    httpClient.connectionTimeout = const Duration(seconds: 10);
+    if (_allowSelfSigned) {
+      httpClient.badCertificateCallback = (cert, host, port) => true;
+    }
+
+    try {
+      final request = await httpClient.getUrl(uri);
+      request.followRedirects = false;
+
+      final headers = getAuthHeaders(authMethod: authMethod);
+      if (_userAgent != null) headers['User-Agent'] = _userAgent!;
+      headers.addAll(await _processCustomHeaders());
+      headers.forEach((key, value) => request.headers.set(key, value));
+
+      final response = await request.close().timeout(
+        const Duration(seconds: 12),
+      );
+      final code = response.statusCode;
+      final contentType = response.headers.contentType?.toString();
+
+      if (response.isRedirect) {
+        final location = response.headers.value('location');
+        await response.drain<void>();
+        return DiagnosticResult(
+          id: id,
+          label: label,
+          path: uri.path,
+          statusCode: code,
+          redirectLocation: location,
+          contentType: contentType,
+          verdict: connectivityOnly ? ProbeVerdict.ok : ProbeVerdict.redirect,
+          detail:
+              connectivityOnly
+                  ? 'Reachable ($code → ${location ?? 'redirect'})'
+                  : 'Redirected to ${location ?? 'unknown'}',
+        );
+      }
+
+      final bytes = await response
+          .fold<List<int>>(<int>[], (acc, chunk) => acc..addAll(chunk))
+          .timeout(const Duration(seconds: 12));
+      final snippet = utf8.decode(bytes, allowMalformed: true);
+
+      return _classifyProbe(
+        id: id,
+        label: label,
+        path: uri.path,
+        code: code,
+        contentType: contentType,
+        snippet: snippet,
+        expectBinary: expectBinary,
+        connectivityOnly: connectivityOnly,
+      );
+    } catch (e) {
+      return DiagnosticResult(
+        id: id,
+        label: label,
+        path: uri.path,
+        verdict: ProbeVerdict.networkError,
+        detail: e.toString(),
+      );
+    } finally {
+      httpClient.close();
+    }
+  }
+
+  DiagnosticResult _classifyProbe({
+    required DiagnosticProbeId id,
+    required String label,
+    required String path,
+    required int code,
+    required String? contentType,
+    required String snippet,
+    required bool expectBinary,
+    bool connectivityOnly = false,
+  }) {
+    ProbeVerdict verdict;
+    String detail;
+
+    final isHtml = _looksLikeHtml(snippet);
+
+    if (connectivityOnly && code < 400) {
+      verdict = ProbeVerdict.ok;
+      detail = 'Reachable ($code)';
+    } else if (code == 401 || code == 403) {
+      verdict = ProbeVerdict.authRequired;
+      detail = 'Authentication required ($code)';
+    } else if (code >= 500) {
+      verdict = ProbeVerdict.serverError;
+      detail = 'Server error ($code)';
+    } else if (isHtml) {
+      verdict = ProbeVerdict.loginPage;
+      detail = 'Received an HTML/login page instead of data';
+    } else if (code >= 400) {
+      verdict = ProbeVerdict.networkError;
+      detail = 'HTTP $code';
+    } else if (expectBinary) {
+      final isImage = contentType?.startsWith('image/') ?? false;
+      verdict = isImage ? ProbeVerdict.ok : ProbeVerdict.empty;
+      detail = isImage ? 'Image OK ($code)' : 'Not an image ($code)';
+    } else if (snippet.trim().isEmpty) {
+      verdict = ProbeVerdict.empty;
+      detail = 'Empty response ($code)';
+    } else {
+      verdict = ProbeVerdict.ok;
+      detail = 'OK ($code)';
+    }
+
+    return DiagnosticResult(
+      id: id,
+      label: label,
+      path: path,
+      statusCode: code,
+      contentType: contentType,
+      verdict: verdict,
+      detail: detail,
+    );
+  }
+
   /// Uploads a file to the specified endpoint with cancellation support
   ///
   /// Parameters:
@@ -1104,10 +1308,21 @@ class ApiService {
       throw Exception('Failed to get CSRF token for upload');
     }
 
+    // Start with the stored session cookie and merge any new cookies from the
+    // CSRF GET response. Without this, the upload POST sends an empty Cookie
+    // header whenever the server doesn't re-issue cookies on the CSRF fetch
+    // (i.e. when the session is already valid), causing a 400.
+    String sessionCookie = _cookie ?? '';
+    final rawSetCookie = csrfResult['cookies'];
+    if (rawSetCookie != null && rawSetCookie.isNotEmpty) {
+      final newCookie = buildCookieHeaderFromSetCookie(rawSetCookie);
+      sessionCookie = _mergeCookieHeaders(sessionCookie, newCookie);
+    }
+
     final uri = _buildUri(endpoint: endpoint);
     final request = http.MultipartRequest('POST', uri);
 
-    request.headers['Cookie'] = csrfResult['cookies'] ?? '';
+    request.headers['Cookie'] = sessionCookie;
 
     request.fields['csrf_token'] = csrfToken;
 
@@ -1118,7 +1333,22 @@ class ApiService {
     final customHeaders = await _processCustomHeaders();
     request.headers.addAll(customHeaders);
 
-    final fileName = file.path.split('/').last;
+    final rawFileName = file.path.split('/').last;
+    // Sanitize filename to match werkzeug secure_filename behavior: calibre-web
+    // rejects filenames with parentheses, brackets, spaces, and other special
+    // characters, returning a 400. Strip to ASCII alphanumeric + hyphens + dots.
+    final dotIndex = rawFileName.lastIndexOf('.');
+    final rawName =
+        dotIndex != -1 ? rawFileName.substring(0, dotIndex) : rawFileName;
+    final ext = dotIndex != -1 ? rawFileName.substring(dotIndex) : '';
+    final sanitizedName = rawName
+        .replaceAll(RegExp(r'[^a-zA-Z0-9_\-]'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+    final fileName = '${sanitizedName.isEmpty ? 'upload' : sanitizedName}$ext';
+    if (fileName != rawFileName) {
+      _logger.i('Sanitized filename: $rawFileName → $fileName');
+    }
     final fileExtension = fileName.split('.').last.toLowerCase();
 
     String contentType = 'application/octet-stream';
@@ -1144,7 +1374,7 @@ class ApiService {
       ),
     );
 
-    final client = http.Client();
+    final client = _createClient();
     try {
       if (cancelToken?.isCancelled == true) {
         _logger.i('Upload cancelled before sending request');

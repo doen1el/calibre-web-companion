@@ -6,9 +6,17 @@ class ShelfDetailsRepository {
 
   ShelfDetailsRepository({required this.dataSource});
 
-  Future<ShelfDetailsModel> getShelfDetails(String shelfId) async {
+  Future<ShelfDetailsModel> getShelfDetails(
+    String shelfId, {
+    int offset = 0,
+    bool isMagic = false,
+  }) async {
     try {
-      final shelfDetails = await dataSource.getShelfDetails(shelfId);
+      final shelfDetails = await dataSource.getShelfDetails(
+        shelfId,
+        offset: offset,
+        isMagic: isMagic,
+      );
       return shelfDetails;
     } catch (e) {
       rethrow;

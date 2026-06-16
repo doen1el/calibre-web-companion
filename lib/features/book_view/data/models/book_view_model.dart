@@ -58,6 +58,13 @@ class BookViewModel extends Equatable {
     this.tags = const [],
   });
 
+  /// The position of this book within its series (e.g. "5"), or null when the
+  /// book isn't part of a series. Used for the series badge on book covers.
+  String? get seriesBadge {
+    if (series.isEmpty || seriesIndex <= 0) return null;
+    return seriesIndex.toString();
+  }
+
   @override
   List<Object?> get props => [
     id,

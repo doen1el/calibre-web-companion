@@ -11,7 +11,7 @@ enum ServerType {
       case ServerType.calibreWeb:
         return 'Calibre Web';
       case ServerType.booklore:
-        return 'Booklore';
+        return 'Grimmory';
       case ServerType.opds:
         return 'OPDS';
     }

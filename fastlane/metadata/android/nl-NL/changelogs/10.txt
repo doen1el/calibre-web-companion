@@ -1,0 +1,3 @@
+- Codegeneratie voor de bijgewerkte versie
+- Hotfix voor het downloaden van boeken
+- Boekaanbevelingen verwijderd (voorlopig)

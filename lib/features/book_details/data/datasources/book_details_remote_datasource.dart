@@ -40,6 +40,7 @@ class BookDetailsRemoteDatasource {
       final prefs = GetIt.instance<SharedPreferences>();
       final isOpds =
           prefs.getString('server_type') == 'opds' ||
+          prefs.getString('server_type') == 'grimmory' ||
           prefs.getString('server_type') == 'booklore';
 
       if (isOpds) {
@@ -223,6 +224,7 @@ class BookDetailsRemoteDatasource {
       final prefs = GetIt.instance<SharedPreferences>();
       final isOpds =
           prefs.getString('server_type') == 'opds' ||
+          prefs.getString('server_type') == 'grimmory' ||
           prefs.getString('server_type') == 'booklore';
 
       String endpoint;
@@ -233,7 +235,7 @@ class BookDetailsRemoteDatasource {
         authMethod = AuthMethod.basic;
       } else {
         final lowerFormat = format.toLowerCase();
-        endpoint = '/download/$bookId/$lowerFormat';
+        endpoint = '/download/$bookId/$lowerFormat/$bookId.$lowerFormat';
         authMethod = AuthMethod.cookie;
       }
 
@@ -291,6 +293,7 @@ class BookDetailsRemoteDatasource {
         body: body,
         authMethod: AuthMethod.cookie,
         useCsrf: true,
+        csrfTokenUrl: '/me',
         csrfOnlyInHeader: true,
         contentType: 'application/x-www-form-urlencoded',
       );
@@ -406,6 +409,7 @@ class BookDetailsRemoteDatasource {
     required DownloadSchema schema,
     String format = 'epub',
     Function(int)? progressCallback,
+    bool reuseExistingFile = true,
     bool deleteOnError = true,
   }) async {
     try {
@@ -491,7 +495,7 @@ class BookDetailsRemoteDatasource {
 
       final existingFile = await targetDir.find(fileName.replaceAll(' ', '_'));
 
-      if (existingFile != null && existingFile.isFile) {
+      if (reuseExistingFile && existingFile != null && existingFile.isFile) {
         logger.w('File already exists: $fileName');
         return existingFile.uri.toString();
       }
@@ -570,7 +574,7 @@ class BookDetailsRemoteDatasource {
 
   Future<bool> openInReader(
     BookDetailsModel book,
-    DocumentFile selectedDirectory,
+    DocumentFile? selectedDirectory,
     DownloadSchema schema, {
     Function(int)? progressCallback,
   }) async {
@@ -582,29 +586,39 @@ class BookDetailsRemoteDatasource {
         format = book.formats.first.toLowerCase();
       }
 
-      final filePath = await downloadBookToPath(
-        book: book,
-        selectedDirectory: selectedDirectory,
-        schema: schema,
-        format: format,
-        progressCallback: progressCallback,
-      );
+      String localPath;
+      if (selectedDirectory == null) {
+        localPath = await downloadBookToDevice(
+          book,
+          format: format,
+          progressCallback: progressCallback,
+        );
+      } else {
+        final filePath = await downloadBookToPath(
+          book: book,
+          selectedDirectory: selectedDirectory,
+          schema: schema,
+          format: format,
+          progressCallback: progressCallback,
+        );
 
-      DocumentFile? file =
-          filePath.isNotEmpty ? await DocumentFile.fromUri(filePath) : null;
+        final file =
+            filePath.isNotEmpty ? await DocumentFile.fromUri(filePath) : null;
 
-      if (file == null || !file.isFile) {
-        logger.e('Downloaded file is not a valid file: $filePath');
-        return false;
+        if (file == null || !file.isFile) {
+          logger.e('Downloaded file is not a valid file: $filePath');
+          return false;
+        }
+
+        final cachedFile = await file.cache();
+        if (cachedFile == null) {
+          logger.e('Could not cache file for opening');
+          return false;
+        }
+        localPath = cachedFile.path;
       }
 
-      final cachedFile = await file.cache();
-      if (cachedFile == null) {
-        logger.e('Could not cache file for opening');
-        return false;
-      }
-
-      final result = await OpenFile.open(cachedFile.path);
+      final result = await OpenFile.open(localPath);
 
       if (result.type != ResultType.done) {
         logger.e('Error while opening the file: ${result.message}');
@@ -631,7 +645,9 @@ class BookDetailsRemoteDatasource {
         contentType: 'application/x-www-form-urlencoded',
       );
 
-      if (response.statusCode == 200 || response.statusCode == 204 || response.statusCode == 302) {
+      if (response.statusCode == 200 ||
+          response.statusCode == 204 ||
+          response.statusCode == 302) {
         logger.i('Successfully added book to shelf');
         return true;
       } else {
@@ -656,7 +672,9 @@ class BookDetailsRemoteDatasource {
         contentType: 'application/x-www-form-urlencoded',
       );
 
-      if (response.statusCode == 200 || response.statusCode == 204 || response.statusCode == 302) {
+      if (response.statusCode == 200 ||
+          response.statusCode == 204 ||
+          response.statusCode == 302) {
         logger.i('Successfully removed book from shelf');
         return true;
       } else {
@@ -702,62 +720,86 @@ class BookDetailsRemoteDatasource {
     }
   }
 
-  Future<String> downloadBookForReader(
-    BookDetailsModel book,
-    DocumentFile selectedDirectory,
-    DownloadSchema schema, {
+  Future<Uint8List> streamBookBytes(
+    BookDetailsModel book, {
     String format = 'epub',
     Function(int)? progressCallback,
   }) async {
+    final response = await getDownloadStream(book.id.toString(), format);
+    final contentLength = response.contentLength ?? -1;
+
+    final List<int> bytes = [];
+    int received = 0;
+    await for (final chunk in response.stream) {
+      bytes.addAll(chunk);
+      received += chunk.length;
+      if (contentLength > 0 && progressCallback != null) {
+        progressCallback((received / contentLength * 100).round());
+      }
+    }
+    return Uint8List.fromList(bytes);
+  }
+
+  Future<String> downloadBookToDevice(
+    BookDetailsModel book, {
+    String format = 'epub',
+    Function(int)? progressCallback,
+  }) async {
+    logger.i('Downloading "${book.title}" to app sandbox, format: $format');
+    final bytes = await streamBookBytes(
+      book,
+      format: format,
+      progressCallback: progressCallback,
+    );
+
+    final dir = await getApplicationDocumentsDirectory();
+    final safeTitle =
+        book.title.replaceAll(RegExp(r'[\\/:*?"<>|.]'), '').trim();
+    final fileName = '${safeTitle.isEmpty ? 'book' : safeTitle}.$format';
+    final file = File('${dir.path}/$fileName');
+    await file.writeAsBytes(bytes, flush: true);
+
+    logger.i('Saved book to ${file.path}');
+    return file.path;
+  }
+
+  Future<Uint8List?> readLocalEpubBytes(String path) async {
     try {
-      logger.i('Preparing book for internal reader: ${book.title}');
+      String name;
+      Uint8List bytes;
 
-      if (book.formats.isNotEmpty) {
-        format = book.formats.first.toLowerCase();
+      if (Platform.isAndroid &&
+          (path.startsWith('content://') || path.startsWith('file://'))) {
+        final doc = await DocumentFile.fromUri(path);
+        if (doc == null || !doc.isFile) return null;
+        name = doc.name;
+        final read = await doc.read();
+        if (read == null || read.isEmpty) return null;
+        bytes = read;
+      } else {
+        final file = File(path);
+        if (!file.existsSync()) return null;
+        name = file.path.split('/').last;
+        bytes = await file.readAsBytes();
+        if (bytes.isEmpty) return null;
       }
 
-      final safFileUri = await downloadBookToPath(
-        book: book,
-        selectedDirectory: selectedDirectory,
-        schema: schema,
-        format: format,
-        progressCallback: progressCallback,
-      );
+      final lower = name.toLowerCase();
+      final isEpubName = lower.endsWith('.epub') || lower.endsWith('.kepub');
+      final looksLikeZip =
+          bytes.length >= 2 && bytes[0] == 0x50 && bytes[1] == 0x4B;
 
-      DocumentFile? safFile =
-          safFileUri.isNotEmpty ? await DocumentFile.fromUri(safFileUri) : null;
-
-      if (safFile == null || !safFile.isFile) {
-        logger.e('Downloaded file is not a valid file: $safFileUri');
-        throw Exception('Downloaded file is not a valid file: $safFileUri');
+      if (!isEpubName || !looksLikeZip) {
+        logger.i(
+          'Local copy "$name" is not a readable EPUB — will stream instead.',
+        );
+        return null;
       }
 
-      final bytes = await safFile.read();
-      if (bytes == null) {
-        logger.e('Could not read bytes from SAF file.');
-        throw Exception('Could not read bytes from SAF file.');
-      }
-
-      final tempDir = await getTemporaryDirectory();
-
-      final safeFileName = safFile.name.replaceAll(
-        RegExp(r'[^a-zA-Z0-9.\-_]'),
-        '_',
-      );
-
-      final localFile = File('${tempDir.path}/$safeFileName');
-      await localFile.writeAsBytes(bytes, flush: true);
-
-      if (!await localFile.exists()) {
-        logger.e('Failed to create local cache file at ${localFile.path}');
-        throw Exception('Failed to create local cache file.');
-      }
-
-      logger.i('File prepared for reader at: ${localFile.path}');
-      return localFile.path;
+      return Uint8List.fromList(bytes);
     } catch (e) {
-      logger.e('Error preparing book for reader: $e');
-      throw Exception('Error preparing book for reader: $e');
+      logger.w('Could not read local copy ($path), will stream instead: $e');
+      return null;
     }
   }
 

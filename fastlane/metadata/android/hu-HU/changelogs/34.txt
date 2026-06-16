@@ -1,0 +1,3 @@
+- Arab és Kínai nyelv hozzáadva.
+- Javítva: Shelfmark integráció az új verzióhoz igazítva.
+- Hozzáadva: e-olvasóra küldött könyvek mentése a megadott letöltési mappába.

@@ -67,7 +67,7 @@ class DownloadBook extends BookDetailsEvent {
   final String author;
   final String series;
   final int seriesIndex;
-  final DocumentFile directory;
+  final DocumentFile? directory;
   final DownloadSchema schema;
 
   const DownloadBook({
@@ -77,7 +77,7 @@ class DownloadBook extends BookDetailsEvent {
     required this.author,
     required this.series,
     required this.seriesIndex,
-    required this.directory,
+    this.directory,
     required this.schema,
   });
 
@@ -112,31 +112,23 @@ class SendBookByEmail extends BookDetailsEvent {
 }
 
 class OpenBookInReader extends BookDetailsEvent {
-  final DocumentFile selectedDirectory;
+  final DocumentFile? selectedDirectory;
   final DownloadSchema schema;
 
-  const OpenBookInReader({
-    required this.selectedDirectory,
-    required this.schema,
-  });
+  const OpenBookInReader({this.selectedDirectory, required this.schema});
 
   @override
   List<Object?> get props => [selectedDirectory, schema];
 }
 
 class OpenBookInInternalReader extends BookDetailsEvent {
-  final DocumentFile selectedDirectory;
-  final DownloadSchema schema;
   final BookDetailsModel book;
+  final String format;
 
-  const OpenBookInInternalReader({
-    required this.selectedDirectory,
-    required this.schema,
-    required this.book,
-  });
+  const OpenBookInInternalReader({required this.book, required this.format});
 
   @override
-  List<Object> get props => [selectedDirectory, schema, book];
+  List<Object> get props => [book, format];
 }
 
 class OpenBookInBrowser extends BookDetailsEvent {

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +10,7 @@ import 'package:calibre_web_companion/features/book_details/bloc/book_details_st
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
@@ -83,42 +86,44 @@ class SendToEreaderWidget extends StatelessWidget {
     AppLocalizations localizations,
     SettingsState settingsState,
   ) async {
-    if (settingsState.storeReadNowAndSendToEReaderOnDevice &&
-        settingsState.defaultDownloadPath.isEmpty) {
-      if (context.mounted) {
-        context.showSnackBar(
-          localizations.pleaseSetDefaultDownloadFolderFirst,
-          isError: true,
-        );
-      }
-      return;
-    }
-
     DocumentFile? selectedDirectory;
 
-    if (settingsState.defaultDownloadPath.isEmpty) {
-      selectedDirectory = await DocMan.pick.directory();
-      if (selectedDirectory == null) {
+    if (Platform.isAndroid) {
+      if (settingsState.storeReadNowAndSendToEReaderOnDevice &&
+          settingsState.defaultDownloadPath.isEmpty) {
         if (context.mounted) {
           context.showSnackBar(
-            localizations.noFolderWasSelected,
+            localizations.pleaseSetDefaultDownloadFolderFirst,
             isError: true,
           );
         }
         return;
       }
-    } else {
-      final uri = settingsState.defaultDownloadPath;
-      selectedDirectory =
-          uri.isNotEmpty ? await DocumentFile.fromUri(uri) : null;
-      if (selectedDirectory == null || !selectedDirectory.isDirectory) {
-        if (context.mounted) {
-          context.showSnackBar(
-            localizations.noFolderWasSelected,
-            isError: true,
-          );
+
+      if (settingsState.defaultDownloadPath.isEmpty) {
+        selectedDirectory = await DocMan.pick.directory();
+        if (selectedDirectory == null) {
+          if (context.mounted) {
+            context.showSnackBar(
+              localizations.noFolderWasSelected,
+              isError: true,
+            );
+          }
+          return;
         }
-        return;
+      } else {
+        final uri = settingsState.defaultDownloadPath;
+        selectedDirectory =
+            uri.isNotEmpty ? await DocumentFile.fromUri(uri) : null;
+        if (selectedDirectory == null || !selectedDirectory.isDirectory) {
+          if (context.mounted) {
+            context.showSnackBar(
+              localizations.noFolderWasSelected,
+              isError: true,
+            );
+          }
+          return;
+        }
       }
     }
 
@@ -181,11 +186,7 @@ class SendToEreaderWidget extends StatelessWidget {
                       onPressed: () => Navigator.pop(context),
                       child: Text(localizations.cancel),
                     ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.primaryContainer,
-                      ),
+                    AppDialogButton(
                       onPressed:
                           () => _handleSendAction(
                             parentContext,
@@ -195,13 +196,7 @@ class SendToEreaderWidget extends StatelessWidget {
                             codeController,
                             isKindle,
                           ),
-                      child: Text(
-                        localizations.send,
-                        style: TextStyle(
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
-                        ),
-                      ),
+                      label: localizations.send,
                     ),
                   ],
                 ),
@@ -481,7 +476,13 @@ class SendToEreaderWidget extends StatelessWidget {
     final settingsState = context.read<SettingsBloc>().state;
     DocumentFile? selectedDirectory;
 
-    if (settingsState.storeReadNowAndSendToEReaderOnDevice) {
+    // "Store on device first" needs a SAF folder, which iOS doesn't have — there
+    // the bytes are streamed straight to the upload instead.
+    final storeOnDevice =
+        Platform.isAndroid &&
+        settingsState.storeReadNowAndSendToEReaderOnDevice;
+
+    if (storeOnDevice) {
       final uri = settingsState.defaultDownloadPath;
       if (uri.isEmpty) {
         context.showSnackBar(
@@ -516,8 +517,7 @@ class SendToEreaderWidget extends StatelessWidget {
         isKindle: isKindle,
         title: book.title,
         send2ereaderUrl: context.read<SettingsBloc>().state.send2ereaderUrl,
-        downloadToDeviceFirst:
-            settingsState.storeReadNowAndSendToEReaderOnDevice,
+        downloadToDeviceFirst: storeOnDevice,
         selectedDirectory: selectedDirectory,
         schema: settingsState.downloadSchema,
       ),

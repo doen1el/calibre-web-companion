@@ -354,12 +354,10 @@ class _SyncFilterBottomSheetState extends State<SyncFilterBottomSheet> {
       elevation: 0,
       color: Theme.of(context).colorScheme.surfaceContainer,
       child: ListTile(
-        leading: Icon(icon, color: Theme.of(context).colorScheme.secondary),
+        leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
         title: Text(title),
         subtitle: Text(
-          count > 0
-              ? "$count ${localization.selected}"
-              : localization.all,
+          count > 0 ? "$count ${localization.selected}" : localization.all,
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,

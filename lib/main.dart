@@ -8,9 +8,11 @@ import 'package:get_it/get_it.dart';
 import 'package:logger/web.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
+import 'package:cosmos_epub/cosmos_epub.dart';
+
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/di/injection_container.dart' as di;
-import 'package:calibre_web_companion/core/services/download_manager.dart'; // Import
+import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/core/services/app_log_service.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
@@ -20,6 +22,7 @@ import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.da
 import 'package:calibre_web_companion/features/discover/blocs/discover_bloc.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
+import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 import 'package:calibre_web_companion/features/homepage/bloc/homepage_bloc.dart';
 import 'package:calibre_web_companion/features/homepage/presentation/pages/home_page.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_event.dart';
@@ -61,6 +64,8 @@ void main() async {
 
   await di.getIt<DownloadManager>().initialize();
 
+  await CosmosEpub.initialize();
+
   final savedThemeMode = await AdaptiveTheme.getThemeMode();
 
   runZonedGuarded(
@@ -94,7 +99,8 @@ void main() async {
               create: (_) => getIt<SettingsBloc>()..add(LoadSettings()),
             ),
             BlocProvider<DownloadServiceBloc>(
-              create: (_) => getIt<DownloadServiceBloc>(),
+              create:
+                  (_) => getIt<DownloadServiceBloc>()..add(LoadSavedFilter()),
             ),
             BlocProvider<HomePageBloc>(create: (_) => getIt<HomePageBloc>()),
             BlocProvider<BookDetailsBloc>(
@@ -161,7 +167,8 @@ class _MyAppState extends State<MyApp> {
               previous.themeSource != current.themeSource ||
               previous.selectedColorKey != current.selectedColorKey ||
               previous.languageCode != current.languageCode ||
-              previous.isEInkMode != current.isEInkMode,
+              previous.isEInkMode != current.isEInkMode ||
+              previous.textScale != current.textScale,
 
       builder: (context, settingsState) {
         return DynamicColorBuilder(
@@ -213,6 +220,15 @@ class _MyAppState extends State<MyApp> {
                 themeMode: settingsState.themeMode,
                 navigatorKey: navigatorKey,
                 navigatorObservers: [routeObserver],
+                builder: (context, child) {
+                  final mediaQuery = MediaQuery.of(context);
+                  return MediaQuery(
+                    data: mediaQuery.copyWith(
+                      textScaler: TextScaler.linear(settingsState.textScale),
+                    ),
+                    child: child ?? const SizedBox.shrink(),
+                  );
+                },
                 localizationsDelegates: AppLocalizations.localizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
                 locale: Locale(settingsState.languageCode ?? 'en'),

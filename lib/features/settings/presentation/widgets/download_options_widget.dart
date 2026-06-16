@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:docman/docman.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -7,6 +9,7 @@ import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -18,8 +21,10 @@ class DownloadOptionsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildSelectingDownloadFolder(context),
-        _buildSelectingDownloadSchema(context),
+        if (Platform.isAndroid) ...[
+          _buildSelectingDownloadFolder(context),
+          _buildSelectingDownloadSchema(context),
+        ],
       ],
     );
   }
@@ -66,12 +71,21 @@ class DownloadOptionsWidget extends StatelessWidget {
                 const SizedBox(width: 16),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
                   ),
                   onPressed: () async {
-                    DocumentFile? selectedDirectory =
-                        await DocMan.pick.directory();
-                    if (selectedDirectory == null) {
+                    String? selectedPath;
+
+                    if (Platform.isAndroid) {
+                      DocumentFile? selectedDirectory =
+                          await DocMan.pick.directory();
+                      selectedPath = selectedDirectory?.uri;
+                    } else {
+                      selectedPath = await FilePicker.getDirectoryPath();
+                    }
+
+                    if (selectedPath == null) {
                       // ignore: use_build_context_synchronously
                       context.showSnackBar(
                         localizations.noFolderWasSelected,
@@ -81,14 +95,11 @@ class DownloadOptionsWidget extends StatelessWidget {
                     }
 
                     final prefs = await SharedPreferences.getInstance();
-                    await prefs.setString(
-                      'download_folder_path',
-                      selectedDirectory.uri,
-                    );
+                    await prefs.setString('download_folder_path', selectedPath);
 
                     // ignore: use_build_context_synchronously
                     context.read<SettingsBloc>().add(
-                      SetDownloadFolder(selectedDirectory.uri),
+                      SetDownloadFolder(selectedPath),
                     );
 
                     // ignore: use_build_context_synchronously
@@ -100,7 +111,7 @@ class DownloadOptionsWidget extends StatelessWidget {
                   child: Text(
                     localizations.select,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
                   ),
                 ),
@@ -165,7 +176,8 @@ class DownloadOptionsWidget extends StatelessWidget {
                 const SizedBox(width: 16),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
                   ),
                   onPressed: () async {
                     final result = await _showSchemaSelectionDialog(
@@ -189,7 +201,7 @@ class DownloadOptionsWidget extends StatelessWidget {
                   child: Text(
                     localizations.select,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
                   ),
                 ),
@@ -321,11 +333,11 @@ class DownloadOptionsWidget extends StatelessWidget {
                 ),
               ),
               actions: <Widget>[
-                ElevatedButton(
-                  child: Text(localizations.cancel),
+                AppDialogButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
+                  label: localizations.cancel,
                 ),
               ],
             );

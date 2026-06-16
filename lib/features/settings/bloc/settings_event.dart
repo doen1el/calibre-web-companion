@@ -200,15 +200,6 @@ class TestWebDavConnection extends SettingsEvent {
   List<Object?> get props => [url, username, password];
 }
 
-class SetEpubScrollDirection extends SettingsEvent {
-  final String direction;
-
-  const SetEpubScrollDirection(this.direction);
-
-  @override
-  List<Object?> get props => [direction];
-}
-
 class ResetConnectionTestStatus extends SettingsEvent {}
 
 class SetShowSendToEReaderButton extends SettingsEvent {
@@ -227,6 +218,15 @@ class SetEInkMode extends SettingsEvent {
 
   @override
   List<Object?> get props => [enabled];
+}
+
+class SetTextScale extends SettingsEvent {
+  final double scale;
+
+  const SetTextScale(this.scale);
+
+  @override
+  List<Object?> get props => [scale];
 }
 
 class SetBookActionsOrder extends SettingsEvent {
