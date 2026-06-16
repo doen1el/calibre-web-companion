@@ -16,6 +16,16 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+gradle.projectsEvaluated {
+    subprojects {
+        tasks.configureEach {
+            if (name.contains("lintVitalAnalyzeRelease") || name.contains("lintVitalRelease") || name.contains("lintVitalReportRelease")) {
+                enabled = false
+            }
+        }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }

@@ -64,8 +64,8 @@ jobs:
         id: version
         run: |
           full=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r ')
-          version="${full%%+*}"          # 1.8.9
-          code="${full##*+}"             # 34
+          version="${full%%+*}"
+          code="${full##*+}"
           prev_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           echo "VERSION=$version" >> "$GITHUB_ENV"
           echo "VERSION_CODE=$code" >> "$GITHUB_ENV"
