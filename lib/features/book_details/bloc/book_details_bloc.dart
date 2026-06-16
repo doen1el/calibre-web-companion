@@ -282,15 +282,26 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
 
       final schema = event.schema;
 
-      final filePath = await repository.downloadBook(
-        state.bookDetails!,
-        event.directory,
-        schema,
-        format: event.format,
-        progressCallback: (progress) {
-          emit(state.copyWith(downloadProgress: progress));
-        },
-      );
+      final String filePath;
+      if (event.directory == null) {
+        filePath = await repository.downloadBookToDevice(
+          state.bookDetails!,
+          format: event.format,
+          progressCallback: (progress) {
+            emit(state.copyWith(downloadProgress: progress));
+          },
+        );
+      } else {
+        filePath = await repository.downloadBook(
+          state.bookDetails!,
+          event.directory!,
+          schema,
+          format: event.format,
+          progressCallback: (progress) {
+            emit(state.copyWith(downloadProgress: progress));
+          },
+        );
+      }
 
       if (state.bookViewModel != null) {
         await downloadManager.registerDownload(

@@ -21,8 +21,10 @@ class DownloadOptionsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildSelectingDownloadFolder(context),
-        _buildSelectingDownloadSchema(context),
+        if (Platform.isAndroid) ...[
+          _buildSelectingDownloadFolder(context),
+          _buildSelectingDownloadSchema(context),
+        ],
       ],
     );
   }

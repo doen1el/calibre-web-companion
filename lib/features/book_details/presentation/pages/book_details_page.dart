@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:convert';
 
@@ -1108,33 +1109,35 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                     : () async {
                       DocumentFile? selectedDirectory;
 
-                      if (settingsState.defaultDownloadPath.isEmpty) {
-                        selectedDirectory = await DocMan.pick.directory();
-                        if (selectedDirectory == null) {
-                          // ignore: use_build_context_synchronously
-                          Navigator.pop(context);
+                      if (Platform.isAndroid) {
+                        if (settingsState.defaultDownloadPath.isEmpty) {
+                          selectedDirectory = await DocMan.pick.directory();
+                          if (selectedDirectory == null) {
+                            // ignore: use_build_context_synchronously
+                            Navigator.pop(context);
 
-                          // ignore: use_build_context_synchronously
-                          context.showSnackBar(
-                            localizations.noFolderWasSelected,
-                            isError: true,
-                          );
-                          return;
-                        }
-                      } else {
-                        final uri = settingsState.defaultDownloadPath;
-                        selectedDirectory =
-                            uri.isNotEmpty
-                                ? await DocumentFile.fromUri(uri)
-                                : null;
-                        if (selectedDirectory == null ||
-                            !selectedDirectory.isDirectory) {
-                          // ignore: use_build_context_synchronously
-                          context.showSnackBar(
-                            localizations.noFolderWasSelected,
-                            isError: true,
-                          );
-                          return;
+                            // ignore: use_build_context_synchronously
+                            context.showSnackBar(
+                              localizations.noFolderWasSelected,
+                              isError: true,
+                            );
+                            return;
+                          }
+                        } else {
+                          final uri = settingsState.defaultDownloadPath;
+                          selectedDirectory =
+                              uri.isNotEmpty
+                                  ? await DocumentFile.fromUri(uri)
+                                  : null;
+                          if (selectedDirectory == null ||
+                              !selectedDirectory.isDirectory) {
+                            // ignore: use_build_context_synchronously
+                            context.showSnackBar(
+                              localizations.noFolderWasSelected,
+                              isError: true,
+                            );
+                            return;
+                          }
                         }
                       }
 

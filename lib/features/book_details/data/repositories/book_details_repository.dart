@@ -52,7 +52,7 @@ class BookDetailsRepository {
 
   Future<bool> openInReader(
     BookDetailsModel book,
-    DocumentFile selectedDirectory,
+    DocumentFile? selectedDirectory,
     DownloadSchema schema, {
     Function(int)? progressCallback,
   }) async {
@@ -185,6 +185,16 @@ class BookDetailsRepository {
     String format = 'epub',
     Function(int)? progressCallback,
   }) => datasource.streamBookBytes(
+    book,
+    format: format,
+    progressCallback: progressCallback,
+  );
+
+  Future<String> downloadBookToDevice(
+    BookDetailsModel book, {
+    String format = 'epub',
+    Function(int)? progressCallback,
+  }) => datasource.downloadBookToDevice(
     book,
     format: format,
     progressCallback: progressCallback,

@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -573,7 +574,7 @@ class BookDetailsRemoteDatasource {
 
   Future<bool> openInReader(
     BookDetailsModel book,
-    DocumentFile selectedDirectory,
+    DocumentFile? selectedDirectory,
     DownloadSchema schema, {
     Function(int)? progressCallback,
   }) async {
@@ -585,29 +586,39 @@ class BookDetailsRemoteDatasource {
         format = book.formats.first.toLowerCase();
       }
 
-      final filePath = await downloadBookToPath(
-        book: book,
-        selectedDirectory: selectedDirectory,
-        schema: schema,
-        format: format,
-        progressCallback: progressCallback,
-      );
+      String localPath;
+      if (selectedDirectory == null) {
+        localPath = await downloadBookToDevice(
+          book,
+          format: format,
+          progressCallback: progressCallback,
+        );
+      } else {
+        final filePath = await downloadBookToPath(
+          book: book,
+          selectedDirectory: selectedDirectory,
+          schema: schema,
+          format: format,
+          progressCallback: progressCallback,
+        );
 
-      DocumentFile? file =
-          filePath.isNotEmpty ? await DocumentFile.fromUri(filePath) : null;
+        final file =
+            filePath.isNotEmpty ? await DocumentFile.fromUri(filePath) : null;
 
-      if (file == null || !file.isFile) {
-        logger.e('Downloaded file is not a valid file: $filePath');
-        return false;
+        if (file == null || !file.isFile) {
+          logger.e('Downloaded file is not a valid file: $filePath');
+          return false;
+        }
+
+        final cachedFile = await file.cache();
+        if (cachedFile == null) {
+          logger.e('Could not cache file for opening');
+          return false;
+        }
+        localPath = cachedFile.path;
       }
 
-      final cachedFile = await file.cache();
-      if (cachedFile == null) {
-        logger.e('Could not cache file for opening');
-        return false;
-      }
-
-      final result = await OpenFile.open(cachedFile.path);
+      final result = await OpenFile.open(localPath);
 
       if (result.type != ResultType.done) {
         logger.e('Error while opening the file: ${result.message}');
@@ -727,6 +738,29 @@ class BookDetailsRemoteDatasource {
       }
     }
     return Uint8List.fromList(bytes);
+  }
+
+  Future<String> downloadBookToDevice(
+    BookDetailsModel book, {
+    String format = 'epub',
+    Function(int)? progressCallback,
+  }) async {
+    logger.i('Downloading "${book.title}" to app sandbox, format: $format');
+    final bytes = await streamBookBytes(
+      book,
+      format: format,
+      progressCallback: progressCallback,
+    );
+
+    final dir = await getApplicationDocumentsDirectory();
+    final safeTitle =
+        book.title.replaceAll(RegExp(r'[\\/:*?"<>|.]'), '').trim();
+    final fileName = '${safeTitle.isEmpty ? 'book' : safeTitle}.$format';
+    final file = File('${dir.path}/$fileName');
+    await file.writeAsBytes(bytes, flush: true);
+
+    logger.i('Saved book to ${file.path}');
+    return file.path;
   }
 
   Future<Uint8List?> readLocalEpubBytes(String path) async {

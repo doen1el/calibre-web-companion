@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_file/open_file.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
@@ -126,40 +129,61 @@ class DownloadToDeviceWidget extends StatelessWidget {
   ) async {
     final settingsState = context.read<SettingsBloc>().state;
     DocumentFile? selectedDirectory;
-    if (settingsState.defaultDownloadPath.isEmpty) {
-      _showDownloadStatusSheet(
-        // ignore: use_build_context_synchronously
-        context,
-        localizations,
-        DownloadState.selectingDestination,
-        null,
-        0,
-        () {
+
+    if (Platform.isAndroid) {
+      if (settingsState.defaultDownloadPath.isEmpty) {
+        _showDownloadStatusSheet(
+          // ignore: use_build_context_synchronously
+          context,
+          localizations,
+          DownloadState.selectingDestination,
+          null,
+          0,
+          () {
+            Navigator.pop(context);
+          },
+        );
+
+        selectedDirectory = await DocMan.pick.directory();
+        if (selectedDirectory == null) {
+          // ignore: use_build_context_synchronously
           Navigator.pop(context);
-        },
-      );
 
-      selectedDirectory = await DocMan.pick.directory();
-      if (selectedDirectory == null) {
-        // ignore: use_build_context_synchronously
-        Navigator.pop(context);
+          // ignore: use_build_context_synchronously
+          context.showSnackBar(
+            localizations.noFolderWasSelected,
+            isError: true,
+          );
+          return;
+        }
+      } else {
+        final uri = settingsState.defaultDownloadPath;
+        selectedDirectory =
+            uri.isNotEmpty ? await DocumentFile.fromUri(uri) : null;
+        if (selectedDirectory == null || !selectedDirectory.isDirectory) {
+          // ignore: use_build_context_synchronously
+          context.showSnackBar(
+            localizations.noFolderWasSelected,
+            isError: true,
+          );
+          return;
+        }
 
-        // ignore: use_build_context_synchronously
-        context.showSnackBar(localizations.noFolderWasSelected, isError: true);
-        return;
+        _showDownloadStatusSheet(
+          // ignore: use_build_context_synchronously
+          context,
+          localizations,
+          DownloadState.downloading,
+          null,
+          0,
+          () {
+            context.read<BookDetailsBloc>().add(CancelDownload());
+            Navigator.pop(context);
+          },
+        );
       }
     } else {
-      final uri = settingsState.defaultDownloadPath;
-      selectedDirectory =
-          uri.isNotEmpty ? await DocumentFile.fromUri(uri) : null;
-      if (selectedDirectory == null || !selectedDirectory.isDirectory) {
-        // ignore: use_build_context_synchronously
-        context.showSnackBar(localizations.noFolderWasSelected, isError: true);
-        return;
-      }
-
       _showDownloadStatusSheet(
-        // ignore: use_build_context_synchronously
         context,
         localizations,
         DownloadState.downloading,
@@ -214,8 +238,11 @@ class DownloadToDeviceWidget extends StatelessWidget {
                         current.downloadErrorMessage;
               },
               listener: (context, state) {
-                if (state.downloadState == DownloadState.success ||
-                    state.downloadState == DownloadState.failed) {}
+                if (state.downloadState == DownloadState.success &&
+                    !Platform.isAndroid &&
+                    state.downloadFilePath != null) {
+                  OpenFile.open(state.downloadFilePath!);
+                }
               },
               buildWhen: (previous, current) {
                 return previous.downloadState != current.downloadState ||
