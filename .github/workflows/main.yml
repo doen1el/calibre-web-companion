@@ -112,6 +112,8 @@ jobs:
         run: |
           changelog="fastlane/metadata/android/en-US/changelogs/${VERSION_CODE}.txt"
           {
+            echo "## v${VERSION}"
+            echo
             echo "_TODO: Write a short summary of this release._"
             echo
             echo "Special thanks to:"
