@@ -1,0 +1,81 @@
+name: cosmos_epub
+description: >
+  Feature-rich EPUB reader package for Flutter with page flip animations,
+  text highlighting, hyphenation, infinite nested chapters, image support,
+  RTL languages, customizable themes and fonts.
+version: 1.0.0+1
+repository: https://github.com/Mamasodikov/cosmos_epub
+issue_tracker: https://github.com/Mamasodikov/cosmos_epub/issues
+
+environment:
+  sdk: ">=3.1.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  epubx: ^4.0.0
+  html: ^0.15.4
+  http: ^1.1.0
+  get_storage: ^2.1.1
+  path_provider: ^2.1.3
+  flutter_screenutil: ^5.9.0
+  flutter_svg: ^2.2.3
+  fading_edge_scrollview: ^4.1.1
+  screen_brightness: ^1.0.1
+  fluttertoast: ^8.2.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  build_runner: ^2.4.9
+
+flutter:
+  assets:
+    - assets/
+
+  fonts:
+    - family: Alegreya
+      fonts:
+        - asset: assets/fonts/Alegreya.ttf
+    - family: Amazon Ember
+      fonts:
+        - asset: assets/fonts/Amazon-Ember-Regular.ttf
+    - family: Atkinson Hyperlegible
+      fonts:
+        - asset: assets/fonts/AtkinsonHyperlegible-Regular.ttf
+    - family: Bitter Pro
+      fonts:
+        - asset: assets/fonts/BitterPro-Regular.ttf
+    - family: Bookerly
+      fonts:
+        - asset: assets/fonts/Bookerly.ttf
+    - family: Droid Sans
+      fonts:
+        - asset: assets/fonts/DroidSans.ttf
+    - family: EB Garamond
+      fonts:
+        - asset: assets/fonts/EBGaramond-Var.ttf
+    - family: Gentium Book Plus
+      fonts:
+        - asset: assets/fonts/GentiumBookPlus-Regular.ttf
+    - family: Halant
+      fonts:
+        - asset: assets/fonts/Halant-Regular.ttf
+    - family: IBM Plex Sans
+      fonts:
+        - asset: assets/fonts/IBMPlexSans-Regular.ttf
+    - family: LinLibertine
+      fonts:
+        - asset: assets/fonts/LinLibertine-Regular.ttf
+    - family: Literata
+      fonts:
+        - asset: assets/fonts/Literata-Var.ttf
+    - family: Lora
+      fonts:
+        - asset: assets/fonts/Lora-Var.ttf
+    - family: Ubuntu
+      fonts:
+        - asset: assets/fonts/Ubuntu-Var.ttf

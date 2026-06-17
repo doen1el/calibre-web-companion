@@ -1,0 +1,1 @@
+- Fixed: libisar.so was removed and the cosmos_epub package was changed to enable a reproducible build for F-Droid.
