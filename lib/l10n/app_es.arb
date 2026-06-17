@@ -165,7 +165,7 @@
     "deleteShelfConfirmation": "¿Estás seguro de que quieres eliminar el estante {name}?",
     "addBooksToShelf": "Añadir libros al estante",
     "shelfIsEmpty": "El estante está vacío",
-    "removing": "Eliminando",
+    "removing": "Quitando",
     "manageBookShelves": "Gestionar estantes de libros",
     "bookInShelfs": "Libro en {count, plural, =1{un estante} other{{count} estantes}}",
     "searchForBooks": "Buscar libros",
@@ -181,7 +181,7 @@
     "deleteHeader": "Eliminar encabezado",
     "urlMustStartWithHttpOrHttps": "La URL debe comenzar con http:// o https://",
     "connection": "Conexión",
-    "httpHeaderSettings": "Configuración de encabezado HTTP",
+    "httpHeaderSettings": "Ajustes de autenticación",
     "feedback": "Comentarios",
     "reportIssue": "Informar de un problema",
     "reportAppIssueOrSuggestFeature": "Informar de un problema de la aplicación o sugerir una función",
@@ -472,5 +472,6 @@
     "inMagicShelves": "En estanterías mágicas",
     "magicRulesLoadFailed": "No se pudieron cargar las reglas actuales (tiempo de espera del servidor). Puedes recrearlas y guardar.",
     "tapToChangeIcon": "Toca para cambiar",
-    "change": "Cambiar"
+    "change": "Cambiar",
+    "storeReadNowAndSendToEReaderOnDevice": "Tienda Send2EReader/Leer Ahora descargas en el dispositivo"
 }
