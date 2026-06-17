@@ -140,10 +140,9 @@ packages:
   cosmos_epub:
     dependency: "direct main"
     description:
-      name: cosmos_epub
-      sha256: "68603def7311cf2c79335aed7c0a2a2db172a36b60c7f3a44928ca3d0f499f0b"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/cosmos_epub"
+      relative: true
+    source: path
     version: "1.0.0+1"
   cross_file:
     dependency: transitive
@@ -620,22 +619,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.20.2"
-  isar_community:
-    dependency: transitive
-    description:
-      name: isar_community
-      sha256: "683fd093956eac3a660776afb70d65d50a3391b3587b40b89e3d12586b8cc47f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.3.2"
-  isar_community_flutter_libs:
-    dependency: transitive
-    description:
-      name: isar_community_flutter_libs
-      sha256: c44340fa38c81ef16d924202d443bbe799cde4826be9a31a9dc92ee612e1966f
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.3.2"
   jni:
     dependency: transitive
     description:
@@ -652,14 +635,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
-  js:
-    dependency: transitive
-    description:
-      name: js
-      sha256: "53385261521cc4a0c4658fd0ad07a7d14591cf8fc33abbceae306ddb974888dc"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.7.2"
   json_annotation:
     dependency: transitive
     description:
