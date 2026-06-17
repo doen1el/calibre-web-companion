@@ -469,5 +469,8 @@
     "inMagicShelves": "Negli scaffali magici",
     "magicRulesLoadFailed": "Impossibile caricare le regole attuali (timeout del server). Puoi ricrearle e salvare.",
     "tapToChangeIcon": "Tocca per cambiare",
-    "change": "Cambia"
+    "change": "Cambia",
+    "storeReadNowAndSendToEReaderOnDeviceDescription": "",
+    "pleaseSetDefaultDownloadFolderFirst": "",
+    "storeReadNowAndSendToEReaderOnDevice": ""
 }
