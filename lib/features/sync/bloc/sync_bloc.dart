@@ -10,6 +10,8 @@ import 'package:calibre_web_companion/features/book_view/data/repositories/book_
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
+import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
+import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/repositories/shelf_details_repository.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
@@ -478,6 +480,29 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       );
 
       await downloadManager.registerDownload(item.book.uuid, path);
+
+      try {
+        final coverBytes = await bookDetailsRepository.fetchCoverBytes(
+          bookDetails.id,
+          bookDetails.coverUrl,
+        );
+        await GetIt.instance<OfflineLibraryRepository>().saveBook(
+          OfflineBookModel(
+            uuid: item.book.uuid,
+            id: bookDetails.id,
+            title: bookDetails.title,
+            authors: bookDetails.authors,
+            series: bookDetails.series,
+            seriesIndex: bookDetails.seriesIndex,
+            filePath: path,
+            format: formatToDownload,
+            savedAt: DateTime.now().millisecondsSinceEpoch,
+          ),
+          coverBytes: coverBytes,
+        );
+      } catch (e) {
+        logger.w('Could not cache offline metadata (sync): $e');
+      }
 
       newQueue = List.from(state.queue);
       newQueue[index] = item.copyWith(status: 'done');

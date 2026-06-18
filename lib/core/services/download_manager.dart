@@ -97,6 +97,8 @@ class DownloadManager {
     return _downloadedBooks[uuid];
   }
 
+  Map<String, String> get allDownloads => Map.unmodifiable(_downloadedBooks);
+
   Future<void> registerDownload(String uuid, String path) async {
     _downloadedBooks[uuid] = path;
     await _save();

@@ -19,7 +19,7 @@ import 'package:calibre_web_companion/features/settings/data/models/download_sch
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
-import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart'; // Import hinzufügen
+import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart';
 
 class BookDetailsRemoteDatasource {
   final ApiService apiService;
@@ -718,6 +718,29 @@ class BookDetailsRemoteDatasource {
       logger.e('Error getting download stream with progress: $e');
       throw Exception('Error getting download stream: $e');
     }
+  }
+
+  Future<Uint8List?> fetchCoverBytes(int bookId, String? coverUrl) async {
+    try {
+      String endpoint;
+      if (coverUrl != null && coverUrl.isNotEmpty) {
+        var clean = coverUrl.split('/api/v1/opds/').last;
+        if (clean.startsWith('/')) clean = clean.substring(1);
+        endpoint = '/$clean';
+      } else {
+        endpoint = '/opds/cover/$bookId';
+      }
+      final response = await apiService.get(
+        endpoint: endpoint,
+        authMethod: AuthMethod.auto,
+      );
+      if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+        return response.bodyBytes;
+      }
+    } catch (e) {
+      logger.w('Could not fetch cover bytes for $bookId: $e');
+    }
+    return null;
   }
 
   Future<Uint8List> streamBookBytes(

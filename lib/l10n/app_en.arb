@@ -449,6 +449,8 @@
   "isbn": "ISBN",
   "pointCameraAtBarcode": "Point the camera at the book's barcode",
   "cameraPermissionRequired": "Camera permission is required to scan barcodes",
+  "offline": "Offline",
+  "offlineBannerMessage": "You're offline — showing your downloaded books",
   "lookingUpBook": "Looking up book…",
   "isbnNotFound": "No book found for this ISBN",
   "scanAgain": "Scan again",

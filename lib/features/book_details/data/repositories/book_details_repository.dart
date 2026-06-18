@@ -200,6 +200,9 @@ class BookDetailsRepository {
     progressCallback: progressCallback,
   );
 
+  Future<Uint8List?> fetchCoverBytes(int bookId, String? coverUrl) =>
+      datasource.fetchCoverBytes(bookId, coverUrl);
+
   Future<Uint8List?> readLocalEpubBytes(String path) =>
       datasource.readLocalEpubBytes(path);
 

@@ -2,7 +2,11 @@ import 'dart:typed_data';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:docman/docman.dart';
+import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
+
+import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
+import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
@@ -303,16 +307,31 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         );
       }
 
-      if (state.bookViewModel != null) {
-        await downloadManager.registerDownload(
-          state.bookViewModel!.uuid,
-          filePath,
+      final uuid = state.bookViewModel?.uuid ?? state.bookDetails!.uuid;
+      await downloadManager.registerDownload(uuid, filePath);
+
+      try {
+        final details = state.bookDetails!;
+        final coverBytes = await repository.fetchCoverBytes(
+          details.id,
+          details.coverUrl,
         );
-      } else {
-        await downloadManager.registerDownload(
-          state.bookDetails!.uuid,
-          filePath,
+        await GetIt.instance<OfflineLibraryRepository>().saveBook(
+          OfflineBookModel(
+            uuid: uuid,
+            id: details.id,
+            title: details.title,
+            authors: details.authors,
+            series: details.series,
+            seriesIndex: details.seriesIndex,
+            filePath: filePath,
+            format: event.format,
+            savedAt: DateTime.now().millisecondsSinceEpoch,
+          ),
+          coverBytes: coverBytes,
         );
+      } catch (e) {
+        logger.w('Could not cache offline metadata: $e');
       }
 
       logger.i('Download completed successfully: $filePath');
