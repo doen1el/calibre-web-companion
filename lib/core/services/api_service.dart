@@ -375,6 +375,24 @@ class ApiService {
   /// - `authMethod`: The authentication method to use
   /// - `queryParams`: Optional query parameters
   /// - `followRedirects`: If false, will throw a [RedirectException] on 301/302 status codes.
+  Future<bool> isReachable({
+    Duration timeout = const Duration(seconds: 6),
+  }) async {
+    if (_baseUrl == null || _baseUrl!.isEmpty) return false;
+    final client = _createClient();
+    try {
+      final uri = _buildUri(endpoint: '/');
+      final headers = <String, String>{};
+      if (_userAgent != null) headers['User-Agent'] = _userAgent!;
+      final response = await client.get(uri, headers: headers).timeout(timeout);
+      return response.statusCode > 0;
+    } catch (_) {
+      return false;
+    } finally {
+      client.close();
+    }
+  }
+
   Future<http.Response> get({
     String endpoint = '',
     AuthMethod authMethod = AuthMethod.basic,

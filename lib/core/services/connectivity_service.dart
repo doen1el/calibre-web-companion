@@ -21,10 +21,7 @@ class ConnectivityService {
       final baseUrl = apiService.getBaseUrl();
       if (baseUrl.isEmpty) return false;
 
-      final response = await apiService
-          .get(endpoint: '/', authMethod: AuthMethod.none)
-          .timeout(const Duration(seconds: 6));
-      return response.statusCode > 0;
+      return await apiService.isReachable();
     } catch (_) {
       return false;
     }

@@ -14,7 +14,6 @@ class ConnectivityCubit extends Cubit<ConnectivityStatus> {
 
   ConnectivityCubit({required this.service})
     : super(ConnectivityStatus.unknown) {
-    recheck();
     _subscription = service.onChange.listen((_) => recheck());
   }
 
