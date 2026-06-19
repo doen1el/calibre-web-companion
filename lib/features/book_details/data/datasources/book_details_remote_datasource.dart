@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/services/external_file_opener.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
@@ -572,11 +573,12 @@ class BookDetailsRemoteDatasource {
     }
   }
 
-  Future<bool> openInReader(
+  Future<String?> openInReader(
     BookDetailsModel book,
     DocumentFile? selectedDirectory,
     DownloadSchema schema, {
     Function(int)? progressCallback,
+    Future<void> Function(String path)? onFileDownloaded,
   }) async {
     try {
       logger.i('Opening book in reader: ${book.title}');
@@ -607,29 +609,32 @@ class BookDetailsRemoteDatasource {
 
         if (file == null || !file.isFile) {
           logger.e('Downloaded file is not a valid file: $filePath');
-          return false;
+          return null;
         }
-
-        final cachedFile = await file.cache();
-        if (cachedFile == null) {
-          logger.e('Could not cache file for opening');
-          return false;
-        }
-        localPath = cachedFile.path;
+        localPath = filePath;
       }
 
-      final result = await OpenFile.open(localPath);
+      await onFileDownloaded?.call(localPath);
 
+      final result = await _openPath(localPath);
       if (result.type != ResultType.done) {
         logger.e('Error while opening the file: ${result.message}');
         throw Exception('Error while opening: ${result.message}');
       }
 
       logger.i('Opened book successfully');
-      return true;
+      return localPath;
     } catch (e) {
       logger.e('Error opening book in reader: $e');
       throw Exception('Error opening book in reader: $e');
+    }
+  }
+
+  Future<OpenResult> _openPath(String filePath) async {
+    try {
+      return await ExternalFileOpener.open(filePath);
+    } catch (e) {
+      return OpenResult(type: ResultType.error, message: e.toString());
     }
   }
 

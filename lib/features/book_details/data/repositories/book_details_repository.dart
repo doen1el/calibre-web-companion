@@ -50,11 +50,12 @@ class BookDetailsRepository {
     }
   }
 
-  Future<bool> openInReader(
+  Future<String?> openInReader(
     BookDetailsModel book,
     DocumentFile? selectedDirectory,
     DownloadSchema schema, {
     Function(int)? progressCallback,
+    Future<void> Function(String path)? onFileDownloaded,
   }) async {
     try {
       return await datasource.openInReader(
@@ -62,6 +63,7 @@ class BookDetailsRepository {
         selectedDirectory,
         schema,
         progressCallback: progressCallback,
+        onFileDownloaded: onFileDownloaded,
       );
     } catch (e) {
       rethrow;

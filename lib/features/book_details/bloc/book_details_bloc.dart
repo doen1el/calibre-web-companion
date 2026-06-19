@@ -377,7 +377,9 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         ),
       );
 
-      final success = await repository.openInReader(
+      final uuid = state.bookViewModel?.uuid ?? state.bookDetails!.uuid;
+
+      final openedFilePath = await repository.openInReader(
         state.bookDetails!,
         event.selectedDirectory,
         event.schema,
@@ -385,13 +387,19 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           logger.d('Reader download progress: $progress%');
           emit(state.copyWith(downloadProgress: progress));
         },
+        onFileDownloaded: (path) async {
+          await downloadManager.registerDownload(uuid, path);
+          emit(state.copyWith(downloadFilePath: path, isDownloaded: true));
+        },
       );
 
-      if (success) {
+      if (openedFilePath != null) {
         emit(
           state.copyWith(
             openInReaderState: OpenInReaderState.success,
             downloadProgress: 100,
+            downloadFilePath: openedFilePath,
+            isDownloaded: true,
           ),
         );
       } else {
@@ -624,6 +632,12 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           throw Exception('Downloaded file is empty');
         }
         bookBytes.addAll(bytes);
+
+        final uuid = state.bookViewModel?.uuid ?? state.bookDetails!.uuid;
+        await downloadManager.registerDownload(uuid, localFileUri);
+        emit(
+          state.copyWith(downloadFilePath: localFileUri, isDownloaded: true),
+        );
       } else {
         final response = await repository.getDownloadStream(
           event.bookId,
