@@ -54,10 +54,32 @@ class _ConnectionDiagnosticsPageState extends State<ConnectionDiagnosticsPage> {
     return buffer.toString();
   }
 
+  DiagnosticResult? _resultFor(DiagnosticProbeId id) {
+    for (final r in _results) {
+      if (r.id == id) return r;
+    }
+    return null;
+  }
+
+  bool _looksLikeStockCalibre() {
+    final root = _resultFor(DiagnosticProbeId.serverReachable);
+    final ajax = _resultFor(DiagnosticProbeId.bookList);
+    final stats = _resultFor(DiagnosticProbeId.opdsStats);
+    if (root == null || ajax == null || stats == null) return false;
+    return root.verdict == ProbeVerdict.ok &&
+        ajax.statusCode == 404 &&
+        stats.statusCode == 404;
+  }
+
   String? _interpretation(AppLocalizations l) {
-    final ajax = _results.where((r) => r.id == DiagnosticProbeId.bookList);
-    if (ajax.isEmpty) return null;
-    switch (ajax.first.verdict) {
+    final ajax = _resultFor(DiagnosticProbeId.bookList);
+    if (ajax == null) return null;
+
+    if (_looksLikeStockCalibre()) {
+      return l.diagHintStockCalibre;
+    }
+
+    switch (ajax.verdict) {
       case ProbeVerdict.ok:
         return l.diagHintOk;
       case ProbeVerdict.redirect:
