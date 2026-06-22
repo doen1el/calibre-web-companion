@@ -8,6 +8,7 @@ import 'package:logger/logger.dart';
 import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
 import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
 
+import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
 
@@ -309,30 +310,12 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
 
       final uuid = state.bookViewModel?.uuid ?? state.bookDetails!.uuid;
       await downloadManager.registerDownload(uuid, filePath);
-
-      try {
-        final details = state.bookDetails!;
-        final coverBytes = await repository.fetchCoverBytes(
-          details.id,
-          details.coverUrl,
-        );
-        await GetIt.instance<OfflineLibraryRepository>().saveBook(
-          OfflineBookModel(
-            uuid: uuid,
-            id: details.id,
-            title: details.title,
-            authors: details.authors,
-            series: details.series,
-            seriesIndex: details.seriesIndex,
-            filePath: filePath,
-            format: event.format,
-            savedAt: DateTime.now().millisecondsSinceEpoch,
-          ),
-          coverBytes: coverBytes,
-        );
-      } catch (e) {
-        logger.w('Could not cache offline metadata: $e');
-      }
+      await _cacheOfflineSnapshot(
+        uuid,
+        state.bookDetails!,
+        filePath,
+        event.format,
+      );
 
       logger.i('Download completed successfully: $filePath');
       emit(
@@ -373,6 +356,36 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     emit(state.copyWith(downloadProgress: event.progress));
   }
 
+  Future<void> _cacheOfflineSnapshot(
+    String uuid,
+    BookDetailsModel details,
+    String filePath,
+    String format,
+  ) async {
+    try {
+      final coverBytes = await repository.fetchCoverBytes(
+        details.id,
+        details.coverUrl,
+      );
+      await GetIt.instance<OfflineLibraryRepository>().saveBook(
+        OfflineBookModel(
+          uuid: uuid,
+          id: details.id,
+          title: details.title,
+          authors: details.authors,
+          series: details.series,
+          seriesIndex: details.seriesIndex,
+          filePath: filePath,
+          format: format,
+          savedAt: DateTime.now().millisecondsSinceEpoch,
+        ),
+        coverBytes: coverBytes,
+      );
+    } catch (e) {
+      logger.w('Could not cache offline metadata: $e');
+    }
+  }
+
   Future<void> _onOpenBookInReader(
     OpenBookInReader event,
     Emitter<BookDetailsState> emit,
@@ -396,13 +409,25 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         ),
       );
 
+      final details = state.bookDetails!;
+      final uuid = state.bookViewModel?.uuid ?? details.uuid;
+      final format =
+          details.formats.isNotEmpty
+              ? details.formats.first.toLowerCase()
+              : 'epub';
+
       final success = await repository.openInReader(
-        state.bookDetails!,
+        details,
         event.selectedDirectory,
         event.schema,
         progressCallback: (progress) {
           logger.d('Reader download progress: $progress%');
           emit(state.copyWith(downloadProgress: progress));
+        },
+        onFileDownloaded: (path) async {
+          await downloadManager.registerDownload(uuid, path);
+          await _cacheOfflineSnapshot(uuid, details, path, format);
+          emit(state.copyWith(downloadFilePath: path, isDownloaded: true));
         },
       );
 

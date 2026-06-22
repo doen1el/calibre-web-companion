@@ -577,6 +577,7 @@ class BookDetailsRemoteDatasource {
     DocumentFile? selectedDirectory,
     DownloadSchema schema, {
     Function(int)? progressCallback,
+    Future<void> Function(String path)? onFileDownloaded,
   }) async {
     try {
       logger.i('Opening book in reader: ${book.title}');
@@ -587,12 +588,14 @@ class BookDetailsRemoteDatasource {
       }
 
       String localPath;
+      String durablePath;
       if (selectedDirectory == null) {
         localPath = await downloadBookToDevice(
           book,
           format: format,
           progressCallback: progressCallback,
         );
+        durablePath = localPath;
       } else {
         final filePath = await downloadBookToPath(
           book: book,
@@ -616,7 +619,10 @@ class BookDetailsRemoteDatasource {
           return false;
         }
         localPath = cachedFile.path;
+        durablePath = filePath;
       }
+
+      await onFileDownloaded?.call(durablePath);
 
       final result = await OpenFile.open(localPath);
 
