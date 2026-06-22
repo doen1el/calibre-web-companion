@@ -3,7 +3,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:get_it/get_it.dart';
+
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
+import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
+import 'package:calibre_web_companion/features/offline/data/services/offline_backfill_service.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_state.dart';
 
@@ -65,7 +69,8 @@ class _BookViewPageState extends State<BookViewPage> {
       listenWhen:
           (previous, current) =>
               previous.uploadStatus != current.uploadStatus ||
-              (current.hasError && !previous.hasError),
+              (current.hasError && !previous.hasError) ||
+              (previous.isLoading && !current.isLoading),
       listener: (context, state) {
         if (state.uploadStatus == UploadStatus.loading ||
             state.uploadStatus == UploadStatus.uploading) {
@@ -74,6 +79,11 @@ class _BookViewPageState extends State<BookViewPage> {
 
         if (state.hasError) {
           context.showSnackBar(state.errorMessage, isError: true);
+          context.read<ConnectivityCubit>().reportFailure();
+        }
+
+        if (!state.isLoading && !state.hasError && state.books.isNotEmpty) {
+          GetIt.instance<OfflineBackfillService>().run();
         }
       },
       builder: (context, state) {

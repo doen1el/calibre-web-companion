@@ -12,6 +12,8 @@ import 'package:calibre_web_companion/features/me/presentation/pages/me_page.dar
 import 'package:calibre_web_companion/features/download_service/presentation/pages/download_service_page.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
+import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
+import 'package:calibre_web_companion/features/offline/presentation/pages/offline_library_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -20,6 +22,61 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
 
+    return BlocBuilder<ConnectivityCubit, ConnectivityStatus>(
+      builder: (context, connectivity) {
+        if (connectivity == ConnectivityStatus.offline) {
+          return _buildOffline(context, localizations);
+        }
+        return _buildOnline(context, localizations);
+      },
+    );
+  }
+
+  Widget _buildOffline(BuildContext context, AppLocalizations localizations) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(localizations.offline),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: localizations.retry,
+            onPressed: () => context.read<ConnectivityCubit>().recheck(),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            color: theme.colorScheme.secondaryContainer,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.cloud_off_rounded,
+                  size: 20,
+                  color: theme.colorScheme.onSecondaryContainer,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    localizations.offlineBannerMessage,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Expanded(child: OfflineLibraryPage()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOnline(BuildContext context, AppLocalizations localizations) {
     return BlocBuilder<HomePageBloc, HomePageState>(
       builder: (context, homeState) {
         return BlocBuilder<SettingsBloc, SettingsState>(

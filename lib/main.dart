@@ -24,6 +24,7 @@ import 'package:calibre_web_companion/features/discover_details/bloc/discover_de
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 import 'package:calibre_web_companion/features/homepage/bloc/homepage_bloc.dart';
+import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
 import 'package:calibre_web_companion/features/homepage/presentation/pages/home_page.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_event.dart';
 import 'package:calibre_web_companion/features/me/bloc/me_bloc.dart';
@@ -116,6 +117,9 @@ void main() async {
             BlocProvider<SyncBloc>(
               create:
                   (_) => getIt<SyncBloc>()..add(const CheckForUnsyncedBooks()),
+            ),
+            BlocProvider<ConnectivityCubit>(
+              create: (_) => getIt<ConnectivityCubit>(),
             ),
           ],
           child: MyApp(savedThemeMode: savedThemeMode),

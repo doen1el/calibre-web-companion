@@ -11,6 +11,10 @@ import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/core/services/app_log_service.dart';
+import 'package:calibre_web_companion/core/services/connectivity_service.dart';
+import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
+import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
+import 'package:calibre_web_companion/features/offline/data/services/offline_backfill_service.dart';
 
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
@@ -85,6 +89,32 @@ Future<void> init() async {
   getIt.registerLazySingleton<DownloadManager>(
     () => DownloadManager(
       prefs: getIt<SharedPreferences>(),
+      logger: getIt<Logger>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<OfflineLibraryRepository>(
+    () => OfflineLibraryRepository(
+      prefs: getIt<SharedPreferences>(),
+      logger: getIt<Logger>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<ConnectivityService>(
+    () => ConnectivityService(apiService: getIt<ApiService>()),
+  );
+
+  getIt.registerLazySingleton<ConnectivityCubit>(
+    () => ConnectivityCubit(service: getIt<ConnectivityService>()),
+  );
+
+  getIt.registerLazySingleton<OfflineBackfillService>(
+    () => OfflineBackfillService(
+      downloadManager: getIt<DownloadManager>(),
+      offlineRepository: getIt<OfflineLibraryRepository>(),
+      bookDetailsRepository: getIt<BookDetailsRepository>(),
+      connectivityService: getIt<ConnectivityService>(),
+      apiService: getIt<ApiService>(),
       logger: getIt<Logger>(),
     ),
   );
