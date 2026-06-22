@@ -316,9 +316,10 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     final localizations = AppLocalizations.of(context)!;
 
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop && mounted) {
+        if (didPop) return;
+        if (mounted) {
           Navigator.of(context).pop(result ?? _didUpdateMetadata);
         }
       },
