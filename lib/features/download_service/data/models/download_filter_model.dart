@@ -21,7 +21,7 @@ class DownloadFilterModel {
     this.isbn,
     this.author,
     this.title,
-    this.languages = const ['de'],
+    this.languages = const [],
     this.content,
     this.formats = allFormats,
   });
@@ -52,6 +52,6 @@ class DownloadFilterModel {
         (title != null && title!.isNotEmpty) ||
         (content != null && content!.isNotEmpty) ||
         formatsChanged ||
-        (languages.length != 1 || languages.first != 'de');
+        languages.isNotEmpty;
   }
 }

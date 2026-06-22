@@ -21,7 +21,6 @@ class SearchTabWidget extends StatefulWidget {
 
 class _SearchTabWidgetState extends State<SearchTabWidget> {
   final TextEditingController _searchController = TextEditingController();
-  DownloadFilterModel _currentFilter = const DownloadFilterModel();
 
   @override
   void dispose() {
@@ -29,13 +28,14 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
     super.dispose();
   }
 
-  void _performSearch() {
+  void _performSearch({DownloadFilterModel? filterOverride}) {
     final query = _searchController.text.trim();
-    if (query.isNotEmpty) {
-      context.read<DownloadServiceBloc>().add(
-        SearchBooks(query, filter: _currentFilter),
-      );
-    }
+    if (query.isEmpty) return;
+
+    final filter =
+        filterOverride ??
+        context.read<DownloadServiceBloc>().state.activeFilter;
+    context.read<DownloadServiceBloc>().add(SearchBooks(query, filter: filter));
   }
 
   void _openFilterSheet() {
@@ -49,11 +49,8 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
             currentFilter:
                 context.read<DownloadServiceBloc>().state.activeFilter,
             onApply: (newFilter) {
-              setState(() {
-                _currentFilter = newFilter;
-              });
               if (_searchController.text.trim().isNotEmpty) {
-                _performSearch();
+                _performSearch(filterOverride: newFilter);
               }
             },
           ),
@@ -70,7 +67,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSearchBar(context, localizations),
+              _buildSearchBar(context, state, localizations),
               _buildSearchContent(context, state, localizations),
             ],
           ),
@@ -79,7 +76,11 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context, AppLocalizations localizations) {
+  Widget _buildSearchBar(
+    BuildContext context,
+    DownloadServiceState state,
+    AppLocalizations localizations,
+  ) {
     final borderRadius = BorderRadius.circular(8.0);
 
     return Card(
@@ -110,7 +111,7 @@ class _SearchTabWidgetState extends State<SearchTabWidget> {
               icon: Icon(
                 Icons.tune,
                 color:
-                    _currentFilter.hasActiveFilters
+                    state.activeFilter.hasActiveFilters
                         ? Theme.of(context).colorScheme.primary
                         : null,
               ),

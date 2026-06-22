@@ -752,6 +752,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor:
+                          Theme.of(context).colorScheme.primaryContainer,
+                    ),
                     onPressed: () {
                       context.read<SettingsBloc>().add(
                         SetDownloaderUrl(_downloaderUrlController.text.trim()),
@@ -766,8 +770,16 @@ class _SettingsPageState extends State<SettingsPage> {
                       context.showSnackBar(localizations.settingsSaved);
                       FocusScope.of(context).unfocus();
                     },
-                    icon: const Icon(Icons.save),
-                    label: Text(localizations.saveCredentials),
+                    icon: Icon(
+                      Icons.save,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                    label: Text(
+                      localizations.saveCredentials,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    ),
                   ),
                 ),
               ],
