@@ -27,7 +27,7 @@ class ApiService {
   String? _userAgent;
 
   bool _allowSelfSigned = false;
-  bool _reauthInProgress = false;
+  Future<bool>? _reauthFuture;
 
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
@@ -278,8 +278,21 @@ class ApiService {
       (_username?.isNotEmpty ?? false) && (_password?.isNotEmpty ?? false);
 
   Future<bool> _reauthenticate() async {
-    if (_reauthInProgress || !_hasStoredCredentials) return false;
-    _reauthInProgress = true;
+    if (!_hasStoredCredentials) return false;
+
+    final inFlight = _reauthFuture;
+    if (inFlight != null) return inFlight;
+
+    final future = _performReauthentication();
+    _reauthFuture = future;
+    try {
+      return await future;
+    } finally {
+      _reauthFuture = null;
+    }
+  }
+
+  Future<bool> _performReauthentication() async {
     try {
       final response = await post(
         endpoint: '/login',
@@ -305,8 +318,6 @@ class ApiService {
     } catch (e) {
       _logger.e('Re-authentication error: $e');
       return false;
-    } finally {
-      _reauthInProgress = false;
     }
   }
 
