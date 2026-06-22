@@ -472,5 +472,7 @@
     "uploadFailed": "",
     "downloadOptions": "",
     "bookDetailsAllSectionsDisabledDescription": "",
-    "syncsReadingProgress": ""
+    "syncsReadingProgress": "",
+    "clearSearch": "清除搜索",
+    "loadMore": "加载更多"
 }
