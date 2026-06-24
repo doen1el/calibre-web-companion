@@ -12,6 +12,7 @@ class MeState extends Equatable {
   final StatsModel? stats;
   final String? errorMessage;
   final bool isOpds;
+  final bool showStats;
 
   const MeState({
     this.status = MeStatus.initial,
@@ -19,6 +20,7 @@ class MeState extends Equatable {
     this.stats,
     this.errorMessage,
     this.isOpds = false,
+    this.showStats = true,
   });
 
   MeState copyWith({
@@ -27,6 +29,7 @@ class MeState extends Equatable {
     String? errorMessage,
     LogoutStatus? logoutStatus,
     bool? isOpds,
+    bool? showStats,
   }) {
     return MeState(
       status: status ?? this.status,
@@ -34,6 +37,7 @@ class MeState extends Equatable {
       stats: stats ?? this.stats,
       errorMessage: errorMessage,
       isOpds: isOpds ?? this.isOpds,
+      showStats: showStats ?? this.showStats,
     );
   }
 
@@ -44,5 +48,6 @@ class MeState extends Equatable {
     stats,
     errorMessage,
     isOpds,
+    showStats,
   ];
 }

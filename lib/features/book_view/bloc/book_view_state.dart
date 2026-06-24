@@ -19,6 +19,11 @@ class BookViewState extends Equatable {
   final bool isListView;
   final UploadStatus uploadStatus;
   final bool isOpds;
+  final bool canAddBooks;
+  final bool canLookupMetadata;
+  final bool multiLibrary;
+  final Map<String, String> libraries;
+  final String? currentLibraryId;
 
   const BookViewState({
     this.books = const [],
@@ -35,6 +40,11 @@ class BookViewState extends Equatable {
     this.isListView = false,
     this.uploadStatus = UploadStatus.initial,
     this.isOpds = false,
+    this.canAddBooks = true,
+    this.canLookupMetadata = true,
+    this.multiLibrary = false,
+    this.libraries = const {},
+    this.currentLibraryId,
   });
 
   BookViewState copyWith({
@@ -52,6 +62,11 @@ class BookViewState extends Equatable {
     bool? isListView,
     UploadStatus? uploadStatus,
     bool? isOpds,
+    bool? canAddBooks,
+    bool? canLookupMetadata,
+    bool? multiLibrary,
+    Map<String, String>? libraries,
+    String? currentLibraryId,
   }) {
     return BookViewState(
       books: books ?? this.books,
@@ -68,6 +83,11 @@ class BookViewState extends Equatable {
       isListView: isListView ?? this.isListView,
       uploadStatus: uploadStatus ?? this.uploadStatus,
       isOpds: isOpds ?? this.isOpds,
+      canAddBooks: canAddBooks ?? this.canAddBooks,
+      canLookupMetadata: canLookupMetadata ?? this.canLookupMetadata,
+      multiLibrary: multiLibrary ?? this.multiLibrary,
+      libraries: libraries ?? this.libraries,
+      currentLibraryId: currentLibraryId ?? this.currentLibraryId,
     );
   }
 
@@ -87,5 +107,10 @@ class BookViewState extends Equatable {
     isListView,
     uploadStatus,
     isOpds,
+    canAddBooks,
+    canLookupMetadata,
+    multiLibrary,
+    libraries,
+    currentLibraryId,
   ];
 }

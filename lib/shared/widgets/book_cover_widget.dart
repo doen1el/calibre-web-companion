@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
@@ -26,14 +27,27 @@ class BookCoverWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final apiService = ApiService();
     final baseUrl = apiService.getBaseUrl();
+    final hasExplicitCover = coverUrl != null && coverUrl!.isNotEmpty;
+
+    if (!hasExplicitCover && bookId <= 0) {
+      return _buildPlaceholder(context);
+    }
+
+    final prefs = GetIt.instance<SharedPreferences>();
+    final isCalibre = prefs.getString('server_type') == 'calibre';
 
     String imageUrl;
-    if (coverUrl != null && coverUrl!.isNotEmpty) {
+    if (hasExplicitCover) {
       var cleanCoverURL = coverUrl!.split("/api/v1/opds/").last;
       if (cleanCoverURL.startsWith('/')) {
         cleanCoverURL = cleanCoverURL.substring(1);
       }
       imageUrl = '$baseUrl/$cleanCoverURL';
+    } else if (isCalibre) {
+      final libraryId = prefs.getString('calibre_library_id');
+      final segment =
+          (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
+      imageUrl = '$baseUrl/get/cover/$bookId$segment';
     } else {
       imageUrl = '$baseUrl/opds/cover/$bookId';
     }

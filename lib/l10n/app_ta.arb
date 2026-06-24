@@ -180,7 +180,7 @@
     "shelfIsEmpty": "அலமாரி காலியாக உள்ளது",
     "removing": "நீக்குகிறது",
     "manageBookShelves": "புத்தக அலமாரிகளை நிர்வகிக்கவும்",
-    "bookInShelfs": "{count, plural, =1{one shelf} மற்ற {{count} அலமாரிகளில்}} முன்பதிவு செய்யவும்",
+    "bookInShelfs": "{count, plural, =1{one shelf} other {{count} அலமாரிகளில்}} முன்பதிவு செய்யவும்",
     "searchForBooks": "புத்தகங்களைத் தேடுங்கள்",
     "connectionSettings": "இணைப்பு அமைப்புகள்",
     "costumHttpPHeader": "தனிப்பயன் HTTP-தலைப்பு",

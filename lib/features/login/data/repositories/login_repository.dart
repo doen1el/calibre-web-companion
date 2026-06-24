@@ -93,6 +93,10 @@ class LoginRepository {
     return dataSource.getStoredServerType();
   }
 
+  Future<EndpointStatus> probeEndpoint(String url, ServerType serverType) {
+    return dataSource.probeEndpoint(url, serverType);
+  }
+
   Future<LoginResult> finalizeSso(
     String cookieHeader,
     String userAgent,

@@ -100,6 +100,7 @@ class _BookViewPageState extends State<BookViewPage> {
                     )
                     : Text(localizations.books),
             actions: [
+              if (state.multiLibrary) _buildLibrarySelector(context, state),
               const BookViewModeSelector(),
               if (!state.isOpds) _buildSortOptions(context, localizations),
               if (!isSearching) _buildSearchButton(context, localizations),
@@ -107,14 +108,14 @@ class _BookViewPageState extends State<BookViewPage> {
           ),
           body: _buildBody(context, state, localizations),
           floatingActionButton:
-              state.isOpds
-                  ? null
-                  : FloatingActionButton(
+              state.canAddBooks
+                  ? FloatingActionButton(
                     onPressed:
                         () => _showAddBookOptions(context, localizations),
                     tooltip: localizations.addBook,
                     child: const Icon(Icons.add_rounded),
-                  ),
+                  )
+                  : null,
         );
       },
     );
@@ -280,6 +281,27 @@ class _BookViewPageState extends State<BookViewPage> {
     );
   }
 
+  Widget _buildLibrarySelector(BuildContext context, BookViewState state) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.library_books_rounded),
+      tooltip: state.libraries[state.currentLibraryId] ?? 'Library',
+      onSelected: (String libraryId) {
+        context.read<BookViewBloc>().add(ChangeLibrary(libraryId));
+      },
+      itemBuilder:
+          (BuildContext context) =>
+              state.libraries.entries
+                  .map(
+                    (entry) => CheckedPopupMenuItem<String>(
+                      value: entry.key,
+                      checked: entry.key == state.currentLibraryId,
+                      child: Text(entry.value),
+                    ),
+                  )
+                  .toList(),
+    );
+  }
+
   Widget _buildSortOptions(
     BuildContext context,
     AppLocalizations localizations,
@@ -333,22 +355,27 @@ class _BookViewPageState extends State<BookViewPage> {
     BuildContext context,
     AppLocalizations localizations,
   ) {
+    final canLookupMetadata =
+        context.read<BookViewBloc>().state.canLookupMetadata;
+
     showAppOptionsSheet(
       context,
       title: localizations.addBook,
       options: [
-        AppSheetOption(
-          icon: Icons.qr_code_scanner_rounded,
-          title: localizations.scan,
-          subtitle: localizations.scanBarcodeDescription,
-          onTap: () => _openScanner(context),
-        ),
-        AppSheetOption(
-          icon: Icons.keyboard_rounded,
-          title: localizations.enterIsbn,
-          subtitle: localizations.enterIsbnDescription,
-          onTap: () => _startIsbnEntry(context),
-        ),
+        if (canLookupMetadata)
+          AppSheetOption(
+            icon: Icons.qr_code_scanner_rounded,
+            title: localizations.scan,
+            subtitle: localizations.scanBarcodeDescription,
+            onTap: () => _openScanner(context),
+          ),
+        if (canLookupMetadata)
+          AppSheetOption(
+            icon: Icons.keyboard_rounded,
+            title: localizations.enterIsbn,
+            subtitle: localizations.enterIsbnDescription,
+            onTap: () => _startIsbnEntry(context),
+          ),
         AppSheetOption(
           icon: Icons.upload_file_rounded,
           title: localizations.uploadFromDevice,

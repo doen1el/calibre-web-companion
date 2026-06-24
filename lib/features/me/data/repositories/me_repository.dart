@@ -24,4 +24,6 @@ class MeRepository {
   }
 
   bool getIsOpds() => dataSource.getIsOpds();
+
+  bool getShowStats() => dataSource.getShowStats();
 }

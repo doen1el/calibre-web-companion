@@ -35,6 +35,7 @@ dependencies:
   logger:
   shared_preferences:
   http:
+  crypto:
   provider:
   fluttertoast:
   adaptive_theme:

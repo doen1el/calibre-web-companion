@@ -30,21 +30,47 @@ class DiscoverPage extends StatelessWidget {
             (SettingsBloc bloc) => bloc.state,
           );
 
+          Widget body;
+          if (state.isOpds) {
+            body = _buildOpdsBody(context, localizations);
+          } else if (!state.hasDiscover) {
+            body = _buildUnavailableBody(context, localizations);
+          } else {
+            body = _buildConfiguredBody(context, localizations, settingsState);
+          }
+
           return SafeArea(
             child: Scaffold(
-              body: SingleChildScrollView(
-                child:
-                    state.isOpds
-                        ? _buildOpdsBody(context, localizations)
-                        : _buildConfiguredBody(
-                          context,
-                          localizations,
-                          settingsState,
-                        ),
-              ),
+              body: SingleChildScrollView(child: body),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildUnavailableBody(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 96),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.travel_explore_rounded,
+            size: 64,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            localizations.comingSoon,
+            style: theme.textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,6 +29,7 @@ class _LoginFormState extends State<LoginForm> {
 
   bool _isHttps = true;
   bool _opdsRequiresAuth = false;
+  Timer? _endpointDebounce;
 
   @override
   void initState() {
@@ -38,6 +41,7 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   void dispose() {
+    _endpointDebounce?.cancel();
     _urlController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
@@ -49,6 +53,73 @@ class _LoginFormState extends State<LoginForm> {
       _isHttps = !_isHttps;
     });
     _updateBlocUrl();
+    _scheduleEndpointCheck();
+  }
+
+  String _loginErrorText(LoginState state, AppLocalizations localizations) {
+    switch (state.errorType) {
+      case LoginErrorType.invalidCredentials:
+        return localizations.loginErrorInvalidCredentials;
+      case LoginErrorType.unreachable:
+        return localizations.loginErrorUnreachable;
+      case LoginErrorType.generic:
+      case LoginErrorType.none:
+        final raw = state.errorMessage?.replaceFirst('Exception: ', '').trim();
+        return (raw == null || raw.isEmpty)
+            ? localizations.failedToLognIn
+            : raw;
+    }
+  }
+
+  Widget? _buildUrlSuffix(
+    BuildContext context,
+    EndpointStatus status,
+    AppLocalizations localizations,
+  ) {
+    switch (status) {
+      case EndpointStatus.idle:
+        return null;
+      case EndpointStatus.checking:
+        return const Padding(
+          padding: EdgeInsets.all(14),
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        );
+      case EndpointStatus.reachable:
+        return Tooltip(
+          message: localizations.serverReachable,
+          child: const Icon(Icons.check_circle_rounded, color: Colors.green),
+        );
+      case EndpointStatus.authRequired:
+        return Tooltip(
+          message: localizations.serverLoginRequired,
+          child: Icon(
+            Icons.lock_rounded,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        );
+      case EndpointStatus.unreachable:
+        return Tooltip(
+          message: localizations.serverUnreachable,
+          child: Icon(
+            Icons.error_outline_rounded,
+            color: Theme.of(context).colorScheme.error,
+          ),
+        );
+    }
+  }
+
+  void _scheduleEndpointCheck() {
+    _endpointDebounce?.cancel();
+    _endpointDebounce = Timer(const Duration(milliseconds: 700), () {
+      if (!mounted) return;
+      final protocol = _isHttps ? 'https://' : 'http://';
+      final url = '$protocol${_urlController.text.trim()}';
+      context.read<LoginBloc>().add(CheckEndpoint(url));
+    });
   }
 
   void _updateBlocUrl() {
@@ -80,6 +151,7 @@ class _LoginFormState extends State<LoginForm> {
     }
 
     _updateBlocUrl();
+    _scheduleEndpointCheck();
   }
 
   @override
@@ -111,6 +183,13 @@ class _LoginFormState extends State<LoginForm> {
           _passwordController.text = state.password;
         }
 
+        if ((state.serverType == ServerType.opds ||
+                state.serverType == ServerType.calibre) &&
+            state.endpointStatus == EndpointStatus.authRequired &&
+            !_opdsRequiresAuth) {
+          setState(() => _opdsRequiresAuth = true);
+        }
+
         if (state.status == LoginStatus.success) {
           TextInput.finishAutofillContext();
         }
@@ -126,6 +205,11 @@ class _LoginFormState extends State<LoginForm> {
             urlLabel = 'Calibre Web URL';
             urlHint = 'your-calibre-web.com';
             typeIcon = Icons.menu_book_rounded;
+            break;
+          case ServerType.calibre:
+            urlLabel = 'Calibre Server URL';
+            urlHint = 'your-calibre-server.com';
+            typeIcon = Icons.dns_rounded;
             break;
           case ServerType.booklore:
             urlLabel = 'Grimmory URL';
@@ -159,34 +243,37 @@ class _LoginFormState extends State<LoginForm> {
                       Container(
                         width: double.infinity,
                         margin: const EdgeInsets.only(bottom: 24),
-                        child: SegmentedButton<ServerType>(
-                          showSelectedIcon: false,
-                          segments: const [
-                            ButtonSegment<ServerType>(
-                              value: ServerType.calibreWeb,
-                              label: Text('Calibre'),
-                            ),
-                            ButtonSegment<ServerType>(
-                              value: ServerType.booklore,
-                              label: Text('Grimmory'),
-                            ),
-                            ButtonSegment<ServerType>(
-                              value: ServerType.opds,
-                              label: Text('OPDS (beta)'),
-                            ),
-                          ],
-                          selected: {state.serverType},
-                          onSelectionChanged: (Set<ServerType> newSelection) {
-                            context.read<LoginBloc>().add(
-                              ChangeServerType(newSelection.first),
-                            );
-                          },
-                          style: ButtonStyle(
-                            visualDensity: VisualDensity.compact,
-                            shape: WidgetStateProperty.all(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: SegmentedButton<ServerType>(
+                            showSelectedIcon: false,
+                            segments: const [
+                              ButtonSegment<ServerType>(
+                                value: ServerType.calibreWeb,
+                                label: Text('Calibre Web'),
                               ),
+                              ButtonSegment<ServerType>(
+                                value: ServerType.calibre,
+                                label: Text('Calibre'),
+                              ),
+                              ButtonSegment<ServerType>(
+                                value: ServerType.booklore,
+                                label: Text('Grimmory'),
+                              ),
+                              ButtonSegment<ServerType>(
+                                value: ServerType.opds,
+                                label: Text('OPDS'),
+                              ),
+                            ],
+                            selected: {state.serverType},
+                            onSelectionChanged: (newSelection) {
+                              context.read<LoginBloc>().add(
+                                ChangeServerType(newSelection.first),
+                              );
+                              _scheduleEndpointCheck();
+                            },
+                            style: const ButtonStyle(
+                              visualDensity: VisualDensity.compact,
                             ),
                           ),
                         ),
@@ -206,6 +293,11 @@ class _LoginFormState extends State<LoginForm> {
                         labelText: urlLabel,
                         hintText: urlHint,
                         helperText: urlHelper,
+                        suffix: _buildUrlSuffix(
+                          context,
+                          state.endpointStatus,
+                          localizations,
+                        ),
                         prefix: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -258,7 +350,8 @@ class _LoginFormState extends State<LoginForm> {
 
                       const SizedBox(height: 16),
 
-                      if (state.serverType == ServerType.opds) ...[
+                      if (state.serverType == ServerType.opds ||
+                          state.serverType == ServerType.calibre) ...[
                         SwitchListTile(
                           title: const Text(
                             'Authentication required',
@@ -288,7 +381,8 @@ class _LoginFormState extends State<LoginForm> {
                         const SizedBox(height: 8),
                       ],
 
-                      if (state.serverType != ServerType.opds ||
+                      if ((state.serverType != ServerType.opds &&
+                              state.serverType != ServerType.calibre) ||
                           _opdsRequiresAuth) ...[
                         LoginTextField(
                           controller: _usernameController,
@@ -325,10 +419,10 @@ class _LoginFormState extends State<LoginForm> {
                         ),
                       ],
 
-                      if (state.errorMessage != null) ...[
+                      if (state.status == LoginStatus.failure) ...[
                         const SizedBox(height: 16),
                         Text(
-                          state.errorMessage!,
+                          _loginErrorText(state, localizations),
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.error,
                             fontWeight: FontWeight.bold,
@@ -549,7 +643,9 @@ class _LoginFormState extends State<LoginForm> {
 
     final state = context.read<LoginBloc>().state;
     final bool credentialsRequired =
-        state.serverType != ServerType.opds || _opdsRequiresAuth;
+        (state.serverType != ServerType.opds &&
+            state.serverType != ServerType.calibre) ||
+        _opdsRequiresAuth;
 
     if (_urlController.text.isEmpty ||
         (credentialsRequired &&

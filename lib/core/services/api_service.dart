@@ -11,6 +11,7 @@ import 'package:http/io_client.dart';
 
 import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
 import 'package:calibre_web_companion/core/services/connection_diagnostics.dart';
+import 'package:calibre_web_companion/core/services/digest_auth.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 
 enum AuthMethod { none, cookie, basic, auto }
@@ -28,6 +29,7 @@ class ApiService {
 
   bool _allowSelfSigned = false;
   Future<bool>? _reauthFuture;
+  final DigestAuth _digest = DigestAuth();
 
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
@@ -90,6 +92,8 @@ class ApiService {
     _basePath = prefs.getString('base_path') ?? '';
     _userAgent = prefs.getString('user_agent'); // User Agent laden
     _allowSelfSigned = prefs.getBool('allow_self_signed') ?? false;
+
+    _digest.reset();
 
     _httpClient = HttpClient();
     if (_allowSelfSigned) {
@@ -423,7 +427,28 @@ class ApiService {
 
     if (followRedirects) {
       try {
-        final response = await _client!.get(uri, headers: headers);
+        final preDigest = _preemptiveDigestHeader(authMethod, 'GET', uri);
+        var requestHeaders = headers;
+        if (preDigest != null) {
+          requestHeaders = _headersWithoutAuth(headers);
+          requestHeaders['Authorization'] = preDigest;
+        }
+
+        var response = await _client!.get(uri, headers: requestHeaders);
+
+        if (_shouldTryDigest(authMethod, response.statusCode)) {
+          final retryHeaders = await _digestRetryHeaders(
+            method: 'GET',
+            uri: uri,
+            statusCode: response.statusCode,
+            wwwAuthenticate: response.headers['www-authenticate'],
+            baseHeaders: headers,
+          );
+          if (retryHeaders != null) {
+            response = await _client!.get(uri, headers: retryHeaders);
+          }
+        }
+
         _logger.d('GET $uri -> ${response.statusCode}');
 
         if (response.headers.containsKey('set-cookie')) {
@@ -859,14 +884,39 @@ class ApiService {
 
         headers.addAll(customHeaders);
 
+        final preDigest = _preemptiveDigestHeader(authMethod, 'POST', uri);
+        if (preDigest != null) {
+          headers.remove('Authorization');
+          headers['Authorization'] = preDigest;
+        }
+
         final encodedBody = _encodeBody(body: body, contentType: contentType);
 
         try {
-          final response = await _client!.post(
+          var response = await _client!.post(
             uri,
             headers: headers,
             body: encodedBody ?? "",
           );
+
+          if (_shouldTryDigest(authMethod, response.statusCode)) {
+            final retryHeaders = await _digestRetryHeaders(
+              method: 'POST',
+              uri: uri,
+              statusCode: response.statusCode,
+              wwwAuthenticate: response.headers['www-authenticate'],
+              baseHeaders: headers,
+            );
+            if (retryHeaders != null) {
+              retryHeaders['Content-Type'] = contentType;
+              response = await _client!.post(
+                uri,
+                headers: retryHeaders,
+                body: encodedBody ?? "",
+              );
+            }
+          }
+
           _logger.d('POST $uri -> ${response.statusCode}');
 
           if (response.headers.containsKey('set-cookie')) {
@@ -906,7 +956,6 @@ class ApiService {
     await _ensureInitialized();
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
 
-    final request = http.Request('GET', uri);
     final headers = getAuthHeaders(authMethod: authMethod);
 
     if (_userAgent != null) {
@@ -916,10 +965,35 @@ class ApiService {
     final customHeaders = await _processCustomHeaders();
     headers.addAll(customHeaders);
 
-    request.headers.addAll(headers);
+    Future<http.StreamedResponse> send(Map<String, String> requestHeaders) {
+      final request = http.Request('GET', uri);
+      request.headers.addAll(requestHeaders);
+      return _client!.send(request);
+    }
 
     try {
-      final response = await _client!.send(request);
+      final preDigest = _preemptiveDigestHeader(authMethod, 'GET', uri);
+      var requestHeaders = headers;
+      if (preDigest != null) {
+        requestHeaders = _headersWithoutAuth(headers);
+        requestHeaders['Authorization'] = preDigest;
+      }
+
+      var response = await send(requestHeaders);
+
+      if (_shouldTryDigest(authMethod, response.statusCode)) {
+        final retryHeaders = await _digestRetryHeaders(
+          method: 'GET',
+          uri: uri,
+          statusCode: response.statusCode,
+          wwwAuthenticate: response.headers['www-authenticate'],
+          baseHeaders: headers,
+        );
+        if (retryHeaders != null) {
+          response = await send(retryHeaders);
+        }
+      }
+
       _logger.d('GET (stream) $uri -> ${response.statusCode}');
       _checkResponseStatus(statusCode: response.statusCode);
       return response;
@@ -983,7 +1057,10 @@ class ApiService {
     Map<String, String> queryParams = const {},
   }) {
     if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
-      return Uri.parse(endpoint).replace(queryParameters: queryParams);
+      final parsed = Uri.parse(endpoint);
+      return queryParams.isEmpty
+          ? parsed
+          : parsed.replace(queryParameters: queryParams);
     }
 
     String fullPath = endpoint;
@@ -1013,9 +1090,82 @@ class ApiService {
       fullPath = '/$endpoint';
     }
 
-    return Uri.parse(
-      '$_baseUrl$fullPath',
-    ).replace(queryParameters: queryParams);
+    final full = Uri.parse('$_baseUrl$fullPath');
+    return queryParams.isEmpty
+        ? full
+        : full.replace(queryParameters: queryParams);
+  }
+
+  String _digestRequestUri(Uri uri) =>
+      uri.query.isNotEmpty ? '${uri.path}?${uri.query}' : uri.path;
+
+  bool _shouldTryDigest(AuthMethod authMethod, int statusCode) {
+    if (!_hasStoredCredentials) return false;
+    if (authMethod != AuthMethod.auto && authMethod != AuthMethod.basic) {
+      return false;
+    }
+    return statusCode == 401 || statusCode == 400;
+  }
+
+  String? _preemptiveDigestHeader(
+    AuthMethod authMethod,
+    String method,
+    Uri uri,
+  ) {
+    if (!_digest.hasChallenge) return null;
+    if (!_hasStoredCredentials) return null;
+    if (authMethod != AuthMethod.auto && authMethod != AuthMethod.basic) {
+      return null;
+    }
+    return _digest.buildAuthHeader(
+      method: method,
+      uri: _digestRequestUri(uri),
+      username: _username!,
+      password: _password!,
+    );
+  }
+
+  Map<String, String> _headersWithoutAuth(Map<String, String> headers) {
+    final copy = Map<String, String>.from(headers);
+    copy.remove('Authorization');
+    return copy;
+  }
+
+  Future<Map<String, String>?> _digestRetryHeaders({
+    required String method,
+    required Uri uri,
+    required int statusCode,
+    required String? wwwAuthenticate,
+    required Map<String, String> baseHeaders,
+  }) async {
+    String? challenge = wwwAuthenticate;
+
+    if (challenge == null || !challenge.toLowerCase().contains('digest')) {
+      try {
+        final probe = await _client!.get(
+          uri,
+          headers: _headersWithoutAuth(baseHeaders),
+        );
+        challenge = probe.headers['www-authenticate'];
+      } catch (e) {
+        _logger.w('Digest challenge probe failed: $e');
+        return null;
+      }
+    }
+
+    if (!_digest.parseChallenge(challenge)) return null;
+
+    final digestHeader = _digest.buildAuthHeader(
+      method: method,
+      uri: _digestRequestUri(uri),
+      username: _username!,
+      password: _password!,
+    );
+    if (digestHeader == null) return null;
+
+    final headers = _headersWithoutAuth(baseHeaders);
+    headers['Authorization'] = digestHeader;
+    return headers;
   }
 
   /// Process custom headers, replacing placeholders with actual values
@@ -1121,6 +1271,38 @@ class ApiService {
 
   Future<List<DiagnosticResult>> runConnectionDiagnostics() async {
     await _ensureInitialized();
+
+    final prefs = await SharedPreferences.getInstance();
+    final serverType = prefs.getString('server_type');
+
+    if (serverType == 'calibre') {
+      final libraryId = prefs.getString('calibre_library_id');
+      final librarySegment =
+          (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
+      return [
+        await _probe(
+          DiagnosticProbeId.serverReachable,
+          'Server reachable',
+          '/',
+          AuthMethod.auto,
+          connectivityOnly: true,
+        ),
+        await _probe(
+          DiagnosticProbeId.bookList,
+          'Library info (AJAX)',
+          '/ajax/library-info',
+          AuthMethod.auto,
+        ),
+        await _probe(
+          DiagnosticProbeId.coverImage,
+          'Cover image',
+          '/get/cover/1$librarySegment',
+          AuthMethod.auto,
+          expectBinary: true,
+        ),
+      ];
+    }
+
     return [
       await _probe(
         DiagnosticProbeId.serverReachable,
@@ -1175,17 +1357,39 @@ class ApiService {
     }
 
     try {
-      final request = await httpClient.getUrl(uri);
-      request.followRedirects = false;
+      Future<HttpClientResponse> send(Map<String, String> hdrs) async {
+        final request = await httpClient.getUrl(uri);
+        request.followRedirects = false;
+        hdrs.forEach((key, value) => request.headers.set(key, value));
+        return request.close().timeout(const Duration(seconds: 12));
+      }
 
       final headers = getAuthHeaders(authMethod: authMethod);
       if (_userAgent != null) headers['User-Agent'] = _userAgent!;
       headers.addAll(await _processCustomHeaders());
-      headers.forEach((key, value) => request.headers.set(key, value));
 
-      final response = await request.close().timeout(
-        const Duration(seconds: 12),
-      );
+      final preDigest = _preemptiveDigestHeader(authMethod, 'GET', uri);
+      if (preDigest != null) {
+        headers.remove('Authorization');
+        headers['Authorization'] = preDigest;
+      }
+
+      var response = await send(headers);
+
+      if (_shouldTryDigest(authMethod, response.statusCode)) {
+        final retryHeaders = await _digestRetryHeaders(
+          method: 'GET',
+          uri: uri,
+          statusCode: response.statusCode,
+          wwwAuthenticate: response.headers.value('www-authenticate'),
+          baseHeaders: headers,
+        );
+        if (retryHeaders != null) {
+          await response.drain<void>();
+          response = await send(retryHeaders);
+        }
+      }
+
       final code = response.statusCode;
       final contentType = response.headers.contentType?.toString();
 

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 // ignore: implementation_imports
 import 'package:http/src/response.dart';
 import 'package:logger/logger.dart';
@@ -31,7 +32,11 @@ class LoginRemoteDataSource {
 
       bool isLoggedIn = false;
 
-      if (serverType == ServerType.opds || serverType == ServerType.booklore) {
+      if (serverType == ServerType.calibre) {
+        await apiService.initialize();
+        isLoggedIn = await _loginCalibre(credentials);
+      } else if (serverType == ServerType.opds ||
+          serverType == ServerType.booklore) {
         try {
           final uri = Uri.parse(credentials.baseUrl);
           final origin = uri.origin;
@@ -89,6 +94,58 @@ class LoginRemoteDataSource {
       throw Exception('Invalid username or password');
     } else {
       throw Exception('Server returned ${response.statusCode}');
+    }
+  }
+
+  Future<bool> _loginCalibre(LoginCredentials credentials) async {
+    logger.i('Attempting Calibre content server login...');
+
+    final response = await apiService.get(
+      endpoint: '/ajax/library-info',
+      authMethod: AuthMethod.auto,
+      followRedirects: true,
+    );
+
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      logger.w('Calibre login failed - invalid credentials or auth required');
+      throw Exception('Invalid username or password');
+    }
+
+    if (response.statusCode != 200) {
+      throw Exception('Server returned ${response.statusCode}');
+    }
+
+    try {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final libraryMap =
+          (decoded['library_map'] as Map?)?.map(
+            (key, value) => MapEntry(key.toString(), value.toString()),
+          ) ??
+          <String, String>{};
+      final defaultLibrary = decoded['default_library']?.toString();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('calibre_library_map', jsonEncode(libraryMap));
+
+      final selectedLibrary =
+          (defaultLibrary != null && libraryMap.containsKey(defaultLibrary))
+              ? defaultLibrary
+              : (libraryMap.keys.isNotEmpty ? libraryMap.keys.first : null);
+
+      if (selectedLibrary != null) {
+        await prefs.setString('calibre_library_id', selectedLibrary);
+      } else {
+        await prefs.remove('calibre_library_id');
+      }
+
+      logger.i(
+        'Calibre login successful. Libraries: ${libraryMap.length}, '
+        'selected: $selectedLibrary',
+      );
+      return true;
+    } catch (e) {
+      logger.e('Failed to parse Calibre library-info: $e');
+      throw Exception('Unexpected response from Calibre server');
     }
   }
 
@@ -163,6 +220,24 @@ class LoginRemoteDataSource {
       } else {
         logger.w(
           'Grimmory access check failed with status: ${response.statusCode}',
+        );
+        return false;
+      }
+    }
+
+    if (serverType == ServerType.calibre) {
+      await apiService.initialize();
+      final response = await apiService.get(
+        endpoint: '/ajax/library-info',
+        authMethod: AuthMethod.auto,
+      );
+
+      if (response.statusCode == 200) {
+        logger.i('Calibre access check successful.');
+        return true;
+      } else {
+        logger.w(
+          'Calibre access check failed with status: ${response.statusCode}',
         );
         return false;
       }
@@ -337,6 +412,72 @@ class LoginRemoteDataSource {
     return null;
   }
 
+  Future<EndpointStatus> probeEndpoint(
+    String url,
+    ServerType serverType,
+  ) async {
+    final trimmed = url.trim();
+    final afterScheme = trimmed.replaceFirst(RegExp(r'^https?://'), '');
+
+    if (!afterScheme.contains(RegExp(r'[a-zA-Z0-9]')) ||
+        !afterScheme.contains('.')) {
+      return EndpointStatus.idle;
+    }
+
+    var base = trimmed;
+    if (base.endsWith('/')) base = base.substring(0, base.length - 1);
+
+    final String probeUrl;
+    switch (serverType) {
+      case ServerType.calibre:
+        probeUrl = '$base/ajax/library-info';
+        break;
+      case ServerType.calibreWeb:
+        probeUrl = '$base/';
+        break;
+      case ServerType.booklore:
+        probeUrl = base.endsWith('/api/v1/opds') ? base : '$base/api/v1/opds';
+        break;
+      case ServerType.opds:
+        probeUrl = base;
+        break;
+    }
+
+    final uri = Uri.tryParse(probeUrl);
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      return EndpointStatus.idle;
+    }
+
+    HttpClient? client;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final allowSelfSigned = prefs.getBool('allow_self_signed') ?? false;
+
+      client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 8);
+      if (allowSelfSigned) {
+        client.badCertificateCallback = (cert, host, port) => true;
+      }
+
+      final request = await client.getUrl(uri);
+      request.followRedirects = true;
+      final response = await request.close().timeout(
+        const Duration(seconds: 10),
+      );
+      final code = response.statusCode;
+      await response.drain<void>();
+
+      if (code == 401 || code == 403) return EndpointStatus.authRequired;
+      if (code >= 200 && code < 400) return EndpointStatus.reachable;
+      return EndpointStatus.unreachable;
+    } catch (e) {
+      logger.w('Endpoint probe failed for $probeUrl: $e');
+      return EndpointStatus.unreachable;
+    } finally {
+      client?.close();
+    }
+  }
+
   Future<ServerType> getStoredServerType() async {
     final prefs = await SharedPreferences.getInstance();
     final typeStr = prefs.getString('server_type');
@@ -344,6 +485,8 @@ class LoginRemoteDataSource {
       return ServerType.opds;
     } else if (typeStr == ServerType.booklore.name || typeStr == 'grimmory') {
       return ServerType.booklore;
+    } else if (typeStr == ServerType.calibre.name) {
+      return ServerType.calibre;
     }
     return ServerType.calibreWeb;
   }

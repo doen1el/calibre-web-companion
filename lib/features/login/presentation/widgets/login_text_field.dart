@@ -6,6 +6,7 @@ class LoginTextField extends StatelessWidget {
   final String? hintText;
   final String? helperText;
   final Widget? prefix;
+  final Widget? suffix;
   final bool obscureText;
   final String? autofillHint;
   final List<String>? autofillHints;
@@ -21,6 +22,7 @@ class LoginTextField extends StatelessWidget {
     this.hintText,
     this.helperText,
     this.prefix,
+    this.suffix,
     this.obscureText = false,
     this.autofillHint,
     this.autofillHints,
@@ -67,7 +69,7 @@ class LoginTextField extends StatelessWidget {
                         isObscureTextNotifier.value = !isObscureText;
                       },
                     )
-                    : null,
+                    : suffix,
             filled: true,
             fillColor: Theme.of(context).colorScheme.surface,
             contentPadding: const EdgeInsets.symmetric(

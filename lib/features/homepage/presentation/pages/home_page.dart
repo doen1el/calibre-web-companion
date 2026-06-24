@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/features/homepage/bloc/homepage_bloc.dart';
 import 'package:calibre_web_companion/features/homepage/bloc/homepage_event.dart';
@@ -84,71 +86,62 @@ class HomePage extends StatelessWidget {
               (previous, current) =>
                   previous.isDownloaderEnabled != current.isDownloaderEnabled,
           builder: (context, settingsState) {
-            if (!settingsState.isDownloaderEnabled &&
-                homeState.currentNavIndex == 3) {
+            final serverType = GetIt.instance<SharedPreferences>().getString(
+              'server_type',
+            );
+            final showDiscover = serverType != 'calibre';
+
+            final pages = <Widget>[
+              const BookViewPage(),
+              if (showDiscover) const DiscoverPage(),
+              const MePage(),
+              if (settingsState.isDownloaderEnabled)
+                const DownloadServicePage(),
+            ];
+
+            final destinations = <NavigationDestination>[
+              NavigationDestination(
+                icon: const Icon(Icons.book_rounded),
+                label: localizations.books,
+              ),
+              if (showDiscover)
+                NavigationDestination(
+                  icon: const Icon(Icons.search_rounded),
+                  label: localizations.discover,
+                ),
+              NavigationDestination(
+                icon: const Icon(Icons.person_rounded),
+                label: localizations.me,
+              ),
+              if (settingsState.isDownloaderEnabled)
+                NavigationDestination(
+                  icon: const Icon(Icons.download_rounded),
+                  label: localizations.download,
+                ),
+            ];
+
+            if (homeState.currentNavIndex >= pages.length) {
               context.read<HomePageBloc>().add(const ChangeNavIndex(0));
             }
+            final navIndex = homeState.currentNavIndex.clamp(
+              0,
+              pages.length - 1,
+            );
 
             return Scaffold(
-              body: IndexedStack(
-                index: homeState.currentNavIndex,
-                children: [
-                  const BookViewPage(),
-                  const DiscoverPage(),
-                  const MePage(),
-                  if (settingsState.isDownloaderEnabled)
-                    const DownloadServicePage(),
-                ],
-              ),
-              bottomNavigationBar: _buildBottomNavigation(
-                context,
-                localizations,
-                homeState,
-                settingsState,
+              body: IndexedStack(index: navIndex, children: pages),
+              bottomNavigationBar: NavigationBar(
+                destinations: destinations,
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                selectedIndex: navIndex,
+                onDestinationSelected:
+                    (index) =>
+                        context.read<HomePageBloc>().add(ChangeNavIndex(index)),
               ),
             );
           },
         );
       },
-    );
-  }
-
-  Widget _buildBottomNavigation(
-    BuildContext context,
-    AppLocalizations localizations,
-    HomePageState homeState,
-    SettingsState settingsState,
-  ) {
-    final destinations = [
-      NavigationDestination(
-        icon: const Icon(Icons.book_rounded),
-        label: localizations.books,
-      ),
-      NavigationDestination(
-        icon: const Icon(Icons.search_rounded),
-        label: localizations.discover,
-      ),
-      NavigationDestination(
-        icon: const Icon(Icons.person_rounded),
-        label: localizations.me,
-      ),
-    ];
-
-    if (settingsState.isDownloaderEnabled) {
-      destinations.add(
-        NavigationDestination(
-          icon: const Icon(Icons.download_rounded),
-          label: localizations.download,
-        ),
-      );
-    }
-
-    return NavigationBar(
-      destinations: destinations,
-      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-      selectedIndex: homeState.currentNavIndex,
-      onDestinationSelected:
-          (index) => context.read<HomePageBloc>().add(ChangeNavIndex(index)),
     );
   }
 }

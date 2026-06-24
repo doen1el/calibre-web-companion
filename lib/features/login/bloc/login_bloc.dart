@@ -9,6 +9,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final LoginRepository loginRepository;
   final Logger logger;
 
+  String? _pendingProbeUrl;
+
   LoginBloc({required this.loginRepository, required this.logger})
     : super(const LoginState()) {
     on<EnterUrl>(_onEnterUrl);
@@ -19,6 +21,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<ResetLoginStatus>(_onResetLoginStatus);
     on<LoginLogOut>(_onLogOut);
     on<ChangeServerType>(_onChangeServerType);
+    on<CheckEndpoint>(_onCheckEndpoint);
     on<FinalizeSsoLogin>(_onFinalizeSsoLogin);
     on<LoadStoredCredentials>(_onLoadStoredCredentials);
     on<LoadSavedAccounts>(_onLoadSavedAccounts);
@@ -43,7 +46,57 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   }
 
   void _onChangeServerType(ChangeServerType event, Emitter<LoginState> emit) {
-    emit(state.copyWith(serverType: event.serverType));
+    emit(
+      state.copyWith(
+        serverType: event.serverType,
+        endpointStatus: EndpointStatus.idle,
+      ),
+    );
+  }
+
+  Future<void> _onCheckEndpoint(
+    CheckEndpoint event,
+    Emitter<LoginState> emit,
+  ) async {
+    _pendingProbeUrl = event.url;
+
+    if (event.url.trim().isEmpty) {
+      emit(state.copyWith(endpointStatus: EndpointStatus.idle));
+      return;
+    }
+
+    emit(state.copyWith(endpointStatus: EndpointStatus.checking));
+
+    final result = await loginRepository.probeEndpoint(
+      event.url,
+      state.serverType,
+    );
+
+    if (_pendingProbeUrl != event.url) return;
+
+    emit(state.copyWith(endpointStatus: result));
+  }
+
+  static LoginErrorType _classifyLoginError(String? message) {
+    final m = (message ?? '').toLowerCase();
+    if (m.contains('invalid username') ||
+        m.contains('invalid credentials') ||
+        m.contains('401') ||
+        m.contains('403')) {
+      return LoginErrorType.invalidCredentials;
+    }
+    if (m.contains('socketexception') ||
+        m.contains('failed host lookup') ||
+        m.contains('connection') ||
+        m.contains('timed out') ||
+        m.contains('timeout') ||
+        m.contains('handshake') ||
+        m.contains('refused') ||
+        m.contains('network is unreachable') ||
+        m.contains('no address')) {
+      return LoginErrorType.unreachable;
+    }
+    return LoginErrorType.generic;
   }
 
   Future<void> _onSubmitLogin(
@@ -55,6 +108,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         status: LoginStatus.loading,
         loadingType: LoginLoadingType.standard,
         errorMessage: null,
+        errorType: LoginErrorType.none,
       ),
     );
 
@@ -89,6 +143,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           state.copyWith(
             status: LoginStatus.failure,
             errorMessage: result.errorMessage ?? 'Login failed',
+            errorType: _classifyLoginError(result.errorMessage),
             loadingType: LoginLoadingType.initial,
           ),
         );
@@ -98,6 +153,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         state.copyWith(
           status: LoginStatus.failure,
           errorMessage: e.toString(),
+          errorType: _classifyLoginError(e.toString()),
           loadingType: LoginLoadingType.initial,
         ),
       );
@@ -146,6 +202,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           state.copyWith(
             status: LoginStatus.failure,
             errorMessage: result.errorMessage ?? 'SSO Login failed',
+            errorType: _classifyLoginError(result.errorMessage),
             loadingType: LoginLoadingType.initial,
           ),
         );
@@ -156,6 +213,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         state.copyWith(
           status: LoginStatus.failure,
           errorMessage: e.toString(),
+          errorType: _classifyLoginError(e.toString()),
           loadingType: LoginLoadingType.initial,
         ),
       );
@@ -229,6 +287,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           state.copyWith(
             status: LoginStatus.failure,
             errorMessage: result.errorMessage,
+            errorType: _classifyLoginError(result.errorMessage),
             loadingType: LoginLoadingType.initial,
           ),
         );
@@ -238,6 +297,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         state.copyWith(
           status: LoginStatus.failure,
           errorMessage: e.toString(),
+          errorType: _classifyLoginError(e.toString()),
           loadingType: LoginLoadingType.initial,
         ),
       );

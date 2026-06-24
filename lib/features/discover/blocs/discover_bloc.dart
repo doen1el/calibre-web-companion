@@ -17,11 +17,14 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
   }
 
   void _onCheckServerType(CheckServerType event, Emitter<DiscoverState> emit) {
+    final serverType = sharedPreferences.getString('server_type');
     final isOpds =
-        sharedPreferences.getString('server_type') == 'opds' ||
-        sharedPreferences.getString('server_type') == 'grimmory' ||
-        sharedPreferences.getString('server_type') == 'booklore';
-    emit(state.copyWith(isOpds: isOpds));
+        serverType == 'opds' ||
+        serverType == 'grimmory' ||
+        serverType == 'booklore';
+
+    final hasDiscover = serverType != 'calibre';
+    emit(state.copyWith(isOpds: isOpds, hasDiscover: hasDiscover));
   }
 
   void _onNavigateToBookList(

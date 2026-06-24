@@ -71,6 +71,15 @@ class LoadViewSettings extends BookViewEvent {
   const LoadViewSettings();
 }
 
+class ChangeLibrary extends BookViewEvent {
+  final String libraryId;
+
+  const ChangeLibrary(this.libraryId);
+
+  @override
+  List<Object?> get props => [libraryId];
+}
+
 class UploadCancel extends BookViewEvent {
   const UploadCancel();
 }

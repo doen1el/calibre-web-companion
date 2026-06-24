@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:logger/logger.dart';
 
+import 'package:calibre_web_companion/core/services/server_capabilities.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
@@ -58,4 +59,13 @@ class BookViewRepository {
   }
 
   bool getIsOpds() => datasource.getIsOpds();
+
+  ServerCapabilities getCapabilities() => datasource.getCapabilities();
+
+  Map<String, String> getLibraries() => datasource.getLibraries();
+
+  String? getCurrentLibraryId() => datasource.getCurrentLibraryId();
+
+  Future<void> setCurrentLibraryId(String libraryId) =>
+      datasource.setCurrentLibraryId(libraryId);
 }

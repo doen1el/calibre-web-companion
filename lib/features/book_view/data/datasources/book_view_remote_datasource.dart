@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/services/server_capabilities.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
 class CancellationToken {
@@ -44,6 +46,14 @@ class BookViewRemoteDatasource {
         );
       } else if (serverType == 'opds') {
         return _fetchBooksOpds();
+      } else if (serverType == 'calibre') {
+        return _fetchBooksCalibre(
+          offset: offset,
+          limit: limit,
+          searchQuery: searchQuery,
+          sortBy: sortBy,
+          sortOrder: sortOrder,
+        );
       }
 
       List<BookViewModel> books = [];
@@ -333,8 +343,173 @@ class BookViewRemoteDatasource {
     }
   }
 
+  Future<List<BookViewModel>> _fetchBooksCalibre({
+    required int offset,
+    required int limit,
+    String? searchQuery,
+    String sortBy = '',
+    String sortOrder = '',
+  }) async {
+    try {
+      final libraryId = _preferences.getString('calibre_library_id');
+      final librarySegment =
+          (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
+
+      final queryParams = <String, String>{
+        'num': limit.toString(),
+        'offset': offset.toString(),
+      };
+
+      final sortField = _mapCalibreSortField(sortBy);
+      if (sortField.isNotEmpty) {
+        queryParams['sort'] = sortField;
+        queryParams['sort_order'] = sortOrder == 'desc' ? 'desc' : 'asc';
+      }
+
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        queryParams['query'] = searchQuery;
+      }
+
+      final searchResponse = await _apiService.getJson(
+        endpoint: '/ajax/search$librarySegment',
+        authMethod: AuthMethod.auto,
+        queryParams: queryParams,
+      );
+
+      final bookIds =
+          (searchResponse['book_ids'] as List?)
+              ?.map((id) => id.toString())
+              .toList() ??
+          const <String>[];
+
+      if (bookIds.isEmpty) {
+        _logger.i('Calibre search returned no books');
+        return [];
+      }
+
+      final booksResponse = await _apiService.getJson(
+        endpoint: '/ajax/books$librarySegment',
+        authMethod: AuthMethod.auto,
+        queryParams: {'ids': bookIds.join(',')},
+      );
+
+      final books = <BookViewModel>[];
+
+      for (final id in bookIds) {
+        final data = booksResponse[id];
+        if (data is Map) {
+          final book = _mapCalibreBook(
+            Map<String, dynamic>.from(data),
+            id,
+            libraryId,
+          );
+          if (book != null) books.add(book);
+        }
+      }
+
+      _logger.i('Parsed ${books.length} Calibre books');
+      return books;
+    } catch (e) {
+      _logger.e('Error fetching Calibre books: $e');
+      throw Exception('Failed to load Calibre books: $e');
+    }
+  }
+
+  String _mapCalibreSortField(String sortBy) {
+    switch (sortBy) {
+      case 'title':
+        return 'title';
+      case 'authors':
+        return 'authors';
+      case 'series':
+        return 'series';
+      case 'added':
+        return 'timestamp';
+      default:
+        return '';
+    }
+  }
+
+  BookViewModel? _mapCalibreBook(
+    Map<String, dynamic> data,
+    String idString,
+    String? libraryId,
+  ) {
+    try {
+      final id = int.tryParse(idString) ?? 0;
+
+      String joinList(dynamic value) {
+        if (value is List) return value.map((e) => e.toString()).join(', ');
+        return value?.toString() ?? '';
+      }
+
+      final authors = joinList(data['authors']);
+      final tags =
+          (data['tags'] as List?)?.map((e) => e.toString()).toList() ??
+          const <String>[];
+      final formats =
+          (data['formats'] as List?)?.map((e) => e.toString()).toList() ??
+          const <String>[];
+
+      final seriesIndex =
+          double.tryParse(data['series_index']?.toString() ?? '')?.toInt() ?? 0;
+
+      final librarySegment =
+          (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
+      final coverUrl =
+          data['cover']?.toString().isNotEmpty == true
+              ? data['cover'].toString()
+              : '/get/cover/$id$librarySegment';
+
+      return BookViewModel(
+        id: id,
+        uuid: data['uuid']?.toString() ?? '',
+        title: data['title']?.toString() ?? 'Unknown Title',
+        authors: authors.isEmpty ? 'Unknown' : authors,
+        series: data['series']?.toString() ?? '',
+        seriesIndex: seriesIndex,
+        publishers: data['publisher']?.toString() ?? '',
+        languages: joinList(data['languages']),
+        pubdate: data['pubdate']?.toString() ?? '',
+        data: data['comments']?.toString() ?? '',
+        hasCover: true,
+        coverUrl: coverUrl,
+        formats: formats,
+        tags: tags,
+      );
+    } catch (e) {
+      _logger.w('Error mapping Calibre book $idString: $e');
+      return null;
+    }
+  }
+
+  ServerCapabilities getCapabilities() =>
+      ServerCapabilities.fromServerType(_preferences.getString('server_type'));
+
+  Map<String, String> getLibraries() {
+    final raw = _preferences.getString('calibre_library_map');
+    if (raw == null || raw.isEmpty) return const {};
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      return decoded.map((key, value) => MapEntry(key, value.toString()));
+    } catch (e) {
+      _logger.w('Could not decode calibre_library_map: $e');
+      return const {};
+    }
+  }
+
+  String? getCurrentLibraryId() => _preferences.getString('calibre_library_id');
+
+  Future<void> setCurrentLibraryId(String libraryId) async {
+    await _preferences.setString('calibre_library_id', libraryId);
+  }
+
   Future<bool> uploadEbook(File book, CancellationToken cancelToken) async {
     try {
+      if (_preferences.getString('server_type') == 'calibre') {
+        return _uploadEbookCalibre(book);
+      }
+
       final result = await _apiService.uploadFile(
         file: book,
         endpoint: '/upload',
@@ -360,6 +535,48 @@ class BookViewRemoteDatasource {
       }
       return false;
     }
+  }
+
+  Future<bool> _uploadEbookCalibre(File book) async {
+    final libraryId = _preferences.getString('calibre_library_id');
+    final librarySegment =
+        (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
+
+    final rawName = book.path.split('/').last.split('\\').last;
+    final dotIndex = rawName.lastIndexOf('.');
+    if (dotIndex <= 0 || dotIndex == rawName.length - 1) {
+      throw Exception('The file needs an extension to upload to Calibre.');
+    }
+    final extension = rawName.substring(dotIndex);
+    final base = rawName
+        .substring(0, dotIndex)
+        .replaceAll(RegExp(r'[^A-Za-z0-9._ -]'), '')
+        .trim()
+        .replaceAll(' ', '_');
+    final filename = '${base.isEmpty ? 'book' : base}$extension';
+
+    final jobId = DateTime.now().millisecondsSinceEpoch.toString();
+    final bytes = await book.readAsBytes();
+
+    final response = await _apiService.post(
+      endpoint:
+          '/cdb/add-book/$jobId/y/${Uri.encodeComponent(filename)}$librarySegment',
+      authMethod: AuthMethod.auto,
+      contentType: 'application/octet-stream',
+      body: bytes,
+    );
+
+    if (response.statusCode == 200) {
+      _logger.i('Calibre add-book succeeded for "$filename"');
+      return true;
+    }
+    if (response.statusCode == 403) {
+      throw Exception(
+        'The Calibre server does not allow adding books (read-only mode or a '
+        'user without write permission).',
+      );
+    }
+    throw Exception('Upload failed (${response.statusCode})');
   }
 
   Future<int> getColumnCount() async {
