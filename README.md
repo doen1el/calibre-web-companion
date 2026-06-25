@@ -23,8 +23,9 @@
     <a href="https://hosted.weblate.org/engage/calibre-web-companion/">
         <img src="https://hosted.weblate.org/widget/calibre-web-companion/svg-badge.svg" alt="Translation status" />
     </a>
-    
-    
+    <a href="https://codeberg.org/doen1el/calibre-web-companion">
+        <img src="https://img.shields.io/badge/mirror-Codeberg-2185D0?logo=codeberg&logoColor=white" alt="Codeberg mirror">
+    </a>
 </p>
 
 # Calibre Web Companion
@@ -90,6 +91,8 @@ You can help translate Calibre Web Companion on [Weblate](https://hosted.weblate
 ## 🚀 Contributing
 
 You can of course open issues for bugs, feedback, and feature ideas. All suggestions are very welcome :)
+
+The source code is also mirrored on [Codeberg](https://codeberg.org/doen1el/calibre-web-companion). GitHub remains the primary repository, so please open issues and pull requests here.
 
 ## 📜 Credits
 
