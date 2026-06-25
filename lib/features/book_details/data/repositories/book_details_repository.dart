@@ -55,6 +55,7 @@ class BookDetailsRepository {
     DocumentFile? selectedDirectory,
     DownloadSchema schema, {
     Function(int)? progressCallback,
+    Future<void> Function(String path)? onFileDownloaded,
   }) async {
     try {
       return await datasource.openInReader(
@@ -62,6 +63,7 @@ class BookDetailsRepository {
         selectedDirectory,
         schema,
         progressCallback: progressCallback,
+        onFileDownloaded: onFileDownloaded,
       );
     } catch (e) {
       rethrow;
@@ -199,6 +201,9 @@ class BookDetailsRepository {
     format: format,
     progressCallback: progressCallback,
   );
+
+  Future<Uint8List?> fetchCoverBytes(int bookId, String? coverUrl) =>
+      datasource.fetchCoverBytes(bookId, coverUrl);
 
   Future<Uint8List?> readLocalEpubBytes(String path) =>
       datasource.readLocalEpubBytes(path);

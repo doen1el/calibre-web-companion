@@ -19,7 +19,7 @@ import 'package:calibre_web_companion/features/settings/data/models/download_sch
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
-import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart'; // Import hinzufügen
+import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart';
 
 class BookDetailsRemoteDatasource {
   final ApiService apiService;
@@ -38,10 +38,15 @@ class BookDetailsRemoteDatasource {
   ) async {
     try {
       final prefs = GetIt.instance<SharedPreferences>();
+      final serverType = prefs.getString('server_type');
       final isOpds =
-          prefs.getString('server_type') == 'opds' ||
-          prefs.getString('server_type') == 'grimmory' ||
-          prefs.getString('server_type') == 'booklore';
+          serverType == 'opds' ||
+          serverType == 'grimmory' ||
+          serverType == 'booklore';
+
+      if (serverType == 'calibre') {
+        return _fetchCalibreBookDetails(bookListModel, prefs);
+      }
 
       if (isOpds) {
         String comments = bookListModel.data;
@@ -100,6 +105,79 @@ class BookDetailsRemoteDatasource {
     return parsedString.trim();
   }
 
+  Future<BookDetailsModel> _fetchCalibreBookDetails(
+    BookViewModel bookListModel,
+    SharedPreferences prefs,
+  ) async {
+    final libraryId = prefs.getString('calibre_library_id');
+    final librarySegment =
+        (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
+
+    Map<String, dynamic> data = const {};
+    try {
+      data = await apiService.getJson(
+        endpoint: '/ajax/book/${bookListModel.id}$librarySegment',
+        authMethod: AuthMethod.auto,
+      );
+    } catch (e) {
+      logger.w(
+        'Calibre book detail fetch failed, falling back to list data: $e',
+      );
+    }
+
+    String joinList(dynamic value, String fallback) {
+      if (value is List) return value.map((e) => e.toString()).join(', ');
+      final str = value?.toString();
+      return (str == null || str.isEmpty) ? fallback : str;
+    }
+
+    final formats =
+        (data['formats'] as List?)?.map((e) => e.toString()).toList() ??
+        (bookListModel.formats.isNotEmpty
+            ? bookListModel.formats
+            : const ['EPUB']);
+
+    final tags =
+        (data['tags'] as List?)?.map((e) => e.toString()).toList() ??
+        bookListModel.tags;
+
+    final seriesIndex =
+        double.tryParse(data['series_index']?.toString() ?? '')?.toInt() ??
+        bookListModel.seriesIndex;
+
+    final rating = double.tryParse(data['rating']?.toString() ?? '') ?? 0.0;
+
+    final coverUrl =
+        data['cover']?.toString().isNotEmpty == true
+            ? data['cover'].toString()
+            : (bookListModel.coverUrl ??
+                '/get/cover/${bookListModel.id}$librarySegment');
+
+    final rawComments =
+        data['comments']?.toString() ??
+        (bookListModel.data.isNotEmpty ? bookListModel.data : '');
+
+    return BookDetailsModel(
+      id: bookListModel.id,
+      uuid: data['uuid']?.toString() ?? bookListModel.uuid,
+      title: data['title']?.toString() ?? bookListModel.title,
+      authors: joinList(data['authors'], bookListModel.authors),
+      cover: coverUrl,
+      coverUrl: coverUrl,
+      hasCover: true,
+      formats: formats,
+      series: data['series']?.toString() ?? bookListModel.series,
+      seriesIndex: seriesIndex,
+      publishers: data['publisher']?.toString() ?? bookListModel.publishers,
+      languages: joinList(data['languages'], bookListModel.languages),
+      pubdate: data['pubdate']?.toString() ?? bookListModel.pubdate,
+      rating: rating,
+      comments: _removeHtmlTags(rawComments),
+      tags: tags,
+      tagModels: tagService.convertTagsToModels(tags),
+    );
+  }
+
   Future<bool> toggleReadStatus(int bookId) async {
     try {
       logger.i('Toggling read status for book: $bookId');
@@ -155,6 +233,31 @@ class BookDetailsRemoteDatasource {
   Future<bool> deleteBook(int bookId) async {
     try {
       logger.i('Deleting book: $bookId');
+
+      final prefs = GetIt.instance<SharedPreferences>();
+      if (prefs.getString('server_type') == 'calibre') {
+        final libraryId = prefs.getString('calibre_library_id');
+        final librarySegment =
+            (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
+
+        final response = await apiService.post(
+          endpoint: '/cdb/delete-books/$bookId$librarySegment',
+          authMethod: AuthMethod.auto,
+        );
+
+        if (response.statusCode == 200) {
+          logger.i('Successfully deleted book (Calibre)');
+          return true;
+        }
+        if (response.statusCode == 403) {
+          throw Exception(
+            'The Calibre server does not allow deleting (read-only mode or a '
+            'user without write permission).',
+          );
+        }
+        logger.e('Failed to delete book (Calibre): ${response.statusCode}');
+        throw Exception('Failed to delete book (${response.statusCode})');
+      }
 
       final response = await apiService.post(
         endpoint: '/delete/$bookId',
@@ -222,15 +325,22 @@ class BookDetailsRemoteDatasource {
       logger.i('Getting download stream for book: $bookId, Format: $format');
 
       final prefs = GetIt.instance<SharedPreferences>();
+      final serverType = prefs.getString('server_type');
       final isOpds =
-          prefs.getString('server_type') == 'opds' ||
-          prefs.getString('server_type') == 'grimmory' ||
-          prefs.getString('server_type') == 'booklore';
+          serverType == 'opds' ||
+          serverType == 'grimmory' ||
+          serverType == 'booklore';
 
       String endpoint;
       AuthMethod authMethod;
 
-      if (isOpds) {
+      if (serverType == 'calibre') {
+        final libraryId = prefs.getString('calibre_library_id');
+        final librarySegment =
+            (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
+        endpoint = '/get/${format.toUpperCase()}/$bookId$librarySegment';
+        authMethod = AuthMethod.auto;
+      } else if (isOpds) {
         endpoint = '/$bookId/download';
         authMethod = AuthMethod.basic;
       } else {
@@ -331,6 +441,25 @@ class BookDetailsRemoteDatasource {
     String? coverUrl,
   }) async {
     try {
+      final prefs = GetIt.instance<SharedPreferences>();
+      if (prefs.getString('server_type') == 'calibre') {
+        return _updateCalibreMetadata(
+          bookId,
+          prefs,
+          title: title,
+          authors: authors,
+          comments: comments,
+          tags: tags,
+          series: series,
+          seriesIndex: seriesIndex,
+          pubdate: pubdate,
+          publisher: publisher,
+          languages: languages,
+          rating: rating,
+          coverImageBytes: coverImageBytes,
+        );
+      }
+
       final body = {
         'title': title,
         'authors': authors,
@@ -390,6 +519,85 @@ class BookDetailsRemoteDatasource {
       logger.e('Error updating book metadata: $e');
       throw Exception('Failed to update book metadata: $e');
     }
+  }
+
+  Future<bool> _updateCalibreMetadata(
+    String bookId,
+    SharedPreferences prefs, {
+    required String title,
+    required String authors,
+    required String comments,
+    required String tags,
+    required String series,
+    required String seriesIndex,
+    required String pubdate,
+    required String publisher,
+    required String languages,
+    required double rating,
+    Uint8List? coverImageBytes,
+  }) async {
+    final libraryId = prefs.getString('calibre_library_id');
+    final librarySegment =
+        (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
+
+    List<String> splitList(String value) =>
+        value
+            .split(',')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+
+    final changes = <String, dynamic>{
+      'title': title,
+      'authors': splitList(authors),
+      'tags': splitList(tags),
+      'comments': comments,
+      'publisher': publisher,
+      'rating': (rating * 2).round(),
+    };
+
+    if (series.trim().isNotEmpty) {
+      changes['series'] = series.trim();
+      final idx = double.tryParse(seriesIndex.trim().replaceAll(',', '.'));
+      if (idx != null) changes['series_index'] = idx;
+    } else {
+      changes['series'] = null;
+    }
+
+    if (pubdate.trim().isNotEmpty) {
+      changes['pubdate'] = pubdate.trim();
+    }
+
+    if (coverImageBytes != null && coverImageBytes.isNotEmpty) {
+      changes['cover'] = base64Encode(coverImageBytes);
+    }
+
+    final id = int.tryParse(bookId) ?? 0;
+
+    final response = await apiService.post(
+      endpoint: '/cdb/set-fields/$bookId$librarySegment',
+      authMethod: AuthMethod.auto,
+      contentType: 'application/json',
+      body: {
+        'changes': changes,
+        'loaded_book_ids': [id],
+      },
+    );
+
+    if (response.statusCode == 200) {
+      logger.i('Calibre metadata updated for book $bookId');
+      return true;
+    }
+    if (response.statusCode == 403) {
+      throw Exception(
+        'The Calibre server does not allow changes (read-only mode or a user '
+        'without write permission).',
+      );
+    }
+    logger.e(
+      'Calibre set-fields failed: ${response.statusCode} - ${response.body}',
+    );
+    throw Exception('Failed to update metadata (${response.statusCode})');
   }
 
   Future<DocumentFile> _getOrCreateDirectory(
@@ -577,6 +785,7 @@ class BookDetailsRemoteDatasource {
     DocumentFile? selectedDirectory,
     DownloadSchema schema, {
     Function(int)? progressCallback,
+    Future<void> Function(String path)? onFileDownloaded,
   }) async {
     try {
       logger.i('Opening book in reader: ${book.title}');
@@ -587,12 +796,14 @@ class BookDetailsRemoteDatasource {
       }
 
       String localPath;
+      String durablePath;
       if (selectedDirectory == null) {
         localPath = await downloadBookToDevice(
           book,
           format: format,
           progressCallback: progressCallback,
         );
+        durablePath = localPath;
       } else {
         final filePath = await downloadBookToPath(
           book: book,
@@ -616,7 +827,10 @@ class BookDetailsRemoteDatasource {
           return false;
         }
         localPath = cachedFile.path;
+        durablePath = filePath;
       }
+
+      await onFileDownloaded?.call(durablePath);
 
       final result = await OpenFile.open(localPath);
 
@@ -718,6 +932,29 @@ class BookDetailsRemoteDatasource {
       logger.e('Error getting download stream with progress: $e');
       throw Exception('Error getting download stream: $e');
     }
+  }
+
+  Future<Uint8List?> fetchCoverBytes(int bookId, String? coverUrl) async {
+    try {
+      String endpoint;
+      if (coverUrl != null && coverUrl.isNotEmpty) {
+        var clean = coverUrl.split('/api/v1/opds/').last;
+        if (clean.startsWith('/')) clean = clean.substring(1);
+        endpoint = '/$clean';
+      } else {
+        endpoint = '/opds/cover/$bookId';
+      }
+      final response = await apiService.get(
+        endpoint: endpoint,
+        authMethod: AuthMethod.auto,
+      );
+      if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+        return response.bodyBytes;
+      }
+    } catch (e) {
+      logger.w('Could not fetch cover bytes for $bookId: $e');
+    }
+    return null;
   }
 
   Future<Uint8List> streamBookBytes(

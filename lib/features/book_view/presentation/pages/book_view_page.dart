@@ -3,7 +3,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:get_it/get_it.dart';
+
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
+import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
+import 'package:calibre_web_companion/features/offline/data/services/offline_backfill_service.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_state.dart';
 
@@ -65,7 +69,8 @@ class _BookViewPageState extends State<BookViewPage> {
       listenWhen:
           (previous, current) =>
               previous.uploadStatus != current.uploadStatus ||
-              (current.hasError && !previous.hasError),
+              (current.hasError && !previous.hasError) ||
+              (previous.isLoading && !current.isLoading),
       listener: (context, state) {
         if (state.uploadStatus == UploadStatus.loading ||
             state.uploadStatus == UploadStatus.uploading) {
@@ -74,6 +79,11 @@ class _BookViewPageState extends State<BookViewPage> {
 
         if (state.hasError) {
           context.showSnackBar(state.errorMessage, isError: true);
+          context.read<ConnectivityCubit>().reportFailure();
+        }
+
+        if (!state.isLoading && !state.hasError && state.books.isNotEmpty) {
+          GetIt.instance<OfflineBackfillService>().run();
         }
       },
       builder: (context, state) {
@@ -90,6 +100,7 @@ class _BookViewPageState extends State<BookViewPage> {
                     )
                     : Text(localizations.books),
             actions: [
+              if (state.multiLibrary) _buildLibrarySelector(context, state),
               const BookViewModeSelector(),
               if (!state.isOpds) _buildSortOptions(context, localizations),
               if (!isSearching) _buildSearchButton(context, localizations),
@@ -97,14 +108,14 @@ class _BookViewPageState extends State<BookViewPage> {
           ),
           body: _buildBody(context, state, localizations),
           floatingActionButton:
-              state.isOpds
-                  ? null
-                  : FloatingActionButton(
+              state.canAddBooks
+                  ? FloatingActionButton(
                     onPressed:
                         () => _showAddBookOptions(context, localizations),
                     tooltip: localizations.addBook,
                     child: const Icon(Icons.add_rounded),
-                  ),
+                  )
+                  : null,
         );
       },
     );
@@ -270,6 +281,27 @@ class _BookViewPageState extends State<BookViewPage> {
     );
   }
 
+  Widget _buildLibrarySelector(BuildContext context, BookViewState state) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.library_books_rounded),
+      tooltip: state.libraries[state.currentLibraryId] ?? 'Library',
+      onSelected: (String libraryId) {
+        context.read<BookViewBloc>().add(ChangeLibrary(libraryId));
+      },
+      itemBuilder:
+          (BuildContext context) =>
+              state.libraries.entries
+                  .map(
+                    (entry) => CheckedPopupMenuItem<String>(
+                      value: entry.key,
+                      checked: entry.key == state.currentLibraryId,
+                      child: Text(entry.value),
+                    ),
+                  )
+                  .toList(),
+    );
+  }
+
   Widget _buildSortOptions(
     BuildContext context,
     AppLocalizations localizations,
@@ -323,22 +355,27 @@ class _BookViewPageState extends State<BookViewPage> {
     BuildContext context,
     AppLocalizations localizations,
   ) {
+    final canLookupMetadata =
+        context.read<BookViewBloc>().state.canLookupMetadata;
+
     showAppOptionsSheet(
       context,
       title: localizations.addBook,
       options: [
-        AppSheetOption(
-          icon: Icons.qr_code_scanner_rounded,
-          title: localizations.scan,
-          subtitle: localizations.scanBarcodeDescription,
-          onTap: () => _openScanner(context),
-        ),
-        AppSheetOption(
-          icon: Icons.keyboard_rounded,
-          title: localizations.enterIsbn,
-          subtitle: localizations.enterIsbnDescription,
-          onTap: () => _startIsbnEntry(context),
-        ),
+        if (canLookupMetadata)
+          AppSheetOption(
+            icon: Icons.qr_code_scanner_rounded,
+            title: localizations.scan,
+            subtitle: localizations.scanBarcodeDescription,
+            onTap: () => _openScanner(context),
+          ),
+        if (canLookupMetadata)
+          AppSheetOption(
+            icon: Icons.keyboard_rounded,
+            title: localizations.enterIsbn,
+            subtitle: localizations.enterIsbnDescription,
+            onTap: () => _startIsbnEntry(context),
+          ),
         AppSheetOption(
           icon: Icons.upload_file_rounded,
           title: localizations.uploadFromDevice,

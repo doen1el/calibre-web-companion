@@ -23,6 +23,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     on<SetViewMode>(_onSetViewMode);
     on<UploadCancel>(_onUploadCancel);
     on<ResetUploadStatus>(_onResetUploadStatus);
+    on<ChangeLibrary>(_onChangeLibrary);
   }
 
   Future<void> _onLoadSettings(
@@ -32,7 +33,19 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     try {
       final columnCount = await repository.getColumnCount();
       final isListView = await repository.getIsListView();
-      emit(state.copyWith(columnCount: columnCount, isListView: isListView));
+      final caps = repository.getCapabilities();
+      final libraries = repository.getLibraries();
+      emit(
+        state.copyWith(
+          columnCount: columnCount,
+          isListView: isListView,
+          canAddBooks: caps.addBooks,
+          canLookupMetadata: caps.metadataLookup,
+          multiLibrary: caps.multiLibrary && libraries.length > 1,
+          libraries: libraries,
+          currentLibraryId: repository.getCurrentLibraryId(),
+        ),
+      );
     } catch (e) {
       logger.e('Error loading settings: $e');
     }
@@ -45,6 +58,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     emit(state.copyWith(isLoading: true, hasError: false));
     try {
       final isOpds = repository.getIsOpds();
+      final caps = repository.getCapabilities();
 
       final books = await repository.fetchBooks(
         offset: 0,
@@ -59,7 +73,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
           isLoading: false,
           books: books,
           offset: state.limit,
-          hasMoreBooks: isOpds ? false : books.isNotEmpty,
+          hasMoreBooks: caps.pagination ? books.isNotEmpty : false,
           isOpds: isOpds,
         ),
       );
@@ -228,6 +242,25 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     } catch (e) {
       logger.e('Error changing view mode: $e');
     }
+  }
+
+  Future<void> _onChangeLibrary(
+    ChangeLibrary event,
+    Emitter<BookViewState> emit,
+  ) async {
+    if (event.libraryId == state.currentLibraryId) return;
+
+    await repository.setCurrentLibraryId(event.libraryId);
+    emit(
+      state.copyWith(
+        currentLibraryId: event.libraryId,
+        books: [],
+        offset: 0,
+        hasMoreBooks: true,
+        searchQuery: '',
+      ),
+    );
+    add(const LoadBooks());
   }
 
   void _onUploadCancel(UploadCancel event, Emitter<BookViewState> emit) {

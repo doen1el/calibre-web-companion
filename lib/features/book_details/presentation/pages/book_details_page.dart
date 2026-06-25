@@ -20,6 +20,7 @@ import 'package:calibre_web_companion/features/book_details/bloc/book_details_st
 
 import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/core/services/server_capabilities.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/tag_model.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/widgets/add_to_shelf_widget.dart';
@@ -316,9 +317,10 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     final localizations = AppLocalizations.of(context)!;
 
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop && mounted) {
+        if (didPop) return;
+        if (mounted) {
           Navigator.of(context).pop(result ?? _didUpdateMetadata);
         }
       },
@@ -989,10 +991,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     final serverType = GetIt.instance<SharedPreferences>().getString(
       'server_type',
     );
-    final isOpds =
-        serverType == 'opds' ||
-        serverType == 'grimmory' ||
-        serverType == 'booklore';
+    final caps = ServerCapabilities.fromServerType(serverType);
 
     final actionBuilders = <String, Widget Function()>{
       BookDetailsAction.toggleReadStatus.key:
@@ -1214,20 +1213,21 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
           ),
     };
 
-    final unsupportedOnOpds = <String>{
-      BookDetailsAction.toggleReadStatus.key,
-      BookDetailsAction.toggleArchiveStatus.key,
-      BookDetailsAction.editMetadata.key,
-      BookDetailsAction.addToShelf.key,
-      BookDetailsAction.openInBrowser.key,
-      BookDetailsAction.deleteBook.key,
+    final unsupportedActions = <String>{
+      if (!caps.readingProgress) BookDetailsAction.toggleReadStatus.key,
+      if (!caps.readingProgress) BookDetailsAction.toggleArchiveStatus.key,
+      if (!caps.editMetadata) BookDetailsAction.editMetadata.key,
+      if (!caps.shelves) BookDetailsAction.addToShelf.key,
+      if (!caps.deleteBooks) BookDetailsAction.deleteBook.key,
+      if (serverType != null && serverType != 'calibreWeb')
+        BookDetailsAction.openInBrowser.key,
     };
 
     final visibleOrder =
         settingsState.bookActionsOrder.where((actionKey) {
           final isEnabled = enabledActionKeys.contains(actionKey);
           final exists = actionBuilders.containsKey(actionKey);
-          final isSupported = !isOpds || !unsupportedOnOpds.contains(actionKey);
+          final isSupported = !unsupportedActions.contains(actionKey);
           return isEnabled && exists && isSupported;
         }).toList();
 

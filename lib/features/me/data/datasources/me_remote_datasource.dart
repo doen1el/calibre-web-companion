@@ -19,6 +19,10 @@ class MeRemoteDataSource {
         return _getOpdsStats();
       }
 
+      if (serverType == 'calibre') {
+        return const StatsModel();
+      }
+
       final jsonData = await apiService.getJson(
         endpoint: '/opds/stats',
         authMethod: AuthMethod.auto,
@@ -57,16 +61,17 @@ class MeRemoteDataSource {
     try {
       final serverType = preferences.getString('server_type');
 
-      if (serverType != 'opds' &&
-          serverType != 'grimmory' &&
-          serverType != 'booklore') {
+      final hasServerLogout = serverType == null || serverType == 'calibreWeb';
+
+      if (hasServerLogout) {
         try {
           await apiService.get(
             endpoint: '/logout',
             authMethod: AuthMethod.cookie,
           );
         } catch (e) {
-          throw Exception('Failed to logout from server: $e');
+          // ignore: avoid_print
+          print('Server logout failed (continuing local logout): $e');
         }
       }
 
@@ -74,7 +79,10 @@ class MeRemoteDataSource {
       await preferences.remove('username');
       await preferences.remove('password');
       await preferences.remove('calibre_web_session');
+      await preferences.remove('calibre_web_cookie');
       await preferences.remove('server_type');
+      await preferences.remove('calibre_library_id');
+      await preferences.remove('calibre_library_map');
 
       await apiService.reset();
     } catch (e) {
@@ -82,9 +90,12 @@ class MeRemoteDataSource {
     }
   }
 
+  bool getShowStats() => preferences.getString('server_type') != 'calibre';
+
   bool getIsOpds() {
     return preferences.getString('server_type') == 'opds' ||
         preferences.getString('server_type') == 'grimmory' ||
-        preferences.getString('server_type') == 'booklore';
+        preferences.getString('server_type') == 'booklore' ||
+        preferences.getString('server_type') == 'calibre';
   }
 }

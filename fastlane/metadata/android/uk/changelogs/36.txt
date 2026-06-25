@@ -1,0 +1,1 @@
+– Виправлено: пакет mobile_scanner замінено на barcode_scan2

@@ -64,6 +64,14 @@ class ChangeServerType extends LoginEvent {
   List<Object?> get props => [serverType];
 }
 
+class CheckEndpoint extends LoginEvent {
+  final String url;
+  const CheckEndpoint(this.url);
+
+  @override
+  List<Object?> get props => [url];
+}
+
 class FinalizeSsoLogin extends LoginEvent {
   final String cookieHeader;
   final String userAgent;

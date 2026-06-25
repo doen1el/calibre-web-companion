@@ -6,12 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:logger/web.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:cosmos_epub/cosmos_epub.dart';
 
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/di/injection_container.dart' as di;
+import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/services/connectivity_service.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/core/services/app_log_service.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
@@ -24,6 +27,7 @@ import 'package:calibre_web_companion/features/discover_details/bloc/discover_de
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 import 'package:calibre_web_companion/features/homepage/bloc/homepage_bloc.dart';
+import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
 import 'package:calibre_web_companion/features/homepage/presentation/pages/home_page.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_event.dart';
 import 'package:calibre_web_companion/features/me/bloc/me_bloc.dart';
@@ -44,32 +48,36 @@ final navigatorKey = GlobalKey<NavigatorState>();
 final GetIt getIt = GetIt.instance;
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await di.init();
-
-  final appLogService = di.getIt<AppLogService>();
-
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    appLogService.add(
-      'FlutterError: ${details.exceptionAsString()}\n${details.stack ?? ''}',
-    );
-  };
-
-  PlatformDispatcher.instance.onError = (error, stack) {
-    appLogService.add('Uncaught error: $error\n$stack');
-    return false;
-  };
-
-  await di.getIt<DownloadManager>().initialize();
-
-  await CosmosEpub.initialize();
-
-  final savedThemeMode = await AdaptiveTheme.getThemeMode();
+  AppLogService? appLogService;
 
   runZonedGuarded(
-    () {
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+
+      await di.init();
+
+      appLogService = di.getIt<AppLogService>();
+
+      FlutterError.onError = (FlutterErrorDetails details) {
+        FlutterError.presentError(details);
+        appLogService?.add(
+          'FlutterError: ${details.exceptionAsString()}\n${details.stack ?? ''}',
+        );
+      };
+
+      PlatformDispatcher.instance.onError = (error, stack) {
+        appLogService?.add('Uncaught error: $error\n$stack');
+        return false;
+      };
+
+      await di.getIt<DownloadManager>().initialize();
+
+      await di.getIt<ApiService>().initialize();
+
+      await CosmosEpub.initialize();
+
+      final savedThemeMode = await AdaptiveTheme.getThemeMode();
+
       runApp(
         MultiBlocProvider(
           providers: [
@@ -117,17 +125,20 @@ void main() async {
               create:
                   (_) => getIt<SyncBloc>()..add(const CheckForUnsyncedBooks()),
             ),
+            BlocProvider<ConnectivityCubit>(
+              create: (_) => getIt<ConnectivityCubit>(),
+            ),
           ],
           child: MyApp(savedThemeMode: savedThemeMode),
         ),
       );
     },
     (error, stack) {
-      appLogService.add('Zoned error: $error\n$stack');
+      appLogService?.add('Zoned error: $error\n$stack');
     },
     zoneSpecification: ZoneSpecification(
       print: (self, parent, zone, line) {
-        appLogService.add('print: $line');
+        appLogService?.add('print: $line');
         parent.print(zone, line);
       },
     ),
@@ -146,12 +157,22 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  late final Future<bool> _loginFuture = _isLoggedIn();
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
   }
 
   Future<bool> _isLoggedIn() async {
+    final prefs = getIt<SharedPreferences>();
+    final baseUrl = prefs.getString('base_url');
+    final hasAccount = baseUrl != null && baseUrl.isNotEmpty;
+
+    if (hasAccount && !await getIt<ConnectivityService>().hasNetwork()) {
+      return true;
+    }
+
     return await LoginRepository(
       dataSource: getIt<LoginRemoteDataSource>(),
       logger: getIt<Logger>(),
@@ -244,7 +265,7 @@ class _MyAppState extends State<MyApp> {
                   return const Locale('en');
                 },
                 home: FutureBuilder<bool>(
-                  future: _isLoggedIn(),
+                  future: _loginFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Scaffold(

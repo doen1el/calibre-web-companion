@@ -43,6 +43,8 @@ class MePage extends StatelessWidget {
             context.read<LoginBloc>().add(const ResetLoginStatus());
 
             context.read<MeBloc>().add(const LoadStats());
+
+            context.read<BookViewBloc>().add(const LoadViewSettings());
             context.read<BookViewBloc>().add(const RefreshBooks());
 
             Navigator.of(context).pushAndRemoveUntil(
@@ -104,17 +106,19 @@ class MePage extends StatelessWidget {
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(
                     children: [
-                      StatsCard(
-                        stats: state.stats ?? const StatsModel(),
-                        isLoading: state.status == MeStatus.loading,
-                        errorMessage:
-                            state.status == MeStatus.error
-                                ? state.errorMessage
-                                : null,
-                        onRetry:
-                            () => context.read<MeBloc>().add(const LoadStats()),
-                        isOpds: state.isOpds,
-                      ),
+                      if (state.showStats)
+                        StatsCard(
+                          stats: state.stats ?? const StatsModel(),
+                          isLoading: state.status == MeStatus.loading,
+                          errorMessage:
+                              state.status == MeStatus.error
+                                  ? state.errorMessage
+                                  : null,
+                          onRetry:
+                              () =>
+                                  context.read<MeBloc>().add(const LoadStats()),
+                          isOpds: state.isOpds,
+                        ),
                       LongButton(
                         text: localizations.settings,
                         icon: Icons.settings_rounded,
@@ -123,14 +127,17 @@ class MePage extends StatelessWidget {
                               AppTransitions.createSlideRoute(SettingsPage()),
                             ),
                       ),
-                      LongButton(
-                        text: localizations.shelfs,
-                        icon: Icons.list_rounded,
-                        onPressed:
-                            () => Navigator.of(context).push(
-                              AppTransitions.createSlideRoute(ShelfViewPage()),
-                            ),
-                      ),
+                      if (!state.isOpds)
+                        LongButton(
+                          text: localizations.shelfs,
+                          icon: Icons.list_rounded,
+                          onPressed:
+                              () => Navigator.of(context).push(
+                                AppTransitions.createSlideRoute(
+                                  ShelfViewPage(),
+                                ),
+                              ),
+                        ),
 
                       if (!state.isOpds) ...[
                         LongButton(

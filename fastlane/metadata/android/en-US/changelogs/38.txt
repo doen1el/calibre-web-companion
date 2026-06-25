@@ -1,0 +1,6 @@
+- Added: new Ukrainian (@Vitali) and Tamil (@தமிழ்நேரம்) translations.
+- Feature: Offline mode has been added to the app, allowing users to access their downloaded books without an internet connection.
+- Feature: Support added for the WebServer provided by the Calibre Desktop application.
+- Fixed: the 'Read Now' button now correctly downloads the book.
+- Fix: When editing a book and then using the system back button, the changes are now saved correctly.
+- Fix: Shelfmark integration will no longer fall back to 'German' by default.

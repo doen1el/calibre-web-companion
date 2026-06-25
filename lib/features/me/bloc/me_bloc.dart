@@ -18,6 +18,7 @@ class MeBloc extends Bloc<MeEvent, MeState> {
 
     try {
       final isOpds = repository.getIsOpds();
+      final showStats = repository.getShowStats();
       final stats = await repository.getStats();
 
       emit(
@@ -26,6 +27,7 @@ class MeBloc extends Bloc<MeEvent, MeState> {
           stats: stats,
           errorMessage: null,
           isOpds: isOpds,
+          showStats: showStats,
         ),
       );
     } catch (e) {

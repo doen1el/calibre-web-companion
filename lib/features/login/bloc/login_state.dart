@@ -3,6 +3,7 @@ import 'package:calibre_web_companion/features/login/data/models/login_credentia
 
 enum ServerType {
   calibreWeb,
+  calibre,
   booklore,
   opds;
 
@@ -10,6 +11,8 @@ enum ServerType {
     switch (this) {
       case ServerType.calibreWeb:
         return 'Calibre Web';
+      case ServerType.calibre:
+        return 'Calibre';
       case ServerType.booklore:
         return 'Grimmory';
       case ServerType.opds:
@@ -22,6 +25,10 @@ enum LoginStatus { initial, loading, success, failure, redirect }
 
 enum LoginLoadingType { initial, standard, sso }
 
+enum LoginErrorType { none, invalidCredentials, unreachable, generic }
+
+enum EndpointStatus { idle, checking, reachable, authRequired, unreachable }
+
 class LoginState extends Equatable {
   final String url;
   final String username;
@@ -32,6 +39,8 @@ class LoginState extends Equatable {
   final LoginLoadingType loadingType;
   final ServerType serverType;
   final List<LoginCredentials> savedAccounts;
+  final EndpointStatus endpointStatus;
+  final LoginErrorType errorType;
 
   const LoginState({
     this.url = '',
@@ -43,6 +52,8 @@ class LoginState extends Equatable {
     this.loadingType = LoginLoadingType.standard,
     this.serverType = ServerType.calibreWeb,
     this.savedAccounts = const [],
+    this.endpointStatus = EndpointStatus.idle,
+    this.errorType = LoginErrorType.none,
   });
 
   LoginState copyWith({
@@ -55,6 +66,8 @@ class LoginState extends Equatable {
     LoginLoadingType? loadingType,
     ServerType? serverType,
     List<LoginCredentials>? savedAccounts,
+    EndpointStatus? endpointStatus,
+    LoginErrorType? errorType,
   }) {
     return LoginState(
       url: url ?? this.url,
@@ -66,6 +79,8 @@ class LoginState extends Equatable {
       loadingType: loadingType ?? this.loadingType,
       serverType: serverType ?? this.serverType,
       savedAccounts: savedAccounts ?? this.savedAccounts,
+      endpointStatus: endpointStatus ?? this.endpointStatus,
+      errorType: errorType ?? this.errorType,
     );
   }
 
@@ -80,5 +95,7 @@ class LoginState extends Equatable {
     loadingType,
     serverType,
     savedAccounts,
+    endpointStatus,
+    errorType,
   ];
 }

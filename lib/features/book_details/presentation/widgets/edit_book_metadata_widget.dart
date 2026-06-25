@@ -1,9 +1,10 @@
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:calibre_web_companion/core/services/server_capabilities.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:flutter_rating/flutter_rating.dart';
 import 'package:intl/intl.dart';
@@ -16,6 +17,7 @@ import 'package:calibre_web_companion/features/book_details/data/models/metadata
 import 'package:calibre_web_companion/features/book_details/presentation/widgets/metadata_search_dialog.dart';
 
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
@@ -238,15 +240,18 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
             appBar: AppBar(
               title: Text(localizations.editBookMetadata),
               actions: [
-                IconButton(
-                  icon: CircleAvatar(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer,
-                    child: const Icon(Icons.search),
+                if (ServerCapabilities.fromServerType(
+                  GetIt.instance<SharedPreferences>().getString('server_type'),
+                ).metadataLookup)
+                  IconButton(
+                    icon: CircleAvatar(
+                      backgroundColor:
+                          Theme.of(context).colorScheme.primaryContainer,
+                      child: const Icon(Icons.search),
+                    ),
+                    tooltip: localizations.fetchMetadata,
+                    onPressed: isLoading ? null : _openMetadataSearch,
                   ),
-                  tooltip: localizations.fetchMetadata,
-                  onPressed: isLoading ? null : _openMetadataSearch,
-                ),
                 IconButton(
                   icon: CircleAvatar(
                     backgroundColor:
@@ -648,91 +653,10 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
     int bookId,
     AppLocalizations localizations,
   ) {
-    final apiService = ApiService();
-    final baseUrl = apiService.getBaseUrl();
-    final coverUrl = '$baseUrl/opds/cover/$bookId';
-
-    return FutureBuilder<Map<String, String>>(
-      future: () async {
-        final headers = <String, String>{};
-
-        final cookieHeaders = apiService.getAuthHeaders(
-          authMethod: AuthMethod.cookie,
-        );
-        if (cookieHeaders.containsKey('Cookie')) {
-          headers['Cookie'] = cookieHeaders['Cookie']!;
-        }
-
-        final userAgent = apiService.getUserAgent();
-        if (userAgent != null && userAgent.isNotEmpty) {
-          headers['User-Agent'] = userAgent;
-        }
-
-        final username = apiService.getUsername();
-        final password = apiService.getPassword();
-        if (username.isNotEmpty && password.isNotEmpty) {
-          headers['Authorization'] =
-              'Basic ${base64.encode(utf8.encode('$username:$password'))}';
-        }
-
-        try {
-          final prefs = await SharedPreferences.getInstance();
-          final headersJson = prefs.getString('custom_login_headers') ?? '[]';
-          final List<dynamic> decodedList = jsonDecode(headersJson);
-
-          for (final dynamic item in decodedList) {
-            if (item is Map) {
-              final map = Map<String, dynamic>.from(item);
-              String? key = map['key']?.toString();
-              String? value = map['value']?.toString();
-
-              if (key == null && map.isNotEmpty) {
-                key = map.keys.first;
-                value = map.values.first;
-              }
-
-              if (key != null && value != null) {
-                if (value.contains('\${USERNAME}') && username.isNotEmpty) {
-                  value = value.replaceAll('\${USERNAME}', username);
-                }
-                headers[key] = value;
-              }
-            }
-          }
-        } catch (e) {
-          // Ignore errors
-        }
-
-        headers['Accept'] =
-            'image/avif;q=0,image/webp;q=0,image/jpeg,image/png,*/*;q=0.5';
-        headers['Cache-Control'] = 'no-transform';
-        return headers;
-      }(),
-      builder: (context, snapshot) {
-        final headers = snapshot.data ?? const <String, String>{};
-        return CachedNetworkImage(
-          imageUrl: coverUrl,
-          fit: BoxFit.cover,
-          httpHeaders: headers,
-          placeholder:
-              (context, url) => Container(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-          errorWidget:
-              (context, url, error) => Image.network(
-                coverUrl,
-                headers: headers,
-                fit: BoxFit.cover,
-                errorBuilder:
-                    (context, error, stack) => Container(
-                      color:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
-                      child: const Icon(Icons.broken_image),
-                    ),
-              ),
-        );
-      },
+    return BookCoverWidget(
+      bookId: bookId,
+      coverUrl: widget.book.coverUrl,
+      fit: BoxFit.cover,
     );
   }
 }

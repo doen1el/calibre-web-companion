@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
@@ -26,40 +27,48 @@ class BookCoverWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final apiService = ApiService();
     final baseUrl = apiService.getBaseUrl();
+    final hasExplicitCover = coverUrl != null && coverUrl!.isNotEmpty;
+
+    if (!hasExplicitCover && bookId <= 0) {
+      return _buildPlaceholder(context);
+    }
+
+    final prefs = GetIt.instance<SharedPreferences>();
+    final isCalibre = prefs.getString('server_type') == 'calibre';
 
     String imageUrl;
-    if (coverUrl != null && coverUrl!.isNotEmpty) {
+    if (hasExplicitCover) {
       var cleanCoverURL = coverUrl!.split("/api/v1/opds/").last;
       if (cleanCoverURL.startsWith('/')) {
         cleanCoverURL = cleanCoverURL.substring(1);
       }
       imageUrl = '$baseUrl/$cleanCoverURL';
+    } else if (isCalibre) {
+      final libraryId = prefs.getString('calibre_library_id');
+      final segment =
+          (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
+      imageUrl = '$baseUrl/get/cover/$bookId$segment';
     } else {
       imageUrl = '$baseUrl/opds/cover/$bookId';
     }
 
-    return FutureBuilder<Map<String, String>>(
-      future: _getHeaders(apiService),
-      builder: (context, snapshot) {
-        final headers = snapshot.data ?? const <String, String>{};
+    final headers = _getHeaders(apiService, prefs);
 
-        return CachedNetworkImage(
-          cacheManager: CustomCacheManager(),
-          imageUrl: imageUrl,
-          httpHeaders: headers,
-          key: ValueKey('${bookId}_$imageUrl'),
-          fit: fit,
-          alignment: alignment,
-          width: double.infinity,
-          height: double.infinity,
-          placeholder: (context, url) => _buildPlaceholder(context),
-          errorWidget: (context, url, error) => _buildErrorWidget(context),
-        );
-      },
+    return CachedNetworkImage(
+      cacheManager: CustomCacheManager(),
+      imageUrl: imageUrl,
+      httpHeaders: headers,
+      key: ValueKey('${bookId}_$imageUrl'),
+      fit: fit,
+      alignment: alignment,
+      width: double.infinity,
+      height: double.infinity,
+      placeholder: (context, url) => _buildPlaceholder(context),
+      errorWidget: (context, url, error) => _buildErrorWidget(context),
     );
   }
 
-  Future<Map<String, String>> _getHeaders(ApiService api) async {
+  Map<String, String> _getHeaders(ApiService api, SharedPreferences prefs) {
     final headers = <String, String>{};
 
     final authHeaders = api.getAuthHeaders(authMethod: AuthMethod.auto);
@@ -80,7 +89,6 @@ class BookCoverWidget extends StatelessWidget {
     }
 
     try {
-      final prefs = await SharedPreferences.getInstance();
       final headersJson = prefs.getString('custom_login_headers') ?? '[]';
       final List<dynamic> decodedList = jsonDecode(headersJson);
 
