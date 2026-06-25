@@ -4,7 +4,7 @@
 <p align="center">
     <img src="docs/icon/icon.png" alt="App Icon" width="100" />
     <br>
-    v2.0.2
+    v2.1.0
 </p>
 
 <p align="center">
@@ -29,7 +29,7 @@
 
 # Calibre Web Companion
 
-This is an unofficial companion application for [Calibre Web](https://github.com/janeczku/calibre-web) (which also works for [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated)) that allows you to browse your book collection and download books directly to your device. You can also interact with your books by marking them as read, unread or bookmarked. It is also possible to send books directly to your e-reader (Kindle/Kobo) thanks to the great work of [send2ereader](https://github.com/daniel-j/send2ereader).
+This is an unofficial companion application for [Calibre Web](https://github.com/janeczku/calibre-web) (which also works for [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated), [Grimmory](https://github.com/grimmory-tools/grimmory), [Calibre 'Sharing over the net'](https://github.com/kovidgoyal/calibre) and other OPDS providers (beta)), that allows you to browse your book collection and download books directly to your device. You can also interact with your books by marking them as read, unread or bookmarked. It is also possible to send books directly to your e-reader (Kindle/Kobo) thanks to the great work of [send2ereader](https://github.com/daniel-j/send2ereader).
 
 The app is built with [Flutter](https://github.com/flutter/flutter) and uses **Material You**. It is currently available for **Android** only.
 
@@ -52,7 +52,7 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 
 ## 💪 Features
 
-- Connect to your Calibre‑Web (Automated) server, including reverse‑proxy / SSO setups, custom HTTP headers and self‑signed certificates.
+- Connect to your Calibre-Web (Automated), Grimmory, Calibre and OPDS servers, including reverse proxy/SSO setups, custom HTTP headers and self-signed certificates.
 - Browse your whole library with smooth, fast navigation.
 - Discover books by category, authors, series, publishers, ratings, hot & trending, and more.
 - View rich details for every book, edit its metadata, and upload new covers.
