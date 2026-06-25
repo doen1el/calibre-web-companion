@@ -1,5 +1,6 @@
 import 'package:logger/logger.dart';
 
+import 'package:calibre_web_companion/core/utils/network_error.dart';
 import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
 import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
 import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
@@ -58,9 +59,17 @@ class LoginRepository {
   }
 
   Future<bool> isLoggedIn() async {
-    final isSessionValid = await dataSource.canAccessWebsite();
-    if (isSessionValid) {
-      return true;
+    try {
+      final isSessionValid = await dataSource.canAccessWebsite();
+      if (isSessionValid) {
+        return true;
+      }
+    } catch (e) {
+      if (isNetworkError(e) && await dataSource.hasStoredAccount()) {
+        logger.i('Server unreachable; keeping session for offline mode.');
+        return true;
+      }
+      logger.w('Session check failed: $e');
     }
 
     logger.i('Session invalid or expired. Attempting auto-relogin...');
@@ -79,6 +88,10 @@ class LoginRepository {
         );
       }
     } catch (e) {
+      if (isNetworkError(e) && await dataSource.hasStoredAccount()) {
+        logger.i('Auto-relogin failed due to connectivity; offline mode.');
+        return true;
+      }
       logger.w('Auto-relogin failed: $e');
     }
 
@@ -124,6 +137,10 @@ class LoginRepository {
 
   Future<void> removeAccount(LoginCredentials credentials) async {
     return dataSource.removeAccount(credentials);
+  }
+
+  Future<void> clearSession() async {
+    return dataSource.clearSessionForAccountSwitch();
   }
 }
 

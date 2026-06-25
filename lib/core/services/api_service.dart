@@ -38,6 +38,9 @@ class ApiService {
 
   /// Returns the base URL with base path if available
   String getBaseUrl() {
+    if (_baseUrl == null) {
+      return '';
+    }
     if (_basePath == null || _basePath!.isEmpty) {
       return _baseUrl!;
     } else {

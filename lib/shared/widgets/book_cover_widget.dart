@@ -52,28 +52,23 @@ class BookCoverWidget extends StatelessWidget {
       imageUrl = '$baseUrl/opds/cover/$bookId';
     }
 
-    return FutureBuilder<Map<String, String>>(
-      future: _getHeaders(apiService),
-      builder: (context, snapshot) {
-        final headers = snapshot.data ?? const <String, String>{};
+    final headers = _getHeaders(apiService, prefs);
 
-        return CachedNetworkImage(
-          cacheManager: CustomCacheManager(),
-          imageUrl: imageUrl,
-          httpHeaders: headers,
-          key: ValueKey('${bookId}_$imageUrl'),
-          fit: fit,
-          alignment: alignment,
-          width: double.infinity,
-          height: double.infinity,
-          placeholder: (context, url) => _buildPlaceholder(context),
-          errorWidget: (context, url, error) => _buildErrorWidget(context),
-        );
-      },
+    return CachedNetworkImage(
+      cacheManager: CustomCacheManager(),
+      imageUrl: imageUrl,
+      httpHeaders: headers,
+      key: ValueKey('${bookId}_$imageUrl'),
+      fit: fit,
+      alignment: alignment,
+      width: double.infinity,
+      height: double.infinity,
+      placeholder: (context, url) => _buildPlaceholder(context),
+      errorWidget: (context, url, error) => _buildErrorWidget(context),
     );
   }
 
-  Future<Map<String, String>> _getHeaders(ApiService api) async {
+  Map<String, String> _getHeaders(ApiService api, SharedPreferences prefs) {
     final headers = <String, String>{};
 
     final authHeaders = api.getAuthHeaders(authMethod: AuthMethod.auto);
@@ -94,7 +89,6 @@ class BookCoverWidget extends StatelessWidget {
     }
 
     try {
-      final prefs = await SharedPreferences.getInstance();
       final headersJson = prefs.getString('custom_login_headers') ?? '[]';
       final List<dynamic> decodedList = jsonDecode(headersJson);
 

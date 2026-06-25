@@ -318,6 +318,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   ) async {
     emit(state.copyWith(status: LoginStatus.loading));
 
+    await loginRepository.clearSession();
+
     final accountServerType = event.credentials.serverType;
     ServerType targetServerType = ServerType.values.firstWhere(
       (e) =>

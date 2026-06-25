@@ -296,11 +296,28 @@ class LoginRemoteDataSource {
       } catch (e) {
         attempts++;
         logger.w('Session validation attempt $attempts failed: $e');
-        if (attempts >= 2) return false;
+
+        if (attempts >= 2) rethrow;
         await Future.delayed(const Duration(milliseconds: 1000));
       }
     }
     return false;
+  }
+
+  Future<bool> hasStoredAccount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final baseUrl = prefs.getString('base_url');
+    return baseUrl != null && baseUrl.isNotEmpty;
+  }
+
+  Future<void> clearSessionForAccountSwitch() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('calibre_web_session');
+    await prefs.remove('calibre_web_cookie');
+    await prefs.remove('user_agent');
+    await prefs.remove('calibre_library_id');
+    await prefs.remove('calibre_library_map');
+    await apiService.reset();
   }
 
   Future<void> _saveAccountToHistory(

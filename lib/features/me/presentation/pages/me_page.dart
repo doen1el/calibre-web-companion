@@ -43,6 +43,8 @@ class MePage extends StatelessWidget {
             context.read<LoginBloc>().add(const ResetLoginStatus());
 
             context.read<MeBloc>().add(const LoadStats());
+
+            context.read<BookViewBloc>().add(const LoadViewSettings());
             context.read<BookViewBloc>().add(const RefreshBooks());
 
             Navigator.of(context).pushAndRemoveUntil(

@@ -12,6 +12,15 @@ class ConnectivityService {
   Stream<List<ConnectivityResult>> get onChange =>
       _connectivity.onConnectivityChanged;
 
+  Future<bool> hasNetwork() async {
+    try {
+      final results = await _connectivity.checkConnectivity();
+      return results.any((r) => r != ConnectivityResult.none);
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> isServerReachable() async {
     try {
       final results = await _connectivity.checkConnectivity();

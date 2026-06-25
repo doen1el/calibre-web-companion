@@ -15,6 +15,8 @@ class ConnectivityCubit extends Cubit<ConnectivityStatus> {
   ConnectivityCubit({required this.service})
     : super(ConnectivityStatus.unknown) {
     _subscription = service.onChange.listen((_) => recheck());
+
+    recheck();
   }
 
   bool get isOffline => state == ConnectivityStatus.offline;
