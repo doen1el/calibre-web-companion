@@ -21,6 +21,7 @@ import 'package:calibre_web_companion/features/book_details/bloc/book_details_st
 import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/server_capabilities.dart';
+import 'package:calibre_web_companion/core/services/widget_service.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/tag_model.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/widgets/add_to_shelf_widget.dart';
@@ -38,19 +39,22 @@ import 'package:calibre_web_companion/features/book_details/data/models/book_det
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:cosmos_epub/cosmos_epub.dart';
-// Exposes cosmos_epub's `bookProgress` singleton for cross-device WebDAV sync.
 import 'package:cosmos_epub/show_epub.dart' as cosmos_reader;
 import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 
+enum BookAutoOpen { none, internalReader, externalReader }
+
 class BookDetailsPage extends StatefulWidget {
   final BookViewModel bookViewModel;
   final String bookUuid;
+  final BookAutoOpen autoOpenAction;
 
   const BookDetailsPage({
     super.key,
     required this.bookViewModel,
     required this.bookUuid,
+    this.autoOpenAction = BookAutoOpen.none,
   });
 
   @override
@@ -59,6 +63,8 @@ class BookDetailsPage extends StatefulWidget {
 
 class _BookDetailsPageState extends State<BookDetailsPage> {
   bool _didUpdateMetadata = false;
+  bool _didAutoOpen = false;
+  int _lastWidgetPercent = -1;
   late final WebDavSyncService _webDavService;
   Timer? _readerProgressTimer;
 
@@ -226,6 +232,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
         accentColor: Theme.of(context).colorScheme.primary,
         onPageFlip: (currentPage, totalPages) {
           _scheduleReaderProgressSync(bookUuid);
+          _pushReadingProgressToWidget(bookUuid, currentPage, totalPages);
         },
       );
     } catch (e) {
@@ -238,7 +245,6 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       return;
     }
 
-    // Flush any pending debounced upload immediately when the reader closes.
     _readerProgressTimer?.cancel();
     await _saveReaderProgressToCloud(bookUuid);
   }
@@ -248,6 +254,93 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     _readerProgressTimer = Timer(
       const Duration(seconds: 5),
       () => _saveReaderProgressToCloud(bookUuid),
+    );
+  }
+
+  void _pushReadingProgressToWidget(
+    String bookUuid,
+    int currentPage,
+    int totalPages,
+  ) {
+    if (totalPages <= 0) return;
+    final percent = (((currentPage + 1) / totalPages) * 100).round().clamp(
+      0,
+      100,
+    );
+    if (percent == _lastWidgetPercent) return;
+    _lastWidgetPercent = percent;
+    getIt<WidgetService>().updateProgress(bookUuid, percent / 100);
+  }
+
+  Future<void> _runAutoOpen(
+    BuildContext context,
+    BookDetailsState state,
+    AppLocalizations localizations,
+  ) async {
+    final details = state.bookDetails;
+    if (details == null) return;
+
+    switch (widget.autoOpenAction) {
+      case BookAutoOpen.none:
+        return;
+      case BookAutoOpen.internalReader:
+        final format = await _selectInternalReaderFormat(
+          context,
+          localizations,
+          details,
+        );
+        if (format == null || !context.mounted) return;
+        context.read<BookDetailsBloc>().add(
+          OpenBookInInternalReader(book: details, format: format),
+        );
+        return;
+      case BookAutoOpen.externalReader:
+        await _triggerExternalReader(context, localizations);
+        return;
+    }
+  }
+
+  Future<void> _triggerExternalReader(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) async {
+    final settingsState = context.read<SettingsBloc>().state;
+    DocumentFile? selectedDirectory;
+
+    if (Platform.isAndroid) {
+      if (settingsState.defaultDownloadPath.isEmpty) {
+        selectedDirectory = await DocMan.pick.directory();
+        if (selectedDirectory == null) {
+          if (context.mounted) {
+            context.showSnackBar(
+              localizations.noFolderWasSelected,
+              isError: true,
+            );
+          }
+          return;
+        }
+      } else {
+        final uri = settingsState.defaultDownloadPath;
+        selectedDirectory =
+            uri.isNotEmpty ? await DocumentFile.fromUri(uri) : null;
+        if (selectedDirectory == null || !selectedDirectory.isDirectory) {
+          if (context.mounted) {
+            context.showSnackBar(
+              localizations.noFolderWasSelected,
+              isError: true,
+            );
+          }
+          return;
+        }
+      }
+    }
+
+    if (!context.mounted) return;
+    context.read<BookDetailsBloc>().add(
+      OpenBookInReader(
+        selectedDirectory: selectedDirectory,
+        schema: settingsState.downloadSchema,
+      ),
     );
   }
 
@@ -343,6 +436,14 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                   previous.seriesNavigationStatus !=
                       current.seriesNavigationStatus,
           listener: (context, state) {
+            if (!_didAutoOpen &&
+                widget.autoOpenAction != BookAutoOpen.none &&
+                state.status == BookDetailsStatus.loaded &&
+                state.bookDetails != null) {
+              _didAutoOpen = true;
+              _runAutoOpen(context, state, localizations);
+            }
+
             if (state.readStatusState == ReadStatusState.success) {
               _didUpdateMetadata = true;
               context.showSnackBar(

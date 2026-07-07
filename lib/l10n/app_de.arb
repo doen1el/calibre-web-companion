@@ -522,5 +522,15 @@
     "inMagicShelves": "In Magic Shelves",
     "magicRulesLoadFailed": "Aktuelle Regeln konnten nicht geladen werden (Server-Timeout). Du kannst sie neu erstellen und speichern.",
     "tapToChangeIcon": "Zum Ändern tippen",
-    "change": "Ändern"
+    "change": "Ändern",
+    "homeWidget": "Startbildschirm-Widget",
+    "homeWidgetSubtitle": "Aktuelles Buch & Bibliotheksstatistik",
+    "widgetTapAction": "Beim Antippen des Widgets",
+    "widgetTapActionDescription": "Wähle, was sich öffnet, wenn du das aktuelle Buch auf dem Startbildschirm antippst.",
+    "widgetActionBookDetails": "Buchdetails öffnen",
+    "widgetActionInternalReader": "Im integrierten Reader öffnen",
+    "widgetActionExternalReader": "In externem Reader öffnen",
+    "widgetActionOpenApp": "Nur die App öffnen",
+    "widgetHowToAddTitle": "Widget hinzufügen",
+    "widgetHowToAddDescription": "Halte den Startbildschirm gedrückt, wähle „Widgets“ und dann Calibre Web Companion."
 }

@@ -14,10 +14,14 @@ import 'package:cosmos_epub/cosmos_epub.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/di/injection_container.dart' as di;
 import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/connectivity_service.dart';
+import 'package:calibre_web_companion/core/services/widget_service.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/core/services/app_log_service.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
@@ -158,10 +162,79 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late final Future<bool> _loginFuture = _isLoggedIn();
+  StreamSubscription<Uri?>? _widgetClickSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupWidgetLaunch();
+  }
+
+  @override
+  void dispose() {
+    _widgetClickSub?.cancel();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+  }
+
+  void _setupWidgetLaunch() {
+    final widgetService = getIt<WidgetService>();
+    _widgetClickSub = widgetService.widgetClicks.listen(_handleWidgetLaunch);
+    widgetService.initialWidgetLaunch().then(_handleWidgetLaunch);
+  }
+
+  Future<void> _handleWidgetLaunch(Uri? uri) async {
+    if (uri == null || uri.scheme != 'calibrewebcompanion') return;
+
+    if (uri.pathSegments.contains('stats')) return;
+
+    final widgetService = getIt<WidgetService>();
+    final target = widgetService.tapTarget;
+    if (target == WidgetTapTarget.appOnly) return;
+
+    final raw = widgetService.currentBookRaw;
+    if (raw == null) return;
+
+    final prefs = getIt<SharedPreferences>();
+    if ((prefs.getString('base_url') ?? '').isEmpty) return;
+
+    final coverUrl = raw['coverUrl']?.toString() ?? '';
+    final book = BookViewModel(
+      id: (raw['id'] as num?)?.toInt() ?? 0,
+      uuid: raw['uuid']?.toString() ?? '',
+      title: raw['title']?.toString() ?? '',
+      authors: raw['authors']?.toString() ?? '',
+      coverUrl: coverUrl.isEmpty ? null : coverUrl,
+      formats: [raw['format']?.toString() ?? 'epub'],
+    );
+    if (book.uuid.isEmpty) return;
+
+    final autoOpen = switch (target) {
+      WidgetTapTarget.internalReader => BookAutoOpen.internalReader,
+      WidgetTapTarget.externalReader => BookAutoOpen.externalReader,
+      _ => BookAutoOpen.none,
+    };
+
+    for (var attempt = 0; attempt < 20; attempt++) {
+      final navigator = navigatorKey.currentState;
+      if (navigator != null) {
+        navigator.push(
+          AppTransitions.createSlideRoute(
+            BookDetailsPage(
+              bookViewModel: book,
+              bookUuid: book.uuid,
+              autoOpenAction: autoOpen,
+            ),
+          ),
+        );
+        return;
+      }
+      await Future.delayed(const Duration(milliseconds: 150));
+    }
   }
 
   Future<bool> _isLoggedIn() async {

@@ -526,5 +526,15 @@
   "inMagicShelves": "In Magic Shelves",
   "magicRulesLoadFailed": "Couldn't load the current rules (server timed out). You can rebuild them and save.",
   "tapToChangeIcon": "Tap to change",
-  "change": "Change"
+  "change": "Change",
+  "homeWidget": "Home screen widget",
+  "homeWidgetSubtitle": "Current book & library stats",
+  "widgetTapAction": "When tapping the widget",
+  "widgetTapActionDescription": "Choose what opens when you tap the current book on your home screen.",
+  "widgetActionBookDetails": "Open book details",
+  "widgetActionInternalReader": "Open in built-in reader",
+  "widgetActionExternalReader": "Open in external reader",
+  "widgetActionOpenApp": "Just open the app",
+  "widgetHowToAddTitle": "Add a widget",
+  "widgetHowToAddDescription": "Long-press your home screen, choose Widgets, then pick Calibre Web Companion."
 }

@@ -20,6 +20,7 @@ import 'package:calibre_web_companion/features/settings/presentation/widgets/fee
 import 'package:calibre_web_companion/features/settings/presentation/widgets/theme_selector_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/sync_settings_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/pages/app_logs_page.dart';
+import 'package:calibre_web_companion/features/settings/presentation/pages/widget_settings_page.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/reachable_url_field.dart';
@@ -164,6 +165,19 @@ class _SettingsPageState extends State<SettingsPage> {
                             icon: Icons.menu_book_rounded,
                             onTap:
                                 () => _openBookDetailsSettingsSubPage(context),
+                          ),
+                          _buildSettingsCategoryNavCard(
+                            context,
+                            title: localizations.homeWidget,
+                            subtitle: localizations.homeWidgetSubtitle,
+                            icon: Icons.widgets_rounded,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                AppTransitions.createSlideRoute(
+                                  const WidgetSettingsPage(),
+                                ),
+                              );
+                            },
                           ),
 
                           const SizedBox(height: 24),

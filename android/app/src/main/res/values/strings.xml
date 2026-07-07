@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_current_book_label">Current book</string>
+    <string name="widget_current_book_description">Shows the book you are currently reading</string>
+    <string name="widget_current_book_empty">Open a book to see it here</string>
+
+    <string name="widget_stats_label">Library</string>
+    <string name="widget_stats_description">Your library at a glance</string>
+    <string name="widget_stat_books">Books</string>
+    <string name="widget_stat_authors">Authors</string>
+    <string name="widget_stat_categories">Categories</string>
+    <string name="widget_stat_series">Series</string>
+</resources>

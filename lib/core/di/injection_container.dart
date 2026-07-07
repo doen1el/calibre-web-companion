@@ -12,6 +12,7 @@ import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/core/services/app_log_service.dart';
 import 'package:calibre_web_companion/core/services/connectivity_service.dart';
+import 'package:calibre_web_companion/core/services/widget_service.dart';
 import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
 import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
 import 'package:calibre_web_companion/features/offline/data/services/offline_backfill_service.dart';
@@ -102,6 +103,14 @@ Future<void> init() async {
 
   getIt.registerLazySingleton<ConnectivityService>(
     () => ConnectivityService(apiService: getIt<ApiService>()),
+  );
+
+  getIt.registerLazySingleton<WidgetService>(
+    () => WidgetService(
+      prefs: getIt<SharedPreferences>(),
+      logger: getIt<Logger>(),
+      offlineRepository: getIt<OfflineLibraryRepository>(),
+    ),
   );
 
   getIt.registerLazySingleton<ConnectivityCubit>(
@@ -213,7 +222,10 @@ Future<void> init() async {
 
   // BLoCs
   getIt.registerFactory<MeBloc>(
-    () => MeBloc(repository: getIt<MeRepository>()),
+    () => MeBloc(
+      repository: getIt<MeRepository>(),
+      widgetService: getIt<WidgetService>(),
+    ),
   );
 
   //? Discover Feature
@@ -306,7 +318,10 @@ Future<void> init() async {
 
   // BLoCs
   getIt.registerFactory<SettingsBloc>(
-    () => SettingsBloc(repository: getIt<SettingsRepository>()),
+    () => SettingsBloc(
+      repository: getIt<SettingsRepository>(),
+      widgetService: getIt<WidgetService>(),
+    ),
   );
 
   //? Download Service Feature
@@ -366,6 +381,7 @@ Future<void> init() async {
       logger: logger,
       progressRepository: getIt<ReadingProgressRepository>(),
       downloadManager: getIt<DownloadManager>(),
+      widgetService: getIt<WidgetService>(),
     ),
   );
 
