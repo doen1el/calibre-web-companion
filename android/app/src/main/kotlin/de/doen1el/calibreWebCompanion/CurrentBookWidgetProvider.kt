@@ -56,21 +56,21 @@ class CurrentBookWidgetProvider : HomeWidgetProvider() {
                 }
 
                 if (progress in 1..99) {
-                    views.setViewVisibility(R.id.widget_percent, View.VISIBLE)
+                    views.setViewVisibility(R.id.widget_percent_container, View.VISIBLE)
                     views.setTextViewText(R.id.widget_percent, "$progress%")
                 } else {
-                    views.setViewVisibility(R.id.widget_percent, View.GONE)
+                    views.setViewVisibility(R.id.widget_percent_container, View.GONE)
                 }
             }
 
-            WidgetTheming.apply(
-                context,
-                views,
-                widgetData,
-                R.id.widget_bg,
-                intArrayOf(R.id.widget_title, R.id.widget_empty),
-                intArrayOf(R.id.widget_authors)
-            )
+            WidgetTheming.palette(context, widgetData)?.let { p ->
+                views.setInt(R.id.widget_bg, "setColorFilter", p.background)
+                views.setTextColor(R.id.widget_title, p.onBackground)
+                views.setTextColor(R.id.widget_empty, p.onBackground)
+                views.setTextColor(R.id.widget_authors, WidgetTheming.muted(p.onBackground))
+                views.setInt(R.id.widget_percent_bg, "setColorFilter", p.accent)
+                views.setTextColor(R.id.widget_percent, p.onAccent)
+            }
 
             val uri = Uri.parse("calibrewebcompanion://widget/current?uuid=$uuid")
             val pendingIntent =

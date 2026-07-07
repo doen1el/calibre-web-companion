@@ -26,25 +26,35 @@ class LibraryStatsWidgetProvider : HomeWidgetProvider() {
             )
             views.setTextViewText(R.id.stat_series_value, widgetData.getString("st_series", "0"))
 
-            WidgetTheming.apply(
-                context,
-                views,
-                widgetData,
-                R.id.widget_bg,
-                intArrayOf(
+            WidgetTheming.palette(context, widgetData)?.let { p ->
+                views.setInt(R.id.widget_bg, "setColorFilter", p.background)
+                views.setTextColor(R.id.stats_label, WidgetTheming.muted(p.onBackground))
+
+                for (tileBg in intArrayOf(
+                    R.id.tile_bg_books,
+                    R.id.tile_bg_authors,
+                    R.id.tile_bg_categories,
+                    R.id.tile_bg_series
+                )) {
+                    views.setInt(tileBg, "setColorFilter", p.tile)
+                }
+                for (value in intArrayOf(
                     R.id.stat_books_value,
                     R.id.stat_authors_value,
                     R.id.stat_categories_value,
                     R.id.stat_series_value
-                ),
-                intArrayOf(
-                    R.id.stats_label,
+                )) {
+                    views.setTextColor(value, p.onTile)
+                }
+                for (label in intArrayOf(
                     R.id.stat_books_label,
                     R.id.stat_authors_label,
                     R.id.stat_categories_label,
                     R.id.stat_series_label
-                )
-            )
+                )) {
+                    views.setTextColor(label, WidgetTheming.muted(p.onTile))
+                }
+            }
 
             val uri = Uri.parse("calibrewebcompanion://widget/stats")
             val pendingIntent =

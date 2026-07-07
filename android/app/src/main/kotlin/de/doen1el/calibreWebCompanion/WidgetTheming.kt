@@ -4,32 +4,34 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.graphics.Color
-import android.widget.RemoteViews
 
 object WidgetTheming {
-    fun apply(
-        context: Context,
-        views: RemoteViews,
-        widgetData: SharedPreferences,
-        bgViewId: Int,
-        primaryTextIds: IntArray,
-        secondaryTextIds: IntArray
-    ) {
+    data class Palette(
+        val background: Int,
+        val onBackground: Int,
+        val tile: Int,
+        val onTile: Int,
+        val accent: Int,
+        val onAccent: Int
+    )
+
+    fun palette(context: Context, data: SharedPreferences): Palette? {
         val night = (context.resources.configuration.uiMode and
             Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         val suffix = if (night) "dark" else "light"
 
-        val bg = widgetData.getString("th_bg_$suffix", null)
-        val onBg = widgetData.getString("th_on_bg_$suffix", null)
-        if (bg.isNullOrEmpty() || onBg.isNullOrEmpty()) return
+        val background = parse(data, "th_bg_$suffix") ?: return null
+        val onBackground = parse(data, "th_on_bg_$suffix") ?: return null
+        val tile = parse(data, "th_tile_$suffix") ?: background
+        val onTile = parse(data, "th_on_tile_$suffix") ?: onBackground
+        val accent = parse(data, "th_accent_$suffix") ?: onBackground
+        val onAccent = parse(data, "th_on_accent_$suffix") ?: background
 
-        val bgColor = runCatching { Color.parseColor(bg) }.getOrNull() ?: return
-        val onBgColor = runCatching { Color.parseColor(onBg) }.getOrNull() ?: return
-
-        views.setInt(bgViewId, "setColorFilter", bgColor)
-        for (id in primaryTextIds) views.setTextColor(id, onBgColor)
-
-        val secondary = (onBgColor and 0x00FFFFFF) or (0xB3 shl 24)
-        for (id in secondaryTextIds) views.setTextColor(id, secondary)
+        return Palette(background, onBackground, tile, onTile, accent, onAccent)
     }
+
+    fun muted(color: Int): Int = (color and 0x00FFFFFF) or (0xB3 shl 24)
+
+    private fun parse(data: SharedPreferences, key: String): Int? =
+        data.getString(key, null)?.let { runCatching { Color.parseColor(it) }.getOrNull() }
 }

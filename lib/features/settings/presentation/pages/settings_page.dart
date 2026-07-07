@@ -20,7 +20,7 @@ import 'package:calibre_web_companion/features/settings/presentation/widgets/fee
 import 'package:calibre_web_companion/features/settings/presentation/widgets/theme_selector_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/sync_settings_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/pages/app_logs_page.dart';
-import 'package:calibre_web_companion/features/settings/presentation/pages/widget_settings_page.dart';
+import 'package:calibre_web_companion/core/services/widget_service.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/reachable_url_field.dart';
@@ -171,13 +171,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             title: localizations.homeWidget,
                             subtitle: localizations.homeWidgetSubtitle,
                             icon: Icons.widgets_rounded,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                AppTransitions.createSlideRoute(
-                                  const WidgetSettingsPage(),
-                                ),
-                              );
-                            },
+                            onTap: () => _openWidgetSettingsSubPage(context),
                           ),
 
                           const SizedBox(height: 24),
@@ -381,6 +375,158 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildSectionTitle(context, localizations.bookDetails),
             _buildBookDetailsSettings(context, state, localizations),
           ],
+    );
+  }
+
+  void _openWidgetSettingsSubPage(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    _openSettingsSubPage(
+      context: context,
+      title: localizations.homeWidget,
+      bodyBuilder:
+          (context, state, localizations) => [
+            _buildSectionTitle(context, localizations.widgetTapAction),
+            _buildWidgetTapTargetCard(context, localizations),
+            const SizedBox(height: 24),
+            _buildWidgetHowToCard(context, localizations),
+          ],
+    );
+  }
+
+  Widget _buildWidgetTapTargetCard(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    final widgetService = getIt<WidgetService>();
+
+    final options = <(WidgetTapTarget, String, IconData)>[
+      (
+        WidgetTapTarget.bookDetails,
+        localizations.widgetActionBookDetails,
+        Icons.menu_book_rounded,
+      ),
+      (
+        WidgetTapTarget.internalReader,
+        localizations.widgetActionInternalReader,
+        Icons.chrome_reader_mode_rounded,
+      ),
+      (
+        WidgetTapTarget.externalReader,
+        localizations.widgetActionExternalReader,
+        Icons.open_in_new_rounded,
+      ),
+      (
+        WidgetTapTarget.appOnly,
+        localizations.widgetActionOpenApp,
+        Icons.apps_rounded,
+      ),
+    ];
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: StatefulBuilder(
+          builder: (context, setLocal) {
+            final selected = widgetService.tapTarget;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  localizations.widgetTapActionDescription,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                for (final option in options)
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8.0),
+                    onTap: () async {
+                      if (option.$1 == selected) return;
+                      await widgetService.setTapTarget(option.$1);
+                      setLocal(() {});
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Row(
+                        children: [
+                          Icon(
+                            option.$3,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              option.$2,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          Icon(
+                            option.$1 == selected
+                                ? Icons.check_circle_rounded
+                                : Icons.circle_outlined,
+                            color:
+                                option.$1 == selected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWidgetHowToCard(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.widgets_rounded,
+              size: 28,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    localizations.widgetHowToAddTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    localizations.widgetHowToAddDescription,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
