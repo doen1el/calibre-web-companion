@@ -17,6 +17,10 @@ import 'package:calibre_web_companion/features/book_view/data/datasources/book_v
 enum AuthMethod { none, cookie, basic, auto }
 
 class ApiService {
+  static const Map<String, String> browserAcceptHeaders = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+  };
+
   final Logger _logger = Logger();
   HttpClient? _httpClient;
   http.Client? _client;
@@ -78,16 +82,21 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     _baseUrl = prefs.getString('base_url');
 
-    final storedCookie =
-        prefs.getString('calibre_web_cookie') ??
-        prefs.getString('calibre_web_session');
+    final storedCookieHeader = prefs.getString('calibre_web_cookie');
+    final storedSetCookie = prefs.getString('calibre_web_session');
 
-    if (storedCookie != null) {
-      final normalized = buildCookieHeaderFromSetCookie(storedCookie);
-      _cookie = normalized.isEmpty ? storedCookie : normalized;
-      await prefs.setString('calibre_web_cookie', _cookie!);
+    if (storedCookieHeader != null && storedCookieHeader.isNotEmpty) {
+      final sanitized = sanitizeCookieHeader(storedCookieHeader);
+      _cookie = sanitized.isEmpty ? storedCookieHeader : sanitized;
+    } else if (storedSetCookie != null && storedSetCookie.isNotEmpty) {
+      final normalized = buildCookieHeaderFromSetCookie(storedSetCookie);
+      _cookie = normalized.isEmpty ? storedSetCookie : normalized;
     } else {
       _cookie = null;
+    }
+
+    if (_cookie != null) {
+      await prefs.setString('calibre_web_cookie', _cookie!);
     }
 
     _username = prefs.getString('username');
@@ -135,6 +144,17 @@ class ApiService {
     await initialize();
   }
 
+  static const Set<String> _cookieAttributes = {
+    'path',
+    'expires',
+    'max-age',
+    'domain',
+    'secure',
+    'httponly',
+    'samesite',
+    'partitioned',
+  };
+
   /// Build a Cookie header value from a Set-Cookie header string.
   /// Extracts all cookie-name=cookie-value pairs and joins them with '; '.
   String buildCookieHeaderFromSetCookie(String? setCookieHeader) {
@@ -145,20 +165,26 @@ class ApiService {
       final name = match.group(1);
       final value = match.group(2);
       if (name != null && value != null) {
-        final lower = name.toLowerCase();
-        if (lower == 'path' ||
-            lower == 'expires' ||
-            lower == 'max-age' ||
-            lower == 'domain' ||
-            lower == 'secure' ||
-            lower == 'httponly' ||
-            lower == 'samesite') {
+        if (_cookieAttributes.contains(name.toLowerCase())) {
           continue;
         }
         cookiePairs.add('$name=$value');
       }
     }
     return cookiePairs.join('; ');
+  }
+
+  /// Drop attributes from an existing Cookie header, keeping every cookie.
+  ///
+  /// A Cookie header separates cookies with ';', a Set-Cookie header separates
+  /// them with ',' and uses ';' for the attributes of a single cookie. Running
+  /// one through the parser of the other keeps only the first cookie, which is
+  /// fatal for SSO sessions that carry both a proxy and a Calibre-Web cookie.
+  String sanitizeCookieHeader(String cookieHeader) {
+    final cookies = _parseCookieHeader(
+      cookieHeader,
+    )..removeWhere((name, _) => _cookieAttributes.contains(name.toLowerCase()));
+    return cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
   }
 
   /// Merge two Cookie header strings, deduplicating by cookie name
@@ -416,6 +442,7 @@ class ApiService {
     AuthMethod authMethod = AuthMethod.basic,
     Map<String, String> queryParams = const {},
     bool followRedirects = true,
+    Map<String, String> extraHeaders = const {},
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
@@ -427,6 +454,7 @@ class ApiService {
 
     final customHeaders = await _processCustomHeaders();
     headers.addAll(customHeaders);
+    headers.addAll(extraHeaders);
 
     if (followRedirects) {
       try {
@@ -1211,25 +1239,36 @@ class ApiService {
     AuthMethod authMethod = AuthMethod.auto,
   }) {
     Map<String, String> headers = {};
+
+    final hasBasicCredentials =
+        _username != null && _username!.isNotEmpty && _password != null;
+    final hasCookie = _cookie != null && _cookie!.isNotEmpty;
+
     AuthMethod resolvedAuthMethod = authMethod;
 
     if (resolvedAuthMethod == AuthMethod.auto) {
-      if (_username != null && _username!.isNotEmpty && _password != null) {
+      if (hasBasicCredentials) {
         resolvedAuthMethod = AuthMethod.basic;
-      } else if (_cookie != null && _cookie!.isNotEmpty) {
+      } else if (hasCookie) {
         resolvedAuthMethod = AuthMethod.cookie;
       } else {
         resolvedAuthMethod = AuthMethod.none;
       }
     }
 
-    if (resolvedAuthMethod == AuthMethod.cookie && _cookie != null) {
+    if (resolvedAuthMethod == AuthMethod.cookie && hasCookie) {
       headers['Cookie'] = _cookie!;
-    } else if (resolvedAuthMethod == AuthMethod.basic &&
-        _username != null &&
-        _password != null) {
-      headers['Authorization'] =
-          'Basic ${base64.encode(utf8.encode('$_username:$_password'))}';
+    } else if (resolvedAuthMethod == AuthMethod.basic) {
+      if (hasBasicCredentials) {
+        headers['Authorization'] =
+            'Basic ${base64.encode(utf8.encode('$_username:$_password'))}';
+      }
+      // Calibre-Web's OPDS endpoints only accept Basic auth, while a
+      // forward-auth proxy in front of it (Authelia, Authentik, …) only accepts
+      // its session cookie. Such a request has to carry both to get through.
+      if (hasCookie) {
+        headers['Cookie'] = _cookie!;
+      }
     }
 
     return headers;
@@ -1289,6 +1328,7 @@ class ApiService {
           '/',
           AuthMethod.auto,
           connectivityOnly: true,
+          extraHeaders: browserAcceptHeaders,
         ),
         await _probe(
           DiagnosticProbeId.bookList,
@@ -1313,6 +1353,7 @@ class ApiService {
         '/',
         AuthMethod.auto,
         connectivityOnly: true,
+        extraHeaders: browserAcceptHeaders,
       ),
       await _probe(
         DiagnosticProbeId.bookList,
@@ -1351,6 +1392,7 @@ class ApiService {
     Map<String, String> queryParams = const {},
     bool expectBinary = false,
     bool connectivityOnly = false,
+    Map<String, String> extraHeaders = const {},
   }) async {
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
     final httpClient = HttpClient();
@@ -1370,6 +1412,7 @@ class ApiService {
       final headers = getAuthHeaders(authMethod: authMethod);
       if (_userAgent != null) headers['User-Agent'] = _userAgent!;
       headers.addAll(await _processCustomHeaders());
+      headers.addAll(extraHeaders);
 
       final preDigest = _preemptiveDigestHeader(authMethod, 'GET', uri);
       if (preDigest != null) {
