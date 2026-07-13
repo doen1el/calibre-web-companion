@@ -1,4 +1,45 @@
 PODS:
+  - barcode_scan2 (0.0.1):
+    - Flutter
+    - SwiftProtobuf (~> 1.33)
+  - connectivity_plus (0.0.1):
+    - Flutter
+  - DKImagePickerController/Core (4.3.9):
+    - DKImagePickerController/ImageDataManager
+    - DKImagePickerController/Resource
+  - DKImagePickerController/ImageDataManager (4.3.9)
+  - DKImagePickerController/PhotoGallery (4.3.9):
+    - DKImagePickerController/Core
+    - DKPhotoGallery
+  - DKImagePickerController/Resource (4.3.9)
+  - DKPhotoGallery (0.0.19):
+    - DKPhotoGallery/Core (= 0.0.19)
+    - DKPhotoGallery/Model (= 0.0.19)
+    - DKPhotoGallery/Preview (= 0.0.19)
+    - DKPhotoGallery/Resource (= 0.0.19)
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Core (0.0.19):
+    - DKPhotoGallery/Model
+    - DKPhotoGallery/Preview
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Model (0.0.19):
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Preview (0.0.19):
+    - DKPhotoGallery/Model
+    - DKPhotoGallery/Resource
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Resource (0.0.19):
+    - SDWebImage
+    - SwiftyGif
+  - emoji_picker_flutter (0.0.1):
+    - Flutter
+  - file_picker (0.0.1):
+    - DKImagePickerController/PhotoGallery
+    - Flutter
   - Flutter (1.0.0)
   - flutter_inappwebview_ios (0.0.1):
     - Flutter
@@ -9,42 +50,111 @@ PODS:
     - OrderedSet (~> 6.0.3)
   - fluttertoast (0.0.2):
     - Flutter
-  - isar_community_flutter_libs (1.0.0):
+  - home_widget (0.0.1):
+    - Flutter
+  - image_picker_ios (0.0.1):
+    - Flutter
+  - open_file_ios (1.0.3):
     - Flutter
   - OrderedSet (6.0.3)
+  - package_info_plus (0.4.5):
+    - Flutter
   - screen_brightness_ios (0.1.0):
+    - Flutter
+  - SDWebImage (5.21.7):
+    - SDWebImage/Core (= 5.21.7)
+  - SDWebImage/Core (5.21.7)
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - sqflite_darwin (0.0.4):
+    - Flutter
+    - FlutterMacOS
+  - SwiftProtobuf (1.38.0)
+  - SwiftyGif (5.4.5)
+  - url_launcher_ios (0.0.1):
     - Flutter
 
 DEPENDENCIES:
+  - barcode_scan2 (from `.symlinks/plugins/barcode_scan2/ios`)
+  - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
+  - emoji_picker_flutter (from `.symlinks/plugins/emoji_picker_flutter/ios`)
+  - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
   - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
-  - isar_community_flutter_libs (from `.symlinks/plugins/isar_community_flutter_libs/ios`)
+  - home_widget (from `.symlinks/plugins/home_widget/ios`)
+  - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
+  - open_file_ios (from `.symlinks/plugins/open_file_ios/ios`)
+  - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - screen_brightness_ios (from `.symlinks/plugins/screen_brightness_ios/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
+  - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
+  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
 SPEC REPOS:
   trunk:
+    - DKImagePickerController
+    - DKPhotoGallery
     - OrderedSet
+    - SDWebImage
+    - SwiftProtobuf
+    - SwiftyGif
 
 EXTERNAL SOURCES:
+  barcode_scan2:
+    :path: ".symlinks/plugins/barcode_scan2/ios"
+  connectivity_plus:
+    :path: ".symlinks/plugins/connectivity_plus/ios"
+  emoji_picker_flutter:
+    :path: ".symlinks/plugins/emoji_picker_flutter/ios"
+  file_picker:
+    :path: ".symlinks/plugins/file_picker/ios"
   Flutter:
     :path: Flutter
   flutter_inappwebview_ios:
     :path: ".symlinks/plugins/flutter_inappwebview_ios/ios"
   fluttertoast:
     :path: ".symlinks/plugins/fluttertoast/ios"
-  isar_community_flutter_libs:
-    :path: ".symlinks/plugins/isar_community_flutter_libs/ios"
+  home_widget:
+    :path: ".symlinks/plugins/home_widget/ios"
+  image_picker_ios:
+    :path: ".symlinks/plugins/image_picker_ios/ios"
+  open_file_ios:
+    :path: ".symlinks/plugins/open_file_ios/ios"
+  package_info_plus:
+    :path: ".symlinks/plugins/package_info_plus/ios"
   screen_brightness_ios:
     :path: ".symlinks/plugins/screen_brightness_ios/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
+  sqflite_darwin:
+    :path: ".symlinks/plugins/sqflite_darwin/darwin"
+  url_launcher_ios:
+    :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
+  barcode_scan2: 4e4b850b112f4e29017833e4715f36161f987966
+  connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
+  DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
+  DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
+  emoji_picker_flutter: ece213fc274bdddefb77d502d33080dc54e616cc
+  file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
   fluttertoast: 2c67e14dce98bbdb200df9e1acf610d7a6264ea1
-  isar_community_flutter_libs: bede843185a61a05ff364a05c9b23209523f7e0d
+  home_widget: 54b4f6b36ed8d64cfee594a476225c35c3e45091
+  image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
+  open_file_ios: c1143c28b4c65f721cdd58d9fba2f7a1c55206cd
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
+  package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   screen_brightness_ios: 28c5fbdb40634de44f86025d84470158ad4df48c
+  SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
+  shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
+  sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
+  SwiftProtobuf: d724b5145bfc609d9a49c1e3e3a3dabb07273ffb
+  SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
+  url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
 
 PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
 
