@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'package:calibre_web_companion/core/services/widget_service.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 
@@ -11,8 +12,10 @@ import 'package:calibre_web_companion/features/settings/data/repositories/settin
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final SettingsRepository repository;
+  final WidgetService widgetService;
 
-  SettingsBloc({required this.repository}) : super(const SettingsState()) {
+  SettingsBloc({required this.repository, required this.widgetService})
+    : super(const SettingsState()) {
     on<LoadSettings>(_onLoadSettings);
     on<SetThemeMode>(_onSetThemeMode);
     on<SetThemeSource>(_onSetThemeSource);
@@ -106,6 +109,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           enabledCategoryItems: settings.enabledCategoryItems,
         ),
       );
+
+      // Keep the home-screen widgets themed to match the app.
+      await widgetService.pushThemeColors();
     } catch (e) {
       emit(
         state.copyWith(
@@ -140,6 +146,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setThemeSource(event.themeSource);
       emit(state.copyWith(themeSource: event.themeSource));
+      await widgetService.pushThemeColors();
     } catch (e) {
       emit(
         state.copyWith(
@@ -157,6 +164,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setSelectedColor(event.colorKey);
       emit(state.copyWith(selectedColorKey: event.colorKey));
+      await widgetService.pushThemeColors();
     } catch (e) {
       emit(
         state.copyWith(
@@ -246,6 +254,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setDownloaderEnabled(event.enabled);
       emit(state.copyWith(isDownloaderEnabled: event.enabled));
+      await widgetService.pushQuickActions();
     } catch (e) {
       emit(
         state.copyWith(

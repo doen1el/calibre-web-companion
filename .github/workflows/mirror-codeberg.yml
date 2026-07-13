@@ -1,0 +1,26 @@
+name: 'Mirror to Codeberg'
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
+
+jobs:
+  mirror:
+    name: Mirror to Codeberg
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to Codeberg
+        uses: yesolutions/mirror-action@master
+        with:
+          REMOTE: 'https://codeberg.org/doen1el/calibre-web-companion.git'
+          GIT_USERNAME: doen1el
+          GIT_PASSWORD: ${{ secrets.CODEBERG_TOKEN }}

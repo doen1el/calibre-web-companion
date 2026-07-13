@@ -13,6 +13,7 @@ import 'package:calibre_web_companion/features/book_details/bloc/book_details_ev
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
 
 import 'package:calibre_web_companion/core/services/download_manager.dart';
+import 'package:calibre_web_companion/core/services/widget_service.dart';
 
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/core/exceptions/cancellation_exception.dart';
@@ -23,12 +24,14 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
   final BookDetailsRepository repository;
   final ReadingProgressRepository progressRepository;
   final DownloadManager downloadManager;
+  final WidgetService widgetService;
   final Logger logger;
 
   BookDetailsBloc({
     required this.repository,
     required this.progressRepository,
     required this.downloadManager,
+    required this.widgetService,
     required this.logger,
   }) : super(const BookDetailsState()) {
     on<LoadBookDetails>(_onLoadBookDetails);
@@ -438,6 +441,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
             downloadProgress: 100,
           ),
         );
+        await _recordCurrentBookForWidget(format: format);
       } else {
         emit(
           state.copyWith(
@@ -507,6 +511,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           readerBytes: bytes,
         ),
       );
+      await _recordCurrentBookForWidget(format: event.format);
     } catch (e) {
       logger.e('Error opening book in internal reader: $e');
       emit(
@@ -529,6 +534,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     try {
       logger.i('Opening book in browser: ${state.bookDetails!.title}');
       await repository.openInBrowser(state.bookDetails!);
+      await _recordCurrentBookForWidget();
     } catch (e) {
       logger.e('Error opening book in browser: $e');
     }
@@ -848,5 +854,33 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     Emitter<BookDetailsState> emit,
   ) async {
     progressRepository.saveProgress(event.bookUuid, event.locatorJson);
+  }
+
+  Future<void> _recordCurrentBookForWidget({String? format}) async {
+    final details = state.bookDetails;
+    final vm = state.bookViewModel;
+    final uuid = vm?.uuid ?? details?.uuid ?? '';
+    if (uuid.isEmpty) return;
+
+    final formats = details?.formats ?? vm?.formats ?? const <String>[];
+    final resolvedFormat =
+        format ?? (formats.isNotEmpty ? formats.first.toLowerCase() : 'epub');
+
+    final detailsCover = details?.coverUrl ?? '';
+    final coverUrl =
+        detailsCover.isNotEmpty ? detailsCover : (vm?.coverUrl ?? '');
+
+    try {
+      await widgetService.recordCurrentBook(
+        uuid: uuid,
+        id: vm?.id ?? details?.id ?? 0,
+        title: details?.title ?? vm?.title ?? '',
+        authors: details?.authors ?? vm?.authors ?? '',
+        coverUrl: coverUrl,
+        format: resolvedFormat,
+      );
+    } catch (e) {
+      logger.w('Failed to record current book for widget: $e');
+    }
   }
 }

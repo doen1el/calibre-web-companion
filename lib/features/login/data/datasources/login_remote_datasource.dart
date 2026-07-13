@@ -1,7 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-// ignore: implementation_imports
-import 'package:http/src/response.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -152,29 +150,19 @@ class LoginRemoteDataSource {
   Future<bool> _loginCalibreWeb(LoginCredentials credentials) async {
     final prefs = await SharedPreferences.getInstance();
     if (credentials.username.isEmpty && credentials.password.isEmpty) {
-      logger.i('Attempting SSO login by triggering a redirect...');
-      await apiService.get(endpoint: '/', followRedirects: false);
-      logger.i('User is already logged in.');
+      logger.i('Attempting SSO login...');
+      await _startSsoLogin(credentials.baseUrl);
+      logger.i('Existing session is still valid, no SSO web view needed.');
       return true;
     }
 
-    Response response;
-
-    if (credentials.username.isEmpty && credentials.password.isEmpty) {
-      response = await apiService.post(
-        endpoint: '/login',
-        body: credentials.toFormData(),
-        followRedirects: false,
-      );
-    } else {
-      response = await apiService.post(
-        endpoint: '/login',
-        body: credentials.toFormData(),
-        authMethod: AuthMethod.none,
-        contentType: 'application/x-www-form-urlencoded',
-        useCsrf: true,
-      );
-    }
+    final response = await apiService.post(
+      endpoint: '/login',
+      body: credentials.toFormData(),
+      authMethod: AuthMethod.none,
+      contentType: 'application/x-www-form-urlencoded',
+      useCsrf: true,
+    );
 
     if (response.statusCode == 200 || response.statusCode == 302) {
       final isSuccess = !response.body.contains('flash_danger');
@@ -200,6 +188,42 @@ class LoginRemoteDataSource {
       'Login failed: ${response.reasonPhrase ?? response.body} ${response.statusCode}',
     );
     throw Exception(response.reasonPhrase ?? response.body);
+  }
+
+  Future<void> _startSsoLogin(String baseUrl) async {
+    if (await _hasValidCalibreWebSession()) return;
+
+    try {
+      await apiService.get(
+        endpoint: '/',
+        authMethod: AuthMethod.cookie,
+        followRedirects: false,
+        extraHeaders: ApiService.browserAcceptHeaders,
+      );
+    } on RedirectException {
+      rethrow;
+    } catch (e) {
+      logger.w('SSO probe did not redirect: $e');
+    }
+
+    logger.i('No redirect received, opening the web view at the base URL.');
+    throw RedirectException(baseUrl);
+  }
+
+  Future<bool> _hasValidCalibreWebSession() async {
+    try {
+      final response = await apiService.get(
+        endpoint: '/ajax/listbooks',
+        authMethod: AuthMethod.cookie,
+        queryParams: const {'limit': '1'},
+      );
+
+      return response.statusCode == 200 &&
+          !response.body.trimLeft().startsWith('<');
+    } catch (e) {
+      logger.i('No usable session yet: $e');
+      return false;
+    }
   }
 
   Future<bool> canAccessWebsite() async {

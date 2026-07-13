@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/utils/book_mime_types.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
@@ -832,7 +833,10 @@ class BookDetailsRemoteDatasource {
 
       await onFileDownloaded?.call(durablePath);
 
-      final result = await OpenFile.open(localPath);
+      final result = await OpenFile.open(
+        localPath,
+        type: bookMimeType(localPath) ?? bookMimeType(format),
+      );
 
       if (result.type != ResultType.done) {
         logger.e('Error while opening the file: ${result.message}');
