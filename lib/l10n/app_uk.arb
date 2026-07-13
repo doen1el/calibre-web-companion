@@ -2,8 +2,8 @@
     "loginToCalibreWb": "Вхід у Calibre Web",
     "calibreWebUrl": "https://calibre.example.com",
     "enterCalibreWebUrl": "Вкажіть URL Calibre Web",
-    "username": "Ім'я користувача",
-    "enterYourUsername": "Вкажіть ім'я користувача",
+    "username": "Псевдо",
+    "enterYourUsername": "Вкажіть псевдо",
     "password": "Пароль",
     "enterYourPassword": "Вкажіть пароль",
     "login": "Увійти",
@@ -400,7 +400,7 @@
     "connectionError": "Помилка з'єднання",
     "pleaseEnterWebDavUrl": "Вкажіть дійсний URL WebDAV",
     "loginSuccessfull": "Вхід виконано успішно",
-    "enterUsernamePasswordForSSO": "Оскільки Calibre Web Companion, щоб забезпечити різноманітні функції, використовує багато кінцевих точок OPDS, а на даний час OPDS підтримує автентифікацію лише за ім'ям користувача та паролем, ви повинні вказати свої облікові дані навіть при використанні SSO. Ми знаємо, що це суперечить ідеї SSO, але це необхідно для коректної роботи додатка. Сподіваємося, майбутні версії відкриють шлях для кращого рішення.",
+    "enterUsernamePasswordForSSO": "Оскільки Calibre Web Companion, щоб забезпечити різноманітні функції, використовує багато кінцевих точок OPDS, а на даний час OPDS підтримує автентифікацію лише за псевдом та паролем, ви повинні вказати свої облікові дані навіть при використанні SSO. Ми знаємо, що це суперечить ідеї SSO, але це необхідно для коректної роботи додатка. Сподіваємося, майбутні версії відкриють шлях для кращого рішення.",
     "credentialsRequiredForSSO": "Для SSO необхідні облікові дані",
     "readerSettings": "Налаштування читалки",
     "scrollDirection": "Напрямок прокрутки",
@@ -519,6 +519,11 @@
     "change": "Змінити",
     "offline": "Не в мережі",
     "offlineBannerMessage": "Ви поза мережею. Відображаються завантажені книги",
-    "diagHintStockCalibre": "Сервер відповідає, але кінцеві точки Calibre-Web (/ajax/listbooks, /opds/stats) повертають помилку 404. Виглядає наче вбудований сервер вмісту Calibre, а не Calibre-Web. Цей додаток потребує Calibre-Web або Calibre-Web-Automated, що розташований у тій же бібліотеці.",
-    "userFirstLetter": "U"
+    "diagHintStockCalibre": "Сервер відповідає, але кінцеві точки Calibre-Web (/ajax/listbooks, /opds/stats) повертають помилку 404. Це виглядає як вбудований сервер вмісту Calibre, а не Calibre-Web. Вийдіть та оберіть тип сервера «Calibre», щоб підключитися до нього напряму.",
+    "userFirstLetter": "U",
+    "loginErrorInvalidCredentials": "Хибне псевдо або пароль",
+    "loginErrorUnreachable": "Не вдалося зв'язатися з сервером. Перевірте URL і своє підключення.",
+    "serverReachable": "Сервер доступний",
+    "serverLoginRequired": "Сервер доступний. Потрібен вхід",
+    "serverUnreachable": "Не вдалося зв'язатися з сервером"
 }
