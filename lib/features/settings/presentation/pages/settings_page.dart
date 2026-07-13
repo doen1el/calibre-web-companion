@@ -18,6 +18,7 @@ import 'package:calibre_web_companion/features/login_settings/presentation/pages
 import 'package:calibre_web_companion/features/settings/presentation/widgets/download_options_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/feedback_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/theme_selector_widget.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/shelf_widget_source_card.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/sync_settings_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/pages/app_logs_page.dart';
 import 'package:calibre_web_companion/core/services/widget_service.dart';
@@ -387,6 +388,9 @@ class _SettingsPageState extends State<SettingsPage> {
           (context, state, localizations) => [
             _buildSectionTitle(context, localizations.widgetTapAction),
             _buildWidgetTapTargetCard(context, localizations),
+            const SizedBox(height: 24),
+            _buildSectionTitle(context, localizations.widgetShelfSection),
+            const ShelfWidgetSourceCard(),
             const SizedBox(height: 24),
             _buildWidgetHowToCard(context, localizations),
           ],

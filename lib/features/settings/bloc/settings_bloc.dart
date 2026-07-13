@@ -254,6 +254,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setDownloaderEnabled(event.enabled);
       emit(state.copyWith(isDownloaderEnabled: event.enabled));
+      await widgetService.pushQuickActions();
     } catch (e) {
       emit(
         state.copyWith(

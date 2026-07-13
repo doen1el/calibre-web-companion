@@ -29,8 +29,12 @@ import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.da
 import 'package:calibre_web_companion/features/discover/blocs/discover_bloc.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
-import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
+import 'package:calibre_web_companion/features/book_view/presentation/widgets/search_dialog.dart';
+import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart'
+    hide SearchBooks;
 import 'package:calibre_web_companion/features/homepage/bloc/homepage_bloc.dart';
+import 'package:calibre_web_companion/features/homepage/bloc/homepage_event.dart';
+import 'package:calibre_web_companion/features/scan_book/presentation/pages/scan_book_page.dart';
 import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
 import 'package:calibre_web_companion/features/homepage/presentation/pages/home_page.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_event.dart';
@@ -77,6 +81,8 @@ void main() async {
       await di.getIt<DownloadManager>().initialize();
 
       await di.getIt<ApiService>().initialize();
+
+      await di.getIt<WidgetService>().registerBackgroundCallback();
 
       await CosmosEpub.initialize();
 
@@ -185,33 +191,74 @@ class _MyAppState extends State<MyApp> {
     final widgetService = getIt<WidgetService>();
     _widgetClickSub = widgetService.widgetClicks.listen(_handleWidgetLaunch);
     widgetService.initialWidgetLaunch().then(_handleWidgetLaunch);
+
+    widgetService.pushQuickActions();
+    widgetService.refreshShelf();
   }
 
   Future<void> _handleWidgetLaunch(Uri? uri) async {
     if (uri == null || uri.scheme != 'calibrewebcompanion') return;
 
-    if (uri.pathSegments.contains('stats')) return;
+    if (uri.pathSegments.contains('stats') ||
+        uri.pathSegments.contains('shelf')) {
+      return;
+    }
+
+    if (uri.pathSegments.contains('action')) {
+      await _handleWidgetAction(uri.queryParameters['do'] ?? '');
+      return;
+    }
 
     final widgetService = getIt<WidgetService>();
-    final target = widgetService.tapTarget;
-    if (target == WidgetTapTarget.appOnly) return;
 
-    final raw = widgetService.currentBookRaw;
+    if (uri.pathSegments.contains('book')) {
+      final uuid = uri.queryParameters['uuid'] ?? '';
+      if (uuid.isEmpty) return;
+
+      final matches = widgetService.shelfBooks.where((b) => b.uuid == uuid);
+      if (matches.isEmpty) return;
+      final book = matches.first;
+
+      await _openWidgetBook(
+        BookViewModel(
+          id: book.id,
+          uuid: book.uuid,
+          title: book.title,
+          authors: book.authors,
+          coverUrl: book.coverUrl.isEmpty ? null : book.coverUrl,
+          formats: [book.format],
+        ),
+      );
+      return;
+    }
+
+    await _openCurrentWidgetBook();
+  }
+
+  Future<void> _openCurrentWidgetBook() async {
+    final raw = getIt<WidgetService>().currentBookRaw;
     if (raw == null) return;
+
+    final coverUrl = raw['coverUrl']?.toString() ?? '';
+    await _openWidgetBook(
+      BookViewModel(
+        id: (raw['id'] as num?)?.toInt() ?? 0,
+        uuid: raw['uuid']?.toString() ?? '',
+        title: raw['title']?.toString() ?? '',
+        authors: raw['authors']?.toString() ?? '',
+        coverUrl: coverUrl.isEmpty ? null : coverUrl,
+        formats: [raw['format']?.toString() ?? 'epub'],
+      ),
+    );
+  }
+
+  Future<void> _openWidgetBook(BookViewModel book) async {
+    final target = getIt<WidgetService>().tapTarget;
+    if (target == WidgetTapTarget.appOnly) return;
+    if (book.uuid.isEmpty) return;
 
     final prefs = getIt<SharedPreferences>();
     if ((prefs.getString('base_url') ?? '').isEmpty) return;
-
-    final coverUrl = raw['coverUrl']?.toString() ?? '';
-    final book = BookViewModel(
-      id: (raw['id'] as num?)?.toInt() ?? 0,
-      uuid: raw['uuid']?.toString() ?? '',
-      title: raw['title']?.toString() ?? '',
-      authors: raw['authors']?.toString() ?? '',
-      coverUrl: coverUrl.isEmpty ? null : coverUrl,
-      formats: [raw['format']?.toString() ?? 'epub'],
-    );
-    if (book.uuid.isEmpty) return;
 
     final autoOpen = switch (target) {
       WidgetTapTarget.internalReader => BookAutoOpen.internalReader,
@@ -219,22 +266,59 @@ class _MyAppState extends State<MyApp> {
       _ => BookAutoOpen.none,
     };
 
+    final navigator = await _waitForNavigator();
+    navigator?.push(
+      AppTransitions.createSlideRoute(
+        BookDetailsPage(
+          bookViewModel: book,
+          bookUuid: book.uuid,
+          autoOpenAction: autoOpen,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleWidgetAction(String action) async {
+    if (action == 'read') {
+      await _openCurrentWidgetBook();
+      return;
+    }
+
+    final navigator = await _waitForNavigator();
+    final context = navigatorKey.currentContext;
+    if (navigator == null || context == null || !context.mounted) return;
+
+    switch (action) {
+      case 'search':
+        context.read<HomePageBloc>().add(const ChangeNavIndex(0));
+        final query = await showDialog<String>(
+          context: context,
+          builder: (_) => const SearchDialog(),
+        );
+        if (query != null && context.mounted) {
+          context.read<BookViewBloc>().add(SearchBooks(query));
+        }
+      case 'scan':
+        final added = await navigator.push<bool>(
+          AppTransitions.createSlideRoute(const ScanBookPage()),
+        );
+        if (added == true && context.mounted) {
+          context.read<BookViewBloc>().add(const RefreshBooks());
+        }
+      case 'downloads':
+        final showsDiscover =
+            getIt<SharedPreferences>().getString('server_type') != 'calibre';
+        context.read<HomePageBloc>().add(ChangeNavIndex(showsDiscover ? 3 : 2));
+    }
+  }
+
+  Future<NavigatorState?> _waitForNavigator() async {
     for (var attempt = 0; attempt < 20; attempt++) {
       final navigator = navigatorKey.currentState;
-      if (navigator != null) {
-        navigator.push(
-          AppTransitions.createSlideRoute(
-            BookDetailsPage(
-              bookViewModel: book,
-              bookUuid: book.uuid,
-              autoOpenAction: autoOpen,
-            ),
-          ),
-        );
-        return;
-      }
+      if (navigator != null) return navigator;
       await Future.delayed(const Duration(milliseconds: 150));
     }
+    return null;
   }
 
   Future<bool> _isLoggedIn() async {

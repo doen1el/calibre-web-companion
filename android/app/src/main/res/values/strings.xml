@@ -10,4 +10,17 @@
     <string name="widget_stat_authors">Authors</string>
     <string name="widget_stat_categories">Categories</string>
     <string name="widget_stat_series">Series</string>
+
+    <string name="widget_shelf_label">Shelf</string>
+    <string name="widget_shelf_description">A grid of books from a shelf, the library or your downloads</string>
+    <string name="widget_shelf_recent">Recently added</string>
+    <string name="widget_shelf_empty">No books yet — tap to refresh</string>
+    <string name="widget_shelf_refresh">Refresh</string>
+
+    <string name="widget_quick_actions_label">Quick actions</string>
+    <string name="widget_quick_actions_description">Search, scan and keep reading</string>
+    <string name="widget_action_search">Search</string>
+    <string name="widget_action_scan">Scan</string>
+    <string name="widget_action_read">Read</string>
+    <string name="widget_action_downloads">Downloads</string>
 </resources>

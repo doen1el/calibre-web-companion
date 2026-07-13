@@ -10,6 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
+import 'package:calibre_web_companion/core/services/widget_background.dart';
+import 'package:calibre_web_companion/core/services/widget_shelf_loader.dart';
 import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
 import 'package:calibre_web_companion/features/settings/data/models/predefined_colors.dart';
 
@@ -57,9 +59,16 @@ class WidgetService {
 
   static const String _currentBookProvider = 'CurrentBookWidgetProvider';
   static const String _statsProvider = 'LibraryStatsWidgetProvider';
+  static const String _shelfProvider = 'ShelfWidgetProvider';
+  static const String _quickActionsProvider = 'QuickActionsWidgetProvider';
 
   static const String kTapTargetKey = 'widget_tap_target';
+  static const String kShelfSourceKey = 'widget_shelf_source';
+  static const String kShelfIdKey = 'widget_shelf_id';
+  static const String kShelfLabelKey = 'widget_shelf_label';
   static const String _kCurrentBookKey = 'widget_current_book';
+  static const String _kShelfBooksKey = 'widget_shelf_books';
+  static const int shelfMaxBooks = 40;
 
   bool get _supported => Platform.isAndroid;
 
@@ -68,6 +77,39 @@ class WidgetService {
 
   Future<void> setTapTarget(WidgetTapTarget target) async {
     await prefs.setString(kTapTargetKey, target.key);
+  }
+
+  WidgetShelfSource get shelfSource =>
+      WidgetShelfSourceX.fromKey(prefs.getString(kShelfSourceKey));
+
+  String get shelfId => prefs.getString(kShelfIdKey) ?? '';
+
+  String get shelfLabel => prefs.getString(kShelfLabelKey) ?? '';
+
+  Future<void> setShelfConfig({
+    required WidgetShelfSource source,
+    String id = '',
+    String label = '',
+  }) async {
+    await prefs.setString(kShelfSourceKey, source.key);
+    await prefs.setString(kShelfIdKey, id);
+    await prefs.setString(kShelfLabelKey, label);
+    await refreshShelf();
+  }
+
+  List<WidgetShelfBook> get shelfBooks {
+    final raw = prefs.getString(_kShelfBooksKey);
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      return decoded
+          .whereType<Map<String, dynamic>>()
+          .map(WidgetShelfBook.fromJson)
+          .toList();
+    } catch (_) {
+      return const [];
+    }
   }
 
   Map<String, dynamic>? get currentBookRaw {
@@ -206,6 +248,74 @@ class WidgetService {
     }
   }
 
+  Future<void> refreshShelf() async {
+    if (!_supported) return;
+
+    final source = shelfSource;
+    final id = shelfId;
+
+    List<WidgetShelfBook> books = const [];
+    try {
+      final loader = WidgetShelfLoader(
+        prefs: prefs,
+        logger: logger,
+        offlineRepository: offlineRepository,
+      );
+      books = await loader.load(
+        source: source,
+        shelfId: id,
+        limit: shelfMaxBooks,
+      );
+    } catch (e) {
+      logger.w('Failed to load books for shelf widget: $e');
+      return;
+    }
+
+    final resolved = await _resolveCovers(books);
+
+    await prefs.setString(
+      _kShelfBooksKey,
+      jsonEncode(resolved.map((b) => b.toJson()).toList()),
+    );
+    await _pruneWidgetCovers(resolved);
+
+    try {
+      await HomeWidget.saveWidgetData<String>('sh_title', shelfLabel);
+      await HomeWidget.saveWidgetData<String>(
+        'sh_json',
+        jsonEncode(
+          resolved
+              .map(
+                (b) => {
+                  'uuid': b.uuid,
+                  'title': b.title,
+                  'authors': b.authors,
+                  'cover': b.coverPath,
+                },
+              )
+              .toList(),
+        ),
+      );
+      await HomeWidget.updateWidget(androidName: _shelfProvider);
+    } catch (e) {
+      logger.w('Failed to push shelf widget: $e');
+    }
+  }
+
+  Future<void> pushQuickActions() async {
+    if (!_supported) return;
+    try {
+      final downloaderEnabled = prefs.getBool('downloader_enabled') ?? false;
+      await HomeWidget.saveWidgetData<String>(
+        'qa_downloads',
+        downloaderEnabled ? '1' : '0',
+      );
+      await HomeWidget.updateWidget(androidName: _quickActionsProvider);
+    } catch (e) {
+      logger.w('Failed to push quick actions widget: $e');
+    }
+  }
+
   Future<void> pushThemeColors() async {
     final seed = _resolveSeedColor();
     final light = ColorScheme.fromSeed(
@@ -243,6 +353,8 @@ class WidgetService {
       }
       await HomeWidget.updateWidget(androidName: _currentBookProvider);
       await HomeWidget.updateWidget(androidName: _statsProvider);
+      await HomeWidget.updateWidget(androidName: _shelfProvider);
+      await HomeWidget.updateWidget(androidName: _quickActionsProvider);
     } catch (e) {
       logger.w('Failed to push widget theme colors: $e');
     }
@@ -255,6 +367,15 @@ class WidgetService {
 
   String _hex(Color color) =>
       '#${color.toARGB32().toRadixString(16).padLeft(8, '0')}';
+
+  Future<void> registerBackgroundCallback() async {
+    if (!_supported) return;
+    try {
+      await HomeWidget.registerInteractivityCallback(widgetBackgroundCallback);
+    } catch (e) {
+      logger.w('Failed to register widget background callback: $e');
+    }
+  }
 
   Stream<Uri?> get widgetClicks => HomeWidget.widgetClicked;
 
@@ -313,6 +434,56 @@ class WidgetService {
       return '$baseUrl/get/cover/$id$segment';
     }
     return '$baseUrl/opds/cover/$id';
+  }
+
+  Future<List<WidgetShelfBook>> _resolveCovers(
+    List<WidgetShelfBook> books,
+  ) async {
+    const batchSize = 6;
+    final resolved = <WidgetShelfBook>[];
+
+    for (var start = 0; start < books.length; start += batchSize) {
+      final batch = books.skip(start).take(batchSize);
+      resolved.addAll(
+        await Future.wait(
+          batch.map((book) async {
+            if (book.coverPath.isNotEmpty &&
+                await File(book.coverPath).exists()) {
+              return book;
+            }
+            final path = await _materializeCover(
+              book.uuid,
+              book.id,
+              book.coverUrl,
+            );
+            return book.copyWith(coverPath: path ?? '');
+          }),
+        ),
+      );
+    }
+
+    return resolved;
+  }
+
+  Future<void> _pruneWidgetCovers(List<WidgetShelfBook> keep) async {
+    try {
+      final supportDir = await getApplicationSupportDirectory();
+      final widgetDir = Directory(p.join(supportDir.path, 'widget'));
+      if (!await widgetDir.exists()) return;
+
+      final keepPaths = <String>{
+        prefs.getString('widget_current_cover_path') ?? '',
+        for (final book in keep) book.coverPath,
+      }..removeWhere((path) => path.isEmpty);
+
+      await for (final entity in widgetDir.list()) {
+        if (entity is File && !keepPaths.contains(entity.path)) {
+          await entity.delete();
+        }
+      }
+    } catch (e) {
+      logger.w('Failed to prune widget covers: $e');
+    }
   }
 
   Future<String?> _copyToWidgetDir(String uuid, File source) async {
