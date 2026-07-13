@@ -1,0 +1,3 @@
+- Feature: Homescreen widgets added (Quick Actions, Stats, Currently Reading Book, Shelf Grid).
+- Fix: Fixed an issue where FileOpener was not using the correct MIME type for EPUB files, causing some apps to fail to open them correctly.
+- Language: Updated translations: Spanish (@Libre), Italian (@Michele Abbondanza), Hungarian (@Márton Kónya) and Chinese (Simplified Han script) (@Mas Wang).
