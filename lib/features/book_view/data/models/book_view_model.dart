@@ -19,7 +19,7 @@ class BookViewModel extends Equatable {
   final bool readStatus;
   final String registry;
   final String series;
-  final int seriesIndex;
+  final double seriesIndex;
   final String sort;
   final String timestamp;
   final String title;
@@ -58,10 +58,15 @@ class BookViewModel extends Equatable {
     this.tags = const [],
   });
 
-  /// The position of this book within its series (e.g. "5"), or null when the
-  /// book isn't part of a series. Used for the series badge on book covers.
   String? get seriesBadge {
     if (series.isEmpty || seriesIndex <= 0) return null;
+    return seriesIndexLabel;
+  }
+
+  String get seriesIndexLabel {
+    if (seriesIndex == seriesIndex.truncateToDouble()) {
+      return seriesIndex.toInt().toString();
+    }
     return seriesIndex.toString();
   }
 
@@ -138,6 +143,12 @@ class BookViewModel extends Equatable {
         return int.tryParse(value.toString()) ?? fallback;
       }
 
+      double asDouble(dynamic value, [double fallback = 0]) {
+        if (value == null) return fallback;
+        if (value is num) return value.toDouble();
+        return double.tryParse(value.toString()) ?? fallback;
+      }
+
       bool asBool(dynamic value, [bool fallback = false]) {
         if (value == null) return fallback;
         if (value is bool) return value;
@@ -178,7 +189,7 @@ class BookViewModel extends Equatable {
         readStatus: asBool(json['read_status']),
         registry: asString(json['registry']),
         series: asString(json['series']),
-        seriesIndex: asInt(json['series_index']),
+        seriesIndex: asDouble(json['series_index']),
         sort: asString(json['sort']),
         timestamp: asString(json['timestamp']),
         coverUrl: json['cover_url']?.toString(),
@@ -214,7 +225,7 @@ class BookViewModel extends Equatable {
     bool? readStatus,
     String? registry,
     String? series,
-    int? seriesIndex,
+    double? seriesIndex,
     String? sort,
     String? timestamp,
     String? title,

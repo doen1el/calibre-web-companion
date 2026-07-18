@@ -67,6 +67,10 @@ class SetViewMode extends BookViewEvent {
   List<Object?> get props => [isListView];
 }
 
+class EnterSeriesFolderMode extends BookViewEvent {
+  const EnterSeriesFolderMode();
+}
+
 class LoadViewSettings extends BookViewEvent {
   const LoadViewSettings();
 }

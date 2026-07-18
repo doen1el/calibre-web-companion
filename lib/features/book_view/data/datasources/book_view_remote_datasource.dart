@@ -452,7 +452,7 @@ class BookViewRemoteDatasource {
           const <String>[];
 
       final seriesIndex =
-          double.tryParse(data['series_index']?.toString() ?? '')?.toInt() ?? 0;
+          double.tryParse(data['series_index']?.toString() ?? '') ?? 0;
 
       final librarySegment =
           (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
