@@ -427,20 +427,31 @@ class ApiService {
   /// - `queryParams`: Optional query parameters
   /// - `followRedirects`: If false, will throw a [RedirectException] on 301/302 status codes.
   Future<bool> isReachable({
-    Duration timeout = const Duration(seconds: 6),
+    Duration timeout = const Duration(seconds: 8),
   }) async {
     if (_baseUrl == null || _baseUrl!.isEmpty) return false;
-    final client = _createClient();
+
+    final httpClient = HttpClient();
+    httpClient.connectionTimeout = timeout;
+    if (_allowSelfSigned) {
+      httpClient.badCertificateCallback = (cert, host, port) => true;
+    }
     try {
       final uri = _buildUri(endpoint: '/');
-      final headers = <String, String>{};
+      final headers = getAuthHeaders(authMethod: AuthMethod.auto);
       if (_userAgent != null) headers['User-Agent'] = _userAgent!;
-      final response = await client.get(uri, headers: headers).timeout(timeout);
+
+      final request = await httpClient.getUrl(uri);
+      request.followRedirects = false;
+      headers.forEach((key, value) => request.headers.set(key, value));
+
+      final response = await request.close().timeout(timeout);
+      await response.drain<void>();
       return response.statusCode > 0;
     } catch (_) {
       return false;
     } finally {
-      client.close();
+      httpClient.close(force: true);
     }
   }
 

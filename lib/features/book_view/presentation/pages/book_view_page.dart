@@ -86,6 +86,7 @@ class _BookViewPageState extends State<BookViewPage> {
         }
 
         if (!state.isLoading && !state.hasError && state.books.isNotEmpty) {
+          context.read<ConnectivityCubit>().reportSuccess();
           GetIt.instance<OfflineBackfillService>().run();
         }
       },
