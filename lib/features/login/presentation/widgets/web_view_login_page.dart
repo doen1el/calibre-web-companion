@@ -19,6 +19,7 @@ class WebViewLoginPage extends StatefulWidget {
   final String baseUrl;
   final String? username;
   final String? password;
+  final bool isReauth;
 
   const WebViewLoginPage({
     super.key,
@@ -26,6 +27,7 @@ class WebViewLoginPage extends StatefulWidget {
     required this.baseUrl,
     this.username,
     this.password,
+    this.isReauth = false,
   });
 
   @override
@@ -164,12 +166,17 @@ class _WebViewLoginPageState extends State<WebViewLoginPage> {
     return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) {
         if (state.status == LoginStatus.success) {
-          _logger.i('SSO Login finalized via Bloc. Navigating home.');
           context.showSnackBar(localizations.loginSuccessfull, isError: false);
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const HomePage()),
-            (route) => false,
-          );
+          if (widget.isReauth) {
+            _logger.i('SSO session renewed via Bloc. Returning to caller.');
+            Navigator.of(context).pop(true);
+          } else {
+            _logger.i('SSO Login finalized via Bloc. Navigating home.');
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const HomePage()),
+              (route) => false,
+            );
+          }
         } else if (state.status == LoginStatus.failure) {
           _logger.e('SSO Finalization failed: ${state.errorMessage}');
           setState(() => _isExtracting = false);

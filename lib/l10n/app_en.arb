@@ -343,6 +343,7 @@
   "ok": "Ok",
   "attentionSSLCertificate": "Attention: Self-signed certificates can be insecure. Use them only if you understand the risks.",
   "ssoLogin": "SSO-Login",
+  "sessionExpiredReauth": "Session expired — please sign in again",
   "pleaseLoginWithYourSSOAccount": "Please login with your SSO account. You will be redirected back to the app after successful login.",
   "loginWithSSO": "Login with SSO",
   "pleaseEnterSSOUrl": "Please enter the SSO URL",
