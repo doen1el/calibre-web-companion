@@ -143,7 +143,7 @@ class BookDetailsRemoteDatasource {
         bookListModel.tags;
 
     final seriesIndex =
-        double.tryParse(data['series_index']?.toString() ?? '')?.toInt() ??
+        double.tryParse(data['series_index']?.toString() ?? '') ??
         bookListModel.seriesIndex;
 
     final rating = double.tryParse(data['rating']?.toString() ?? '') ?? 0.0;

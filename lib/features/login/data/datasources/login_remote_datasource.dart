@@ -168,6 +168,7 @@ class LoginRemoteDataSource {
       final isSuccess = !response.body.contains('flash_danger');
 
       if (isSuccess) {
+        await prefs.setBool('is_sso_session', false);
         if (response.headers.containsKey('set-cookie')) {
           final cookie = response.headers['set-cookie']!;
           await prefs.setString('calibre_web_session', cookie);
@@ -341,6 +342,7 @@ class LoginRemoteDataSource {
     await prefs.remove('user_agent');
     await prefs.remove('calibre_library_id');
     await prefs.remove('calibre_library_map');
+    await prefs.remove('is_sso_session');
     await apiService.reset();
   }
 
@@ -545,6 +547,7 @@ class LoginRemoteDataSource {
     await prefs.setString('user_agent', userAgent);
     await prefs.setString('calibre_web_cookie', cookieHeader);
     await prefs.remove('calibre_web_session');
+    await prefs.setBool('is_sso_session', true);
 
     if (username != null && username.isNotEmpty) {
       await prefs.setString('username', username);

@@ -10,6 +10,8 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
   final BookViewRepository repository;
   final Logger logger;
 
+  static const int _seriesFolderLimit = 1000;
+
   BookViewBloc({required this.repository, required this.logger})
     : super(const BookViewState()) {
     on<LoadViewSettings>(_onLoadSettings);
@@ -17,6 +19,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     on<LoadMoreBooks>(_onLoadMoreBooks);
     on<RefreshBooks>(_onRefreshBooks);
     on<ChangeSort>(_onChangeSort);
+    on<EnterSeriesFolderMode>(_onEnterSeriesFolderMode);
     on<SearchBooks>(_onSearchBooks);
     on<UploadBook>(_onUploadBook);
     on<ChangeColumnCount>(_onChangeColumnCount);
@@ -41,6 +44,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
           isListView: isListView,
           canAddBooks: caps.addBooks,
           canLookupMetadata: caps.metadataLookup,
+          canBrowseSeriesFolders: caps.discover,
           multiLibrary: caps.multiLibrary && libraries.length > 1,
           libraries: libraries,
           currentLibraryId: repository.getCurrentLibraryId(),
@@ -59,10 +63,11 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     try {
       final isOpds = repository.getIsOpds();
       final caps = repository.getCapabilities();
+      final limit = state.seriesFolderMode ? _seriesFolderLimit : state.limit;
 
       final books = await repository.fetchBooks(
         offset: 0,
-        limit: state.limit,
+        limit: limit,
         searchQuery: state.searchQuery,
         sortBy: state.sortBy,
         sortOrder: state.sortOrder,
@@ -72,8 +77,11 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
         state.copyWith(
           isLoading: false,
           books: books,
-          offset: state.limit,
-          hasMoreBooks: caps.pagination ? books.isNotEmpty : false,
+          offset: limit,
+          hasMoreBooks:
+              state.seriesFolderMode
+                  ? false
+                  : (caps.pagination ? books.isNotEmpty : false),
           isOpds: isOpds,
         ),
       );
@@ -156,6 +164,26 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
       state.copyWith(
         sortBy: event.sortBy,
         sortOrder: event.sortOrder,
+        seriesFolderMode: false,
+        offset: 0,
+        books: [],
+        hasMoreBooks: true,
+      ),
+    );
+
+    add(const LoadBooks());
+  }
+
+  Future<void> _onEnterSeriesFolderMode(
+    EnterSeriesFolderMode event,
+    Emitter<BookViewState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        sortBy: 'series',
+        sortOrder: 'asc',
+        seriesFolderMode: true,
+        isLoading: true,
         offset: 0,
         books: [],
         hasMoreBooks: true,
@@ -172,6 +200,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     emit(
       state.copyWith(
         searchQuery: event.query,
+        seriesFolderMode: false,
         offset: 0,
         books: [],
         hasMoreBooks: true,

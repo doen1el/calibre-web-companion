@@ -10,6 +10,7 @@ import 'package:calibre_web_companion/features/homepage/presentation/pages/home_
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/login/presentation/widgets/login_form_widget.dart';
+import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -23,6 +24,7 @@ class LoginPage extends StatelessWidget {
       body: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
           if (state.status == LoginStatus.success) {
+            context.read<ConnectivityCubit>().reportSuccess();
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (context) => HomePage()),
             );

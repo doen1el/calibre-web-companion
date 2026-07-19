@@ -493,7 +493,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
             title: bookDetails.title,
             authors: bookDetails.authors,
             series: bookDetails.series,
-            seriesIndex: bookDetails.seriesIndex,
+            seriesIndex: bookDetails.seriesIndex.toInt(),
             filePath: path,
             format: formatToDownload,
             savedAt: DateTime.now().millisecondsSinceEpoch,

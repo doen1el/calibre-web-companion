@@ -377,7 +377,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           title: details.title,
           authors: details.authors,
           series: details.series,
-          seriesIndex: details.seriesIndex,
+          seriesIndex: details.seriesIndex.toInt(),
           filePath: filePath,
           format: format,
           savedAt: DateTime.now().millisecondsSinceEpoch,
@@ -579,7 +579,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       BookViewModel? patchedVm;
       if (currentVm != null) {
         final parsedSeriesIndex =
-            int.tryParse(event.seriesIndex) ?? currentVm.seriesIndex;
+            double.tryParse(event.seriesIndex) ?? currentVm.seriesIndex;
 
         patchedVm = currentVm.copyWith(
           title: event.title,

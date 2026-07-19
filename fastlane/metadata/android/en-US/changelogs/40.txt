@@ -1,0 +1,5 @@
+- Feature: New shelf view on the home screen.
+- Feature: Added ability to change probe endpoint for reachability checks.
+- Fix: A reauth popup has been added when the SSO session expires.
+- Fix: Fixed an issue with identifying offline status.
+- Language: Updated translations: Ukrainian (@Vitalii), Catalan (@Nric Pagès i Gassull).

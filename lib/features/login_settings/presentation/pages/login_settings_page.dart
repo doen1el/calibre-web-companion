@@ -119,6 +119,16 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
                         ),
                         _buildBasePathSection(context, state, localizations),
 
+                        _buildSectionTitle(
+                          context,
+                          localizations.reachabilityCheckTitle,
+                        ),
+                        _buildReachabilityProbeSection(
+                          context,
+                          state,
+                          localizations,
+                        ),
+
                         _buildSectionTitle(context, localizations.sslSettings),
                         _buildSSLSettingsSection(context, localizations, state),
 
@@ -257,6 +267,77 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
                 side: BorderSide(
                   color: Theme.of(context).colorScheme.outlineVariant,
                   width: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReachabilityProbeSection(
+    BuildContext context,
+    LoginSettingsState state,
+    AppLocalizations localizations,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.network_check_rounded,
+                  size: 28,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        localizations.reachabilityCheckTitle,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        localizations.reachabilityCheckDescription,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            TextFormField(
+              initialValue: state.reachabilityProbe,
+              onChanged: (value) {
+                context.read<LoginSettingsBloc>().add(
+                  UpdateReachabilityProbe(value),
+                );
+              },
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                labelText: localizations.reachabilityCheckLabel,
+                hintText: localizations.reachabilityCheckHint,
+                prefixIcon: const Icon(Icons.wifi_tethering_rounded),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surface,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 14.0,
                 ),
               ),
             ),

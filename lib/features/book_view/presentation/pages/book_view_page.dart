@@ -20,6 +20,9 @@ import 'package:calibre_web_companion/shared/widgets/book_list_tile_widget.dart'
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_view/presentation/widgets/search_dialog.dart';
+import 'package:calibre_web_companion/features/book_view/presentation/widgets/series_folder_card.dart';
+import 'package:calibre_web_companion/features/book_view/presentation/pages/series_detail_page.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/scan_book/presentation/pages/scan_book_page.dart';
 import 'package:calibre_web_companion/features/scan_book/presentation/scan_flow.dart';
 import 'package:calibre_web_companion/shared/widgets/app_options_sheet.dart';
@@ -83,6 +86,7 @@ class _BookViewPageState extends State<BookViewPage> {
         }
 
         if (!state.isLoading && !state.hasError && state.books.isNotEmpty) {
+          context.read<ConnectivityCubit>().reportSuccess();
           GetIt.instance<OfflineBackfillService>().run();
         }
       },
@@ -102,7 +106,8 @@ class _BookViewPageState extends State<BookViewPage> {
             actions: [
               if (state.multiLibrary) _buildLibrarySelector(context, state),
               const BookViewModeSelector(),
-              if (!state.isOpds) _buildSortOptions(context, localizations),
+              if (!state.isOpds)
+                _buildSortOptions(context, state, localizations),
               if (!isSearching) _buildSearchButton(context, localizations),
             ],
           ),
@@ -161,6 +166,10 @@ class _BookViewPageState extends State<BookViewPage> {
           ],
         ),
       );
+    }
+
+    if (state.seriesFolderMode) {
+      return _buildSeriesFolderGrid(context, state);
     }
 
     return RefreshIndicator(
@@ -281,6 +290,93 @@ class _BookViewPageState extends State<BookViewPage> {
     );
   }
 
+  Widget _buildSeriesFolderGrid(BuildContext context, BookViewState state) {
+    final groups = <String, List<BookViewModel>>{};
+    for (final book in state.books) {
+      final series = book.series.trim();
+      if (series.isEmpty) continue;
+      groups.putIfAbsent(series, () => <BookViewModel>[]).add(book);
+    }
+    for (final books in groups.values) {
+      books.sort((a, b) {
+        final byIndex = a.seriesIndex.compareTo(b.seriesIndex);
+        if (byIndex != 0) return byIndex;
+        return a.title.toLowerCase().compareTo(b.title.toLowerCase());
+      });
+    }
+    final folders = groups.entries.toList();
+
+    return RefreshIndicator(
+      onRefresh: () {
+        context.read<BookViewBloc>().add(const RefreshBooks());
+        return Future.value();
+      },
+      child:
+          folders.isEmpty
+              ? ListView(
+                children: [
+                  const SizedBox(height: 120),
+                  Icon(
+                    Icons.folder_off_rounded,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: Text(
+                      AppLocalizations.of(context)!.noBooksFound,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ],
+              )
+              : state.isListView
+              ? ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16.0),
+                itemCount: folders.length,
+                itemBuilder: (context, index) {
+                  final entry = folders[index];
+                  return SeriesFolderListTile(
+                    seriesName: entry.key,
+                    books: entry.value,
+                    onTap: () => _openSeriesDetail(context, entry),
+                  );
+                },
+              )
+              : GridView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16.0),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: state.columnCount,
+                  childAspectRatio: state.columnCount <= 2 ? 0.7 : 0.9,
+                  crossAxisSpacing: 16.0,
+                  mainAxisSpacing: 16.0,
+                ),
+                itemCount: folders.length,
+                itemBuilder: (context, index) {
+                  final entry = folders[index];
+                  return SeriesFolderCard(
+                    seriesName: entry.key,
+                    books: entry.value,
+                    onTap: () => _openSeriesDetail(context, entry),
+                  );
+                },
+              ),
+    );
+  }
+
+  void _openSeriesDetail(
+    BuildContext context,
+    MapEntry<String, List<BookViewModel>> entry,
+  ) {
+    Navigator.of(context).push(
+      AppTransitions.createSlideRoute(
+        SeriesDetailPage(seriesName: entry.key, books: entry.value),
+      ),
+    );
+  }
+
   Widget _buildLibrarySelector(BuildContext context, BookViewState state) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.library_books_rounded),
@@ -304,12 +400,17 @@ class _BookViewPageState extends State<BookViewPage> {
 
   Widget _buildSortOptions(
     BuildContext context,
+    BookViewState state,
     AppLocalizations localizations,
   ) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.sort),
       tooltip: localizations.sorting,
       onSelected: (String value) {
+        if (value == 'series:folders') {
+          context.read<BookViewBloc>().add(const EnterSeriesFolderMode());
+          return;
+        }
         final sortParts = value.split(':');
         if (sortParts.length == 2) {
           context.read<BookViewBloc>().add(
@@ -339,14 +440,27 @@ class _BookViewPageState extends State<BookViewPage> {
               value: 'added:desc',
               child: Text(localizations.newestFirst),
             ),
-            PopupMenuItem(
-              value: 'series:asc',
-              child: Text(localizations.seriesAZ),
-            ),
-            PopupMenuItem(
-              value: 'series:desc',
-              child: Text(localizations.seriesZA),
-            ),
+            if (state.canBrowseSeriesFolders)
+              PopupMenuItem(
+                value: 'series:folders',
+                child: Row(
+                  children: [
+                    const Icon(Icons.folder_rounded, size: 20),
+                    const SizedBox(width: 12),
+                    Text(localizations.series),
+                  ],
+                ),
+              )
+            else ...[
+              PopupMenuItem(
+                value: 'series:asc',
+                child: Text(localizations.seriesAZ),
+              ),
+              PopupMenuItem(
+                value: 'series:desc',
+                child: Text(localizations.seriesZA),
+              ),
+            ],
           ],
     );
   }

@@ -53,6 +53,15 @@ class UpdateBasePath extends LoginSettingsEvent {
   List<Object?> get props => [basePath];
 }
 
+class UpdateReachabilityProbe extends LoginSettingsEvent {
+  final String endpoint;
+
+  const UpdateReachabilityProbe(this.endpoint);
+
+  @override
+  List<Object?> get props => [endpoint];
+}
+
 class UpdateAllowSelfSigned extends LoginSettingsEvent {
   final bool allowSelfSigned;
 

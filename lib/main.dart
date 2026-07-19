@@ -15,6 +15,9 @@ import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/di/injection_container.dart' as di;
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/core/services/session_reauth_service.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/features/login/presentation/widgets/web_view_login_page.dart';
 import 'package:calibre_web_companion/core/services/connectivity_service.dart';
 import 'package:calibre_web_companion/core/services/widget_service.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
@@ -174,12 +177,42 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _setupWidgetLaunch();
+    SessionReauthService().registerHandler(_openSsoReauth);
   }
 
   @override
   void dispose() {
     _widgetClickSub?.cancel();
+    SessionReauthService().registerHandler(null);
     super.dispose();
+  }
+
+  Future<bool> _openSsoReauth() async {
+    final navigator = navigatorKey.currentState;
+    if (navigator == null) return false;
+
+    final prefs = getIt<SharedPreferences>();
+    final baseUrl = prefs.getString('base_url');
+    if (baseUrl == null || baseUrl.isEmpty) return false;
+
+    final message = AppLocalizations.of(navigator.context)?.sessionExpiredReauth;
+    if (message != null) {
+      navigator.context.showSnackBar(message);
+    }
+
+    final result = await navigator.push<bool>(
+      MaterialPageRoute(
+        builder:
+            (_) => WebViewLoginPage(
+              redirectUrl: baseUrl,
+              baseUrl: baseUrl,
+              username: prefs.getString('username'),
+              password: prefs.getString('password'),
+              isReauth: true,
+            ),
+      ),
+    );
+    return result ?? false;
   }
 
   @override

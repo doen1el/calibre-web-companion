@@ -12,6 +12,7 @@ import 'package:http/io_client.dart';
 import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
 import 'package:calibre_web_companion/core/services/connection_diagnostics.dart';
 import 'package:calibre_web_companion/core/services/digest_auth.dart';
+import 'package:calibre_web_companion/core/services/session_reauth_service.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 
 enum AuthMethod { none, cookie, basic, auto }
@@ -32,6 +33,7 @@ class ApiService {
   String? _userAgent;
 
   bool _allowSelfSigned = false;
+  bool _isSsoSession = false;
   Future<bool>? _reauthFuture;
   final DigestAuth _digest = DigestAuth();
 
@@ -104,6 +106,7 @@ class ApiService {
     _basePath = prefs.getString('base_path') ?? '';
     _userAgent = prefs.getString('user_agent'); // User Agent laden
     _allowSelfSigned = prefs.getBool('allow_self_signed') ?? false;
+    _isSsoSession = prefs.getBool('is_sso_session') ?? false;
 
     _digest.reset();
 
@@ -292,6 +295,10 @@ class ApiService {
 
     _logger.e('Invalid JSON from "$endpoint" (status ${response.statusCode})');
     if (_looksLikeHtml(response.body)) {
+      if (_isSsoSession) {
+        _logger.w('SSO session lost; requesting re-auth web view.');
+        unawaited(SessionReauthService().requestReauth());
+      }
       throw Exception(
         'Session not accepted by the server (received a login page instead of data).',
       );
@@ -420,20 +427,32 @@ class ApiService {
   /// - `queryParams`: Optional query parameters
   /// - `followRedirects`: If false, will throw a [RedirectException] on 301/302 status codes.
   Future<bool> isReachable({
-    Duration timeout = const Duration(seconds: 6),
+    String endpoint = '/',
+    Duration timeout = const Duration(seconds: 8),
   }) async {
     if (_baseUrl == null || _baseUrl!.isEmpty) return false;
-    final client = _createClient();
+
+    final httpClient = HttpClient();
+    httpClient.connectionTimeout = timeout;
+    if (_allowSelfSigned) {
+      httpClient.badCertificateCallback = (cert, host, port) => true;
+    }
     try {
-      final uri = _buildUri(endpoint: '/');
-      final headers = <String, String>{};
+      final uri = _buildUri(endpoint: endpoint);
+      final headers = getAuthHeaders(authMethod: AuthMethod.auto);
       if (_userAgent != null) headers['User-Agent'] = _userAgent!;
-      final response = await client.get(uri, headers: headers).timeout(timeout);
+
+      final request = await httpClient.getUrl(uri);
+      request.followRedirects = false;
+      headers.forEach((key, value) => request.headers.set(key, value));
+
+      final response = await request.close().timeout(timeout);
+      await response.drain<void>();
       return response.statusCode > 0;
     } catch (_) {
       return false;
     } finally {
-      client.close();
+      httpClient.close(force: true);
     }
   }
 

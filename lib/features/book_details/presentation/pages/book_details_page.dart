@@ -848,7 +848,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              '${book.series} (${localizations.book} ${book.seriesIndex.toInt()})',
+                              '${book.series} (${localizations.book} ${book.seriesIndexLabel})',
                             ),
                             if (state.seriesNavigationStatus ==
                                 SeriesNavigationStatus.loading)

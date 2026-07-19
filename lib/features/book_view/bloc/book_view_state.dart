@@ -21,6 +21,8 @@ class BookViewState extends Equatable {
   final bool isOpds;
   final bool canAddBooks;
   final bool canLookupMetadata;
+  final bool canBrowseSeriesFolders;
+  final bool seriesFolderMode;
   final bool multiLibrary;
   final Map<String, String> libraries;
   final String? currentLibraryId;
@@ -42,6 +44,8 @@ class BookViewState extends Equatable {
     this.isOpds = false,
     this.canAddBooks = true,
     this.canLookupMetadata = true,
+    this.canBrowseSeriesFolders = false,
+    this.seriesFolderMode = false,
     this.multiLibrary = false,
     this.libraries = const {},
     this.currentLibraryId,
@@ -64,6 +68,8 @@ class BookViewState extends Equatable {
     bool? isOpds,
     bool? canAddBooks,
     bool? canLookupMetadata,
+    bool? canBrowseSeriesFolders,
+    bool? seriesFolderMode,
     bool? multiLibrary,
     Map<String, String>? libraries,
     String? currentLibraryId,
@@ -85,6 +91,9 @@ class BookViewState extends Equatable {
       isOpds: isOpds ?? this.isOpds,
       canAddBooks: canAddBooks ?? this.canAddBooks,
       canLookupMetadata: canLookupMetadata ?? this.canLookupMetadata,
+      canBrowseSeriesFolders:
+          canBrowseSeriesFolders ?? this.canBrowseSeriesFolders,
+      seriesFolderMode: seriesFolderMode ?? this.seriesFolderMode,
       multiLibrary: multiLibrary ?? this.multiLibrary,
       libraries: libraries ?? this.libraries,
       currentLibraryId: currentLibraryId ?? this.currentLibraryId,
@@ -109,6 +118,8 @@ class BookViewState extends Equatable {
     isOpds,
     canAddBooks,
     canLookupMetadata,
+    canBrowseSeriesFolders,
+    seriesFolderMode,
     multiLibrary,
     libraries,
     currentLibraryId,

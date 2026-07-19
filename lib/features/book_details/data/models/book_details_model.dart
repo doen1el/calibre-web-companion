@@ -109,10 +109,7 @@ class BookDetailsModel extends BookViewModel {
       series: additionalData['series'] ?? bookListModel.series,
       seriesIndex:
           additionalData['series_index'] != null
-              ? (double.tryParse(
-                    additionalData['series_index'].toString(),
-                  )?.toInt() ??
-                  0)
+              ? (double.tryParse(additionalData['series_index'].toString()) ?? 0)
               : bookListModel.seriesIndex,
       sort: bookListModel.sort,
       timestamp: bookListModel.timestamp,
@@ -194,7 +191,7 @@ class BookDetailsModel extends BookViewModel {
     bool? readStatus,
     String? registry,
     String? series,
-    int? seriesIndex,
+    double? seriesIndex,
     String? sort,
     String? timestamp,
     List<String>? formats,
