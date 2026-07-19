@@ -21,6 +21,7 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
     on<UpdateCustomHeaderKey>(_onUpdateCustomHeaderKey);
     on<UpdateCustomHeaderValue>(_onUpdateCustomHeaderValue);
     on<UpdateBasePath>(_onUpdateBasePath);
+    on<UpdateReachabilityProbe>(_onUpdateReachabilityProbe);
     on<UpdateAllowSelfSigned>(_onUpdateAllowSelfSigned);
   }
 
@@ -34,6 +35,8 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
       final headers = await loginSettingsRepository.getCustomHeaders();
       final basePath =
           await loginSettingsRepository.getBasePath(); // Base Path laden
+      final reachabilityProbe =
+          await loginSettingsRepository.getReachabilityProbe();
       final allowSelfSigned =
           await loginSettingsRepository.getAllowSelfSigned();
 
@@ -41,6 +44,7 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
         state.copyWith(
           customHeaders: headers,
           basePath: basePath,
+          reachabilityProbe: reachabilityProbe,
           allowSelfSigned: allowSelfSigned,
           isLoading: false,
         ),
@@ -138,6 +142,18 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
       await loginSettingsRepository.saveBasePath(event.basePath.trim());
     } catch (e) {
       _logger.e('Error saving base path: $e');
+    }
+  }
+
+  Future<void> _onUpdateReachabilityProbe(
+    UpdateReachabilityProbe event,
+    Emitter<LoginSettingsState> emit,
+  ) async {
+    emit(state.copyWith(reachabilityProbe: event.endpoint));
+    try {
+      await loginSettingsRepository.saveReachabilityProbe(event.endpoint.trim());
+    } catch (e) {
+      _logger.e('Error saving reachability probe endpoint: $e');
     }
   }
 

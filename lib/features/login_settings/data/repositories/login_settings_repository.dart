@@ -53,6 +53,22 @@ class LoginSettingsRepository {
     }
   }
 
+  Future<String> getReachabilityProbe() async {
+    try {
+      return await loginSettingsLocalDataSource.getReachabilityProbe();
+    } catch (e) {
+      return '';
+    }
+  }
+
+  Future<void> saveReachabilityProbe(String endpoint) async {
+    try {
+      await loginSettingsLocalDataSource.saveReachabilityProbe(endpoint);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<bool> getAllowSelfSigned() async {
     try {
       return await loginSettingsLocalDataSource.getAllowSelfSigned();

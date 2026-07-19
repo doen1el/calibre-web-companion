@@ -18,6 +18,7 @@ class LoginSettingsLocalDataSource {
 
   static const String _customHeadersKey = 'custom_login_headers';
   static const String _basePathKey = 'base_path';
+  static const String _reachabilityProbeKey = 'reachability_probe_endpoint';
 
   Future<List<CustomHeaderModel>> getCustomHeaders() async {
     try {
@@ -72,6 +73,30 @@ class LoginSettingsLocalDataSource {
     } catch (e) {
       logger.e('Error saving base path: $e');
       throw Exception('Failed to save base path: $e');
+    }
+  }
+
+  Future<String> getReachabilityProbe() async {
+    try {
+      return preferences.getString(_reachabilityProbeKey) ?? '';
+    } catch (e) {
+      logger.e('Error loading reachability probe endpoint: $e');
+      return '';
+    }
+  }
+
+  Future<void> saveReachabilityProbe(String endpoint) async {
+    try {
+      final trimmed = endpoint.trim();
+      if (trimmed.isEmpty) {
+        await preferences.remove(_reachabilityProbeKey);
+      } else {
+        await preferences.setString(_reachabilityProbeKey, trimmed);
+      }
+      logger.i('Saved reachability probe endpoint: $trimmed');
+    } catch (e) {
+      logger.e('Error saving reachability probe endpoint: $e');
+      throw Exception('Failed to save reachability probe endpoint: $e');
     }
   }
 

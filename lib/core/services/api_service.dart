@@ -427,6 +427,7 @@ class ApiService {
   /// - `queryParams`: Optional query parameters
   /// - `followRedirects`: If false, will throw a [RedirectException] on 301/302 status codes.
   Future<bool> isReachable({
+    String endpoint = '/',
     Duration timeout = const Duration(seconds: 8),
   }) async {
     if (_baseUrl == null || _baseUrl!.isEmpty) return false;
@@ -437,7 +438,7 @@ class ApiService {
       httpClient.badCertificateCallback = (cert, host, port) => true;
     }
     try {
-      final uri = _buildUri(endpoint: '/');
+      final uri = _buildUri(endpoint: endpoint);
       final headers = getAuthHeaders(authMethod: AuthMethod.auto);
       if (_userAgent != null) headers['User-Agent'] = _userAgent!;
 
