@@ -544,5 +544,10 @@
     "widgetActionExternalReader": "Відкрити у зовнішній читалці",
     "widgetActionOpenApp": "Тільки відкрити додаток",
     "widgetHowToAddTitle": "Додати віджет",
-    "widgetHowToAddDescription": "Утримуйте палець на головному екрані, виберіть віджет, а потім виберіть Calibre Web Companion."
+    "widgetHowToAddDescription": "Утримуйте палець на головному екрані, виберіть віджет, а потім виберіть Calibre Web Companion.",
+    "reachabilityCheckTitle": "Перевірка досяжності",
+    "reachabilityCheckLabel": "Кінцева точка зонду",
+    "reachabilityCheckHint": "наприклад, /ajax/listbooks?limit=1",
+    "reachabilityCheckDescription": "Кінцева точка, яка використовується для перевірки того чи сервер в мережі. Щоб використовувалася типова кінцева точка для сервера вашого типу, залиште поле порожнім.",
+    "sessionExpiredReauth": "Сесія закінчилася. Будь ласка, увійдіть ще раз"
 }
