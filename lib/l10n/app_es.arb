@@ -546,5 +546,9 @@
     "widgetActionExternalReader": "Abrir dentro del lector externo",
     "widgetActionOpenApp": "Tan solo abrir la app",
     "widgetHowToAddTitle": "Añadir un widget",
-    "widgetHowToAddDescription": "Mantén pulsada la pantalla de inicio, elige Widgets y, a continuación, selecciona Calibre Web Companion."
+    "widgetHowToAddDescription": "Mantén pulsada la pantalla de inicio, elige Widgets y, a continuación, selecciona Calibre Web Companion.",
+    "reachabilityCheckTitle": "Comprobante de accesibilidad",
+    "reachabilityCheckLabel": "Punto final de la sonda",
+    "reachabilityCheckHint": "p.ej., /ajax/listbooks?limit=1",
+    "reachabilityCheckDescription": "El punto final que se utiliza para comprobar si el servidor está en línea. Déjelo en blanco para usar el valor predeterminado para su tipo de servidor."
 }
