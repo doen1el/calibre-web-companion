@@ -50,7 +50,7 @@ class DiscoverDetailsRemoteDatasource {
 
       return DiscoverFeedModel(
         books: books,
-        nextPageUrl: jsonData['nextPageUrl'],
+        nextPageUrl: _parseNextPageUrl(jsonData['feed']['link']),
       );
     } catch (e) {
       logger.e('Error loading books: $e');
@@ -116,7 +116,7 @@ class DiscoverDetailsRemoteDatasource {
 
       return CategoryFeed(
         categories: categories,
-        nextPageUrl: jsonData['nextPageUrl'],
+        nextPageUrl: _parseNextPageUrl(jsonData['feed']['link']),
       );
     } catch (e) {
       throw Exception('Failed to load categories: $e');
@@ -126,15 +126,7 @@ class DiscoverDetailsRemoteDatasource {
   Future<DiscoverFeedModel> loadBooksFromPath(String fullPath) async {
     logger.d('Loading books from path: $fullPath');
     try {
-      String endpoint = fullPath;
-      final baseUrl = apiService.getBaseUrl();
-
-      if (endpoint.startsWith(baseUrl)) {
-        endpoint = endpoint.substring(baseUrl.length);
-      } else if (baseUrl.endsWith('/api/v1/opds') &&
-          endpoint.startsWith('/api/v1/opds')) {
-        endpoint = endpoint.replaceFirst('/api/v1/opds', '');
-      }
+      final endpoint = _toEndpoint(fullPath);
 
       final jsonData = await apiService.getXmlAsJson(
         endpoint: endpoint,
@@ -159,17 +151,27 @@ class DiscoverDetailsRemoteDatasource {
               )
               .toList();
 
-      for (final book in books) {
-        logger.d(book.coverUrl);
-      }
-
       return DiscoverFeedModel(
         books: books,
-        nextPageUrl: jsonData['nextPageUrl'],
+        nextPageUrl: _parseNextPageUrl(jsonData['feed']['link']),
       );
     } catch (e) {
       logger.e('Error loading books from path: $e');
       throw Exception('Failed to load books from path: $e');
+    }
+  }
+
+  Future<CategoryFeed> loadCategoriesFromPath(String fullPath) async {
+    try {
+      final jsonData = await apiService.getXmlAsJson(
+        endpoint: _toEndpoint(fullPath),
+        authMethod: AuthMethod.auto,
+      );
+
+      return _parseCategoryFeed(jsonData);
+    } catch (e) {
+      logger.e('Error loading categories from path: $e');
+      throw Exception('Failed to load categories from path: $e');
     }
   }
 
@@ -202,7 +204,38 @@ class DiscoverDetailsRemoteDatasource {
 
     categories.sort((a, b) => a.title.compareTo(b.title));
 
-    return CategoryFeed(categories: categories);
+    return CategoryFeed(
+      categories: categories,
+      nextPageUrl: _parseNextPageUrl(jsonData['feed']['link']),
+    );
+  }
+
+  String _toEndpoint(String fullPath) {
+    String endpoint = fullPath;
+    final baseUrl = apiService.getBaseUrl();
+
+    if (endpoint.startsWith(baseUrl)) {
+      endpoint = endpoint.substring(baseUrl.length);
+    } else if (baseUrl.endsWith('/api/v1/opds') &&
+        endpoint.startsWith('/api/v1/opds')) {
+      endpoint = endpoint.replaceFirst('/api/v1/opds', '');
+    }
+
+    return endpoint;
+  }
+
+  String? _parseNextPageUrl(dynamic links) {
+    if (links == null) return null;
+    final linkList = links is List ? links : [links];
+
+    for (final link in linkList) {
+      if (link is! Map) continue;
+      final rel = (link['_rel'] ?? link['rel'])?.toString();
+      if (rel != 'next') continue;
+      final href = (link['_href'] ?? link['href'])?.toString();
+      if (href != null && href.isNotEmpty) return href;
+    }
+    return null;
   }
 
   String _getBookListPath(DiscoverType type, String? subPath) {

@@ -44,4 +44,13 @@ class DiscoverDetailsRepository {
       rethrow;
     }
   }
+
+  Future<CategoryFeed> loadCategoriesFromPath(String fullPath) async {
+    try {
+      final categories = await dataSource.loadCategoriesFromPath(fullPath);
+      return categories;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

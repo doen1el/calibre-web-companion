@@ -162,13 +162,18 @@ class DiscoverDetailsPage extends StatelessWidget {
     if (state.isShowingBooks &&
         state.bookFeed != null &&
         state.bookFeed!.books.isNotEmpty) {
-      return _buildBookGrid(context, state.bookFeed!);
+      return _buildBookGrid(context, state, state.bookFeed!, localizations);
     }
 
     if (state.isShowingCategories &&
         state.categoryFeed != null &&
         state.categoryFeed!.categories.isNotEmpty) {
-      return _buildCategoryList(context, state.categoryFeed!);
+      return _buildCategoryList(
+        context,
+        state,
+        state.categoryFeed!,
+        localizations,
+      );
     }
 
     return _buildEmptyState(context, localizations);
@@ -221,50 +226,125 @@ class DiscoverDetailsPage extends StatelessWidget {
 
   bool get _isSeriesView => fullPath != null && fullPath!.contains('/series/');
 
-  Widget _buildBookGrid(BuildContext context, DiscoverFeedModel feed) {
-    return BlocBuilder<DiscoverDetailsBloc, DiscoverDetailsState>(
-      builder: (context, state) {
-        final viewState = context.watch<BookViewBloc>().state;
-        final seriesView = _isSeriesView;
+  Widget _buildBookGrid(
+    BuildContext context,
+    DiscoverDetailsState state,
+    DiscoverFeedModel feed,
+    AppLocalizations localizations,
+  ) {
+    final viewState = context.watch<BookViewBloc>().state;
+    final seriesView = _isSeriesView;
 
-        if (viewState.isListView) {
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: feed.books.length,
-            itemBuilder:
-                (context, index) => _buildBookListTile(
-                  context,
-                  feed.books[index],
-                  state,
-                  seriesNumber: seriesView ? index + 1 : null,
-                ),
-          );
-        }
-
-        return GridView.builder(
-          padding: const EdgeInsets.all(16.0),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: viewState.columnCount,
-            childAspectRatio: viewState.columnCount <= 2 ? 0.7 : 0.9,
-            crossAxisSpacing: 16.0,
-            mainAxisSpacing: 16.0,
+    return _buildPaginatedScrollView(
+      context: context,
+      state: state,
+      localizations: localizations,
+      hasMore: state.hasMoreBooks,
+      onLoadMore:
+          () => context.read<DiscoverDetailsBloc>().add(
+            const LoadMoreDiscoverBooks(),
           ),
-          itemCount: feed.books.length,
-          itemBuilder: (context, index) {
-            final book = feed.books[index];
-            return BookCard(
-              bookId: book.id,
-              coverUrl: book.coverUrl,
-              title: book.title,
-              authors: book.authors,
-              isLoading: state.loadingBookId == book.id,
-              onTap: () => _openBook(context, book),
-              topLeftBadge: seriesView ? '${index + 1}' : null,
-            );
-          },
-        );
-      },
+      sliver: SliverPadding(
+        padding: const EdgeInsets.all(16.0),
+        sliver:
+            viewState.isListView
+                ? SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => _buildBookListTile(
+                      context,
+                      feed.books[index],
+                      state,
+                      seriesNumber: seriesView ? index + 1 : null,
+                    ),
+                    childCount: feed.books.length,
+                  ),
+                )
+                : SliverGrid(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: viewState.columnCount,
+                    childAspectRatio: viewState.columnCount <= 2 ? 0.7 : 0.9,
+                    crossAxisSpacing: 16.0,
+                    mainAxisSpacing: 16.0,
+                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final book = feed.books[index];
+                    return BookCard(
+                      bookId: book.id,
+                      coverUrl: book.coverUrl,
+                      title: book.title,
+                      authors: book.authors,
+                      isLoading: state.loadingBookId == book.id,
+                      onTap: () => _openBook(context, book),
+                      topLeftBadge: seriesView ? '${index + 1}' : null,
+                    );
+                  }, childCount: feed.books.length),
+                ),
+      ),
     );
+  }
+
+  /// Scrollable feed that pulls the next page in as the end comes into reach
+  Widget _buildPaginatedScrollView({
+    required BuildContext context,
+    required DiscoverDetailsState state,
+    required AppLocalizations localizations,
+    required bool hasMore,
+    required VoidCallback onLoadMore,
+    required Widget sliver,
+  }) {
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (hasMore &&
+            !state.isLoadingMore &&
+            notification.metrics.pixels >=
+                notification.metrics.maxScrollExtent - 600) {
+          onLoadMore();
+        }
+        return false;
+      },
+      child: CustomScrollView(
+        slivers: [
+          sliver,
+          SliverToBoxAdapter(
+            child: _buildPaginationFooter(
+              context,
+              state,
+              localizations,
+              hasMore: hasMore,
+              onLoadMore: onLoadMore,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaginationFooter(
+    BuildContext context,
+    DiscoverDetailsState state,
+    AppLocalizations localizations, {
+    required bool hasMore,
+    required VoidCallback onLoadMore,
+  }) {
+    if (state.isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (hasMore) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        child: Center(
+          child: OutlinedButton.icon(
+            onPressed: onLoadMore,
+            icon: const Icon(Icons.expand_more_rounded),
+            label: Text(localizations.loadMore),
+          ),
+        ),
+      );
+    }
+    return const SizedBox(height: 16);
   }
 
   Widget _buildBookListTile(
@@ -396,17 +476,31 @@ class DiscoverDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryList(BuildContext context, CategoryFeed feed) {
-    return ListView.builder(
-      itemCount: feed.categories.length,
-      itemBuilder: (context, index) {
-        final category = feed.categories[index];
-        return CategoryListItem(
-          category: category,
-          type: categoryType ?? CategoryType.category,
-          onTap: () => _navigateToCategoryOrBooks(context, category),
-        );
-      },
+  Widget _buildCategoryList(
+    BuildContext context,
+    DiscoverDetailsState state,
+    CategoryFeed feed,
+    AppLocalizations localizations,
+  ) {
+    return _buildPaginatedScrollView(
+      context: context,
+      state: state,
+      localizations: localizations,
+      hasMore: state.hasMoreCategories,
+      onLoadMore:
+          () => context.read<DiscoverDetailsBloc>().add(
+            const LoadMoreDiscoverCategories(),
+          ),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final category = feed.categories[index];
+          return CategoryListItem(
+            category: category,
+            type: categoryType ?? CategoryType.category,
+            onTap: () => _navigateToCategoryOrBooks(context, category),
+          );
+        }, childCount: feed.categories.length),
+      ),
     );
   }
 
