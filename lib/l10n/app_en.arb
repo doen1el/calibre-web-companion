@@ -550,5 +550,22 @@
   "widgetActionExternalReader": "Open in external reader",
   "widgetActionOpenApp": "Just open the app",
   "widgetHowToAddTitle": "Add a widget",
-  "widgetHowToAddDescription": "Long-press your home screen, choose Widgets, then pick Calibre Web Companion."
+  "widgetHowToAddDescription": "Long-press your home screen, choose Widgets, then pick Calibre Web Companion.",
+  "isbnMetadataSources": "ISBN metadata sources",
+  "isbnMetadataSourcesSubtitle": "Catalogues used when scanning a book",
+  "isbnMetadataSourcesDescription": "All enabled catalogues are queried at once and their results are merged. More sources means better coverage for regional editions.",
+  "isbnSourceOpenLibraryDescription": "Free community catalogue with broad English coverage",
+  "isbnSourceGoogleBooksDescription": "Large international catalogue, strong on recent editions",
+  "isbnSourceBnfDescription": "French national library — best coverage for French books",
+  "isbnSourceHardcoverDescription": "Community database — requires a free API token",
+  "isbnSourceIsbnDbDescription": "Commercial ISBN database — requires a subscription key",
+  "isbnSourceApiToken": "API token",
+  "isbnSourceApiKey": "API key",
+  "isbnSourceGetCredential": "Where do I get this?",
+  "isbnSourceNoneEnabled": "No source enabled — ISBN lookup will not find anything.",
+  "isbnFoundVia": "Found via {sources}",
+  "isbnTryMoreSources": "More sources",
+  "isbnSourceApiKeyOptional": "API key (optional)",
+  "isbnSourceGoogleBooksKeyHint": "Only needed if Google's shared free quota is exhausted and lookups start failing.",
+  "isbnSourceOrderHint": "Drag to reorder: when catalogues disagree, the one higher in the list wins."
 }

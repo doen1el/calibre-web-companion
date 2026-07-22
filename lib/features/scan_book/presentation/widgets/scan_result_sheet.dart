@@ -132,6 +132,17 @@ class _ScanResultSheetState extends State<ScanResultSheet> {
             ),
             const SizedBox(height: 16),
             _buildInfoRows(context, localizations, book),
+            if (book.sources.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                localizations.isbnFoundVia(
+                  book.sources.map((s) => s.label).join(' + '),
+                ),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
             if (book.description.isNotEmpty) ...[
               const SizedBox(height: 12),
               Text(

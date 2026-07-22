@@ -542,5 +542,22 @@
     "widgetActionExternalReader": "In externem Reader öffnen",
     "widgetActionOpenApp": "Nur die App öffnen",
     "widgetHowToAddTitle": "Widget hinzufügen",
-    "widgetHowToAddDescription": "Halte den Startbildschirm gedrückt, wähle „Widgets“ und dann Calibre Web Companion."
+    "widgetHowToAddDescription": "Halte den Startbildschirm gedrückt, wähle „Widgets“ und dann Calibre Web Companion.",
+  "isbnMetadataSources": "ISBN-Metadatenquellen",
+  "isbnMetadataSourcesSubtitle": "Kataloge für die Buchsuche beim Scannen",
+  "isbnMetadataSourcesDescription": "Alle aktivierten Kataloge werden gleichzeitig abgefragt und die Ergebnisse zusammengeführt. Mehr Quellen bedeuten bessere Treffer bei regionalen Ausgaben.",
+  "isbnSourceOpenLibraryDescription": "Freier Gemeinschaftskatalog mit großem englischem Bestand",
+  "isbnSourceGoogleBooksDescription": "Großer internationaler Katalog, stark bei neuen Ausgaben",
+  "isbnSourceBnfDescription": "Französische Nationalbibliothek — beste Abdeckung für französische Bücher",
+  "isbnSourceHardcoverDescription": "Community-Datenbank — benötigt einen kostenlosen API-Token",
+  "isbnSourceIsbnDbDescription": "Kommerzielle ISBN-Datenbank — benötigt einen Abo-Schlüssel",
+  "isbnSourceApiToken": "API-Token",
+  "isbnSourceApiKey": "API-Schlüssel",
+  "isbnSourceGetCredential": "Wo bekomme ich das?",
+  "isbnSourceNoneEnabled": "Keine Quelle aktiv — die ISBN-Suche findet nichts.",
+  "isbnFoundVia": "Gefunden über {sources}",
+  "isbnTryMoreSources": "Mehr Quellen",
+  "isbnSourceApiKeyOptional": "API-Schlüssel (optional)",
+  "isbnSourceGoogleBooksKeyHint": "Nur nötig, wenn Googles gemeinsames Gratis-Kontingent erschöpft ist und die Suche fehlschlägt.",
+  "isbnSourceOrderHint": "Zum Sortieren ziehen: Bei widersprüchlichen Angaben gewinnt der Katalog weiter oben."
 }

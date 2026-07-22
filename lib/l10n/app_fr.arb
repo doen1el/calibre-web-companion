@@ -489,5 +489,22 @@
     "searchFailed": "Échec de la recherche",
     "cover": "Couverture",
     "coverImage": "Image de couverture",
-    "searchForMetadata": "Rechercher des métadonnées"
+    "searchForMetadata": "Rechercher des métadonnées",
+  "isbnMetadataSources": "Sources de métadonnées ISBN",
+  "isbnMetadataSourcesSubtitle": "Catalogues utilisés lors du scan d'un livre",
+  "isbnMetadataSourcesDescription": "Tous les catalogues activés sont interrogés en même temps et leurs résultats sont fusionnés. Plus de sources améliore la couverture des éditions régionales.",
+  "isbnSourceOpenLibraryDescription": "Catalogue communautaire libre, riche en ouvrages anglophones",
+  "isbnSourceGoogleBooksDescription": "Grand catalogue international, solide sur les éditions récentes",
+  "isbnSourceBnfDescription": "Bibliothèque nationale de France — meilleure couverture des livres français",
+  "isbnSourceHardcoverDescription": "Base communautaire — nécessite un jeton d'API gratuit",
+  "isbnSourceIsbnDbDescription": "Base ISBN commerciale — nécessite une clé d'abonnement",
+  "isbnSourceApiToken": "Jeton d'API",
+  "isbnSourceApiKey": "Clé d'API",
+  "isbnSourceGetCredential": "Où l'obtenir ?",
+  "isbnSourceNoneEnabled": "Aucune source activée — la recherche par ISBN ne trouvera rien.",
+  "isbnFoundVia": "Trouvé via {sources}",
+  "isbnTryMoreSources": "Plus de sources",
+  "isbnSourceApiKeyOptional": "Clé d'API (facultative)",
+  "isbnSourceGoogleBooksKeyHint": "Utile seulement si le quota gratuit partagé de Google est épuisé et que les recherches échouent.",
+  "isbnSourceOrderHint": "Glissez pour réordonner : en cas de divergence, le catalogue le plus haut l'emporte."
 }

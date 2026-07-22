@@ -15,6 +15,7 @@ import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
+import 'package:calibre_web_companion/features/scan_book/presentation/pages/isbn_sources_page.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/download_options_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/feedback_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/theme_selector_widget.dart';
@@ -173,6 +174,19 @@ class _SettingsPageState extends State<SettingsPage> {
                             subtitle: localizations.homeWidgetSubtitle,
                             icon: Icons.widgets_rounded,
                             onTap: () => _openWidgetSettingsSubPage(context),
+                          ),
+                          _buildSettingsCategoryNavCard(
+                            context,
+                            title: localizations.isbnMetadataSources,
+                            subtitle:
+                                localizations.isbnMetadataSourcesSubtitle,
+                            icon: Icons.travel_explore_rounded,
+                            onTap:
+                                () => Navigator.of(context).push(
+                                  AppTransitions.createSlideRoute(
+                                    const IsbnSourcesPage(),
+                                  ),
+                                ),
                           ),
 
                           const SizedBox(height: 24),
