@@ -2,11 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
 
 class OfflineLibraryRepository {
   final SharedPreferences _prefs;

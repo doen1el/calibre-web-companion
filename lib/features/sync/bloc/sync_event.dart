@@ -1,5 +1,5 @@
-import 'package:equatable/equatable.dart';
 import 'package:calibre_web_companion/features/sync/data/models/sync_filter.dart';
+import 'package:equatable/equatable.dart';
 
 abstract class SyncEvent extends Equatable {
   const SyncEvent();

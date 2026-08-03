@@ -109,7 +109,8 @@ class BookDetailsModel extends BookViewModel {
       series: additionalData['series'] ?? bookListModel.series,
       seriesIndex:
           additionalData['series_index'] != null
-              ? (double.tryParse(additionalData['series_index'].toString()) ?? 0)
+              ? (double.tryParse(additionalData['series_index'].toString()) ??
+                  0)
               : bookListModel.seriesIndex,
       sort: bookListModel.sort,
       timestamp: bookListModel.timestamp,
@@ -141,7 +142,7 @@ class BookDetailsModel extends BookViewModel {
   }
 
   static String _removeHtmlTags(String htmlString) {
-    final RegExp exp = RegExp(r"<[^>]*>", multiLine: true, caseSensitive: true);
+    final RegExp exp = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
     String parsedString = htmlString.replaceAll(exp, '');
 
     parsedString = parsedString

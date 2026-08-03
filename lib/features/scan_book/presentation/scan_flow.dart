@@ -1,13 +1,16 @@
-import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/scan_book/data/datasources/isbn_remote_datasource.dart';
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_book.dart';
+import 'package:calibre_web_companion/features/scan_book/presentation/pages/isbn_sources_page.dart';
 import 'package:calibre_web_companion/features/scan_book/presentation/widgets/scan_result_sheet.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final Logger _logger = Logger();
 
@@ -78,6 +81,8 @@ Future<bool> runIsbnLookupFlow(BuildContext context, String isbn) async {
   }
 }
 
+enum _NotFoundAction { cancel, editIsbn, metadataSources }
+
 Future<IsbnBook?> _lookupWithProgress(
   BuildContext context,
   IsbnRemoteDataSource source,
@@ -86,27 +91,29 @@ Future<IsbnBook?> _lookupWithProgress(
   final localizations = AppLocalizations.of(context)!;
   _logger.i('Manual ISBN flow: looking up $isbn');
 
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder:
-        (_) => Dialog(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                const SizedBox(width: 20),
-                Flexible(child: Text(localizations.lookingUpBook)),
-              ],
+  unawaited(
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (_) => Dialog(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(width: 20),
+                  Flexible(child: Text(localizations.lookingUpBook)),
+                ],
+              ),
             ),
           ),
-        ),
+    ),
   );
 
   IsbnBook? book;
@@ -129,7 +136,7 @@ Future<IsbnBook?> _lookupWithProgress(
 
 Future<String?> _notFoundDialog(BuildContext context, String isbn) async {
   final localizations = AppLocalizations.of(context)!;
-  final wantsEdit = await showDialog<bool>(
+  final action = await showDialog<_NotFoundAction>(
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
@@ -137,19 +144,40 @@ Future<String?> _notFoundDialog(BuildContext context, String isbn) async {
         content: Text('ISBN: $isbn'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
+            onPressed:
+                () => Navigator.of(dialogContext).pop(_NotFoundAction.cancel),
             child: Text(localizations.cancel),
+          ),
+          TextButton(
+            onPressed:
+                () => Navigator.of(
+                  dialogContext,
+                ).pop(_NotFoundAction.metadataSources),
+            child: Text(localizations.isbnTryMoreSources),
           ),
           AppDialogButton(
             label: localizations.editIsbn,
             icon: Icons.edit_rounded,
-            onPressed: () => Navigator.of(dialogContext).pop(true),
+            onPressed:
+                () => Navigator.of(dialogContext).pop(_NotFoundAction.editIsbn),
           ),
         ],
       );
     },
   );
 
-  if (wantsEdit != true || !context.mounted) return null;
-  return promptForIsbn(context, initial: isbn);
+  if (!context.mounted) return null;
+
+  switch (action) {
+    case _NotFoundAction.editIsbn:
+      return promptForIsbn(context, initial: isbn);
+    case _NotFoundAction.metadataSources:
+      await Navigator.of(
+        context,
+      ).push(AppTransitions.createSlideRoute(const IsbnSourcesPage()));
+      return isbn;
+    case _NotFoundAction.cancel:
+    case null:
+      return null;
+  }
 }

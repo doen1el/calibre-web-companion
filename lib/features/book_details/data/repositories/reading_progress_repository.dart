@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ReadingProgressRepository {
   final WebDavSyncService webDavService;
@@ -13,7 +14,7 @@ class ReadingProgressRepository {
     final String timestampKey = 'book_timestamp_$bookUuid';
 
     String? locationJsonToUse;
-    int localTimestamp = prefs.getInt(timestampKey) ?? 0;
+    final int localTimestamp = prefs.getInt(timestampKey) ?? 0;
 
     locationJsonToUse = prefs.getString(progressKey);
 

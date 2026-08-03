@@ -1,10 +1,9 @@
 @Tags(['integration'])
 library;
 
+import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart';
-
-import 'package:calibre_web_companion/features/login/data/datasources/login_remote_datasource.dart';
 
 import '../../helpers/test_setup.dart';
 

@@ -1,10 +1,10 @@
+import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:docman/docman.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
-
-import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
-import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 
 abstract class BookDetailsEvent extends Equatable {
   const BookDetailsEvent();
@@ -69,6 +69,7 @@ class DownloadBook extends BookDetailsEvent {
   final double seriesIndex;
   final DocumentFile? directory;
   final DownloadSchema schema;
+  final String pathTemplate;
 
   const DownloadBook({
     required this.bookId,
@@ -79,6 +80,7 @@ class DownloadBook extends BookDetailsEvent {
     required this.seriesIndex,
     this.directory,
     required this.schema,
+    this.pathTemplate = DownloadPathTemplate.defaultTemplate,
   });
 
   @override
@@ -91,6 +93,7 @@ class DownloadBook extends BookDetailsEvent {
     seriesIndex,
     directory,
     schema,
+    pathTemplate,
   ];
 }
 
@@ -114,11 +117,16 @@ class SendBookByEmail extends BookDetailsEvent {
 class OpenBookInReader extends BookDetailsEvent {
   final DocumentFile? selectedDirectory;
   final DownloadSchema schema;
+  final String pathTemplate;
 
-  const OpenBookInReader({this.selectedDirectory, required this.schema});
+  const OpenBookInReader({
+    this.selectedDirectory,
+    required this.schema,
+    this.pathTemplate = DownloadPathTemplate.defaultTemplate,
+  });
 
   @override
-  List<Object?> get props => [selectedDirectory, schema];
+  List<Object?> get props => [selectedDirectory, schema, pathTemplate];
 }
 
 class OpenBookInInternalReader extends BookDetailsEvent {
@@ -208,6 +216,7 @@ class SendToEReaderViaBrowser extends BookDetailsEvent {
   final bool downloadToDeviceFirst;
   final DocumentFile? selectedDirectory;
   final DownloadSchema? schema;
+  final String pathTemplate;
 
   const SendToEReaderViaBrowser({
     required this.bookId,
@@ -218,6 +227,7 @@ class SendToEReaderViaBrowser extends BookDetailsEvent {
     this.downloadToDeviceFirst = false,
     this.selectedDirectory,
     this.schema,
+    this.pathTemplate = DownloadPathTemplate.defaultTemplate,
   });
 
   @override
@@ -230,6 +240,7 @@ class SendToEReaderViaBrowser extends BookDetailsEvent {
     downloadToDeviceFirst,
     selectedDirectory,
     schema,
+    pathTemplate,
   ];
 }
 

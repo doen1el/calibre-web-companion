@@ -36,13 +36,13 @@ class ShelfBookItem extends Equatable {
     final uuid = rawId.replaceFirst('urn:uuid:', '');
 
     String? coverUrl;
-    List<String> formats = [];
+    final List<String> formats = [];
 
     final links = json['link'];
     if (links != null) {
       final linkList = links is List ? links : [links];
 
-      for (var link in linkList) {
+      for (final link in linkList) {
         if (link is Map) {
           final rel = link['_rel'] ?? link['rel'];
           final type = link['_type'] ?? link['type'];
@@ -116,11 +116,11 @@ class ShelfBookItem extends Equatable {
       }
     }
 
-    List<String> tags = [];
+    final List<String> tags = [];
     if (json['category'] != null) {
       final cats =
           json['category'] is List ? json['category'] : [json['category']];
-      for (var c in cats) {
+      for (final c in cats) {
         if (c is Map) {
           final term = c['term'] ?? c['_term'] ?? c['label'] ?? c['@term'];
           if (term != null && term.toString().isNotEmpty) {

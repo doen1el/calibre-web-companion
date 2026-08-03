@@ -1,19 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
-import 'package:home_widget/home_widget.dart';
-import 'package:logger/logger.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
 import 'package:calibre_web_companion/core/services/widget_background.dart';
 import 'package:calibre_web_companion/core/services/widget_shelf_loader.dart';
 import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
 import 'package:calibre_web_companion/features/settings/data/models/predefined_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:home_widget/home_widget.dart';
+import 'package:logger/logger.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum WidgetTapTarget { bookDetails, internalReader, externalReader, appOnly }
 
@@ -203,7 +202,7 @@ class WidgetService {
         await prefs.setString('widget_current_cover_path', coverPath);
       }
 
-      final progress = ((record['progress'] as num?)?.toDouble() ?? 0.0);
+      final progress = (record['progress'] as num?)?.toDouble() ?? 0.0;
       await HomeWidget.saveWidgetData<String>(
         'cb_uuid',
         record['uuid'] as String,
@@ -391,7 +390,7 @@ class WidgetService {
       final offlinePath = offlineRepository.getBook(uuid)?.coverPath;
       if (offlinePath != null && offlinePath.isNotEmpty) {
         final file = File(offlinePath);
-        if (await file.exists() && await file.length() > 0) {
+        if (file.existsSync() && await file.length() > 0) {
           return _copyToWidgetDir(uuid, file);
         }
       }
@@ -403,7 +402,7 @@ class WidgetService {
     if (url != null) {
       try {
         final cached = await CustomCacheManager().getSingleFile(url);
-        if (await cached.exists() && await cached.length() > 0) {
+        if (cached.existsSync() && await cached.length() > 0) {
           return _copyToWidgetDir(uuid, cached);
         }
       } catch (e) {
@@ -448,7 +447,7 @@ class WidgetService {
         await Future.wait(
           batch.map((book) async {
             if (book.coverPath.isNotEmpty &&
-                await File(book.coverPath).exists()) {
+                File(book.coverPath).existsSync()) {
               return book;
             }
             final path = await _materializeCover(
@@ -469,7 +468,7 @@ class WidgetService {
     try {
       final supportDir = await getApplicationSupportDirectory();
       final widgetDir = Directory(p.join(supportDir.path, 'widget'));
-      if (!await widgetDir.exists()) return;
+      if (!widgetDir.existsSync()) return;
 
       final keepPaths = <String>{
         prefs.getString('widget_current_cover_path') ?? '',
@@ -490,7 +489,7 @@ class WidgetService {
     try {
       final supportDir = await getApplicationSupportDirectory();
       final widgetDir = Directory(p.join(supportDir.path, 'widget'));
-      if (!await widgetDir.exists()) {
+      if (!widgetDir.existsSync()) {
         await widgetDir.create(recursive: true);
       }
 

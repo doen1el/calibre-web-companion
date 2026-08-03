@@ -1,18 +1,18 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:logger/logger.dart';
-import 'package:get_it/get_it.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/homepage/presentation/pages/home_page.dart';
 import 'package:calibre_web_companion/features/login/bloc/login_bloc.dart';
 import 'package:calibre_web_companion/features/login/bloc/login_event.dart';
 import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:get_it/get_it.dart';
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WebViewLoginPage extends StatefulWidget {
   final String redirectUrl;

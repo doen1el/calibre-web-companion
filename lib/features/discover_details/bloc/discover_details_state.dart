@@ -1,8 +1,7 @@
-import 'package:equatable/equatable.dart';
-
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_feed_model.dart';
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:equatable/equatable.dart';
 
 enum DiscoverDetailsStatus { initial, loading, loaded, error }
 
@@ -16,6 +15,7 @@ class DiscoverDetailsState extends Equatable {
   final BookViewModel? bookDetails;
   final String? loadingBookId;
   final bool isNotFound;
+  final bool isLoadingMore;
 
   const DiscoverDetailsState({
     this.status = DiscoverDetailsStatus.initial,
@@ -27,7 +27,11 @@ class DiscoverDetailsState extends Equatable {
     this.bookDetails,
     this.loadingBookId,
     this.isNotFound = false,
+    this.isLoadingMore = false,
   });
+
+  bool get hasMoreBooks => bookFeed?.nextPageUrl != null;
+  bool get hasMoreCategories => categoryFeed?.nextPageUrl != null;
 
   DiscoverDetailsState copyWith({
     DiscoverDetailsStatus? status,
@@ -39,6 +43,7 @@ class DiscoverDetailsState extends Equatable {
     BookViewModel? bookDetails,
     String? loadingBookId,
     bool? isNotFound,
+    bool? isLoadingMore,
   }) {
     return DiscoverDetailsState(
       status: status ?? this.status,
@@ -50,6 +55,7 @@ class DiscoverDetailsState extends Equatable {
       bookDetails: bookDetails ?? this.bookDetails,
       loadingBookId: loadingBookId ?? this.loadingBookId,
       isNotFound: isNotFound ?? this.isNotFound,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }
 
@@ -64,5 +70,6 @@ class DiscoverDetailsState extends Equatable {
     bookDetails,
     loadingBookId,
     isNotFound,
+    isLoadingMore,
   ];
 }

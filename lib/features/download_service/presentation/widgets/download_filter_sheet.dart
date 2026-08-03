@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart'; // ADD: for SaveFilter event
+import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DownloadFilterSheet extends StatefulWidget {
   final DownloadFilterModel currentFilter;
@@ -131,7 +130,7 @@ class _DownloadFilterSheetState extends State<DownloadFilterSheet> {
               initialValue: _selectedContent,
               decoration: InputDecoration(
                 labelText: localizations.contentType,
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
               items: [
                 DropdownMenuItem(value: null, child: Text(localizations.any)),

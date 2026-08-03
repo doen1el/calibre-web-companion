@@ -1,13 +1,13 @@
 import 'dart:typed_data';
 
-import 'package:docman/docman.dart';
-import 'package:http/http.dart';
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
+import 'package:docman/docman.dart';
+import 'package:http/http.dart';
+import 'package:logger/logger.dart';
 
 class BookDetailsRepository {
   final BookDetailsRemoteDatasource datasource;
@@ -54,6 +54,7 @@ class BookDetailsRepository {
     BookDetailsModel book,
     DocumentFile? selectedDirectory,
     DownloadSchema schema, {
+    String pathTemplate = DownloadPathTemplate.defaultTemplate,
     Function(int)? progressCallback,
     Future<void> Function(String path)? onFileDownloaded,
   }) async {
@@ -62,6 +63,7 @@ class BookDetailsRepository {
         book,
         selectedDirectory,
         schema,
+        pathTemplate: pathTemplate,
         progressCallback: progressCallback,
         onFileDownloaded: onFileDownloaded,
       );
@@ -165,6 +167,7 @@ class BookDetailsRepository {
     BookDetailsModel book,
     DocumentFile selectedDirectory,
     DownloadSchema schema, {
+    String pathTemplate = DownloadPathTemplate.defaultTemplate,
     String format = 'epub',
     Function(int)? progressCallback,
   }) async {
@@ -173,6 +176,7 @@ class BookDetailsRepository {
         book,
         selectedDirectory,
         schema,
+        pathTemplate: pathTemplate,
         format: format,
         progressCallback: progressCallback,
       );
@@ -207,6 +211,9 @@ class BookDetailsRepository {
 
   Future<Uint8List?> readLocalEpubBytes(String path) =>
       datasource.readLocalEpubBytes(path);
+
+  Future<bool> openLocalFileExternally(String path, {String format = 'epub'}) =>
+      datasource.openLocalFileExternally(path, format: format);
 
   Future<String?> getSeriesPath(String seriesName) async {
     try {

@@ -1,7 +1,6 @@
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/tag_model.dart';
+import 'package:logger/logger.dart';
 
 class TagService {
   final ApiService _apiService;
@@ -43,7 +42,7 @@ class TagService {
         );
 
         final matches = categoryRegex.allMatches(html);
-        for (var match in matches) {
+        for (final match in matches) {
           if (match.groupCount >= 2) {
             final categoryId = int.tryParse(match.group(1)!) ?? 0;
             final categoryName = match.group(2)!.trim();

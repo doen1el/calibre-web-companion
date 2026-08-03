@@ -1,10 +1,9 @@
-import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/datasources/shelf_details_remote_datasource.dart';
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum WidgetShelfSource { bookList, shelf, magicShelf, offline }
 

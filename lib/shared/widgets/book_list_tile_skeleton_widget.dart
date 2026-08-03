@@ -1,6 +1,6 @@
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 
 class BookListTileSkeleton extends StatelessWidget {
   const BookListTileSkeleton({super.key});

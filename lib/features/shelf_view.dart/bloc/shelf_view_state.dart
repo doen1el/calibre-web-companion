@@ -1,7 +1,6 @@
-import 'package:equatable/equatable.dart';
-
-import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_shelf_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
+import 'package:equatable/equatable.dart';
 
 enum ShelfViewStatus { initial, loading, loaded, error }
 

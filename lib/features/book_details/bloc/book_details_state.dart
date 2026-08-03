@@ -1,9 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:equatable/equatable.dart';
-
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:equatable/equatable.dart';
 
 enum BookDetailsStatus { initial, loading, loaded, error }
 

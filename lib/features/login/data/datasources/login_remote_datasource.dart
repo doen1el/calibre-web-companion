@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
+import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
+import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:calibre_web_companion/core/services/api_service.dart';
-import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
-import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
-import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
 
 class LoginRemoteDataSource {
   final ApiService apiService;
@@ -67,7 +67,7 @@ class LoginRemoteDataSource {
     } on RedirectException {
       rethrow;
     } catch (e) {
-      logger.e("Error during login: $e");
+      logger.e('Error during login: $e');
       throw Exception('Connection error: ${e.toString().split(': ').last}');
     }
   }
@@ -351,7 +351,7 @@ class LoginRemoteDataSource {
     ServerType type,
   ) async {
     final prefs = await SharedPreferences.getInstance();
-    List<String> history = prefs.getStringList('saved_accounts') ?? [];
+    final List<String> history = prefs.getStringList('saved_accounts') ?? [];
 
     history.removeWhere((item) {
       try {
@@ -373,7 +373,7 @@ class LoginRemoteDataSource {
 
   Future<List<LoginCredentials>> getSavedAccounts() async {
     final prefs = await SharedPreferences.getInstance();
-    List<String> history = prefs.getStringList('saved_accounts') ?? [];
+    final List<String> history = prefs.getStringList('saved_accounts') ?? [];
 
     final currentBaseUrl = prefs.getString('base_url');
     final currentUsername = prefs.getString('username');
@@ -383,7 +383,7 @@ class LoginRemoteDataSource {
     if (currentBaseUrl != null && currentBaseUrl.isNotEmpty) {
       bool isAlreadySaved = false;
 
-      for (String item in history) {
+      for (final String item in history) {
         try {
           final Map<String, dynamic> json = jsonDecode(item);
           if (json['baseUrl'] == currentBaseUrl &&
@@ -423,7 +423,7 @@ class LoginRemoteDataSource {
 
   Future<void> removeAccount(LoginCredentials credentials) async {
     final prefs = await SharedPreferences.getInstance();
-    List<String> history = prefs.getStringList('saved_accounts') ?? [];
+    final List<String> history = prefs.getStringList('saved_accounts') ?? [];
 
     history.removeWhere((item) {
       try {
@@ -474,16 +474,12 @@ class LoginRemoteDataSource {
     switch (serverType) {
       case ServerType.calibre:
         probeUrl = '$base/ajax/library-info';
-        break;
       case ServerType.calibreWeb:
         probeUrl = '$base/';
-        break;
       case ServerType.booklore:
         probeUrl = base.endsWith('/api/v1/opds') ? base : '$base/api/v1/opds';
-        break;
       case ServerType.opds:
         probeUrl = base;
-        break;
     }
 
     final uri = Uri.tryParse(probeUrl);

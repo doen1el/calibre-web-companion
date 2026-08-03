@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
+import 'package:flutter/material.dart';
 
 class SeriesFolderCard extends StatelessWidget {
   final String seriesName;

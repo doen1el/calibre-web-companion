@@ -1,17 +1,15 @@
 import 'dart:convert';
 
+import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/features/shelf_details/data/datasources/shelf_details_remote_datasource.dart';
+import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_rule_models.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_shelf_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_list_view_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_rule_models.dart';
-
-import 'package:calibre_web_companion/core/services/api_service.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_list_view_model.dart';
-import 'package:calibre_web_companion/features/shelf_details/data/datasources/shelf_details_remote_datasource.dart';
-import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_shelf_model.dart';
 
 class ShelfViewRemoteDataSource {
   final ApiService apiService;
@@ -42,7 +40,7 @@ class ShelfViewRemoteDataSource {
       );
       return ShelfListViewModel.fromFeedJson(res);
     } catch (e) {
-      logger.e("Error loading shelves: $e");
+      logger.e('Error loading shelves: $e');
       throw Exception('Failed to load shelves: $e');
     }
   }
@@ -136,14 +134,14 @@ class ShelfViewRemoteDataSource {
 
   Future<List<ShelfViewModel>> findShelvesContainingBook(String bookId) async {
     try {
-      List<ShelfViewModel> shelves = [];
-      ShelfListViewModel shelf = await loadShelves();
+      final List<ShelfViewModel> shelves = [];
+      final ShelfListViewModel shelf = await loadShelves();
 
-      for (var s in shelf.shelves) {
+      for (final s in shelf.shelves) {
         final ShelfDetailsModel shelfDetails =
             await shelfDetailsRemoteDataSource.getShelfDetails(s.id);
 
-        for (var book in shelfDetails.books) {
+        for (final book in shelfDetails.books) {
           final String shelfBookId = book.id
               .toString()
               .toLowerCase()

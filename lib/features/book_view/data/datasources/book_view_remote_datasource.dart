@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/server_capabilities.dart';
+import 'package:calibre_web_companion/core/utils/upload_file_name.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CancellationToken {
   bool _isCancelled = false;
@@ -56,7 +57,7 @@ class BookViewRemoteDatasource {
         );
       }
 
-      List<BookViewModel> books = [];
+      final List<BookViewModel> books = [];
 
       final queryParams = {
         'offset': offset.toString(),
@@ -81,7 +82,7 @@ class BookViewRemoteDatasource {
           _logger.i('Received empty book list');
           return books;
         }
-        for (var bookData in rows) {
+        for (final bookData in rows) {
           try {
             final book = BookViewModel.fromJson(bookData);
             books.add(book);
@@ -106,7 +107,7 @@ class BookViewRemoteDatasource {
         authMethod: AuthMethod.none,
       );
 
-      List<BookViewModel> books = [];
+      final List<BookViewModel> books = [];
 
       if (response.containsKey('feed') && response['feed'] != null) {
         final feed = response['feed'];
@@ -115,7 +116,7 @@ class BookViewRemoteDatasource {
           final entries = feed['entry'];
 
           if (entries is List) {
-            for (var entry in entries) {
+            for (final entry in entries) {
               final book = _mapOpdsEntryToViewModel(entry);
               if (book != null) books.add(book);
             }
@@ -154,7 +155,7 @@ class BookViewRemoteDatasource {
         queryParams: queryParams,
       );
 
-      List<BookViewModel> books = [];
+      final List<BookViewModel> books = [];
 
       if (response.containsKey('feed') && response['feed'] != null) {
         final feed = response['feed'];
@@ -163,7 +164,7 @@ class BookViewRemoteDatasource {
           final entries = feed['entry'];
 
           if (entries is List) {
-            for (var entry in entries) {
+            for (final entry in entries) {
               final book = _mapOpdsEntryToViewModel(entry);
               if (book != null) books.add(book);
             }
@@ -205,12 +206,12 @@ class BookViewRemoteDatasource {
       if (id == 0 && entry.containsKey('link')) {
         final links = entry['link'];
         final linkList = links is List ? links : [links];
-        for (var link in linkList) {
+        for (final link in linkList) {
           if (link is Map && link['_href'] != null) {
             final href = link['_href'].toString();
             final uri = Uri.tryParse(href);
             if (uri != null) {
-              for (var segment in uri.pathSegments) {
+              for (final segment in uri.pathSegments) {
                 if (RegExp(r'^\d+$').hasMatch(segment)) {
                   id = int.parse(segment);
                   break;
@@ -233,13 +234,13 @@ class BookViewRemoteDatasource {
 
       bool hasCover = false;
       String? coverUrl;
-      List<String> formats = [];
+      final List<String> formats = [];
 
       if (entry.containsKey('link')) {
         final links = entry['link'];
         final linkList = links is List ? links : [links];
 
-        for (var link in linkList) {
+        for (final link in linkList) {
           if (link is Map) {
             final rel = link['_rel'] ?? link['rel'];
             final type = link['_type'] ?? link['type'];
@@ -288,11 +289,11 @@ class BookViewRemoteDatasource {
         pubdate = entry['published'];
       }
 
-      List<String> tags = [];
+      final List<String> tags = [];
       if (entry.containsKey('category')) {
         final categories = entry['category'];
         final categoryList = categories is List ? categories : [categories];
-        for (var cat in categoryList) {
+        for (final cat in categoryList) {
           if (cat is Map) {
             final term =
                 cat['term'] ?? cat['_term'] ?? cat['label'] ?? cat['_label'];
@@ -504,15 +505,20 @@ class BookViewRemoteDatasource {
     await _preferences.setString('calibre_library_id', libraryId);
   }
 
-  Future<bool> uploadEbook(File book, CancellationToken cancelToken) async {
+  Future<bool> uploadEbook(
+    File book,
+    CancellationToken cancelToken, {
+    String? fileName,
+  }) async {
     try {
       if (_preferences.getString('server_type') == 'calibre') {
-        return _uploadEbookCalibre(book);
+        return _uploadEbookCalibre(book, fileName: fileName);
       }
 
       final result = await _apiService.uploadFile(
         file: book,
         endpoint: '/upload',
+        fileName: fileName,
         cancelToken: cancelToken,
         timeoutSeconds: 60,
       );
@@ -537,26 +543,22 @@ class BookViewRemoteDatasource {
     }
   }
 
-  Future<bool> _uploadEbookCalibre(File book) async {
+  Future<bool> _uploadEbookCalibre(File book, {String? fileName}) async {
     final libraryId = _preferences.getString('calibre_library_id');
     final librarySegment =
         (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
 
-    final rawName = book.path.split('/').last.split('\\').last;
-    final dotIndex = rawName.lastIndexOf('.');
-    if (dotIndex <= 0 || dotIndex == rawName.length - 1) {
-      throw Exception('The file needs an extension to upload to Calibre.');
-    }
-    final extension = rawName.substring(dotIndex);
-    final base = rawName
-        .substring(0, dotIndex)
-        .replaceAll(RegExp(r'[^A-Za-z0-9._ -]'), '')
-        .trim()
-        .replaceAll(' ', '_');
-    final filename = '${base.isEmpty ? 'book' : base}$extension';
-
     final jobId = DateTime.now().millisecondsSinceEpoch.toString();
     final bytes = await book.readAsBytes();
+
+    final rawName =
+        (fileName != null && fileName.trim().isNotEmpty)
+            ? fileName.trim()
+            : book.path.split('/').last.split('\\').last;
+    final filename = UploadFileName.resolve(rawName, head: bytes);
+    if (!UploadFileName.hasExtension(filename)) {
+      throw Exception('The file needs an extension to upload to Calibre.');
+    }
 
     final response = await _apiService.post(
       endpoint:

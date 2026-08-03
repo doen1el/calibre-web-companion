@@ -1,15 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/download_service/data/repositories/download_service_repository.dart';
 import 'package:calibre_web_companion/features/scan_book/data/datasources/placeholder_book_datasource.dart';
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_book.dart';
 import 'package:calibre_web_companion/features/scan_book/presentation/widgets/downloader_results_sheet.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 Future<bool?> showScanResultSheet(
   BuildContext context, {
@@ -132,6 +131,17 @@ class _ScanResultSheetState extends State<ScanResultSheet> {
             ),
             const SizedBox(height: 16),
             _buildInfoRows(context, localizations, book),
+            if (book.sources.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                localizations.isbnFoundVia(
+                  book.sources.map((s) => s.label).join(' + '),
+                ),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
             if (book.description.isNotEmpty) ...[
               const SizedBox(height: 12),
               Text(

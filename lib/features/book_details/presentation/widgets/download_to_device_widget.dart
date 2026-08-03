@@ -1,19 +1,17 @@
 import 'dart:io';
 
+import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/widgets/app_options_sheet.dart';
 import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_file/open_file.dart';
-
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/shared/widgets/app_options_sheet.dart';
-import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
-import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 
 class DownloadToDeviceWidget extends StatelessWidget {
   final BookDetailsModel book;
@@ -207,6 +205,7 @@ class DownloadToDeviceWidget extends StatelessWidget {
         seriesIndex: book.seriesIndex,
         directory: selectedDirectory,
         schema: settingsState.downloadSchema,
+        pathTemplate: settingsState.downloadPathTemplate,
       ),
     );
   }

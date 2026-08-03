@@ -1,8 +1,7 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_state.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
   final SharedPreferences sharedPreferences;

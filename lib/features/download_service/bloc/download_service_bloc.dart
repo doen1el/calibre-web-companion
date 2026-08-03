@@ -1,10 +1,8 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_state.dart';
-
 import 'package:calibre_web_companion/features/download_service/data/repositories/download_service_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
 
 class DownloadServiceBloc
     extends Bloc<DownloadServiceEvent, DownloadServiceState> {

@@ -1,9 +1,9 @@
 import 'dart:io';
-import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/core/services/server_capabilities.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:logger/logger.dart';
 
 class BookViewRepository {
   final BookViewRemoteDatasource datasource;
@@ -32,10 +32,14 @@ class BookViewRepository {
     }
   }
 
-  Future<bool> uploadEbook(File book) async {
+  Future<bool> uploadEbook(File book, {String? fileName}) async {
     try {
       final cancelToken = CancellationToken();
-      return await datasource.uploadEbook(book, cancelToken);
+      return await datasource.uploadEbook(
+        book,
+        cancelToken,
+        fileName: fileName,
+      );
     } catch (e) {
       logger.e('Repository error uploading book: $e');
       rethrow;
@@ -43,7 +47,7 @@ class BookViewRepository {
   }
 
   Future<int> getColumnCount() async {
-    return await datasource.getColumnCount();
+    return datasource.getColumnCount();
   }
 
   Future<void> setColumnCount(int count) async {
@@ -51,7 +55,7 @@ class BookViewRepository {
   }
 
   Future<bool> getIsListView() async {
-    return await datasource.getIsListView();
+    return datasource.getIsListView();
   }
 
   Future<void> setIsListView(bool isList) async {

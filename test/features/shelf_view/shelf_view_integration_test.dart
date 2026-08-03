@@ -1,12 +1,11 @@
 @Tags(['integration'])
 library;
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/datasources/shelf_details_remote_datasource.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/datasources/shelf_view_remote_datasource.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:logger/logger.dart';
 
 import '../../helpers/test_setup.dart';
 

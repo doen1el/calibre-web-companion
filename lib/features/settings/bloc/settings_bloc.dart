@@ -1,14 +1,12 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-
 import 'package:calibre_web_companion/core/services/widget_service.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
-
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
 import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final SettingsRepository repository;
@@ -22,6 +20,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SetSelectedColor>(_onSetSelectedColor);
     on<SetDownloadFolder>(_onSetDownloadFolder);
     on<SetDownloadSchema>(_onSetDownloadSchema);
+    on<SetDownloadPathTemplate>(_onSetDownloadPathTemplate);
     on<SetCostumSend2EreaderEnabled>(_onSetSend2EreaderEnabled);
     on<SetCostumSend2EreaderUrl>(_onSetSend2EreaderUrl);
     on<SetDownloaderEnabled>(_onSetDownloaderEnabled);
@@ -84,6 +83,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           send2ereaderUrl: settings.send2ereaderUrl,
           defaultDownloadPath: settings.defaultDownloadPath,
           downloadSchema: settings.downloadSchema,
+          downloadPathTemplate: settings.downloadPathTemplate,
           showReadNowButton: settings.showReadNowButton,
           showSendToEReaderButton: settings.showSendToEReaderButton,
           appVersion: packageInfo.version,
@@ -199,6 +199,23 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setDownloadSchema(event.downloadSchema);
       emit(state.copyWith(downloadSchema: event.downloadSchema));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetDownloadPathTemplate(
+    SetDownloadPathTemplate event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      await repository.setDownloadPathTemplate(event.template);
+      emit(state.copyWith(downloadPathTemplate: event.template));
     } catch (e) {
       emit(
         state.copyWith(
@@ -472,7 +489,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         emit(
           state.copyWith(
             downloaderTestStatus: ConnectionTestStatus.error,
-            testErrorMessage: "Login failed (Invalid credentials or URL)",
+            testErrorMessage: 'Login failed (Invalid credentials or URL)',
           ),
         );
       }

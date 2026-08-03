@@ -1,9 +1,9 @@
-import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
-
+import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/predefined_colors.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
 enum SettingsStatus { initial, loading, loaded, error }
 
@@ -25,6 +25,7 @@ class SettingsState extends Equatable {
   final String send2ereaderUrl;
   final String defaultDownloadPath;
   final DownloadSchema downloadSchema;
+  final String downloadPathTemplate;
   final String? errorMessage;
   final String? appVersion;
   final String? buildNumber;
@@ -67,6 +68,7 @@ class SettingsState extends Equatable {
     this.send2ereaderUrl = 'https://send.djazz.se',
     this.defaultDownloadPath = '',
     this.downloadSchema = DownloadSchema.flat,
+    this.downloadPathTemplate = DownloadPathTemplate.defaultTemplate,
     this.errorMessage,
     this.appVersion,
     this.buildNumber,
@@ -112,6 +114,7 @@ class SettingsState extends Equatable {
     String? send2ereaderUrl,
     String? defaultDownloadPath,
     DownloadSchema? downloadSchema,
+    String? downloadPathTemplate,
     String? errorMessage,
     String? appVersion,
     String? buildNumber,
@@ -154,6 +157,7 @@ class SettingsState extends Equatable {
       send2ereaderUrl: send2ereaderUrl ?? this.send2ereaderUrl,
       defaultDownloadPath: defaultDownloadPath ?? this.defaultDownloadPath,
       downloadSchema: downloadSchema ?? this.downloadSchema,
+      downloadPathTemplate: downloadPathTemplate ?? this.downloadPathTemplate,
       errorMessage: errorMessage,
       appVersion: appVersion ?? this.appVersion,
       buildNumber: buildNumber ?? this.buildNumber,
@@ -205,6 +209,7 @@ class SettingsState extends Equatable {
     send2ereaderUrl,
     defaultDownloadPath,
     downloadSchema,
+    downloadPathTemplate,
     errorMessage,
     appVersion,
     buildNumber,

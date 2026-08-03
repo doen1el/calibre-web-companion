@@ -1,7 +1,6 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
+import 'package:equatable/equatable.dart';
 
 abstract class DownloadServiceEvent extends Equatable {
   const DownloadServiceEvent();

@@ -16,7 +16,7 @@ class LongButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    BorderRadius borderRadius = BorderRadius.circular(8.0);
+    final BorderRadius borderRadius = BorderRadius.circular(8.0);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

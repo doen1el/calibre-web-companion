@@ -1,7 +1,7 @@
+import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 
 class AppSkeletonizer extends StatelessWidget {
   final bool enabled;

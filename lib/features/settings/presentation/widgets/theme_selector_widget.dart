@@ -1,13 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
-
 import 'package:calibre_web_companion/features/settings/data/models/predefined_colors.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ThemeSelectorWidget extends StatelessWidget {
   const ThemeSelectorWidget({super.key});

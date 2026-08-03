@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:http/http.dart' as http;
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:http/http.dart' as http;
 
 class _ApiServiceFileService extends FileService {
   final ApiService _apiService = ApiService();

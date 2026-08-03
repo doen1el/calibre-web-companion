@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
+import 'package:flutter/material.dart';
 
 class BookCard extends StatelessWidget {
   final String bookId;
@@ -157,7 +156,7 @@ class BookCard extends StatelessWidget {
 
           if (isLoading)
             Positioned.fill(
-              child: Container(
+              child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: Theme.of(
                     context,

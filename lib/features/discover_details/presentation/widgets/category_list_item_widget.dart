@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
+import 'package:flutter/material.dart';
 
 class CategoryListItem extends StatelessWidget {
   final CategoryModel category;
@@ -17,7 +16,7 @@ class CategoryListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    BorderRadius borderRadius = BorderRadius.circular(8.0);
+    final BorderRadius borderRadius = BorderRadius.circular(8.0);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

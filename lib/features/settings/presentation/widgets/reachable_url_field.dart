@@ -1,8 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-
 import 'package:calibre_web_companion/shared/utils/status_colors.dart';
+import 'package:flutter/material.dart';
 
 enum UrlFieldStatus { idle, checking, ok, authRequired, error }
 

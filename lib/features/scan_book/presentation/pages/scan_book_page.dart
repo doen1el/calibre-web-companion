@@ -1,11 +1,10 @@
+import 'package:barcode_scan2/barcode_scan2.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/features/scan_book/presentation/scan_flow.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
-import 'package:barcode_scan2/barcode_scan2.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/features/scan_book/presentation/scan_flow.dart';
 
 class ScanBookPage extends StatefulWidget {
   const ScanBookPage({super.key});
@@ -53,14 +52,11 @@ class _ScanBookPageState extends State<ScanBookPage> {
             await _handleIsbn(result.rawContent);
             return;
           }
-          break;
         case ResultType.Error:
           _logger.e('Scan error: ${result.rawContent}');
           context.showSnackBar(localizations.isbnLookupFailed, isError: true);
-          break;
         case ResultType.Cancelled:
           _logger.d('Scan cancelled');
-          break;
       }
       setState(() => _busy = false);
     } on PlatformException catch (e) {

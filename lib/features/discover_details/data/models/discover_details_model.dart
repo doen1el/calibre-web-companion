@@ -19,10 +19,7 @@ class DiscoverDetailsModel extends Equatable {
     this.tags = const [],
   });
 
-  factory DiscoverDetailsModel.fromJson(
-    Map<String, dynamic> json,
-    String baseUrl,
-  ) {
+  factory DiscoverDetailsModel.fromJson(Map<String, dynamic> json) {
     final title = json['title'] as String? ?? 'Unknown Title';
 
     String id = '';
@@ -32,13 +29,13 @@ class DiscoverDetailsModel extends Equatable {
     final links = json['link'];
     if (links != null) {
       final linkList = links is List ? links : [links];
-      for (var link in linkList) {
+      for (final link in linkList) {
         final href = link['_href'] as String?;
         if (href != null) {
           final uri = Uri.tryParse(href);
           if (uri != null) {
             final segments = uri.pathSegments;
-            for (var segment in segments) {
+            for (final segment in segments) {
               if (RegExp(r'^\d+$').hasMatch(segment)) {
                 id = segment;
                 break;
@@ -101,11 +98,11 @@ class DiscoverDetailsModel extends Equatable {
       }
     }
 
-    List<String> tags = [];
+    final List<String> tags = [];
     if (json['category'] != null) {
       final cats =
           json['category'] is List ? json['category'] : [json['category']];
-      for (var c in cats) {
+      for (final c in cats) {
         if (c is Map) {
           final term = c['term'] ?? c['_term'] ?? c['label'] ?? c['@term'];
           if (term != null && term.toString().isNotEmpty) {

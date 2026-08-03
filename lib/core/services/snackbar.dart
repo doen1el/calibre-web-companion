@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-
 import 'package:calibre_web_companion/core/utils/network_error.dart';
+import 'package:flutter/material.dart';
 
 extension SnackBarExtension on BuildContext {
   void showSnackBar(

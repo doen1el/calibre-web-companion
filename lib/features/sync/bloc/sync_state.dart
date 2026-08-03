@@ -1,7 +1,6 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/sync/data/models/sync_filter.dart';
+import 'package:equatable/equatable.dart';
 
 enum SyncStatus {
   initial,

@@ -1,11 +1,10 @@
 @Tags(['integration'])
 library;
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/data/datasources/discover_details_remote_datasource.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:logger/logger.dart';
 
 import '../../helpers/test_setup.dart';
 
@@ -97,5 +96,33 @@ void main() {
 
     expect(feed, isNotNull);
     expect(feed.categories, isA<List>());
+  });
+
+  test('loadBooks() exposes the next link and that page loads', () async {
+    await setUpDataSource();
+
+    final first = await dataSource.loadBooks(DiscoverType.newlyAdded);
+    if (first.nextPageUrl == null) {
+      return;
+    }
+
+    final second = await dataSource.loadBooksFromPath(first.nextPageUrl!);
+    final firstIds = first.books.map((b) => b.id).toSet();
+
+    expect(second.books, isNotEmpty);
+    expect(second.books.any((b) => !firstIds.contains(b.id)), isTrue);
+  });
+
+  test('loadCategoriesFromPath() follows a category next link', () async {
+    await setUpDataSource();
+
+    final first = await dataSource.loadCategories(CategoryType.author);
+    if (first.nextPageUrl == null) {
+      return;
+    }
+
+    final second = await dataSource.loadCategoriesFromPath(first.nextPageUrl!);
+
+    expect(second.categories, isNotEmpty);
   });
 }

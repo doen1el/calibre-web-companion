@@ -1,15 +1,14 @@
 import 'dart:io';
 
-import 'package:cosmos_epub/cosmos_epub.dart';
-import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
-
-import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
 import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:cosmos_epub/cosmos_epub.dart';
+import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 
 class OfflineLibraryPage extends StatefulWidget {
   const OfflineLibraryPage({super.key});
@@ -112,6 +111,28 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
     }
   }
 
+  Future<void> _openExternally(OfflineBookModel book) async {
+    if (_opening) return;
+    final localizations = AppLocalizations.of(context)!;
+    setState(() => _opening = true);
+    try {
+      final opened = await GetIt.instance<BookDetailsRepository>()
+          .openLocalFileExternally(book.filePath, format: book.format);
+      if (!opened && mounted) {
+        context.showSnackBar(localizations.errorOpeningBook, isError: true);
+      }
+    } catch (e) {
+      if (mounted) {
+        context.showSnackBar(
+          '${localizations.errorOpeningBook} $e',
+          isError: true,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _opening = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
@@ -146,29 +167,42 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
           children: [
             Expanded(child: _buildCover(context, book)),
             Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
+              padding: const EdgeInsets.fromLTRB(8, 8, 0, 0),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    book.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          book.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (book.authors.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            book.authors,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                  if (book.authors.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      book.authors,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+                  IconButton(
+                    icon: const Icon(Icons.open_in_new_rounded, size: 20),
+                    visualDensity: VisualDensity.compact,
+                    tooltip: AppLocalizations.of(context)!.openInReader,
+                    onPressed: _opening ? null : () => _openExternally(book),
+                  ),
                 ],
               ),
             ),
@@ -180,7 +214,7 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
 
   Widget _buildCover(BuildContext context, OfflineBookModel book) {
     final theme = Theme.of(context);
-    final placeholder = Container(
+    final placeholder = ColoredBox(
       color: theme.colorScheme.surfaceContainerHighest,
       child: Center(
         child: Icon(

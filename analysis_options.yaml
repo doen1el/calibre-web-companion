@@ -1,32 +1,57 @@
-# This file configures the analyzer, which statically analyzes Dart code to
-# check for errors, warnings, and lints.
+# Static analysis config. Run via `flutter analyze` (see .github/workflows/checks.yml).
 #
-# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
-# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
-# invoked from the command line by running `flutter analyze`.
+# Lints can be suppressed per line/file with `// ignore: name_of_lint` and
+# `// ignore_for_file: name_of_lint`. Full rule list: https://dart.dev/lints
 
-# The following line activates a set of recommended lints for Flutter apps,
-# packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
   exclude:
     - packages/**
+  errors:
+    # CI analyzes with --fatal-infos, so everything enabled below blocks a merge.
+    todo: ignore
 
 linter:
-  # The lint rules applied to this project can be customized in the
-  # section below to disable rules from the `package:flutter_lints/flutter.yaml`
-  # included above or to enable additional rules. A list of all available lints
-  # and their documentation is published at https://dart.dev/lints.
-  #
-  # Instead of disabling a lint rule for the entire project in the
-  # section below, it can also be suppressed for a single line of code
-  # or a specific dart file by using the `// ignore: name_of_lint` and
-  # `// ignore_for_file: name_of_lint` syntax on the line or in the file
-  # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # Correctness / latent bugs
+    - avoid_slow_async_io
+    - avoid_type_to_string
+    - avoid_unused_constructor_parameters
+    - cancel_subscriptions
+    - close_sinks
+    - literal_only_boolean_expressions
+    - only_throw_errors
+    - test_types_in_equals
+    - throw_in_finally
+    - unawaited_futures
+    - unnecessary_statements
+    - use_string_buffers
 
-# Additional information about this file can be found at
-# https://dart.dev/guides/language/analysis-options
+    # Explicitness
+    - always_declare_return_types
+    - no_leading_underscores_for_local_identifiers
+    - prefer_final_in_for_each
+    - prefer_final_locals
+
+    # Flutter widget hygiene
+    - sized_box_for_whitespace
+    - use_colored_box
+    - use_decorated_box
+    - use_super_parameters
+
+    # Const-ness (rebuild cost)
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+
+    # Noise removal
+    - combinators_ordering
+    - directives_ordering
+    - prefer_single_quotes
+    - unnecessary_await_in_return
+    - unnecessary_breaks
+    - unnecessary_lambdas
+    - unnecessary_parenthesis
+    - unnecessary_underscores

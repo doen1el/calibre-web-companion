@@ -182,7 +182,6 @@ List<MagicOperator> operatorsForField(MagicField field) {
           'is_empty',
           'is_not_empty',
         ];
-        break;
       case MagicFieldType.integer:
       case MagicFieldType.doubleType:
         ids = [
@@ -197,7 +196,6 @@ List<MagicOperator> operatorsForField(MagicField field) {
           'between',
           'not_between',
         ];
-        break;
       case MagicFieldType.date:
         ids = [
           'equal',
@@ -209,7 +207,6 @@ List<MagicOperator> operatorsForField(MagicField field) {
           'between',
           'not_between',
         ];
-        break;
     }
   }
   return ids.map(magicOperatorById).toList();

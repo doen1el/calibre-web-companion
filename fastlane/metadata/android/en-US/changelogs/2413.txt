@@ -1,0 +1,6 @@
+- Feature: ISBN scan now queries several catalogues at once (Open Library, Google Books, BnF, optionally Hardcover and ISBNdb) and merges their metadata. Sources can be switched on/off and reordered in the settings.
+- Feature: New download schema "Series only" saves books to /series/book.epub, plus a custom path builder where the download path is assembled from building blocks like {author}, {series}, {series_index} or {year}.
+- Feature: Downloaded books can be opened in an external reader from the offline library.
+- Fix: Discover pages are now correctly using pagination.
+- Fix: Opening an already downloaded book in an external reader no longer waits for a cover request; cached offline metadata is reused.
+- Fix: Uploads keep the file name reported by the file picker and recover a missing extension from the file content, so books picked from cloud providers are no longer rejected. A rejected upload is no longer reported as successful, the server's error message is shown instead.

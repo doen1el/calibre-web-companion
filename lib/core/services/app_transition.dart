@@ -1,6 +1,6 @@
+import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 
 class AppTransitions {
   AppTransitions._();

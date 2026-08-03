@@ -1,8 +1,8 @@
 import 'package:calibre_web_companion/features/shelf_view.dart/data/datasources/shelf_view_remote_datasource.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_rule_models.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_shelf_model.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_list_view_model.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_shelf_model.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_rule_models.dart';
 
 class ShelfViewRepository {
   final ShelfViewRemoteDataSource dataSource;

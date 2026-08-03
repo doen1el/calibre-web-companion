@@ -1,12 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/repositories/download_service_repository.dart';
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_book.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum _ItemState { idle, downloading, queued, error }
 

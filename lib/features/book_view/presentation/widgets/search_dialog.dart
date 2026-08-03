@@ -1,12 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/vocabulary_remote_datasource.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:flutter/material.dart';
 
 class SearchDialog extends StatefulWidget {
   final String? initialQuery;

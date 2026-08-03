@@ -1,8 +1,7 @@
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
-
-import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 
 class BookCardSkeleton extends StatelessWidget {
   const BookCardSkeleton({super.key});
@@ -17,10 +16,10 @@ class BookCardSkeleton extends StatelessWidget {
           context,
         ).colorScheme.primary.withValues(alpha: .4),
       ),
-      child: BookCard(
-        bookId: "0",
-        title: "Skeleton Book Title",
-        authors: "Skeleton author",
+      child: const BookCard(
+        bookId: '0',
+        title: 'Skeleton Book Title',
+        authors: 'Skeleton author',
       ),
     );
   }

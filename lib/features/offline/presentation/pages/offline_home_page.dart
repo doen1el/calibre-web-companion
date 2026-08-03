@@ -1,12 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/features/login/presentation/pages/login_page.dart';
+import 'package:calibre_web_companion/features/login_settings/presentation/pages/connection_diagnostics_page.dart';
+import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
 import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
 import 'package:calibre_web_companion/features/offline/presentation/pages/offline_library_page.dart';
-import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
-import 'package:calibre_web_companion/features/login_settings/presentation/pages/connection_diagnostics_page.dart';
-import 'package:calibre_web_companion/features/login/presentation/pages/login_page.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class OfflineHomePage extends StatefulWidget {
   const OfflineHomePage({super.key});

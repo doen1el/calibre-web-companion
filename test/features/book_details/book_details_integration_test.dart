@@ -3,12 +3,11 @@ library;
 
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:logger/logger.dart';
 
 import '../../helpers/test_setup.dart';
 
