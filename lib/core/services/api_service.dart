@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,6 +11,7 @@ import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:http/io_client.dart';
 
 import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
+import 'package:calibre_web_companion/core/utils/upload_file_name.dart';
 import 'package:calibre_web_companion/core/services/connection_diagnostics.dart';
 import 'package:calibre_web_companion/core/services/digest_auth.dart';
 import 'package:calibre_web_companion/core/services/session_reauth_service.dart';
@@ -1557,6 +1559,134 @@ class ApiService {
     );
   }
 
+  Future<Uint8List?> _readFileHead(File file, {int length = 4096}) async {
+    try {
+      final handle = await file.open();
+      try {
+        return await handle.read(length);
+      } finally {
+        await handle.close();
+      }
+    } catch (e) {
+      _logger.w('Could not read file header: $e');
+      return null;
+    }
+  }
+
+  bool _isLoginRedirect(http.Response response) {
+    if (response.statusCode < 300 || response.statusCode >= 400) {
+      // Some setups answer with the login page directly instead of redirecting
+      return response.statusCode == 200 &&
+          response.body.contains('name="password"') &&
+          response.body.contains('name="username"');
+    }
+    final location = response.headers['location']?.toLowerCase() ?? '';
+    return location.contains('/login') ||
+        location.contains('signin') ||
+        location.contains('sign-in');
+  }
+
+  /// Detects an upload that the server accepted with HTTP 200 but rejected
+  /// during validation.
+  Future<String?> _detectUploadError(
+    http.Response response,
+    AuthMethod authMethod,
+  ) async {
+    // Calibre-Web answers /upload with JSON, so a redirect is unusual.
+    final redirectTarget = response.headers['location'];
+    if (response.statusCode >= 300 &&
+        response.statusCode < 400 &&
+        redirectTarget != null &&
+        redirectTarget.isNotEmpty) {
+      _logger.w('Upload was redirected to "$redirectTarget"');
+      return await _fetchFlashError(redirectTarget, authMethod);
+    }
+
+    final body = response.body.trim();
+    if (body.isEmpty) return null;
+
+    String? location;
+    if (body.startsWith('{')) {
+      try {
+        final decoded = json.decode(body);
+        if (decoded is Map && decoded['location'] is String) {
+          location = decoded['location'] as String;
+        }
+      } catch (_) {
+        // Not JSON after all - fall through to the HTML check
+      }
+    }
+
+    if (location != null) {
+      // /book/<id> and /admin/book/<id> both mean the book was created
+      if (RegExp(r'/book/\d+').hasMatch(location)) return null;
+      return await _fetchFlashError(location, authMethod);
+    }
+
+    if (body.contains('<html') || body.contains('<!DOCTYPE')) {
+      return _extractFlashError(body);
+    }
+
+    return null;
+  }
+
+  Future<String?> _fetchFlashError(
+    String location,
+    AuthMethod authMethod,
+  ) async {
+    try {
+      final response = await get(
+        endpoint: _stripBasePath(location),
+        authMethod: authMethod,
+      );
+      return _extractFlashError(response.body);
+    } catch (e) {
+      _logger.w('Could not read the upload error message: $e');
+      return null;
+    }
+  }
+
+  /// `url_for` already contains the base path, which `_buildUri` would add
+  /// a second time.
+  String _stripBasePath(String location) {
+    if (location.startsWith('http://') || location.startsWith('https://')) {
+      return location;
+    }
+    // Flask emits protocol-relative redirects like "//host/login"
+    if (location.startsWith('//')) {
+      final scheme = Uri.tryParse(_baseUrl ?? '')?.scheme ?? 'https';
+      return '$scheme:$location';
+    }
+    final basePath = (_basePath ?? '').trim().replaceAll(
+      RegExp(r'^/+|/+$'),
+      '',
+    );
+    if (basePath.isEmpty) return location;
+
+    if (location == '/$basePath') return '/';
+    if (location.startsWith('/$basePath/')) {
+      return location.substring(basePath.length + 1);
+    }
+    return location;
+  }
+
+  /// Calibre-Web renders flashed messages as `<div id="flash_error"
+  /// class="alert alert-error">`.
+  String? _extractFlashError(String html) {
+    try {
+      final document = parser.parse(html);
+      for (final element in document.querySelectorAll(
+        '#flash_error, .alert-error, .alert-danger',
+      )) {
+        final message = element.text.trim().replaceAll(RegExp(r'\s+'), ' ');
+        if (message.isNotEmpty) return message;
+      }
+    } catch (e) {
+      _logger.w('Could not parse the upload response: $e');
+    }
+    return null;
+  }
+
   /// Uploads a file to the specified endpoint with cancellation support
   ///
   /// Parameters:
@@ -1571,11 +1701,13 @@ class ApiService {
   Future<Map<String, dynamic>> uploadFile({
     File? file,
     String endpoint = '',
+    String? fileName,
     CancellationToken? cancelToken,
     String formFieldName = 'btn-upload',
     Map<String, String> additionalFields = const {'btn-upload2': ''},
     int timeoutSeconds = 60,
     AuthMethod authMethod = AuthMethod.cookie,
+    bool allowReauthRetry = true,
   }) async {
     await _ensureInitialized();
 
@@ -1620,7 +1752,20 @@ class ApiService {
     final uri = _buildUri(endpoint: endpoint);
     final request = http.MultipartRequest('POST', uri);
 
-    request.headers['Cookie'] = sessionCookie;
+    // Without this the POST carries only a cookie: on Basic-auth setups the
+    // server bounces it to the login page with a 302 and nothing is stored.
+    request.headers.addAll(getAuthHeaders(authMethod: AuthMethod.auto));
+    if (sessionCookie.isNotEmpty) {
+      request.headers['Cookie'] = sessionCookie;
+    }
+
+    // Every other request sends this user agent. With Calibre-Web's strong
+    // session protection the session id is bound to it, so an upload going out
+    // as "Dart/... (dart:io)" invalidates the session and gets redirected to
+    // the login page.
+    if (_userAgent != null) {
+      request.headers['User-Agent'] = _userAgent!;
+    }
 
     request.fields['csrf_token'] = csrfToken;
 
@@ -1631,23 +1776,31 @@ class ApiService {
     final customHeaders = await _processCustomHeaders();
     request.headers.addAll(customHeaders);
 
-    final rawFileName = file.path.split('/').last;
-    // Sanitize filename to match werkzeug secure_filename behavior: calibre-web
-    // rejects filenames with parentheses, brackets, spaces, and other special
-    // characters, returning a 400. Strip to ASCII alphanumeric + hyphens + dots.
-    final dotIndex = rawFileName.lastIndexOf('.');
-    final rawName =
-        dotIndex != -1 ? rawFileName.substring(0, dotIndex) : rawFileName;
-    final ext = dotIndex != -1 ? rawFileName.substring(dotIndex) : '';
-    final sanitizedName = rawName
-        .replaceAll(RegExp(r'[^a-zA-Z0-9_\-]'), '_')
-        .replaceAll(RegExp(r'_+'), '_')
-        .replaceAll(RegExp(r'^_+|_+$'), '');
-    final fileName = '${sanitizedName.isEmpty ? 'upload' : sanitizedName}$ext';
-    if (fileName != rawFileName) {
-      _logger.i('Sanitized filename: $rawFileName → $fileName');
+    // Prefer the name the picker reported over the cache path: some Android
+    // document providers hand out a path without the original extension.
+    final rawFileName =
+        (fileName != null && fileName.trim().isNotEmpty)
+            ? fileName.trim()
+            : file.path.split('/').last;
+
+    Uint8List? head;
+    if (!UploadFileName.hasExtension(rawFileName)) {
+      head = await _readFileHead(file);
     }
-    final fileExtension = fileName.split('.').last.toLowerCase();
+    final uploadFileName = UploadFileName.resolve(rawFileName, head: head);
+    if (uploadFileName != rawFileName) {
+      _logger.i('Resolved upload filename: $rawFileName → $uploadFileName');
+    }
+
+    if (!UploadFileName.hasExtension(uploadFileName)) {
+      _logger.e('Upload aborted: could not determine a file extension');
+      return {
+        'success': false,
+        'error': 'The file has no extension and its format was not recognized',
+      };
+    }
+
+    final fileExtension = uploadFileName.split('.').last.toLowerCase();
 
     String contentType = 'application/octet-stream';
     if (fileExtension == 'epub') {
@@ -1667,7 +1820,7 @@ class ApiService {
       await http.MultipartFile.fromPath(
         formFieldName,
         file.path,
-        filename: fileName,
+        filename: uploadFileName,
         contentType: MediaType.parse(contentType),
       ),
     );
@@ -1725,10 +1878,61 @@ class ApiService {
 
       final response = await http.Response.fromStream(streamedResponse);
 
-      _logger.i('Upload response status: ${response.statusCode}');
+      _logger.i(
+        'Upload response status: ${response.statusCode}'
+        '${response.headers['location'] != null ? ', location: ${response.headers['location']}' : ''}'
+        ', content-type: ${response.headers['content-type']}',
+      );
+      if (response.body.isNotEmpty) {
+        final preview = response.body
+            .substring(0, response.body.length.clamp(0, 300))
+            .replaceAll(RegExp(r'\s+'), ' ');
+        _logger.d('Upload response body: $preview');
+      }
+
+      if (_isLoginRedirect(response)) {
+        if (allowReauthRetry && await _reauthenticate()) {
+          _logger.w('Upload was redirected to the login page, retrying once');
+          client.close();
+          return uploadFile(
+            file: file,
+            endpoint: endpoint,
+            fileName: fileName,
+            cancelToken: cancelToken,
+            formFieldName: formFieldName,
+            additionalFields: additionalFields,
+            timeoutSeconds: timeoutSeconds,
+            authMethod: authMethod,
+            allowReauthRetry: false,
+          );
+        }
+        _logger.e('Upload was redirected to the login page');
+        return {
+          'success': false,
+          'statusCode': response.statusCode,
+          'response': response,
+          'error':
+              'The server rejected the upload and returned the login page. '
+              'The session is no longer valid or the account is not allowed '
+              'to upload.',
+        };
+      }
 
       if (response.statusCode == 200 || response.statusCode == 302) {
-        _logger.i('File uploaded successfully: $fileName');
+        // Calibre-Web answers a rejected upload with HTTP 200 and a JSON
+        // redirect back to the index, so the status code alone is not enough.
+        final uploadError = await _detectUploadError(response, authMethod);
+        if (uploadError != null) {
+          _logger.e('Upload rejected by the server: $uploadError');
+          return {
+            'success': false,
+            'statusCode': response.statusCode,
+            'response': response,
+            'error': uploadError,
+          };
+        }
+
+        _logger.i('File uploaded successfully: $uploadFileName');
         return {
           'success': true,
           'statusCode': response.statusCode,

@@ -43,10 +43,14 @@ class SearchBooks extends BookViewEvent {
 class UploadBook extends BookViewEvent {
   final File book;
 
-  const UploadBook(this.book);
+  /// Name as reported by the file picker: some Android document providers
+  /// hand out a cache path without the original extension
+  final String? fileName;
+
+  const UploadBook(this.book, {this.fileName});
 
   @override
-  List<Object?> get props => [book];
+  List<Object?> get props => [book, fileName];
 }
 
 class ChangeColumnCount extends BookViewEvent {

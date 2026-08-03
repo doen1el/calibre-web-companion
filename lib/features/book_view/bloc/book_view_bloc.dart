@@ -225,7 +225,10 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     try {
       emit(state.copyWith(uploadStatus: UploadStatus.uploading));
 
-      final result = await repository.uploadEbook(event.book);
+      final result = await repository.uploadEbook(
+        event.book,
+        fileName: event.fileName,
+      );
 
       emit(
         state.copyWith(

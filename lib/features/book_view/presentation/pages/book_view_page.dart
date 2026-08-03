@@ -603,9 +603,10 @@ class _BookViewPageState extends State<BookViewPage> {
       return;
     }
 
-    final file = File(result.files.single.path!);
+    final picked = result.files.single;
+    final file = File(picked.path!);
     if (!context.mounted) return;
-    context.read<BookViewBloc>().add(UploadBook(file));
+    context.read<BookViewBloc>().add(UploadBook(file, fileName: picked.name));
   }
 
   void _showUploadStatusSheet(

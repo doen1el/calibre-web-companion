@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/server_capabilities.dart';
+import 'package:calibre_web_companion/core/utils/upload_file_name.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 
 class CancellationToken {
@@ -504,15 +505,20 @@ class BookViewRemoteDatasource {
     await _preferences.setString('calibre_library_id', libraryId);
   }
 
-  Future<bool> uploadEbook(File book, CancellationToken cancelToken) async {
+  Future<bool> uploadEbook(
+    File book,
+    CancellationToken cancelToken, {
+    String? fileName,
+  }) async {
     try {
       if (_preferences.getString('server_type') == 'calibre') {
-        return _uploadEbookCalibre(book);
+        return _uploadEbookCalibre(book, fileName: fileName);
       }
 
       final result = await _apiService.uploadFile(
         file: book,
         endpoint: '/upload',
+        fileName: fileName,
         cancelToken: cancelToken,
         timeoutSeconds: 60,
       );
@@ -537,26 +543,22 @@ class BookViewRemoteDatasource {
     }
   }
 
-  Future<bool> _uploadEbookCalibre(File book) async {
+  Future<bool> _uploadEbookCalibre(File book, {String? fileName}) async {
     final libraryId = _preferences.getString('calibre_library_id');
     final librarySegment =
         (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
 
-    final rawName = book.path.split('/').last.split('\\').last;
-    final dotIndex = rawName.lastIndexOf('.');
-    if (dotIndex <= 0 || dotIndex == rawName.length - 1) {
-      throw Exception('The file needs an extension to upload to Calibre.');
-    }
-    final extension = rawName.substring(dotIndex);
-    final base = rawName
-        .substring(0, dotIndex)
-        .replaceAll(RegExp(r'[^A-Za-z0-9._ -]'), '')
-        .trim()
-        .replaceAll(' ', '_');
-    final filename = '${base.isEmpty ? 'book' : base}$extension';
-
     final jobId = DateTime.now().millisecondsSinceEpoch.toString();
     final bytes = await book.readAsBytes();
+
+    final rawName =
+        (fileName != null && fileName.trim().isNotEmpty)
+            ? fileName.trim()
+            : book.path.split('/').last.split('\\').last;
+    final filename = UploadFileName.resolve(rawName, head: bytes);
+    if (!UploadFileName.hasExtension(filename)) {
+      throw Exception('The file needs an extension to upload to Calibre.');
+    }
 
     final response = await _apiService.post(
       endpoint:

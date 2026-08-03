@@ -32,10 +32,14 @@ class BookViewRepository {
     }
   }
 
-  Future<bool> uploadEbook(File book) async {
+  Future<bool> uploadEbook(File book, {String? fileName}) async {
     try {
       final cancelToken = CancellationToken();
-      return await datasource.uploadEbook(book, cancelToken);
+      return await datasource.uploadEbook(
+        book,
+        cancelToken,
+        fileName: fileName,
+      );
     } catch (e) {
       logger.e('Repository error uploading book: $e');
       rethrow;
