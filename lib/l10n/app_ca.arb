@@ -544,5 +544,10 @@
     "widgetActionInternalReader": "Obre'l amb el lector integrat",
     "widgetActionExternalReader": "Obre'l amb un lector extern",
     "widgetActionOpenApp": "Simplement obre l'aplicació",
-    "widgetHowToAddTitle": "Afegeix un giny"
+    "widgetHowToAddTitle": "Afegeix un giny",
+    "reachabilityCheckTitle": "Comprovació d'accessibilitat",
+    "reachabilityCheckHint": "p.e., /ajax/listbooks?limit=1",
+    "reachabilityCheckDescription": "El punt final utilitzat per comprovar si el servidor està en línia. Deixeu-ho en blanc per utilitzar el valor per defecte per al vostre tipus de servidor.",
+    "sessionExpiredReauth": "Sessió caducada — si us plau, torneu a iniciar la sessió",
+    "reachabilityCheckLabel": "Punt final de sonda"
 }
