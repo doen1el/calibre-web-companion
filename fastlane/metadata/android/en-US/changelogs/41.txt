@@ -1,1 +1,3 @@
 - Feature: ISBN scan now queries several catalogues at once (Open Library, Google Books, BnF, optionally Hardcover and ISBNdb) and merges their metadata. Sources can be switched on/off and reordered in the settings.
+- Feature: New download schema "Series only" saves books to /series/book.epub, plus a custom path builder where the download path is assembled from building blocks like {author}, {series}, {series_index} or {year}.
+- Fix: Discover pages are now correctly using pagination.

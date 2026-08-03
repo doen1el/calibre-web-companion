@@ -132,6 +132,7 @@ class SendToEreaderWidget extends StatelessWidget {
         OpenBookInReader(
           selectedDirectory: selectedDirectory,
           schema: settingsState.downloadSchema,
+          pathTemplate: settingsState.downloadPathTemplate,
         ),
       );
     }
@@ -520,6 +521,7 @@ class SendToEreaderWidget extends StatelessWidget {
         downloadToDeviceFirst: storeOnDevice,
         selectedDirectory: selectedDirectory,
         schema: settingsState.downloadSchema,
+        pathTemplate: settingsState.downloadPathTemplate,
       ),
     );
   }

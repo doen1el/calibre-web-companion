@@ -6,4 +6,6 @@ enum DownloadSchema {
   authorSortOnly, // author_sort/book.epub
   authorSortBook, // author_sort/book/book.epub
   authorSortSeriesBook, // author_sort/series/book/book.epub
+  seriesOnly, // series/book.epub
+  custom, // user defined template, see DownloadPathTemplate
 }

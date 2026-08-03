@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/settings_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
@@ -41,6 +42,9 @@ class SettingsLocalDataSource {
         'default_download_path':
             sharedPreferences.getString('default_download_path') ?? '',
         'download_schema': sharedPreferences.getInt('download_schema') ?? 0,
+        'download_path_template':
+            sharedPreferences.getString('download_path_template') ??
+            DownloadPathTemplate.defaultTemplate,
         'language_code': sharedPreferences.getString('language_code') ?? 'en',
         'show_read_now_button':
             sharedPreferences.getBool('show_read_now_button') ?? false,
@@ -195,6 +199,15 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error saving download schema: $e');
       throw Exception('Failed to save download schema: $e');
+    }
+  }
+
+  Future<void> saveDownloadPathTemplate(String template) async {
+    try {
+      await sharedPreferences.setString('download_path_template', template);
+    } catch (e) {
+      logger.e('Error saving download path template: $e');
+      throw Exception('Failed to save download path template: $e');
     }
   }
 

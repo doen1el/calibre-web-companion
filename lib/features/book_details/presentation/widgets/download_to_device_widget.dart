@@ -207,6 +207,7 @@ class DownloadToDeviceWidget extends StatelessWidget {
         seriesIndex: book.seriesIndex,
         directory: selectedDirectory,
         schema: settingsState.downloadSchema,
+        pathTemplate: settingsState.downloadPathTemplate,
       ),
     );
   }

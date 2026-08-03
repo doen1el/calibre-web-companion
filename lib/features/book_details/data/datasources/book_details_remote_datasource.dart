@@ -16,6 +16,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/utils/book_mime_types.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
@@ -284,6 +285,7 @@ class BookDetailsRemoteDatasource {
     BookDetailsModel book,
     DocumentFile selectedDirectory,
     DownloadSchema schema, {
+    String pathTemplate = DownloadPathTemplate.defaultTemplate,
     String format = 'epub',
     Function(int)? progressCallback,
   }) async {
@@ -291,6 +293,7 @@ class BookDetailsRemoteDatasource {
       book: book,
       selectedDirectory: selectedDirectory,
       schema: schema,
+      pathTemplate: pathTemplate,
       format: format,
       progressCallback: progressCallback,
     );
@@ -612,10 +615,35 @@ class BookDetailsRemoteDatasource {
     return await parent.createDirectory(name) ?? parent;
   }
 
+  Map<String, String> _pathTemplateValues(
+    BookDetailsModel book,
+    String format,
+  ) {
+    return {
+      DownloadPathToken.title.key: book.title,
+      DownloadPathToken.author.key: book.authors,
+      DownloadPathToken.authorSort.key:
+          book.authorSort.isNotEmpty ? book.authorSort : book.authors,
+      DownloadPathToken.series.key: book.series,
+      DownloadPathToken.seriesIndex.key:
+          book.series.isEmpty
+              ? ''
+              : DownloadPathTemplate.formatSeriesIndex(book.seriesIndex),
+      DownloadPathToken.publisher.key: book.publishers,
+      DownloadPathToken.year.key: DownloadPathTemplate.yearFromPubdate(
+        book.pubdate,
+      ),
+      DownloadPathToken.language.key: book.languages,
+      DownloadPathToken.format.key: format,
+      DownloadPathToken.id.key: book.id.toString(),
+    };
+  }
+
   Future<String> downloadBookToPath({
     required BookDetailsModel book,
     required DocumentFile selectedDirectory,
     required DownloadSchema schema,
+    String pathTemplate = DownloadPathTemplate.defaultTemplate,
     String format = 'epub',
     Function(int)? progressCallback,
     bool reuseExistingFile = true,
@@ -632,7 +660,7 @@ class BookDetailsRemoteDatasource {
         '',
       );
 
-      final fileName = '$safeTitle.$format';
+      String fileName = '$safeTitle.$format';
 
       DocumentFile targetDir = selectedDirectory;
       String? safeSeries;
@@ -699,6 +727,25 @@ class BookDetailsRemoteDatasource {
           } else {
             targetDir = await _getOrCreateDirectory(authorDir, safeTitle);
           }
+          break;
+        case DownloadSchema.seriesOnly:
+          if (safeSeries != null && safeSeries.isNotEmpty) {
+            targetDir = await _getOrCreateDirectory(
+              selectedDirectory,
+              safeSeries,
+            );
+          }
+          break;
+        case DownloadSchema.custom:
+          final segments = DownloadPathTemplate.resolve(
+            pathTemplate,
+            _pathTemplateValues(book, format),
+            fallbackName: book.title,
+          );
+          for (final folder in segments.take(segments.length - 1)) {
+            targetDir = await _getOrCreateDirectory(targetDir, folder);
+          }
+          fileName = '${segments.last}.$format';
           break;
       }
 
@@ -785,6 +832,7 @@ class BookDetailsRemoteDatasource {
     BookDetailsModel book,
     DocumentFile? selectedDirectory,
     DownloadSchema schema, {
+    String pathTemplate = DownloadPathTemplate.defaultTemplate,
     Function(int)? progressCallback,
     Future<void> Function(String path)? onFileDownloaded,
   }) async {
@@ -810,6 +858,7 @@ class BookDetailsRemoteDatasource {
           book: book,
           selectedDirectory: selectedDirectory,
           schema: schema,
+          pathTemplate: pathTemplate,
           format: format,
           progressCallback: progressCallback,
         );

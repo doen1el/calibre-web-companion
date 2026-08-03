@@ -340,6 +340,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       OpenBookInReader(
         selectedDirectory: selectedDirectory,
         schema: settingsState.downloadSchema,
+        pathTemplate: settingsState.downloadPathTemplate,
       ),
     );
   }
@@ -1246,6 +1247,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                         OpenBookInReader(
                           selectedDirectory: selectedDirectory,
                           schema: settingsState.downloadSchema,
+                          pathTemplate: settingsState.downloadPathTemplate,
                         ),
                       );
                     },

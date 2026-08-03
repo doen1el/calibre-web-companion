@@ -58,6 +58,15 @@ class SetDownloadSchema extends SettingsEvent {
   List<Object?> get props => [downloadSchema];
 }
 
+class SetDownloadPathTemplate extends SettingsEvent {
+  final String template;
+
+  const SetDownloadPathTemplate(this.template);
+
+  @override
+  List<Object?> get props => [template];
+}
+
 class SetCostumSend2EreaderEnabled extends SettingsEvent {
   final bool enabled;
 

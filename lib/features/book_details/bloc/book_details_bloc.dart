@@ -304,6 +304,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           state.bookDetails!,
           event.directory!,
           schema,
+          pathTemplate: event.pathTemplate,
           format: event.format,
           progressCallback: (progress) {
             emit(state.copyWith(downloadProgress: progress));
@@ -423,6 +424,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         details,
         event.selectedDirectory,
         event.schema,
+        pathTemplate: event.pathTemplate,
         progressCallback: (progress) {
           logger.d('Reader download progress: $progress%');
           emit(state.copyWith(downloadProgress: progress));
@@ -649,6 +651,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           state.bookDetails!,
           event.selectedDirectory!,
           event.schema!,
+          pathTemplate: event.pathTemplate,
           format: 'epub',
           progressCallback: (progress) {
             if (!_sendToEReaderCancelled) {

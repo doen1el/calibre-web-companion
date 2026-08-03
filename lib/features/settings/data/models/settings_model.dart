@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
 
@@ -19,6 +20,7 @@ class SettingsModel extends Equatable {
   final String send2ereaderUrl;
   final String defaultDownloadPath;
   final DownloadSchema downloadSchema;
+  final String downloadPathTemplate;
   final String languageCode;
   final bool showReadNowButton;
   final bool showSendToEReaderButton;
@@ -52,6 +54,7 @@ class SettingsModel extends Equatable {
     required this.send2ereaderUrl,
     required this.defaultDownloadPath,
     required this.downloadSchema,
+    required this.downloadPathTemplate,
     required this.languageCode,
     required this.showReadNowButton,
     required this.showSendToEReaderButton,
@@ -87,6 +90,9 @@ class SettingsModel extends Equatable {
       send2ereaderUrl: json['send2ereader_url'] ?? 'https://send.djazz.se',
       defaultDownloadPath: json['default_download_path'] ?? '',
       downloadSchema: DownloadSchema.values[json['download_schema'] ?? 0],
+      downloadPathTemplate:
+          json['download_path_template'] ??
+          DownloadPathTemplate.defaultTemplate,
       languageCode: json['language_code'] ?? 'en',
       showReadNowButton: json['show_read_now_button'] ?? false,
       showSendToEReaderButton: json['show_send_to_ereader_button'] ?? true,
@@ -174,6 +180,7 @@ class SettingsModel extends Equatable {
     send2ereaderUrl,
     defaultDownloadPath,
     downloadSchema,
+    downloadPathTemplate,
     languageCode,
     showReadNowButton,
     showSendToEReaderButton,

@@ -10,7 +10,9 @@ import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/download_path_template_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
@@ -129,10 +131,12 @@ class DownloadOptionsWidget extends StatelessWidget {
     return BlocBuilder<SettingsBloc, SettingsState>(
       buildWhen:
           (previous, current) =>
-              previous.downloadSchema != current.downloadSchema,
+              previous.downloadSchema != current.downloadSchema ||
+              previous.downloadPathTemplate != current.downloadPathTemplate,
       builder: (context, state) {
         final schemaInfo = _getSchemaDisplayInfo(
           state.downloadSchema,
+          state.downloadPathTemplate,
           localizations,
         );
 
@@ -184,6 +188,7 @@ class DownloadOptionsWidget extends StatelessWidget {
                       context,
                       localizations,
                       state.downloadSchema,
+                      state.downloadPathTemplate,
                     );
                     if (result != null) {
                       // ignore: use_build_context_synchronously
@@ -215,6 +220,7 @@ class DownloadOptionsWidget extends StatelessWidget {
 
   Map<String, String> _getSchemaDisplayInfo(
     DownloadSchema schema,
+    String pathTemplate,
     AppLocalizations localizations,
   ) {
     switch (schema) {
@@ -250,6 +256,16 @@ class DownloadOptionsWidget extends StatelessWidget {
           'title': '${localizations.schemaAuthorSeriesBook} (Sort)',
           'example': '/author_sort/series/book1/book1.epub',
         };
+      case DownloadSchema.seriesOnly:
+        return {
+          'title': localizations.schemaSeriesOnly,
+          'example': '/series/book1.epub',
+        };
+      case DownloadSchema.custom:
+        return {
+          'title': localizations.schemaCustom,
+          'example': DownloadPathTemplate.preview(pathTemplate),
+        };
     }
   }
 
@@ -257,6 +273,7 @@ class DownloadOptionsWidget extends StatelessWidget {
     BuildContext context,
     AppLocalizations localizations,
     DownloadSchema currentSchema,
+    String currentTemplate,
   ) async {
     bool useAuthorSort = [
       DownloadSchema.authorSortOnly,
@@ -329,6 +346,19 @@ class DownloadOptionsWidget extends StatelessWidget {
                           ? '/author_sort/series/book1/book1.epub'
                           : '/author/series/book1/book1.epub',
                     ),
+                    _buildSchemaOption(
+                      context,
+                      DownloadSchema.seriesOnly,
+                      localizations.schemaSeriesOnly,
+                      '/series/book1.epub',
+                    ),
+                    _buildSchemaOption(
+                      context,
+                      DownloadSchema.custom,
+                      localizations.schemaCustom,
+                      DownloadPathTemplate.preview(currentTemplate),
+                      onTap: () => _editTemplate(context, currentTemplate),
+                    ),
                   ],
                 ),
               ),
@@ -347,12 +377,34 @@ class DownloadOptionsWidget extends StatelessWidget {
     );
   }
 
+  /// Opens the template builder and closes the schema dialog with
+  /// [DownloadSchema.custom] once a template was saved.
+  Future<void> _editTemplate(
+    BuildContext context,
+    String currentTemplate,
+  ) async {
+    final navigator = Navigator.of(context);
+    final settingsBloc = context.read<SettingsBloc>();
+
+    final template = await showDialog<String>(
+      context: context,
+      builder:
+          (_) => DownloadPathTemplateDialog(initialTemplate: currentTemplate),
+    );
+
+    if (template == null) return;
+
+    settingsBloc.add(SetDownloadPathTemplate(template));
+    navigator.pop(DownloadSchema.custom);
+  }
+
   Widget _buildSchemaOption(
     BuildContext context,
     DownloadSchema schema,
     String title,
-    String example,
-  ) {
+    String example, {
+    VoidCallback? onTap,
+  }) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 8.0),
@@ -364,9 +416,7 @@ class DownloadOptionsWidget extends StatelessWidget {
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(8.0),
           child: InkWell(
-            onTap: () {
-              Navigator.of(context).pop(schema);
-            },
+            onTap: onTap ?? () => Navigator.of(context).pop(schema),
             borderRadius: BorderRadius.circular(8.0),
             child: Padding(
               padding: const EdgeInsets.all(16.0),

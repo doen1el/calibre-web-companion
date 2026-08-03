@@ -178,8 +178,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           _buildSettingsCategoryNavCard(
                             context,
                             title: localizations.isbnMetadataSources,
-                            subtitle:
-                                localizations.isbnMetadataSourcesSubtitle,
+                            subtitle: localizations.isbnMetadataSourcesSubtitle,
                             icon: Icons.travel_explore_rounded,
                             onTap:
                                 () => Navigator.of(context).push(

@@ -109,6 +109,14 @@ class SettingsRepository {
     }
   }
 
+  Future<void> setDownloadPathTemplate(String template) async {
+    try {
+      await dataSource.saveDownloadPathTemplate(template);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> submitFeedback(String title, String description) async {
     try {
       return await dataSource.submitFeedback(title, description);
