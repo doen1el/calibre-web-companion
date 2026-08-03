@@ -353,6 +353,7 @@
     "pleaseEnterSSOUrl": "Bitte gib die SSO-URL ein",
     "openInInternalReader": "Im internen Reader öffnen",
     "errorOpeningBookInInternalReader": "Fehler beim Öffnen des Buches im internen Reader",
+    "errorOpeningBook": "Fehler beim Öffnen des Buches",
     "internalReaderSupportsOnlyEpub": "Der interne Reader unterstützt nur EPUB. Verfügbare Formate: {formats}",
     "internalReaderSupportsOnlyEpubShort": "Nur EPUB wird unterstützt",
     "readNow": "Jetzt lesen",

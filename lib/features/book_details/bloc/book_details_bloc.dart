@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -367,11 +368,31 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     String format,
   ) async {
     try {
-      final coverBytes = await repository.fetchCoverBytes(
-        details.id,
-        details.coverUrl,
-      );
-      await GetIt.instance<OfflineLibraryRepository>().saveBook(
+      final offlineRepository = GetIt.instance<OfflineLibraryRepository>();
+      final existing = offlineRepository.getBook(uuid);
+
+      final cachedCover = existing?.coverPath;
+      final hasCover =
+          cachedCover != null &&
+          cachedCover.isNotEmpty &&
+          File(cachedCover).existsSync();
+
+      final isUpToDate =
+          existing != null &&
+          existing.filePath == filePath &&
+          existing.format == format &&
+          existing.title == details.title;
+
+      if (isUpToDate && hasCover) return;
+
+      Uint8List? coverBytes;
+      if (!hasCover) {
+        coverBytes = await repository
+            .fetchCoverBytes(details.id, details.coverUrl)
+            .timeout(const Duration(seconds: 10), onTimeout: () => null);
+      }
+
+      await offlineRepository.saveBook(
         OfflineBookModel(
           uuid: uuid,
           id: details.id,
@@ -381,6 +402,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           seriesIndex: details.seriesIndex.toInt(),
           filePath: filePath,
           format: format,
+          coverPath: hasCover ? cachedCover : null,
           savedAt: DateTime.now().millisecondsSinceEpoch,
         ),
         coverBytes: coverBytes,
@@ -420,6 +442,8 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
               ? details.formats.first.toLowerCase()
               : 'epub';
 
+      String? localFilePath;
+
       final success = await repository.openInReader(
         details,
         event.selectedDirectory,
@@ -430,8 +454,8 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           emit(state.copyWith(downloadProgress: progress));
         },
         onFileDownloaded: (path) async {
+          localFilePath = path;
           await downloadManager.registerDownload(uuid, path);
-          await _cacheOfflineSnapshot(uuid, details, path, format);
           emit(state.copyWith(downloadFilePath: path, isDownloaded: true));
         },
       );
@@ -444,6 +468,11 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           ),
         );
         await _recordCurrentBookForWidget(format: format);
+
+        final cachePath = localFilePath;
+        if (cachePath != null) {
+          await _cacheOfflineSnapshot(uuid, details, cachePath, format);
+        }
       } else {
         emit(
           state.copyWith(

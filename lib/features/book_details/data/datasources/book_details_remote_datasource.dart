@@ -900,6 +900,45 @@ class BookDetailsRemoteDatasource {
     }
   }
 
+  Future<bool> openLocalFileExternally(
+    String path, {
+    String format = 'epub',
+  }) async {
+    try {
+      String localPath = path;
+
+      if (path.startsWith('file://')) {
+        localPath = Uri.parse(path).toFilePath();
+      } else if (Platform.isAndroid && path.startsWith('content://')) {
+        final doc = await DocumentFile.fromUri(path);
+        if (doc == null || !doc.isFile) {
+          logger.e('Local file is not available: $path');
+          return false;
+        }
+        final cachedFile = await doc.cache();
+        if (cachedFile == null) {
+          logger.e('Could not cache file for opening');
+          return false;
+        }
+        localPath = cachedFile.path;
+      }
+
+      final result = await OpenFile.open(
+        localPath,
+        type: bookMimeType(localPath) ?? bookMimeType(format),
+      );
+
+      if (result.type != ResultType.done) {
+        logger.e('Error while opening the file: ${result.message}');
+        throw Exception('Error while opening: ${result.message}');
+      }
+      return true;
+    } catch (e) {
+      logger.e('Error opening local file: $e');
+      throw Exception('Error opening local file: $e');
+    }
+  }
+
   Future<bool> addBookToShelf(String shelfId, String bookId) async {
     try {
       logger.i('Adding book $bookId to shelf $shelfId');

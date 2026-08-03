@@ -112,6 +112,28 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
     }
   }
 
+  Future<void> _openExternally(OfflineBookModel book) async {
+    if (_opening) return;
+    final localizations = AppLocalizations.of(context)!;
+    setState(() => _opening = true);
+    try {
+      final opened = await GetIt.instance<BookDetailsRepository>()
+          .openLocalFileExternally(book.filePath, format: book.format);
+      if (!opened && mounted) {
+        context.showSnackBar(localizations.errorOpeningBook, isError: true);
+      }
+    } catch (e) {
+      if (mounted) {
+        context.showSnackBar(
+          '${localizations.errorOpeningBook} $e',
+          isError: true,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _opening = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
@@ -146,29 +168,42 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
           children: [
             Expanded(child: _buildCover(context, book)),
             Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
+              padding: const EdgeInsets.fromLTRB(8, 8, 0, 0),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    book.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          book.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (book.authors.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            book.authors,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                  if (book.authors.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      book.authors,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+                  IconButton(
+                    icon: const Icon(Icons.open_in_new_rounded, size: 20),
+                    visualDensity: VisualDensity.compact,
+                    tooltip: AppLocalizations.of(context)!.openInReader,
+                    onPressed: _opening ? null : () => _openExternally(book),
+                  ),
                 ],
               ),
             ),

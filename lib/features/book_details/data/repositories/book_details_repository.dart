@@ -213,6 +213,9 @@ class BookDetailsRepository {
   Future<Uint8List?> readLocalEpubBytes(String path) =>
       datasource.readLocalEpubBytes(path);
 
+  Future<bool> openLocalFileExternally(String path, {String format = 'epub'}) =>
+      datasource.openLocalFileExternally(path, format: format);
+
   Future<String?> getSeriesPath(String seriesName) async {
     try {
       return await datasource.getSeriesPath(seriesName);
