@@ -45,7 +45,9 @@ jobs:
           EOF
 
       - name: Check Formatting
-        run: dart format --output none --set-exit-if-changed lib test
+        run: |
+          git ls-files 'lib/*.dart' 'test/*.dart' \
+            | xargs dart format --output none --set-exit-if-changed
 
       # --fatal-infos: every rule in analysis_options.yaml blocks the merge.
       - name: Analyze
