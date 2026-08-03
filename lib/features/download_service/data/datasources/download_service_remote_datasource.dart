@@ -1,14 +1,14 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:logger/logger.dart';
 
+import 'package:calibre_web_companion/features/download_service/data/models/download_config_model.dart';
+import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_status.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_status_response.dart';
-import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
-import 'package:calibre_web_companion/features/download_service/data/models/download_config_model.dart';
 import 'package:calibre_web_companion/features/login_settings/data/repositories/login_settings_repository.dart';
+import 'package:http/http.dart' as http;
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DownloadServiceRemoteDataSource {
   final http.Client client;
@@ -32,7 +32,7 @@ class DownloadServiceRemoteDataSource {
 
     try {
       final customHeaders = await loginSettingsRepository.getCustomHeaders();
-      for (var header in customHeaders) {
+      for (final header in customHeaders) {
         if (header.key.trim().isNotEmpty) {
           headers[header.key] = header.value;
         }
@@ -152,11 +152,7 @@ class DownloadServiceRemoteDataSource {
         final results = _extractSearchResults(decoded);
         logger.d(response.body);
         final books =
-            results
-                .map(
-                  (json) => DownloadServiceBookModel.fromSearchResponse(json),
-                )
-                .toList();
+            results.map(DownloadServiceBookModel.fromSearchResponse).toList();
         logger.i('Found ${books.length} books matching "$query"');
         return books;
       } else {

@@ -1,12 +1,11 @@
+import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/features/settings/presentation/pages/filter_selection_page.dart'; // Import Page
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_list_view_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
+import 'package:calibre_web_companion/features/sync/data/models/sync_filter.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_list_view_model.dart';
-import 'package:calibre_web_companion/features/sync/data/models/sync_filter.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
-import 'package:calibre_web_companion/features/settings/presentation/pages/filter_selection_page.dart'; // Import Page
-import 'package:calibre_web_companion/core/services/api_service.dart';
 
 class SyncFilterBottomSheet extends StatefulWidget {
   final SyncFilter initialFilter;
@@ -40,7 +39,7 @@ class _SyncFilterBottomSheetState extends State<SyncFilterBottomSheet> {
       final entries = response.body.split('<entry>');
       final Set<String> foundFormats = {};
 
-      for (var entry in entries) {
+      for (final entry in entries) {
         if (!entry.contains('</entry>')) continue;
 
         final titleMatch = RegExp(r'<title>(.*?)</title>').firstMatch(entry);
@@ -357,7 +356,7 @@ class _SyncFilterBottomSheetState extends State<SyncFilterBottomSheet> {
         leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
         title: Text(title),
         subtitle: Text(
-          count > 0 ? "$count ${localization.selected}" : localization.all,
+          count > 0 ? '$count ${localization.selected}' : localization.all,
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,

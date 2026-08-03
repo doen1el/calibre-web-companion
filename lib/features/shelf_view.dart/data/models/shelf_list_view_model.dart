@@ -1,6 +1,5 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
+import 'package:equatable/equatable.dart';
 
 class ShelfListViewModel extends Equatable {
   final List<ShelfViewModel> shelves;
@@ -17,7 +16,7 @@ class ShelfListViewModel extends Equatable {
       final entryRaw = feed['entry'];
 
       if (entryRaw is List) {
-        for (var shelf in entryRaw) {
+        for (final shelf in entryRaw) {
           shelves.add(ShelfViewModel.fromJson(shelf));
         }
       } else if (entryRaw is Map) {

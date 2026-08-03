@@ -1,15 +1,14 @@
 @Tags(['integration'])
 library;
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/download_service/data/datasources/download_service_remote_datasource.dart';
 import 'package:calibre_web_companion/features/login_settings/data/datasources/login_settings_local_datasource.dart';
 import 'package:calibre_web_companion/features/login_settings/data/repositories/login_settings_repository.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../test_env.dart';
 

@@ -1,19 +1,17 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/login/bloc/login_bloc.dart';
 import 'package:calibre_web_companion/features/login/bloc/login_event.dart';
 import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:calibre_web_companion/features/login/presentation/widgets/login_text_field.dart';
-import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -205,23 +203,19 @@ class _LoginFormState extends State<LoginForm> {
             urlLabel = 'Calibre Web URL';
             urlHint = 'your-calibre-web.com';
             typeIcon = Icons.menu_book_rounded;
-            break;
           case ServerType.calibre:
             urlLabel = 'Calibre Server URL';
             urlHint = 'your-calibre-server.com';
             typeIcon = Icons.dns_rounded;
-            break;
           case ServerType.booklore:
             urlLabel = 'Grimmory URL';
             urlHint = 'your-grimmory.com';
             urlHelper = localizations.appendsGrimmoryPath;
             typeIcon = Icons.auto_stories_rounded;
-            break;
           case ServerType.opds:
             urlLabel = 'OPDS URL';
             urlHint = 'www.gutenberg.org/ebooks/search.opds';
             typeIcon = Icons.rss_feed_rounded;
-            break;
         }
 
         return Padding(
@@ -629,7 +623,7 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void _submitSso(BuildContext context) {
-    String fullUrl =
+    final String fullUrl =
         '${_isHttps ? "https://" : "http://"}${_urlController.text.trim()}';
 
     context.read<LoginBloc>().add(EnterUrl(fullUrl));
@@ -671,7 +665,7 @@ class _LoginFormState extends State<LoginForm> {
       domain = domain.substring(0, domain.length - 1);
     }
 
-    String fullUrl = '${_isHttps ? "https://" : "http://"}$domain';
+    final String fullUrl = '${_isHttps ? "https://" : "http://"}$domain';
 
     context.read<LoginBloc>().add(EnterUrl(fullUrl));
     context.read<LoginBloc>().add(const SubmitLogin());

@@ -1,8 +1,7 @@
 import 'dart:convert';
 
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:logger/logger.dart';
 
 enum VocabularyType { authors, series, tags, publishers }
 
@@ -65,7 +64,7 @@ class VocabularyRemoteDataSource {
               .toList();
 
       final seen = <String>{};
-      return results.where((s) => seen.add(s)).toList();
+      return results.where(seen.add).toList();
     } catch (e) {
       logger.w('Vocabulary ${type.name} lookup error: $e');
       return const [];

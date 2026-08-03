@@ -142,7 +142,7 @@ class BookDetailsModel extends BookViewModel {
   }
 
   static String _removeHtmlTags(String htmlString) {
-    final RegExp exp = RegExp(r"<[^>]*>", multiLine: true, caseSensitive: true);
+    final RegExp exp = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
     String parsedString = htmlString.replaceAll(exp, '');
 
     parsedString = parsedString

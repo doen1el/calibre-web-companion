@@ -36,7 +36,7 @@ Future<ApiService> setupIntegrationTest() async {
   );
 
   final success = await loginDataSource.login(
-    LoginCredentials(
+    const LoginCredentials(
       baseUrl: TestEnv.baseUrl,
       username: TestEnv.username,
       password: TestEnv.password,

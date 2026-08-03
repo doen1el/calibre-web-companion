@@ -1,33 +1,32 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:docman/docman.dart';
 import 'dart:io';
-import 'package:file_picker/file_picker.dart';
 
-import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
-import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
-import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
-
-import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
-import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
-import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
-import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
-import 'package:calibre_web_companion/features/scan_book/presentation/pages/isbn_sources_page.dart';
-import 'package:calibre_web_companion/features/settings/presentation/widgets/download_options_widget.dart';
-import 'package:calibre_web_companion/features/settings/presentation/widgets/feedback_widget.dart';
-import 'package:calibre_web_companion/features/settings/presentation/widgets/theme_selector_widget.dart';
-import 'package:calibre_web_companion/features/settings/presentation/widgets/shelf_widget_source_card.dart';
-import 'package:calibre_web_companion/features/settings/presentation/widgets/sync_settings_widget.dart';
-import 'package:calibre_web_companion/features/settings/presentation/pages/app_logs_page.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/widget_service.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
-import 'package:calibre_web_companion/features/settings/presentation/widgets/reachable_url_field.dart';
+import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
+import 'package:calibre_web_companion/features/scan_book/presentation/pages/isbn_sources_page.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
+import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
+import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
+import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
 import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
-import 'package:calibre_web_companion/core/di/injection_container.dart';
+import 'package:calibre_web_companion/features/settings/presentation/pages/app_logs_page.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/download_options_widget.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/feedback_widget.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/reachable_url_field.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/shelf_widget_source_card.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/sync_settings_widget.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/theme_selector_widget.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:docman/docman.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 enum SettingsSubPage { discover, bookDetails }
 
@@ -194,7 +193,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
                           const SizedBox(height: 24),
                           _buildSectionTitle(context, localizations.about),
-                          _buyMeACoffeeButton(context, "Buy Me a Coffee"),
+                          _buyMeACoffeeButton(context, 'Buy Me a Coffee'),
                           _buildAppLogsButton(context, localizations),
                           _buildLicensesButton(context, state, localizations),
                           _buildVersionCard(context, state, localizations),
@@ -342,7 +341,7 @@ class _SettingsPageState extends State<SettingsPage> {
           (context, state, localizations) => [
             _buildSectionTitle(context, localizations.downloadOptions),
             const DownloadOptionsWidget(),
-            SyncSettingsWidget(),
+            const SyncSettingsWidget(),
             const SizedBox(height: 24),
             _buildSectionTitle(context, localizations.customSend2EReader),
             _buildSend2EreaderToggle(context, state, localizations),
@@ -611,7 +610,7 @@ class _SettingsPageState extends State<SettingsPage> {
         onTap: () {
           Navigator.of(
             context,
-          ).push(AppTransitions.createSlideRoute(LoginSettingsPage()));
+          ).push(AppTransitions.createSlideRoute(const LoginSettingsPage()));
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -840,7 +839,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ReachableUrlField(
                 controller: _downloaderUrlController,
                 label: localizations.downloadServiceUrl,
-                hint: "https://downloader.example.com",
+                hint: 'https://downloader.example.com',
                 check: (url) async {
                   final status = await getIt<SettingsRepository>()
                       .probeDownloaderUrl(url);
@@ -1017,7 +1016,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ReachableUrlField(
                 controller: _send2ereaderUrlController,
                 label: localizations.send2ereaderServiceUrl,
-                hint: "https://send.djazz.se",
+                hint: 'https://send.djazz.se',
                 onChanged:
                     (value) => context.read<SettingsBloc>().add(
                       SetCostumSend2EreaderUrl(value),
@@ -1054,11 +1053,11 @@ class _SettingsPageState extends State<SettingsPage> {
                           Text(
                             localizations.storeReadNowAndSendToEReaderOnDevice,
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text(
                             localizations
                                 .storeReadNowAndSendToEReaderOnDeviceDescription,
-                            style: TextStyle(fontSize: 12),
+                            style: const TextStyle(fontSize: 12),
                           ),
                         ],
                       ),
@@ -1270,7 +1269,7 @@ class _SettingsPageState extends State<SettingsPage> {
       child: InkWell(
         borderRadius: BorderRadius.circular(8.0),
         onTap: () {
-          context.read<SettingsBloc>().add(BuyMeACoffee());
+          context.read<SettingsBloc>().add(const BuyMeACoffee());
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -1444,11 +1443,8 @@ class _SettingsPageState extends State<SettingsPage> {
               (child, index, animation) =>
                   Material(type: MaterialType.transparency, child: child),
           itemCount: orderedActions.length,
-          onReorder: (oldIndex, newIndex) {
+          onReorderItem: (oldIndex, newIndex) {
             final updated = List<String>.from(state.bookActionsOrder);
-            if (newIndex > oldIndex) {
-              newIndex -= 1;
-            }
             final item = updated.removeAt(oldIndex);
             updated.insert(newIndex, item);
             context.read<SettingsBloc>().add(SetBookActionsOrder(updated));
@@ -1605,15 +1601,12 @@ class _SettingsPageState extends State<SettingsPage> {
               (child, index, animation) =>
                   Material(type: MaterialType.transparency, child: child),
           itemCount: orderedSections.length,
-          onReorder: (oldIndex, newIndex) {
+          onReorderItem: (oldIndex, newIndex) {
             final updated = List<String>.from(
               BookDetailsSectionConfig.normalizeOrder(
                 state.bookDetailsSectionsOrder,
               ),
             );
-            if (newIndex > oldIndex) {
-              newIndex -= 1;
-            }
             final item = updated.removeAt(oldIndex);
             updated.insert(newIndex, item);
             context.read<SettingsBloc>().add(
@@ -1772,13 +1765,12 @@ class _SettingsPageState extends State<SettingsPage> {
             const ResetDiscoverCustomization(),
           ),
       itemCount: orderedSections.length,
-      onReorder: (oldIndex, newIndex) {
+      onReorderItem: (oldIndex, newIndex) {
         final updated = List<String>.from(
           DiscoverLayoutConfig.normalizeMainSectionsOrder(
             state.discoverMainSectionsOrder,
           ),
         );
-        if (newIndex > oldIndex) newIndex -= 1;
         final item = updated.removeAt(oldIndex);
         updated.insert(newIndex, item);
         context.read<SettingsBloc>().add(SetDiscoverMainSectionsOrder(updated));
@@ -1827,13 +1819,12 @@ class _SettingsPageState extends State<SettingsPage> {
       title: localizations.discover,
       icon: Icons.search_rounded,
       itemCount: orderedItems.length,
-      onReorder: (oldIndex, newIndex) {
+      onReorderItem: (oldIndex, newIndex) {
         final updated = List<String>.from(
           DiscoverLayoutConfig.normalizeDiscoverItemsOrder(
             state.discoverItemsOrder,
           ),
         );
-        if (newIndex > oldIndex) newIndex -= 1;
         final item = updated.removeAt(oldIndex);
         updated.insert(newIndex, item);
         context.read<SettingsBloc>().add(SetDiscoverItemsOrder(updated));
@@ -1879,13 +1870,12 @@ class _SettingsPageState extends State<SettingsPage> {
       title: localizations.categories,
       icon: Icons.category_rounded,
       itemCount: orderedItems.length,
-      onReorder: (oldIndex, newIndex) {
+      onReorderItem: (oldIndex, newIndex) {
         final updated = List<String>.from(
           DiscoverLayoutConfig.normalizeCategoryItemsOrder(
             state.categoryItemsOrder,
           ),
         );
-        if (newIndex > oldIndex) newIndex -= 1;
         final item = updated.removeAt(oldIndex);
         updated.insert(newIndex, item);
         context.read<SettingsBloc>().add(SetCategoryItemsOrder(updated));
@@ -1919,7 +1909,7 @@ class _SettingsPageState extends State<SettingsPage> {
     String? resetTooltip,
     VoidCallback? onReset,
     required int itemCount,
-    required void Function(int oldIndex, int newIndex) onReorder,
+    required void Function(int oldIndex, int newIndex) onReorderItem,
     required Widget Function(int index) tileBuilder,
   }) {
     return Column(
@@ -1949,8 +1939,7 @@ class _SettingsPageState extends State<SettingsPage> {
               (child, index, animation) =>
                   Material(type: MaterialType.transparency, child: child),
           itemCount: itemCount,
-          // ignore: deprecated_member_use
-          onReorder: onReorder,
+          onReorderItem: onReorderItem,
           itemBuilder: (context, index) => tileBuilder(index),
         ),
       ],
@@ -2230,9 +2219,9 @@ class _SettingsPageState extends State<SettingsPage> {
               TextField(
                 controller: _webDavUrlController,
                 decoration: InputDecoration(
-                  labelText: "WebDAV URL (e.g. Nextcloud)",
+                  labelText: 'WebDAV URL (e.g. Nextcloud)',
                   hintText:
-                      "https://cloud.example.com/remote.php/dav/files/user/",
+                      'https://cloud.example.com/remote.php/dav/files/user/',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.0),
                   ),

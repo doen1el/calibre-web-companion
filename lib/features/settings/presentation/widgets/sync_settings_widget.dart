@@ -1,13 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/shared/utils/status_colors.dart';
-import 'package:calibre_web_companion/features/sync/data/models/sync_filter.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/sync_filter_bottom_sheet.dart';
 import 'package:calibre_web_companion/features/sync/bloc/sync_bloc.dart';
 import 'package:calibre_web_companion/features/sync/bloc/sync_event.dart';
 import 'package:calibre_web_companion/features/sync/bloc/sync_state.dart';
-import 'package:calibre_web_companion/features/settings/presentation/widgets/sync_filter_bottom_sheet.dart';
+import 'package:calibre_web_companion/features/sync/data/models/sync_filter.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/utils/status_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SyncSettingsWidget extends StatefulWidget {
   const SyncSettingsWidget({super.key});
@@ -145,7 +144,7 @@ class _SyncSettingsWidgetState extends State<SyncSettingsWidget> {
                   Icons.sync,
                   color: Theme.of(context).colorScheme.onPrimaryContainer,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
                   localization.configureAndSync,
                   style: TextStyle(
@@ -274,7 +273,7 @@ class _SyncSettingsWidgetState extends State<SyncSettingsWidget> {
               style: Theme.of(context).textTheme.labelLarge,
             ),
             Text(
-              "${state.syncedCount} / ${state.totalBooksToCheck} ($percentage%)",
+              '${state.syncedCount} / ${state.totalBooksToCheck} ($percentage%)',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -321,7 +320,6 @@ class _SyncSettingsWidgetState extends State<SyncSettingsWidget> {
       case 'done':
         icon = Icons.check_circle;
         color = StatusColors.success(context);
-        break;
       case 'downloading':
         icon = Icons.downloading;
         color = Theme.of(context).colorScheme.primary;
@@ -330,16 +328,13 @@ class _SyncSettingsWidgetState extends State<SyncSettingsWidget> {
           height: 16,
           child: CircularProgressIndicator(strokeWidth: 2),
         );
-        break;
       case 'error':
         icon = Icons.error_outline;
         color = StatusColors.error(context);
-        break;
       case 'pending':
       default:
         icon = Icons.hourglass_empty;
         color = StatusColors.neutral(context);
-        break;
     }
 
     return ListTile(

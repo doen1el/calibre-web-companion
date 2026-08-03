@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_metadata_source.dart';
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_source_settings.dart';
 import 'package:calibre_web_companion/features/scan_book/presentation/pages/isbn_sources_page.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> _pumpPage(WidgetTester tester) async {
   await tester.pumpWidget(

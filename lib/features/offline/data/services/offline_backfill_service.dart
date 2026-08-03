@@ -1,13 +1,12 @@
 import 'dart:typed_data';
 
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/connectivity_service.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
 import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
+import 'package:logger/logger.dart';
 
 class OfflineBackfillService {
   final DownloadManager downloadManager;

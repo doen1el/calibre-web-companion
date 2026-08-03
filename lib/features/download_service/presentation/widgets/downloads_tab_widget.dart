@@ -1,14 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:skeletonizer/skeletonizer.dart';
-import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
-
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_state.dart';
-
 import 'package:calibre_web_companion/features/download_service/presentation/widgets/book_card_widget.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class DownloadsTabWidget extends StatelessWidget {
   const DownloadsTabWidget({super.key});

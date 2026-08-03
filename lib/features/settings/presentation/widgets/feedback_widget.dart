@@ -1,13 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
-
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
-
-import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class FeedbackWidget extends StatelessWidget {
   const FeedbackWidget({super.key});
@@ -81,7 +79,7 @@ class FeedbackWidget extends StatelessWidget {
 
     final titleController = TextEditingController();
     final descriptionController = TextEditingController(
-      text: """
+      text: '''
 ## Description
 
 
@@ -93,7 +91,7 @@ class FeedbackWidget extends StatelessWidget {
 
 ## App Version ${state.appVersion}
 
-""",
+''',
     );
 
     showDialog(

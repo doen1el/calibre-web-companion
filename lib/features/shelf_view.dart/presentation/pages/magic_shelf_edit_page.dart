@@ -1,18 +1,17 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
-
-import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
-import 'package:calibre_web_companion/main.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/vocabulary_remote_datasource.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_rule_models.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/main.dart';
 import 'package:calibre_web_companion/shared/utils/status_colors.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MagicShelfEditPage extends StatefulWidget {
   final String? shelfId;

@@ -1,8 +1,7 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_details_model.dart';
+import 'package:equatable/equatable.dart';
 
 abstract class DiscoverDetailsEvent extends Equatable {
   const DiscoverDetailsEvent();

@@ -1,20 +1,19 @@
 import 'dart:io';
+
+import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/download_path_template_dialog.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:docman/docman.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
-import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
-import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
-
-import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
-import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
-import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
-import 'package:calibre_web_companion/features/settings/presentation/widgets/download_path_template_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 class DownloadOptionsWidget extends StatelessWidget {
   const DownloadOptionsWidget({super.key});
@@ -80,7 +79,7 @@ class DownloadOptionsWidget extends StatelessWidget {
                     String? selectedPath;
 
                     if (Platform.isAndroid) {
-                      DocumentFile? selectedDirectory =
+                      final DocumentFile? selectedDirectory =
                           await DocMan.pick.directory();
                       selectedPath = selectedDirectory?.uri;
                     } else {
@@ -295,7 +294,7 @@ class DownloadOptionsWidget extends StatelessWidget {
                     SwitchListTile(
                       title: Text(localizations.useAuthorSort),
                       subtitle: Text(
-                        useAuthorSort ? "Doe, John" : "John Doe",
+                        useAuthorSort ? 'Doe, John' : 'John Doe',
                         style: TextStyle(
                           fontSize: 12,
                           color: Theme.of(context).textTheme.bodySmall?.color,

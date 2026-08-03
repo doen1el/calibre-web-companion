@@ -1,6 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
-
 import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   const values = {

@@ -1,25 +1,21 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:docman/docman.dart';
-import 'package:get_it/get_it.dart';
-import 'package:logger/logger.dart';
-
-import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
-import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
-
-import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
-
+import 'package:calibre_web_companion/core/exceptions/cancellation_exception.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/core/services/widget_service.dart';
-
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
-import 'package:calibre_web_companion/core/exceptions/cancellation_exception.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/reading_progress_repository.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
+import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
+import 'package:docman/docman.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:logger/logger.dart';
 
 class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
   final BookDetailsRepository repository;
@@ -712,7 +708,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           'epub',
         );
 
-        var contentLength = response.contentLength ?? -1;
+        final contentLength = response.contentLength ?? -1;
         int receivedBytes = 0;
 
         await for (final chunk in response.stream) {
@@ -885,7 +881,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     SyncReadingProgress event,
     Emitter<BookDetailsState> emit,
   ) async {
-    progressRepository.saveProgress(event.bookUuid, event.locatorJson);
+    await progressRepository.saveProgress(event.bookUuid, event.locatorJson);
   }
 
   Future<void> _recordCurrentBookForWidget({String? format}) async {

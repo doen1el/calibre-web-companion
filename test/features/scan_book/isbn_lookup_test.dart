@@ -1,11 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
-import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:calibre_web_companion/features/scan_book/data/datasources/isbn_remote_datasource.dart';
 import 'package:calibre_web_companion/features/scan_book/data/datasources/providers/bnf_provider.dart';
 import 'package:calibre_web_companion/features/scan_book/data/datasources/providers/google_books_provider.dart';
@@ -14,6 +8,11 @@ import 'package:calibre_web_companion/features/scan_book/data/models/isbn_book.d
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_metadata_source.dart';
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_source_settings.dart';
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_utils.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const String _isbn = '9782070643028';
 
@@ -21,7 +20,7 @@ class _FakeProvider extends IsbnMetadataProvider {
   @override
   final IsbnMetadataSource source;
   final IsbnBook? result;
-  final Object? error;
+  final Exception? error;
 
   _FakeProvider(this.source, {this.result, this.error});
 
@@ -432,7 +431,9 @@ void main() {
     });
 
     test('keeps credential sources inactive until a key is set', () async {
-      await IsbnSourceSettings(enabled: {IsbnMetadataSource.hardcover}).save();
+      await const IsbnSourceSettings(
+        enabled: {IsbnMetadataSource.hardcover},
+      ).save();
 
       var settings = await IsbnSourceSettings.load();
       expect(settings.activeSources, isEmpty);

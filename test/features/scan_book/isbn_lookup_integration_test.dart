@@ -1,13 +1,12 @@
 @Tags(['integration'])
 library;
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/features/scan_book/data/datasources/isbn_remote_datasource.dart';
 import 'package:calibre_web_companion/features/scan_book/data/datasources/providers/bnf_provider.dart';
 import 'package:calibre_web_companion/features/scan_book/data/datasources/providers/google_books_provider.dart';
 import 'package:calibre_web_companion/features/scan_book/data/datasources/providers/open_library_provider.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:logger/logger.dart';
 
 const String _frenchIsbn = '9782070612758';
 

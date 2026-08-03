@@ -1,10 +1,9 @@
 import 'dart:async';
 
+import 'package:calibre_web_companion/core/services/connectivity_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:calibre_web_companion/core/services/connectivity_service.dart';
 
 enum ConnectivityStatus { unknown, online, offline }
 

@@ -1,10 +1,9 @@
-import 'package:flutter/widgets.dart';
-import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/widget_service.dart';
 import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
+import 'package:flutter/widgets.dart';
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @pragma('vm:entry-point')
 Future<void> widgetBackgroundCallback(Uri? uri) async {

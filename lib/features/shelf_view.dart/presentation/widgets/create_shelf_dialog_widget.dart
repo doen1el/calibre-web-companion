@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:flutter/material.dart';
 
 class CreateShelfDialog extends StatefulWidget {
   final Function(String, bool) onCreateShelf;

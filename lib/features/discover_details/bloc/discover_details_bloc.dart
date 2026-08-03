@@ -1,11 +1,9 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_event.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_state.dart';
-
 import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/repositories/discover_details_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DiscoverDetailsBloc
     extends Bloc<DiscoverDetailsEvent, DiscoverDetailsState> {

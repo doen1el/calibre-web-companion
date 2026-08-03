@@ -1,15 +1,16 @@
+import 'dart:async';
+
+import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/features/scan_book/data/datasources/isbn_remote_datasource.dart';
+import 'package:calibre_web_companion/features/scan_book/data/models/isbn_book.dart';
+import 'package:calibre_web_companion/features/scan_book/presentation/pages/isbn_sources_page.dart';
+import 'package:calibre_web_companion/features/scan_book/presentation/widgets/scan_result_sheet.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/core/services/app_transition.dart';
-import 'package:calibre_web_companion/features/scan_book/data/datasources/isbn_remote_datasource.dart';
-import 'package:calibre_web_companion/features/scan_book/presentation/pages/isbn_sources_page.dart';
-import 'package:calibre_web_companion/features/scan_book/data/models/isbn_book.dart';
-import 'package:calibre_web_companion/features/scan_book/presentation/widgets/scan_result_sheet.dart';
-import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 
 final Logger _logger = Logger();
 
@@ -90,27 +91,29 @@ Future<IsbnBook?> _lookupWithProgress(
   final localizations = AppLocalizations.of(context)!;
   _logger.i('Manual ISBN flow: looking up $isbn');
 
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder:
-        (_) => Dialog(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                const SizedBox(width: 20),
-                Flexible(child: Text(localizations.lookingUpBook)),
-              ],
+  unawaited(
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (_) => Dialog(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(width: 20),
+                  Flexible(child: Text(localizations.lookingUpBook)),
+                ],
+              ),
             ),
           ),
-        ),
+    ),
   );
 
   IsbnBook? book;

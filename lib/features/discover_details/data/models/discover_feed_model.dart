@@ -1,6 +1,5 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_details_model.dart';
+import 'package:equatable/equatable.dart';
 
 class DiscoverFeedModel extends Equatable {
   final List<DiscoverDetailsModel> books;

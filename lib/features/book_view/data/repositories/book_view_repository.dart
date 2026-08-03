@@ -1,9 +1,9 @@
 import 'dart:io';
-import 'package:logger/logger.dart';
 
 import 'package:calibre_web_companion/core/services/server_capabilities.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:logger/logger.dart';
 
 class BookViewRepository {
   final BookViewRemoteDatasource datasource;
@@ -47,7 +47,7 @@ class BookViewRepository {
   }
 
   Future<int> getColumnCount() async {
-    return await datasource.getColumnCount();
+    return datasource.getColumnCount();
   }
 
   Future<void> setColumnCount(int count) async {
@@ -55,7 +55,7 @@ class BookViewRepository {
   }
 
   Future<bool> getIsListView() async {
-    return await datasource.getIsListView();
+    return datasource.getIsListView();
   }
 
   Future<void> setIsListView(bool isList) async {

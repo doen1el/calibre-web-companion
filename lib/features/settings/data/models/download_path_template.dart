@@ -64,7 +64,7 @@ class DownloadPathTemplate {
   }
 
   static String _cleanSegment(String segment) {
-    var result = segment.replaceAll(_multipleSpaces, ' ');
+    final result = segment.replaceAll(_multipleSpaces, ' ');
 
     int start = 0;
     int end = result.length;

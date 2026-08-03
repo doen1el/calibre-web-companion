@@ -1,28 +1,26 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
+import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_bloc.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_event.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_state.dart';
-
+import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
+import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
+import 'package:calibre_web_companion/features/discover_details/data/models/discover_details_model.dart';
+import 'package:calibre_web_companion/features/discover_details/data/models/discover_feed_model.dart';
+import 'package:calibre_web_companion/features/discover_details/presentation/widgets/category_list_item_skeleton_widget.dart';
+import 'package:calibre_web_companion/features/discover_details/presentation/widgets/category_list_item_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/main.dart';
 import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
 import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/shared/widgets/book_view_mode_selector.dart';
-import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
-import 'package:calibre_web_companion/core/services/app_transition.dart';
-import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
-import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
-import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
-import 'package:calibre_web_companion/features/discover_details/data/models/discover_feed_model.dart';
-import 'package:calibre_web_companion/features/discover_details/data/models/discover_details_model.dart';
-import 'package:calibre_web_companion/features/discover_details/presentation/widgets/category_list_item_skeleton_widget.dart';
-import 'package:calibre_web_companion/features/discover_details/presentation/widgets/category_list_item_widget.dart';
-import 'package:calibre_web_companion/main.dart';
-import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DiscoverDetailsPage extends StatelessWidget {
   final DiscoverType? discoverType;
@@ -66,7 +64,7 @@ class DiscoverDetailsPage extends StatelessWidget {
           if (state.status == DiscoverDetailsStatus.error &&
               !state.isNotFound) {
             context.showSnackBar(
-              "${localizations.errorLoadingData}: ${state.errorMessage}",
+              '${localizations.errorLoadingData}: ${state.errorMessage}',
               isError: true,
             );
           }
@@ -90,7 +88,7 @@ class DiscoverDetailsPage extends StatelessWidget {
     String title,
     CategoryType? categoryType,
   ) {
-    double ratingValue = _isRatingValue(title);
+    final double ratingValue = _isRatingValue(title);
 
     if (ratingValue == -1) {
       return Text(title);

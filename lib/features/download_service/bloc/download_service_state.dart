@@ -1,8 +1,7 @@
-import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
-import 'package:equatable/equatable.dart';
-
-import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_config_model.dart';
+import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
+import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
+import 'package:equatable/equatable.dart';
 
 enum DownloadServiceTab { search, downloads }
 

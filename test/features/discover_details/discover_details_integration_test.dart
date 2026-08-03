@@ -1,11 +1,10 @@
 @Tags(['integration'])
 library;
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/data/datasources/discover_details_remote_datasource.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:logger/logger.dart';
 
 import '../../helpers/test_setup.dart';
 

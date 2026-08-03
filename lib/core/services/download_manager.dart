@@ -1,5 +1,6 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:docman/docman.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,7 +50,7 @@ class DownloadManager {
   Future<void> _verifyFilesExist() async {
     final List<String> toRemove = [];
 
-    for (var entry in _downloadedBooks.entries) {
+    for (final entry in _downloadedBooks.entries) {
       final exists = await _doesFileExist(entry.value);
 
       if (!exists) {
@@ -61,7 +62,7 @@ class DownloadManager {
     }
 
     if (toRemove.isNotEmpty) {
-      for (var uuid in toRemove) {
+      for (final uuid in toRemove) {
         _downloadedBooks.remove(uuid);
       }
       await _save();

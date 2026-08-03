@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_state.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class BookViewModeSelector extends StatelessWidget {
   const BookViewModeSelector({super.key});

@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_metadata_source.dart';
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_source_settings.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class IsbnSourcesPage extends StatefulWidget {
   const IsbnSourcesPage({super.key});

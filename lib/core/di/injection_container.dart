@@ -1,25 +1,16 @@
 import 'dart:io';
 
-import 'package:get_it/get_it.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/io_client.dart';
-import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
-import 'package:calibre_web_companion/core/services/tag_service.dart';
-import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
-import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/core/services/app_log_service.dart';
 import 'package:calibre_web_companion/core/services/connectivity_service.dart';
+import 'package:calibre_web_companion/core/services/download_manager.dart';
+import 'package:calibre_web_companion/core/services/tag_service.dart';
+import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 import 'package:calibre_web_companion/core/services/widget_service.dart';
-import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
-import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
-import 'package:calibre_web_companion/features/offline/data/services/offline_backfill_service.dart';
-
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
+import 'package:calibre_web_companion/features/book_details/data/repositories/reading_progress_repository.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 import 'package:calibre_web_companion/features/book_view/data/repositories/book_view_repository.dart';
@@ -40,6 +31,9 @@ import 'package:calibre_web_companion/features/login_settings/data/repositories/
 import 'package:calibre_web_companion/features/me/bloc/me_bloc.dart';
 import 'package:calibre_web_companion/features/me/data/datasources/me_remote_datasource.dart';
 import 'package:calibre_web_companion/features/me/data/repositories/me_repository.dart';
+import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
+import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
+import 'package:calibre_web_companion/features/offline/data/services/offline_backfill_service.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/data/datasources/settings_local_datasource.dart';
 import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
@@ -49,8 +43,12 @@ import 'package:calibre_web_companion/features/shelf_details/data/repositories/s
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/datasources/shelf_view_remote_datasource.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
-import 'package:calibre_web_companion/features/book_details/data/repositories/reading_progress_repository.dart';
 import 'package:calibre_web_companion/features/sync/bloc/sync_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -78,7 +76,7 @@ Future<void> init() async {
   getIt.registerLazySingleton<http.Client>(() => client);
 
   // Services
-  getIt.registerLazySingleton<ApiService>(() => ApiService());
+  getIt.registerLazySingleton<ApiService>(ApiService.new);
   getIt.registerLazySingleton<TagService>(
     () => TagService(apiService: getIt<ApiService>(), logger: logger),
   );
@@ -353,7 +351,7 @@ Future<void> init() async {
 
   //? Home Feature
   // BLoCs
-  getIt.registerFactory<HomePageBloc>(() => HomePageBloc());
+  getIt.registerFactory<HomePageBloc>(HomePageBloc.new);
 
   //? Book Details Feature
 

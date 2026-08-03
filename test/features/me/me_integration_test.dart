@@ -1,9 +1,8 @@
 @Tags(['integration'])
 library;
 
-import 'package:flutter_test/flutter_test.dart';
-
 import 'package:calibre_web_companion/features/me/data/datasources/me_remote_datasource.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/test_setup.dart';
 

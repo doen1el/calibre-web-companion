@@ -1,14 +1,14 @@
 import 'dart:convert';
 
+import 'package:calibre_web_companion/core/services/digest_auth.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:calibre_web_companion/core/services/digest_auth.dart';
 
 String md5hex(String s) => md5.convert(utf8.encode(s)).toString();
 
 String? field(String header, String key) {
-  final m = RegExp('$key="([^"]*)"').firstMatch(header) ??
+  final m =
+      RegExp('$key="([^"]*)"').firstMatch(header) ??
       RegExp('$key=([^,\\s]+)').firstMatch(header);
   return m?.group(1);
 }
@@ -37,12 +37,13 @@ void main() {
     const pass = 's3cret';
     const uri = '/ajax/library-info';
 
-    final header = digest.buildAuthHeader(
-      method: 'GET',
-      uri: uri,
-      username: user,
-      password: pass,
-    )!;
+    final header =
+        digest.buildAuthHeader(
+          method: 'GET',
+          uri: uri,
+          username: user,
+          password: pass,
+        )!;
 
     expect(field(header, 'username'), user);
     expect(field(header, 'realm'), 'calibre');
@@ -63,18 +64,20 @@ void main() {
     final digest = DigestAuth();
     digest.parseChallenge('Digest realm="r", nonce="n", qop="auth"');
 
-    final h1 = digest.buildAuthHeader(
-      method: 'GET',
-      uri: '/a',
-      username: 'u',
-      password: 'p',
-    )!;
-    final h2 = digest.buildAuthHeader(
-      method: 'GET',
-      uri: '/a',
-      username: 'u',
-      password: 'p',
-    )!;
+    final h1 =
+        digest.buildAuthHeader(
+          method: 'GET',
+          uri: '/a',
+          username: 'u',
+          password: 'p',
+        )!;
+    final h2 =
+        digest.buildAuthHeader(
+          method: 'GET',
+          uri: '/a',
+          username: 'u',
+          password: 'p',
+        )!;
 
     expect(field(h1, 'nc'), '00000001');
     expect(field(h2, 'nc'), '00000002');

@@ -1,7 +1,6 @@
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/features/login_settings/data/datasources/login_settings_local_datasource.dart';
 import 'package:calibre_web_companion/features/login_settings/data/models/custom_header.dart';
+import 'package:logger/logger.dart';
 
 class LoginSettingsRepository {
   final LoginSettingsLocalDataSource loginSettingsLocalDataSource;

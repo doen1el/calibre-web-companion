@@ -1,6 +1,5 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:calibre_web_companion/features/login_settings/data/models/custom_header.dart';
+import 'package:equatable/equatable.dart';
 
 class LoginSettingsState extends Equatable {
   final List<CustomHeaderModel> customHeaders;

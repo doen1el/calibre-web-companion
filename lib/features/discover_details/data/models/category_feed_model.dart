@@ -1,6 +1,5 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
+import 'package:equatable/equatable.dart';
 
 class CategoryFeed extends Equatable {
   final List<CategoryModel> categories;

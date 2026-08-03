@@ -1,14 +1,13 @@
 import 'dart:typed_data';
 
-import 'package:docman/docman.dart';
-import 'package:http/http.dart';
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
+import 'package:docman/docman.dart';
+import 'package:http/http.dart';
+import 'package:logger/logger.dart';
 
 class BookDetailsRepository {
   final BookDetailsRemoteDatasource datasource;

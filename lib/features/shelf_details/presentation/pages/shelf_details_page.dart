@@ -1,29 +1,27 @@
+import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:skeletonizer/skeletonizer.dart';
-import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
-
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_event.dart';
 import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_state.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_state.dart';
-
-import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
-import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
-import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
-import 'package:calibre_web_companion/shared/widgets/book_view_mode_selector.dart';
-import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
-import 'package:calibre_web_companion/main.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_book_item_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
 import 'package:calibre_web_companion/features/shelf_details/presentation/widgets/edit_shelf_dialog_widget.dart';
-import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_state.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/presentation/pages/magic_shelf_edit_page.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/main.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_view_mode_selector.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class ShelfDetailsPage extends StatelessWidget {
   final String shelfId;
@@ -71,7 +69,7 @@ class ShelfDetailsPage extends StatelessWidget {
 
           if (state.status == ShelfDetailsStatus.error) {
             context.showSnackBar(
-              "${localizations.errorLoadingData}: ${state.errorMessage}",
+              '${localizations.errorLoadingData}: ${state.errorMessage}',
               isError: true,
             );
           }
@@ -196,10 +194,8 @@ class ShelfDetailsPage extends StatelessWidget {
           switch (value) {
             case 'duplicate':
               context.read<ShelfViewBloc>().add(DuplicateMagicShelf(shelfId));
-              break;
             case 'delete':
               _showMagicDeleteDialog(context, localizations);
-              break;
           }
         },
         itemBuilder:

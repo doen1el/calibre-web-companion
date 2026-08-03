@@ -1,13 +1,11 @@
-import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_details_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_feed_model.dart';
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DiscoverDetailsRemoteDatasource {
   final ApiService apiService;
@@ -36,17 +34,10 @@ class DiscoverDetailsRemoteDatasource {
         return const DiscoverFeedModel(books: [], nextPageUrl: null);
       }
 
-      final dynamic entryData = jsonData['feed']["entry"];
+      final dynamic entryData = jsonData['feed']['entry'];
       final List<dynamic> items = entryData is List ? entryData : [entryData];
       final books =
-          items
-              .map(
-                (item) => DiscoverDetailsModel.fromJson(
-                  item,
-                  apiService.getBaseUrl(),
-                ),
-              )
-              .toList();
+          items.map((item) => DiscoverDetailsModel.fromJson(item)).toList();
 
       return DiscoverFeedModel(
         books: books,
@@ -74,7 +65,7 @@ class DiscoverDetailsRemoteDatasource {
         return const CategoryFeed(categories: [], nextPageUrl: null);
       }
 
-      final dynamic entryData = jsonData['feed']["entry"];
+      final dynamic entryData = jsonData['feed']['entry'];
       final List<dynamic> items = entryData is List ? entryData : [entryData];
 
       final categories =
@@ -84,7 +75,7 @@ class DiscoverDetailsRemoteDatasource {
               final links = item['link'];
               if (links != null) {
                 final linkList = links is List ? links : [links];
-                for (var link in linkList) {
+                for (final link in linkList) {
                   if (link['_rel'] == 'subsection' ||
                       link['_rel'] == 'http://opds-spec.org/acquisition') {
                     id = link['_href'];
@@ -138,18 +129,11 @@ class DiscoverDetailsRemoteDatasource {
         return const DiscoverFeedModel(books: [], nextPageUrl: null);
       }
 
-      final dynamic entryData = jsonData['feed']["entry"];
+      final dynamic entryData = jsonData['feed']['entry'];
       final List<dynamic> items = entryData is List ? entryData : [entryData];
 
       final books =
-          items
-              .map(
-                (item) => DiscoverDetailsModel.fromJson(
-                  item,
-                  apiService.getBaseUrl(),
-                ),
-              )
-              .toList();
+          items.map((item) => DiscoverDetailsModel.fromJson(item)).toList();
 
       return DiscoverFeedModel(
         books: books,
@@ -194,7 +178,7 @@ class DiscoverDetailsRemoteDatasource {
       return const CategoryFeed(categories: []);
     }
 
-    final dynamic entryData = jsonData['feed']["entry"];
+    final dynamic entryData = jsonData['feed']['entry'];
     final List<dynamic> items = entryData is List ? entryData : [entryData];
 
     final categories =
@@ -254,7 +238,7 @@ class DiscoverDetailsRemoteDatasource {
       DiscoverType.surprise: '/surprise',
     };
 
-    String basePath = paths[type] ?? '/opds/discover';
+    final String basePath = paths[type] ?? '/opds/discover';
 
     return subPath != null ? '$basePath/$subPath' : basePath;
   }
@@ -271,7 +255,7 @@ class DiscoverDetailsRemoteDatasource {
       CategoryType.libraries: '/libraries',
     };
 
-    String basePath = paths[type] ?? '/opds/category';
+    final String basePath = paths[type] ?? '/opds/category';
     return subPath != null ? '$basePath/$subPath' : basePath;
   }
 }

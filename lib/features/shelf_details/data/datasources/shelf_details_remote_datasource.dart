@@ -1,8 +1,7 @@
-import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/shelf_details/data/models/shelf_details_model.dart';
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ShelfDetailsRemoteDataSource {
   final ApiService apiService;

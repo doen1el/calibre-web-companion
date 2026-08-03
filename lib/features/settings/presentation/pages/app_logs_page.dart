@@ -1,10 +1,9 @@
+import 'package:calibre_web_companion/core/services/app_log_service.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
-
-import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/core/services/app_log_service.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
 
 class AppLogsPage extends StatelessWidget {
   const AppLogsPage({super.key});
@@ -29,7 +28,7 @@ class AppLogsPage extends StatelessWidget {
         actions: [
           ValueListenableBuilder<int>(
             valueListenable: appLogService.revision,
-            builder: (context, _, __) {
+            builder: (context, _, _) {
               final hasLogs = !appLogService.isEmpty;
               return IconButton(
                 tooltip: localizations.copyLogs,
@@ -40,7 +39,7 @@ class AppLogsPage extends StatelessWidget {
           ),
           ValueListenableBuilder<int>(
             valueListenable: appLogService.revision,
-            builder: (context, _, __) {
+            builder: (context, _, _) {
               final hasLogs = !appLogService.isEmpty;
               return IconButton(
                 tooltip: localizations.clearLogs,
@@ -53,7 +52,7 @@ class AppLogsPage extends StatelessWidget {
       ),
       body: ValueListenableBuilder<int>(
         valueListenable: appLogService.revision,
-        builder: (context, _, __) {
+        builder: (context, _, _) {
           final text = appLogService.exportText();
 
           if (text.trim().isEmpty) {

@@ -1,12 +1,11 @@
-import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
-
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
 class SettingsModel extends Equatable {
   final ThemeMode themeMode;

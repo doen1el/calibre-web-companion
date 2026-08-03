@@ -1,27 +1,26 @@
 import 'dart:typed_data';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:calibre_web_companion/core/services/server_capabilities.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:flutter_rating/flutter_rating.dart';
-import 'package:intl/intl.dart';
-import 'package:image_picker/image_picker.dart';
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
+import 'package:calibre_web_companion/core/services/server_capabilities.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/widgets/metadata_search_dialog.dart';
-
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
-import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
-import 'package:calibre_web_companion/core/services/api_service.dart';
-import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_rating/flutter_rating.dart';
+import 'package:get_it/get_it.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EditBookMetadataWidget extends StatelessWidget {
   final BookDetailsModel book;
@@ -42,7 +41,7 @@ class EditBookMetadataWidget extends StatelessWidget {
     return IconButton(
       icon: CircleAvatar(
         backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-        child: Icon(Icons.edit),
+        child: const Icon(Icons.edit),
       ),
       onPressed:
           isLoading
@@ -258,7 +257,7 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
                         Theme.of(context).colorScheme.primaryContainer,
                     child:
                         isLoading
-                            ? SizedBox(
+                            ? const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 3),
@@ -316,7 +315,7 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
       context: context,
       builder:
           (context) => MetadataSearchDialog(
-            initialQuery: "${_titleController.text} ${_authorsController.text}",
+            initialQuery: '${_titleController.text} ${_authorsController.text}',
           ),
     );
 
@@ -501,7 +500,7 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
                   enabled: !isLoading,
                   readOnly: true,
                   onTap: () async {
-                    DateTime? pickedDate = await showDatePicker(
+                    final DateTime? pickedDate = await showDatePicker(
                       context: context,
                       initialDate:
                           DateTime.tryParse(_pubdateController.text) ??
@@ -510,7 +509,7 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
                       lastDate: DateTime(2100),
                     );
                     if (pickedDate != null) {
-                      String formattedDate =
+                      final String formattedDate =
                           "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
                       _pubdateController.text = formattedDate;
                     }

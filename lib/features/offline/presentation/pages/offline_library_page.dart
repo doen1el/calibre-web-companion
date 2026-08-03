@@ -1,15 +1,14 @@
 import 'dart:io';
 
-import 'package:cosmos_epub/cosmos_epub.dart';
-import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
-
-import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
 import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:cosmos_epub/cosmos_epub.dart';
+import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 
 class OfflineLibraryPage extends StatefulWidget {
   const OfflineLibraryPage({super.key});
@@ -215,7 +214,7 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
 
   Widget _buildCover(BuildContext context, OfflineBookModel book) {
     final theme = Theme.of(context);
-    final placeholder = Container(
+    final placeholder = ColoredBox(
       color: theme.colorScheme.surfaceContainerHighest,
       child: Center(
         child: Icon(

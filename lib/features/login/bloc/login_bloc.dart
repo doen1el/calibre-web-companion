@@ -1,9 +1,8 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/features/login/bloc/login_event.dart';
 import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
 import 'package:calibre_web_companion/features/login/data/repositories/login_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final LoginRepository loginRepository;
@@ -321,7 +320,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     await loginRepository.clearSession();
 
     final accountServerType = event.credentials.serverType;
-    ServerType targetServerType = ServerType.values.firstWhere(
+    final ServerType targetServerType = ServerType.values.firstWhere(
       (e) =>
           e.name == accountServerType ||
           (accountServerType == 'grimmory' && e == ServerType.booklore),

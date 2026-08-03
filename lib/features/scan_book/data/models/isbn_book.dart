@@ -1,7 +1,6 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_metadata_source.dart';
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_utils.dart';
+import 'package:equatable/equatable.dart';
 
 class IsbnBook extends Equatable {
   final String isbn;

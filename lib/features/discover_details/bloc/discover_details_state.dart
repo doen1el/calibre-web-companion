@@ -1,8 +1,7 @@
-import 'package:equatable/equatable.dart';
-
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_feed_model.dart';
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:equatable/equatable.dart';
 
 enum DiscoverDetailsStatus { initial, loading, loaded, error }
 

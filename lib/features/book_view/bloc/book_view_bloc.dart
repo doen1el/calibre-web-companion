@@ -1,10 +1,8 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_state.dart';
-
 import 'package:calibre_web_companion/features/book_view/data/repositories/book_view_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
 
 class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
   final BookViewRepository repository;

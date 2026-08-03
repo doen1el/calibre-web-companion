@@ -1,12 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-
 import 'package:calibre_web_companion/core/di/injection_container.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:flutter/material.dart';
 
 class MetadataSearchDialog extends StatefulWidget {
   final String initialQuery;
@@ -246,7 +245,7 @@ class _MetadataSearchDialogState extends State<MetadataSearchDialog> {
                               color: scheme.surfaceContainerHighest,
                             ),
                         errorWidget:
-                            (_, _, _) => Container(
+                            (_, _, _) => ColoredBox(
                               color: scheme.surfaceContainerHighest,
                               child: Icon(
                                 Icons.menu_book_rounded,
@@ -254,7 +253,7 @@ class _MetadataSearchDialogState extends State<MetadataSearchDialog> {
                               ),
                             ),
                       )
-                      : Container(
+                      : ColoredBox(
                         color: scheme.surfaceContainerHighest,
                         child: Icon(
                           Icons.menu_book_rounded,

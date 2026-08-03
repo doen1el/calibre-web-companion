@@ -1,0 +1,56 @@
+name: 'Checks'
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [dev]
+
+jobs:
+  checks:
+    name: Format, analyze & test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.2'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Generate Translation Files
+        run: flutter gen-l10n
+
+      - name: Stub integration test credentials
+        run: |
+          cat > test/test_env.dart <<'EOF'
+          class TestEnv {
+            static const String baseUrl = '';
+            static const String username = '';
+            static const String password = '';
+
+            static const String downloaderUrl = '';
+            static const String downloaderUsername = '';
+            static const String downloaderPassword = '';
+
+            static bool get hasDownloader => downloaderUrl.isNotEmpty;
+          }
+          EOF
+
+      - name: Check Formatting
+        run: dart format --output none --set-exit-if-changed lib test
+
+      # --fatal-infos: every rule in analysis_options.yaml blocks the merge.
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+
+      # Integration tests need a live Calibre-Web server, so CI runs the rest.
+      - name: Test
+        run: flutter test --exclude-tags integration

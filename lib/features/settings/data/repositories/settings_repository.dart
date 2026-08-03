@@ -1,14 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:logger/logger.dart';
 
+import 'package:calibre_web_companion/core/di/injection_container.dart';
+import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 import 'package:calibre_web_companion/features/settings/data/datasources/settings_local_datasource.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/settings_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
-import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
-import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
-import 'package:calibre_web_companion/core/di/injection_container.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum DownloaderUrlStatus { reachable, authRequired, unreachable }
@@ -134,7 +134,7 @@ class SettingsRepository {
   }
 
   Future<String> getLanguage() async {
-    return await dataSource.getLanguage();
+    return dataSource.getLanguage();
   }
 
   Future<void> setShowReadNowButton(bool enabled) async {
@@ -209,7 +209,7 @@ class SettingsRepository {
         final response = await client.get(uri);
 
         if (response.statusCode == 401 || response.statusCode == 403) {
-          throw Exception("Authentication required");
+          throw Exception('Authentication required');
         }
 
         return response.statusCode == 200;
@@ -227,10 +227,10 @@ class SettingsRepository {
       );
       return response.statusCode == 200;
     } catch (e) {
-      if (e.toString().contains("Authentication required")) {
-        throw Exception("Authentication required");
+      if (e.toString().contains('Authentication required')) {
+        throw Exception('Authentication required');
       }
-      throw Exception("Connection failed: $e");
+      throw Exception('Connection failed: $e');
     }
   }
 

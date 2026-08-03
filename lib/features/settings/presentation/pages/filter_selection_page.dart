@@ -1,11 +1,11 @@
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
-import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
-import 'package:calibre_web_companion/features/discover_details/data/repositories/discover_details_repository.dart';
+import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/category_model.dart';
-import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
+import 'package:calibre_web_companion/features/discover_details/data/repositories/discover_details_repository.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
+import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 
 enum FilterType { author, series, category, language, publisher }
 
@@ -48,24 +48,19 @@ class _FilterSelectionPageState extends State<FilterSelectionPage> {
         case FilterType.author:
           feed = await repo.loadCategories(
             CategoryType.author,
-            subPath: "letter/00",
+            subPath: 'letter/00',
           );
-          break;
         case FilterType.series:
-          feed = await _loadCustomFeed(repo, "/opds/series/letter/00");
-          break;
+          feed = await _loadCustomFeed(repo, '/opds/series/letter/00');
         case FilterType.category:
           feed = await repo.loadCategories(
             CategoryType.category,
-            subPath: "letter/00",
+            subPath: 'letter/00',
           );
-          break;
         case FilterType.language:
-          feed = await _loadCustomFeed(repo, "/opds/language");
-          break;
+          feed = await _loadCustomFeed(repo, '/opds/language');
         case FilterType.publisher:
-          feed = await _loadCustomFeed(repo, "/opds/publisher");
-          break;
+          feed = await _loadCustomFeed(repo, '/opds/publisher');
       }
 
       if (!mounted) return;
@@ -92,7 +87,7 @@ class _FilterSelectionPageState extends State<FilterSelectionPage> {
     DiscoverDetailsRepository repo,
     String path,
   ) async {
-    return await repo.dataSource.loadCategoriesgeneric(path);
+    return repo.dataSource.loadCategoriesgeneric(path);
   }
 
   void _toggleSelectAll() {
@@ -113,7 +108,7 @@ class _FilterSelectionPageState extends State<FilterSelectionPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("${localizations.select} ${widget.title}"),
+        title: Text('${localizations.select} ${widget.title}'),
         actions: [
           if (!isLoading && errorMessage == null)
             IconButton(
@@ -145,7 +140,7 @@ class _FilterSelectionPageState extends State<FilterSelectionPage> {
               : errorMessage != null
               ? isNotFound
                   ? _buildNotFoundWidget(context, localizations)
-                  : Center(child: Text("${localizations.error}: $errorMessage"))
+                  : Center(child: Text('${localizations.error}: $errorMessage'))
               : ListView.builder(
                 itemCount: items.length,
                 itemBuilder: (context, index) {

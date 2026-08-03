@@ -1,5 +1,3 @@
-import 'package:flutter_test/flutter_test.dart';
-
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_bloc.dart';
 import 'package:calibre_web_companion/features/discover_details/bloc/discover_details_event.dart';
@@ -10,16 +8,14 @@ import 'package:calibre_web_companion/features/discover_details/data/models/cate
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_details_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/models/discover_feed_model.dart';
 import 'package:calibre_web_companion/features/discover_details/data/repositories/discover_details_repository.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 class _FakeRepository implements DiscoverDetailsRepository {
   final Map<String, DiscoverFeedModel> bookPages;
   final Map<String, CategoryFeed> categoryPages;
   final List<String> requestedPaths = [];
 
-  _FakeRepository({
-    this.bookPages = const {},
-    this.categoryPages = const {},
-  });
+  _FakeRepository({this.bookPages = const {}, this.categoryPages = const {}});
 
   @override
   DiscoverDetailsRemoteDatasource get dataSource => throw UnimplementedError();
@@ -117,36 +113,41 @@ void main() {
     await bloc.close();
   });
 
-  test('a next link pointing at the page just loaded ends pagination', () async {
-    final repository = _FakeRepository(
-      bookPages: {
-        '/opds/new': DiscoverFeedModel(
-          books: [book('1')],
-          nextPageUrl: '/opds/new?offset=1',
-        ),
-        '/opds/new?offset=1': DiscoverFeedModel(
-          books: [book('2')],
-          nextPageUrl: '/opds/new?offset=1',
-        ),
-      },
-    );
-    final bloc = DiscoverDetailsBloc(repository: repository);
+  test(
+    'a next link pointing at the page just loaded ends pagination',
+    () async {
+      final repository = _FakeRepository(
+        bookPages: {
+          '/opds/new': DiscoverFeedModel(
+            books: [book('1')],
+            nextPageUrl: '/opds/new?offset=1',
+          ),
+          '/opds/new?offset=1': DiscoverFeedModel(
+            books: [book('2')],
+            nextPageUrl: '/opds/new?offset=1',
+          ),
+        },
+      );
+      final bloc = DiscoverDetailsBloc(repository: repository);
 
-    bloc.add(const LoadBooksFromPath('/opds/new'));
-    await loaded(bloc);
+      bloc.add(const LoadBooksFromPath('/opds/new'));
+      await loaded(bloc);
 
-    bloc.add(const LoadMoreDiscoverBooks());
-    final state = await settled(bloc);
+      bloc.add(const LoadMoreDiscoverBooks());
+      final state = await settled(bloc);
 
-    expect(state.bookFeed!.books, hasLength(2));
-    expect(state.hasMoreBooks, isFalse);
+      expect(state.bookFeed!.books, hasLength(2));
+      expect(state.hasMoreBooks, isFalse);
 
-    await bloc.close();
-  });
+      await bloc.close();
+    },
+  );
 
   test('load more without a next link does not hit the repository', () async {
     final repository = _FakeRepository(
-      bookPages: {'/opds/new': DiscoverFeedModel(books: [book('1')])},
+      bookPages: {
+        '/opds/new': DiscoverFeedModel(books: [book('1')]),
+      },
     );
     final bloc = DiscoverDetailsBloc(repository: repository);
 

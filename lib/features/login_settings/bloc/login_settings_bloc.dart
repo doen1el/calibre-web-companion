@@ -1,13 +1,11 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logger/logger.dart';
-
-import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_event.dart';
-import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_state.dart';
-
-import 'package:calibre_web_companion/features/login_settings/data/models/custom_header.dart';
-import 'package:calibre_web_companion/features/login_settings/data/repositories/login_settings_repository.dart';
 import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_event.dart';
+import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_state.dart';
+import 'package:calibre_web_companion/features/login_settings/data/models/custom_header.dart';
+import 'package:calibre_web_companion/features/login_settings/data/repositories/login_settings_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
 
 class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
   final Logger _logger = Logger();
@@ -151,7 +149,9 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
   ) async {
     emit(state.copyWith(reachabilityProbe: event.endpoint));
     try {
-      await loginSettingsRepository.saveReachabilityProbe(event.endpoint.trim());
+      await loginSettingsRepository.saveReachabilityProbe(
+        event.endpoint.trim(),
+      );
     } catch (e) {
       _logger.e('Error saving reachability probe endpoint: $e');
     }

@@ -1,6 +1,5 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_status.dart';
+import 'package:equatable/equatable.dart';
 
 class DownloadServiceBookModel extends Equatable {
   final String id;

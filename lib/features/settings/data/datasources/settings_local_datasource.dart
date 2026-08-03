@@ -1,8 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:logger/logger.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
@@ -10,6 +5,10 @@ import 'package:calibre_web_companion/features/settings/data/models/download_pat
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/settings_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/theme_source.dart';
+import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsLocalDataSource {
   final SharedPreferences sharedPreferences;
@@ -215,9 +214,9 @@ class SettingsLocalDataSource {
     try {
       logger.i('Submitting feedback: $title');
 
-      final owner = 'doen1el';
-      final repo = 'calibre-web-companion';
-      final issueUrl = 'https://github.com/$owner/$repo/issues/new';
+      const owner = 'doen1el';
+      const repo = 'calibre-web-companion';
+      const issueUrl = 'https://github.com/$owner/$repo/issues/new';
 
       final queryParams = {
         'title': Uri.encodeComponent(title),

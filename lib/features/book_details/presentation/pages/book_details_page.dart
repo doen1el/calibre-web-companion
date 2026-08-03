@@ -1,28 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:convert';
-
-import 'package:docman/docman.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart' as intl;
-import 'package:logger/logger.dart';
-import 'package:skeletonizer/skeletonizer.dart';
-import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
-import 'package:calibre_web_companion/shared/widgets/app_options_sheet.dart';
-import 'package:get_it/get_it.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
-import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
 
 import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/server_capabilities.dart';
-import 'package:calibre_web_companion/core/services/widget_service.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
+import 'package:calibre_web_companion/core/services/widget_service.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
+import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/tag_model.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/widgets/add_to_shelf_widget.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/widgets/download_to_device_widget.dart';
@@ -35,13 +25,21 @@ import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart'
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/features/settings/presentation/pages/settings_page.dart';
-import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
-import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:calibre_web_companion/shared/widgets/app_options_sheet.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
+import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:cosmos_epub/cosmos_epub.dart';
 import 'package:cosmos_epub/show_epub.dart' as cosmos_reader;
-import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
-import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
+import 'package:docman/docman.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart' as intl;
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 enum BookAutoOpen { none, internalReader, externalReader }
 
@@ -109,9 +107,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     }
 
     final supportedFormats =
-        formats
-            .where((format) => _isInternalReaderSupportedFormat(format))
-            .toList();
+        formats.where(_isInternalReaderSupportedFormat).toList();
 
     if (supportedFormats.isEmpty) {
       _showUnsupportedInternalReaderFormatMessage(
@@ -148,13 +144,10 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                   switch (format) {
                     case 'epub':
                       icon = Icons.menu_book;
-                      break;
                     case 'pdf':
                       icon = Icons.picture_as_pdf;
-                      break;
                     case 'kepub':
                       icon = Icons.book;
-                      break;
                     default:
                       icon = Icons.file_present;
                   }
@@ -715,7 +708,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                         )
                         : Text(
                           book.title.length > 30
-                              ? "${book.title.substring(0, 30)}..."
+                              ? '${book.title.substring(0, 30)}...'
                               : book.title,
                         ),
                 leading: IconButton(
@@ -875,7 +868,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
             Icons.info_outline_rounded,
             localizations.publicationInfo,
             [
-              if (book.pubdate != "")
+              if (book.pubdate != '')
                 _buildInfoRow(
                   context,
                   localizations.updated,
@@ -884,7 +877,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                   ).format(DateTime.parse(book.pubdate)),
                   Icons.update_rounded,
                 ),
-              if (book.publishers != "")
+              if (book.publishers != '')
                 _buildInfoRow(
                   context,
                   localizations.publisher,
@@ -1260,7 +1253,9 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
               child: const Icon(Icons.open_in_browser_rounded),
             ),
             onPressed:
-                () => context.read<BookDetailsBloc>().add(OpenBookInBrowser()),
+                () => context.read<BookDetailsBloc>().add(
+                  const OpenBookInBrowser(),
+                ),
             tooltip: localizations.openBookInBrowser,
           ),
       BookDetailsAction.deleteBook.key:
@@ -1363,7 +1358,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     String title,
     Widget child,
   ) {
-    BorderRadius borderRadius = BorderRadius.circular(12.0);
+    final BorderRadius borderRadius = BorderRadius.circular(12.0);
 
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
@@ -1465,7 +1460,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
   }
 
   String _formatLanguage(String languageCode, AppLocalizations localizations) {
-    var languageMap = {
+    final languageMap = {
       'eng': localizations.english,
       'deu': localizations.german,
       'fra': localizations.french,
@@ -1546,7 +1541,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
   Widget _buildRating(double rating) {
     final int filledStars = (rating / 2).floor();
     final bool hasHalfStar = ((rating / 2) - filledStars) >= 0.5;
-    final int maxStars = 5;
+    const int maxStars = 5;
 
     return Row(
       mainAxisSize: MainAxisSize.min,

@@ -1,22 +1,21 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:skeletonizer/skeletonizer.dart';
-import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
-import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
-
-import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
-import 'package:calibre_web_companion/main.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
+import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_bloc.dart';
+import 'package:calibre_web_companion/features/shelf_details/presentation/pages/shelf_details_page.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_bloc.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_state.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_shelf_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
-import 'package:calibre_web_companion/features/shelf_details/bloc/shelf_details_bloc.dart';
-import 'package:calibre_web_companion/features/shelf_details/presentation/pages/shelf_details_page.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/main.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class AddToShelfWidget extends StatefulWidget {
   final BookDetailsModel book;

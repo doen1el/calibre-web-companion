@@ -17,7 +17,7 @@ class DownloadConfigModel {
 
     final languagesList = <Map<String, String>>[];
     if (json['book_languages'] != null) {
-      for (var item in json['book_languages']) {
+      for (final item in json['book_languages']) {
         languagesList.add({
           'code': item['code'] as String,
           'language': item['language'] as String,

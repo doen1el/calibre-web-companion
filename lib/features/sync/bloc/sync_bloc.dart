@@ -1,20 +1,19 @@
-import 'package:docman/docman.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logger/logger.dart';
-import 'package:get_it/get_it.dart';
-
+import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/services/download_manager.dart';
+import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:calibre_web_companion/features/book_view/data/repositories/book_view_repository.dart';
+import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
+import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
+import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
+import 'package:calibre_web_companion/features/shelf_details/data/repositories/shelf_details_repository.dart';
 import 'package:calibre_web_companion/features/sync/bloc/sync_event.dart';
 import 'package:calibre_web_companion/features/sync/bloc/sync_state.dart';
 import 'package:calibre_web_companion/features/sync/data/models/sync_filter.dart';
-import 'package:calibre_web_companion/features/book_view/data/repositories/book_view_repository.dart';
-import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
-import 'package:calibre_web_companion/core/services/download_manager.dart';
-import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
-import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
-import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
-import 'package:calibre_web_companion/features/shelf_details/data/repositories/shelf_details_repository.dart';
-import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:docman/docman.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:logger/logger.dart';
 
 class SyncBloc extends Bloc<SyncEvent, SyncState> {
   final Logger logger;
@@ -55,7 +54,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       emit(
         state.copyWith(
           status: SyncStatus.error,
-          errorMessage: "Please configure a download folder in Settings first.",
+          errorMessage: 'Please configure a download folder in Settings first.',
         ),
       );
       return;
@@ -84,7 +83,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         emit(
           state.copyWith(
             status: SyncStatus.idle,
-            errorMessage: "No books found matching your filters.",
+            errorMessage: 'No books found matching your filters.',
           ),
         );
         return;
@@ -185,7 +184,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         logger.d('Loaded ${sourceList.length} books from shelf.');
       } catch (e) {
         logger.e('Failed to load shelf: $e');
-        throw Exception("Could not load shelf ${filter.shelfId}");
+        throw Exception('Could not load shelf ${filter.shelfId}');
       }
     } else {
       logger.d('Fetching ALL books from Library (paginated)...');
@@ -202,10 +201,10 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     final Map<String, int> map = {};
     try {
       final apiService = GetIt.I<ApiService>();
-      final response = await apiService.get(endpoint: "/opds/shelf/$shelfId");
+      final response = await apiService.get(endpoint: '/opds/shelf/$shelfId');
 
       final entries = response.body.split('<entry>');
-      for (var entry in entries) {
+      for (final entry in entries) {
         if (!entry.contains('</entry>')) continue;
 
         final uuidMatch = RegExp(
@@ -219,9 +218,9 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
           map[uuidMatch.group(1)!] = int.parse(idMatch.group(1)!);
         }
       }
-      logger.d("Resolved ${map.length} IDs from OPDS feed.");
+      logger.d('Resolved ${map.length} IDs from OPDS feed.');
     } catch (e) {
-      logger.w("Failed to resolve IDs from OPDS feed: $e");
+      logger.w('Failed to resolve IDs from OPDS feed: $e');
     }
     return map;
   }
@@ -321,7 +320,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
   }
 
   Future<List<BookViewModel>> _fetchAllBooks() async {
-    List<BookViewModel> allBooks = [];
+    final List<BookViewModel> allBooks = [];
     int offset = 0;
     const limit = 50;
     bool hasMore = true;
@@ -363,7 +362,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       } catch (e) {
         logger.e('Error fetching book chunk at offset $offset: $e');
 
-        throw Exception("Sync failed during library scan: $e");
+        throw Exception('Sync failed during library scan: $e');
       }
     }
     return allBooks;
@@ -422,7 +421,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         logger.e('Error accessing download directory: $e');
       }
 
-      if (dir == null) throw Exception("Invalid download directory");
+      if (dir == null) throw Exception('Invalid download directory');
 
       var bookDetails = await bookDetailsRepository.getBookDetails(
         item.book,
@@ -431,7 +430,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
 
       if (bookDetails.id == 0 && item.book.id != 0) {
         logger.i(
-          "API returned ID 0, restoring ID ${item.book.id} parsed from OPDS link.",
+          'API returned ID 0, restoring ID ${item.book.id} parsed from OPDS link.',
         );
         bookDetails = bookDetails.copyWith(id: item.book.id);
       }
@@ -445,7 +444,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       String? formatToDownload;
 
       if (state.filter.selectedFormats.isNotEmpty) {
-        for (var f in state.filter.selectedFormats) {
+        for (final f in state.filter.selectedFormats) {
           if (bookDetails.formats.any(
             (bf) => bf.toLowerCase().contains(f.toLowerCase()),
           )) {
@@ -459,7 +458,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
             'Skipping "${bookDetails.title}" - Formats ${bookDetails.formats} do not match ${state.filter.selectedFormats}',
           );
 
-          throw Exception("Skipped: No matching format found.");
+          throw Exception('Skipped: No matching format found.');
         }
       } else {
         if (bookDetails.formats.contains('EPUB')) {
@@ -467,7 +466,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         } else if (bookDetails.formats.isNotEmpty) {
           formatToDownload = bookDetails.formats.first;
         } else {
-          throw Exception("Skipped: No formats available.");
+          throw Exception('Skipped: No formats available.');
         }
       }
 
@@ -515,12 +514,12 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       );
     } catch (e) {
       final msg = e.toString();
-      final isSkip = msg.contains("Skipped:");
+      final isSkip = msg.contains('Skipped:');
 
       if (isSkip) {
         logger.d(msg);
       } else {
-        logger.e("Sync error for ${item.book.title}: $e");
+        logger.e('Sync error for ${item.book.title}: $e');
       }
 
       newQueue = List.from(state.queue);

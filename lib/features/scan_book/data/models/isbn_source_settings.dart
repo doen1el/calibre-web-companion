@@ -1,6 +1,5 @@
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_metadata_source.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class IsbnSourceSettings {
   static const String enabledKey = 'isbn_sources_enabled';

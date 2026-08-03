@@ -45,7 +45,7 @@ class FormatMetadata extends Equatable {
 
   factory FormatMetadata.fromJson(Map<String, dynamic> json) {
     try {
-      Map<String, FormatMetadataModel> formats = {};
+      final Map<String, FormatMetadataModel> formats = {};
 
       // Extract format metadata if available
       if (json.containsKey('format_metadata') &&
@@ -66,7 +66,7 @@ class FormatMetadata extends Equatable {
 
       return FormatMetadata(formats: formats);
     } catch (e) {
-      return FormatMetadata(formats: {});
+      return const FormatMetadata(formats: {});
     }
   }
 

@@ -1,11 +1,10 @@
 import 'dart:convert';
 
+import 'package:calibre_web_companion/features/scan_book/data/models/isbn_book.dart';
+import 'package:calibre_web_companion/features/scan_book/data/models/isbn_metadata_source.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-
-import 'package:calibre_web_companion/features/scan_book/data/models/isbn_book.dart';
-import 'package:calibre_web_companion/features/scan_book/data/models/isbn_metadata_source.dart';
 
 abstract class IsbnMetadataProvider {
   final http.Client client;

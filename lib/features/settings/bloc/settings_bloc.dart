@@ -1,14 +1,12 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-
 import 'package:calibre_web_companion/core/services/widget_service.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
-
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
 import 'package:calibre_web_companion/features/settings/data/repositories/settings_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final SettingsRepository repository;
@@ -491,7 +489,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         emit(
           state.copyWith(
             downloaderTestStatus: ConnectionTestStatus.error,
-            testErrorMessage: "Login failed (Invalid credentials or URL)",
+            testErrorMessage: 'Login failed (Invalid credentials or URL)',
           ),
         );
       }

@@ -1,13 +1,13 @@
 import 'dart:convert';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
-
-import 'package:calibre_web_companion/core/services/api_service.dart';
-import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
 
 class BookCoverWidget extends StatelessWidget {
   final int bookId;
@@ -38,7 +38,7 @@ class BookCoverWidget extends StatelessWidget {
 
     String imageUrl;
     if (hasExplicitCover) {
-      var cleanCoverURL = coverUrl!.split("/api/v1/opds/").last;
+      var cleanCoverURL = coverUrl!.split('/api/v1/opds/').last;
       if (cleanCoverURL.startsWith('/')) {
         cleanCoverURL = cleanCoverURL.substring(1);
       }
@@ -126,7 +126,7 @@ class BookCoverWidget extends StatelessWidget {
   }
 
   Widget _buildPlaceholder(BuildContext context) {
-    return Container(
+    return ColoredBox(
       color: Theme.of(
         context,
       ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),
@@ -146,7 +146,7 @@ class BookCoverWidget extends StatelessWidget {
   }
 
   Widget _buildErrorWidget(BuildContext context) {
-    return Container(
+    return ColoredBox(
       color: Theme.of(
         context,
       ).colorScheme.surfaceContainerHighest.withValues(alpha: .3),

@@ -1,19 +1,17 @@
 import 'package:calibre_web_companion/core/di/injection_container.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_bloc.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_state.dart';
+import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/core/services/app_transition.dart';
-import 'package:calibre_web_companion/shared/widgets/long_button_widget.dart';
-import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
 import 'package:calibre_web_companion/features/settings/presentation/pages/settings_page.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/widgets/long_button_widget.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DiscoverPage extends StatelessWidget {
   const DiscoverPage({super.key});
@@ -40,9 +38,7 @@ class DiscoverPage extends StatelessWidget {
           }
 
           return SafeArea(
-            child: Scaffold(
-              body: SingleChildScrollView(child: body),
-            ),
+            child: Scaffold(body: SingleChildScrollView(child: body)),
           );
         },
       ),
@@ -294,8 +290,8 @@ class DiscoverPage extends StatelessWidget {
     };
 
     return orderedItems
-        .where((itemKey) => enabledItems.contains(itemKey))
-        .where((itemKey) => builders.containsKey(itemKey))
+        .where(enabledItems.contains)
+        .where(builders.containsKey)
         .map((itemKey) => builders[itemKey]!())
         .toList();
   }
@@ -464,8 +460,8 @@ class DiscoverPage extends StatelessWidget {
     };
 
     return orderedItems
-        .where((itemKey) => enabledItems.contains(itemKey))
-        .where((itemKey) => builders.containsKey(itemKey))
+        .where(enabledItems.contains)
+        .where(builders.containsKey)
         .map((itemKey) => builders[itemKey]!())
         .toList();
   }

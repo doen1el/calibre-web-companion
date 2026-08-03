@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:flutter/material.dart';
 
 Future<void> showComingSoonDialog(
   BuildContext context,

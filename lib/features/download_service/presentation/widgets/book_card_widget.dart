@@ -1,18 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
+import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
+import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
+import 'package:calibre_web_companion/features/download_service/data/models/download_service_status.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/utils/status_colors.dart';
+import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
-import 'package:calibre_web_companion/shared/utils/status_colors.dart';
-
-import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
-import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
-import 'package:calibre_web_companion/features/download_service/data/models/download_service_status.dart';
 
 class BookCardWidget extends StatefulWidget {
   final DownloadServiceBookModel book;
@@ -163,14 +161,14 @@ class _BookCardWidgetState extends State<BookCardWidget> {
                   future: _imageContextFuture,
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
-                      return Container(
+                      return ColoredBox(
                         color: Theme.of(context)
                             .colorScheme
                             .surfaceContainerHighest
                             .withValues(alpha: .3),
-                        child: AppSkeletonizer(
+                        child: const AppSkeletonizer(
                           enabled: true,
-                          child: const SizedBox(),
+                          child: SizedBox(),
                         ),
                       );
                     }
@@ -188,7 +186,7 @@ class _BookCardWidgetState extends State<BookCardWidget> {
                       httpHeaders: headers,
                       fit: BoxFit.cover,
                       placeholder:
-                          (context, url) => Container(
+                          (context, url) => ColoredBox(
                             color: Theme.of(context)
                                 .colorScheme
                                 .surfaceContainerHighest
@@ -220,7 +218,7 @@ class _BookCardWidgetState extends State<BookCardWidget> {
   }
 
   Widget _buildCoverPlaceholder(BuildContext context) {
-    return Container(
+    return ColoredBox(
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: Center(
         child: Icon(
@@ -321,32 +319,26 @@ class _BookCardWidgetState extends State<BookCardWidget> {
         statusColor = StatusColors.info(context);
         statusIcon = Icons.download_rounded;
         statusText = localizations.available;
-        break;
       case DownloaderStatus.downloading:
         statusColor = StatusColors.warning(context);
         statusIcon = Icons.downloading_rounded;
         statusText = localizations.downloading;
-        break;
       case DownloaderStatus.done:
         statusColor = StatusColors.success(context);
         statusIcon = Icons.check_circle_outline_rounded;
         statusText = localizations.completed;
-        break;
       case DownloaderStatus.error:
         statusColor = StatusColors.error(context);
         statusIcon = Icons.error_outline_rounded;
         statusText = localizations.failed;
-        break;
       case DownloaderStatus.queued:
         statusColor = StatusColors.pending(context);
         statusIcon = Icons.queue_rounded;
         statusText = localizations.queued;
-        break;
       case DownloaderStatus.notDownloaded:
         statusColor = StatusColors.neutral(context);
         statusIcon = Icons.download_rounded;
         statusText = localizations.notDownloaded;
-        break;
     }
 
     return Row(
@@ -458,7 +450,6 @@ class _BookCardWidgetState extends State<BookCardWidget> {
               ),
             ),
           );
-          break;
         default:
           break;
       }

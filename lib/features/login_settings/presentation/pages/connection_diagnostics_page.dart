@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/connection_diagnostics.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/utils/status_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ConnectionDiagnosticsPage extends StatefulWidget {
   const ConnectionDiagnosticsPage({super.key});

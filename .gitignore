@@ -52,3 +52,5 @@ lib/l10n/app_localizations*.dart
 test/test_env.dart
 release_notes.md
 distribution/whatsnew/
+
+.mcp.json

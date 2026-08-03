@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-
 import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:flutter/material.dart';
 
 /// Lets the user assemble a download path from tokens, with a live preview.
 class DownloadPathTemplateDialog extends StatefulWidget {

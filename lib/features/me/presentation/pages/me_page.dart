@@ -1,29 +1,27 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
+import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.dart';
+import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
+import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
+import 'package:calibre_web_companion/features/homepage/presentation/pages/home_page.dart';
+import 'package:calibre_web_companion/features/login/bloc/login_bloc.dart';
+import 'package:calibre_web_companion/features/login/bloc/login_event.dart';
+import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
+import 'package:calibre_web_companion/features/login/presentation/pages/login_page.dart';
 import 'package:calibre_web_companion/features/me/bloc/me_bloc.dart';
 import 'package:calibre_web_companion/features/me/bloc/me_event.dart';
 import 'package:calibre_web_companion/features/me/bloc/me_state.dart';
-import 'package:calibre_web_companion/features/login/bloc/login_bloc.dart';
-import 'package:calibre_web_companion/features/login/bloc/login_event.dart';
-import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
-import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.dart';
-import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
-
-import 'package:calibre_web_companion/main.dart';
 import 'package:calibre_web_companion/features/me/data/models/stats_model.dart';
-import 'package:calibre_web_companion/core/services/app_transition.dart';
-import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/me/presentation/widgets/stats_card_widget.dart';
-import 'package:calibre_web_companion/shared/widgets/long_button_widget.dart';
-import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
-import 'package:calibre_web_companion/features/login/presentation/pages/login_page.dart';
 import 'package:calibre_web_companion/features/settings/presentation/pages/settings_page.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/presentation/pages/shelf_view_page.dart';
-import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
-import 'package:calibre_web_companion/features/homepage/presentation/pages/home_page.dart';
+import 'package:calibre_web_companion/main.dart';
+import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
+import 'package:calibre_web_companion/shared/widgets/long_button_widget.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MePage extends StatelessWidget {
   const MePage({super.key});
@@ -60,7 +58,7 @@ class MePage extends StatelessWidget {
           listener: (context, state) {
             if (state.status == MeStatus.error) {
               context.showSnackBar(
-                "${localizations.error}: ${state.errorMessage}",
+                '${localizations.error}: ${state.errorMessage}',
                 isError: true,
               );
             }
@@ -74,7 +72,7 @@ class MePage extends StatelessWidget {
               );
             } else if (state.logoutStatus == LogoutStatus.error) {
               context.showSnackBar(
-                "${localizations.logoutFailed}: ${state.errorMessage}",
+                '${localizations.logoutFailed}: ${state.errorMessage}',
                 isError: true,
               );
             }
@@ -124,7 +122,9 @@ class MePage extends StatelessWidget {
                         icon: Icons.settings_rounded,
                         onPressed:
                             () => Navigator.of(context).push(
-                              AppTransitions.createSlideRoute(SettingsPage()),
+                              AppTransitions.createSlideRoute(
+                                const SettingsPage(),
+                              ),
                             ),
                       ),
                       if (!state.isOpds)
@@ -134,7 +134,7 @@ class MePage extends StatelessWidget {
                           onPressed:
                               () => Navigator.of(context).push(
                                 AppTransitions.createSlideRoute(
-                                  ShelfViewPage(),
+                                  const ShelfViewPage(),
                                 ),
                               ),
                         ),
@@ -149,7 +149,7 @@ class MePage extends StatelessWidget {
                                   DiscoverDetailsPage(
                                     title: localizations.readBooks,
                                     discoverType: DiscoverType.readbooks,
-                                    fullPath: "/opds/readbooks",
+                                    fullPath: '/opds/readbooks',
                                   ),
                                 ),
                               ),
@@ -163,7 +163,7 @@ class MePage extends StatelessWidget {
                                   DiscoverDetailsPage(
                                     title: localizations.unreadBooks,
                                     discoverType: DiscoverType.unreadbooks,
-                                    fullPath: "/opds/unreadbooks",
+                                    fullPath: '/opds/unreadbooks',
                                   ),
                                 ),
                               ),

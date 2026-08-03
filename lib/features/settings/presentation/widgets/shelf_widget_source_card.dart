@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
-
 import 'package:calibre_web_companion/core/services/widget_service.dart';
 import 'package:calibre_web_companion/core/services/widget_shelf_loader.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 
 class ShelfWidgetSourceCard extends StatefulWidget {
   const ShelfWidgetSourceCard({super.key});

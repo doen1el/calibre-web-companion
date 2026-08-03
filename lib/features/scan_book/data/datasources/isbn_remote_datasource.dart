@@ -1,6 +1,3 @@
-import 'package:http/http.dart' as http;
-import 'package:logger/logger.dart';
-
 import 'package:calibre_web_companion/features/scan_book/data/datasources/providers/bnf_provider.dart';
 import 'package:calibre_web_companion/features/scan_book/data/datasources/providers/google_books_provider.dart';
 import 'package:calibre_web_companion/features/scan_book/data/datasources/providers/hardcover_provider.dart';
@@ -11,6 +8,8 @@ import 'package:calibre_web_companion/features/scan_book/data/models/isbn_book.d
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_metadata_source.dart';
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_source_settings.dart';
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_utils.dart';
+import 'package:http/http.dart' as http;
+import 'package:logger/logger.dart';
 
 class IsbnRemoteDataSource {
   final http.Client client;

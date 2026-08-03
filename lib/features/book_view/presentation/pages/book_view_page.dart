@@ -1,32 +1,30 @@
 import 'dart:io';
+
+import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
+import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.dart';
+import 'package:calibre_web_companion/features/book_view/bloc/book_view_state.dart';
+import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:calibre_web_companion/features/book_view/presentation/pages/series_detail_page.dart';
+import 'package:calibre_web_companion/features/book_view/presentation/widgets/search_dialog.dart';
+import 'package:calibre_web_companion/features/book_view/presentation/widgets/series_folder_card.dart';
+import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
+import 'package:calibre_web_companion/features/offline/data/services/offline_backfill_service.dart';
+import 'package:calibre_web_companion/features/scan_book/presentation/pages/scan_book_page.dart';
+import 'package:calibre_web_companion/features/scan_book/presentation/scan_flow.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/widgets/app_options_sheet.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_list_tile_skeleton_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_list_tile_widget.dart';
+import 'package:calibre_web_companion/shared/widgets/book_view_mode_selector.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:get_it/get_it.dart';
-
-import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
-import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
-import 'package:calibre_web_companion/features/offline/data/services/offline_backfill_service.dart';
-import 'package:calibre_web_companion/features/book_view/bloc/book_view_event.dart';
-import 'package:calibre_web_companion/features/book_view/bloc/book_view_state.dart';
-
-import 'package:calibre_web_companion/core/services/app_transition.dart';
-import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
-import 'package:calibre_web_companion/shared/widgets/book_card_skeleton_widget.dart';
-import 'package:calibre_web_companion/shared/widgets/book_list_tile_skeleton_widget.dart';
-import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
-import 'package:calibre_web_companion/shared/widgets/book_list_tile_widget.dart';
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/core/services/snackbar.dart';
-import 'package:calibre_web_companion/features/book_view/presentation/widgets/search_dialog.dart';
-import 'package:calibre_web_companion/features/book_view/presentation/widgets/series_folder_card.dart';
-import 'package:calibre_web_companion/features/book_view/presentation/pages/series_detail_page.dart';
-import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
-import 'package:calibre_web_companion/features/scan_book/presentation/pages/scan_book_page.dart';
-import 'package:calibre_web_companion/features/scan_book/presentation/scan_flow.dart';
-import 'package:calibre_web_companion/shared/widgets/app_options_sheet.dart';
-import 'package:calibre_web_companion/shared/widgets/book_view_mode_selector.dart';
 
 class BookViewPage extends StatefulWidget {
   const BookViewPage({super.key});
@@ -651,7 +649,7 @@ class _BookViewPageState extends State<BookViewPage> {
                       if (state.hasError &&
                           state.uploadStatus == UploadStatus.failed)
                         Padding(
-                          padding: EdgeInsets.only(top: 8.0),
+                          padding: const EdgeInsets.only(top: 8.0),
                           child: Text(
                             state.errorMessage,
                             style: TextStyle(

@@ -2,13 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
+import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/features/scan_book/data/models/isbn_book.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-
-import 'package:calibre_web_companion/core/services/api_service.dart';
-import 'package:calibre_web_companion/features/scan_book/data/models/isbn_book.dart';
 
 class PlaceholderBookDataSource {
   final ApiService apiService;
@@ -56,7 +55,7 @@ class PlaceholderBookDataSource {
       logger.e('Placeholder upload failed: ${result['error']}');
       throw Exception(result['error'] ?? 'Upload failed');
     } finally {
-      if (await file.exists()) {
+      if (file.existsSync()) {
         await file.delete();
       }
     }

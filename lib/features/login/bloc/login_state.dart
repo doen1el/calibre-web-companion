@@ -1,5 +1,5 @@
-import 'package:equatable/equatable.dart';
 import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
+import 'package:equatable/equatable.dart';
 
 enum ServerType {
   calibreWeb,

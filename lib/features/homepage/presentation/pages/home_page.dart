@@ -1,21 +1,19 @@
+import 'package:calibre_web_companion/features/book_view/presentation/pages/book_view_page.dart';
+import 'package:calibre_web_companion/features/discover/presentation/pages/discover_page.dart';
+import 'package:calibre_web_companion/features/download_service/presentation/pages/download_service_page.dart';
+import 'package:calibre_web_companion/features/homepage/bloc/homepage_bloc.dart';
+import 'package:calibre_web_companion/features/homepage/bloc/homepage_event.dart';
+import 'package:calibre_web_companion/features/homepage/bloc/homepage_state.dart';
+import 'package:calibre_web_companion/features/me/presentation/pages/me_page.dart';
+import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
+import 'package:calibre_web_companion/features/offline/presentation/pages/offline_home_page.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
+import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:calibre_web_companion/features/homepage/bloc/homepage_bloc.dart';
-import 'package:calibre_web_companion/features/homepage/bloc/homepage_event.dart';
-import 'package:calibre_web_companion/features/homepage/bloc/homepage_state.dart';
-
-import 'package:calibre_web_companion/l10n/app_localizations.dart';
-import 'package:calibre_web_companion/features/book_view/presentation/pages/book_view_page.dart';
-import 'package:calibre_web_companion/features/discover/presentation/pages/discover_page.dart';
-import 'package:calibre_web_companion/features/me/presentation/pages/me_page.dart';
-import 'package:calibre_web_companion/features/download_service/presentation/pages/download_service_page.dart';
-import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
-import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
-import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
-import 'package:calibre_web_companion/features/offline/presentation/pages/offline_home_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

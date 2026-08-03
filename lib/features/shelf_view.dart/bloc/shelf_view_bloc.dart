@@ -1,11 +1,9 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_event.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/bloc/shelf_view_state.dart';
-
-import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
-import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
 import 'package:calibre_web_companion/features/shelf_view.dart/data/models/magic_shelf_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/models/shelf_view_model.dart';
+import 'package:calibre_web_companion/features/shelf_view.dart/data/repositories/shelf_view_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ShelfViewBloc extends Bloc<ShelfViewEvent, ShelfViewState> {
   final ShelfViewRepository repository;

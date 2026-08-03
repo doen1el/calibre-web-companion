@@ -1,11 +1,10 @@
-import 'package:docman/docman.dart';
-import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
-
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
+import 'package:docman/docman.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 abstract class BookDetailsEvent extends Equatable {
   const BookDetailsEvent();

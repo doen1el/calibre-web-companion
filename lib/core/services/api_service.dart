@@ -2,20 +2,20 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:http/http.dart' as http;
-import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:xml2json/xml2json.dart';
-import 'package:html/parser.dart' as parser;
-import 'package:http_parser/http_parser.dart' show MediaType;
-import 'package:http/io_client.dart';
 
 import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
-import 'package:calibre_web_companion/core/utils/upload_file_name.dart';
 import 'package:calibre_web_companion/core/services/connection_diagnostics.dart';
 import 'package:calibre_web_companion/core/services/digest_auth.dart';
 import 'package:calibre_web_companion/core/services/session_reauth_service.dart';
+import 'package:calibre_web_companion/core/utils/upload_file_name.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
+import 'package:html/parser.dart' as parser;
+import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
+import 'package:http_parser/http_parser.dart' show MediaType;
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:xml2json/xml2json.dart';
 
 enum AuthMethod { none, cookie, basic, auto }
 
@@ -194,8 +194,8 @@ class ApiService {
 
   /// Merge two Cookie header strings, deduplicating by cookie name
   String _mergeCookieHeaders(String existingCookie, String newCookie) {
-    if ((existingCookie).trim().isEmpty) return newCookie.trim();
-    if ((newCookie).trim().isEmpty) return existingCookie.trim();
+    if (existingCookie.trim().isEmpty) return newCookie.trim();
+    if (newCookie.trim().isEmpty) return existingCookie.trim();
     final map = <String, String>{};
     void addAll(String cookie) {
       for (final part in cookie.split(';')) {
@@ -408,7 +408,7 @@ class ApiService {
     try {
       transformer.parse(response.body);
 
-      String jsonString = transformer.toParkerWithAttrs();
+      final String jsonString = transformer.toParkerWithAttrs();
 
       return json.decode(jsonString) as Map<String, dynamic>;
     } catch (e) {
@@ -948,7 +948,7 @@ class ApiService {
           var response = await _client!.post(
             uri,
             headers: headers,
-            body: encodedBody ?? "",
+            body: encodedBody ?? '',
           );
 
           if (_shouldTryDigest(authMethod, response.statusCode)) {
@@ -964,7 +964,7 @@ class ApiService {
               response = await _client!.post(
                 uri,
                 headers: retryHeaders,
-                body: encodedBody ?? "",
+                body: encodedBody ?? '',
               );
             }
           }
@@ -1231,10 +1231,10 @@ class ApiService {
             .map((item) => Map<String, String>.from(item as Map))
             .toList();
 
-    Map<String, String> processedHeaders = {};
+    final Map<String, String> processedHeaders = {};
 
-    for (var header in customHeaders) {
-      String? headerName = header['key'];
+    for (final header in customHeaders) {
+      final String? headerName = header['key'];
       String? headerValue = header['value'];
 
       if (headerName == null || headerValue == null) {
@@ -1259,7 +1259,7 @@ class ApiService {
   Map<String, String> getAuthHeaders({
     AuthMethod authMethod = AuthMethod.auto,
   }) {
-    Map<String, String> headers = {};
+    final Map<String, String> headers = {};
 
     final hasBasicCredentials =
         _username != null && _username!.isNotEmpty && _password != null;
@@ -1599,7 +1599,7 @@ class ApiService {
         redirectTarget != null &&
         redirectTarget.isNotEmpty) {
       _logger.w('Upload was redirected to "$redirectTarget"');
-      return await _fetchFlashError(redirectTarget, authMethod);
+      return _fetchFlashError(redirectTarget, authMethod);
     }
 
     final body = response.body.trim();
@@ -1620,7 +1620,7 @@ class ApiService {
     if (location != null) {
       // /book/<id> and /admin/book/<id> both mean the book was created
       if (RegExp(r'/book/\d+').hasMatch(location)) return null;
-      return await _fetchFlashError(location, authMethod);
+      return _fetchFlashError(location, authMethod);
     }
 
     if (body.contains('<html') || body.contains('<!DOCTYPE')) {
@@ -1837,20 +1837,22 @@ class ApiService {
 
       final futureResponse = client.send(request);
 
-      futureResponse
-          .then((value) {
-            if (!completer.isCompleted) {
-              completer.complete(value);
-            }
-          })
-          .catchError((error) {
-            if (!completer.isCompleted) {
-              completer.completeError(error);
-            }
-          });
+      unawaited(
+        futureResponse
+            .then((value) {
+              if (!completer.isCompleted) {
+                completer.complete(value);
+              }
+            })
+            .catchError((error) {
+              if (!completer.isCompleted) {
+                completer.completeError(error);
+              }
+            }),
+      );
 
       if (cancelToken != null) {
-        Timer.periodic(Duration(milliseconds: 100), (timer) {
+        Timer.periodic(const Duration(milliseconds: 100), (timer) {
           if (cancelToken.isCancelled && !completer.isCompleted) {
             timer.cancel();
             completer.completeError(Exception('Operation cancelled'));

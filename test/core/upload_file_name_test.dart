@@ -1,8 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:flutter_test/flutter_test.dart';
-
 import 'package:calibre_web_companion/core/utils/upload_file_name.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 Uint8List _bytes(List<int> prefix, {int padTo = 0}) {
   final list = List<int>.from(prefix);

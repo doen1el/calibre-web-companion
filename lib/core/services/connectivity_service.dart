@@ -1,7 +1,6 @@
+import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:calibre_web_companion/core/services/api_service.dart';
 
 class ConnectivityService {
   final ApiService apiService;
