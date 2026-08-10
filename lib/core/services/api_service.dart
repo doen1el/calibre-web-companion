@@ -464,6 +464,7 @@ class ApiService {
     Map<String, String> queryParams = const {},
     bool followRedirects = true,
     Map<String, String> extraHeaders = const {},
+    bool checkStatus = true,
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
@@ -515,7 +516,9 @@ class ApiService {
           }
         }
 
-        _checkResponseStatus(statusCode: response.statusCode);
+        if (checkStatus) {
+          _checkResponseStatus(statusCode: response.statusCode);
+        }
         return response;
       } catch (e) {
         _logger.e('Request failed: $e');
@@ -594,6 +597,8 @@ class ApiService {
     bool csrfOnlyInHeader = false,
     List<http.MultipartFile>? files,
     bool followRedirects = true,
+    Map<String, String> extraHeaders = const {},
+    bool checkStatus = true,
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
@@ -619,6 +624,7 @@ class ApiService {
 
         final customHeaders = await _processCustomHeaders();
         headers.addAll(customHeaders);
+        headers.addAll(extraHeaders);
 
         headers.forEach((key, value) {
           request.headers.set(key, value);
@@ -775,6 +781,7 @@ class ApiService {
         }
 
         request.headers.addAll(customHeaders);
+        request.headers.addAll(extraHeaders);
 
         if (body is Map) {
           final bodyMap = body;
@@ -805,7 +812,9 @@ class ApiService {
             }
           }
 
-          _checkResponseStatus(statusCode: response.statusCode);
+          if (checkStatus) {
+            _checkResponseStatus(statusCode: response.statusCode);
+          }
           return response;
         } catch (e) {
           _logger.e('Multipart POST request failed: $e');
@@ -827,6 +836,7 @@ class ApiService {
         }
 
         postHeaders.addAll(customHeaders);
+        postHeaders.addAll(extraHeaders);
 
         Map<String, dynamic> finalBody = {};
         if (body is Map) {
@@ -873,7 +883,9 @@ class ApiService {
             }
           }
 
-          _checkResponseStatus(statusCode: response.statusCode);
+          if (checkStatus) {
+            _checkResponseStatus(statusCode: response.statusCode);
+          }
           return response;
         } catch (e) {
           _logger.e('CSRF-protected POST request failed: $e');
@@ -892,6 +904,7 @@ class ApiService {
         }
 
         headers.addAll(customHeaders);
+        headers.addAll(extraHeaders);
         request.headers.addAll(headers);
 
         if (body is Map) {
@@ -920,7 +933,9 @@ class ApiService {
             }
           }
 
-          _checkResponseStatus(statusCode: response.statusCode);
+          if (checkStatus) {
+            _checkResponseStatus(statusCode: response.statusCode);
+          }
           return response;
         } catch (e) {
           _logger.e('Multipart POST request failed: $e');
@@ -935,6 +950,7 @@ class ApiService {
         }
 
         headers.addAll(customHeaders);
+        headers.addAll(extraHeaders);
 
         final preDigest = _preemptiveDigestHeader(authMethod, 'POST', uri);
         if (preDigest != null) {
@@ -983,7 +999,9 @@ class ApiService {
             }
           }
 
-          _checkResponseStatus(statusCode: response.statusCode);
+          if (checkStatus) {
+            _checkResponseStatus(statusCode: response.statusCode);
+          }
           return response;
         } catch (e) {
           _logger.e('POST request failed: $e');

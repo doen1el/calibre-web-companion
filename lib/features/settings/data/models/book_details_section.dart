@@ -1,5 +1,6 @@
 enum BookDetailsSection {
   bookActions,
+  readingProgress,
   rating,
   series,
   publicationInfo,
@@ -13,6 +14,8 @@ extension BookDetailsSectionX on BookDetailsSection {
     switch (this) {
       case BookDetailsSection.bookActions:
         return 'book_actions';
+      case BookDetailsSection.readingProgress:
+        return 'reading_progress';
       case BookDetailsSection.rating:
         return 'rating';
       case BookDetailsSection.series:

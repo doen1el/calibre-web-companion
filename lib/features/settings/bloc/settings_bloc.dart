@@ -38,6 +38,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SetWebDavCredentials>(_onSetWebDavCredentials);
     on<TestDownloaderConnection>(_onTestDownloaderConnection);
     on<TestWebDavConnection>(_onTestWebDavConnection);
+    on<SetKoSyncEnabled>(_onSetKoSyncEnabled);
+    on<TestKoSyncConnection>(_onTestKoSyncConnection);
     on<ResetConnectionTestStatus>(_onResetConnectionTestStatus);
     on<SetShowSendToEReaderButton>(_onSetShowSendToEReaderButton);
     on<SetEInkMode>(_onSetEInkMode);
@@ -95,6 +97,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           webDavUsername: settings.webDavUsername,
           webDavPassword: settings.webDavPassword,
           isWebDavSyncEnabled: settings.isWebDavSyncEnabled,
+          isKoSyncEnabled: settings.isKoSyncEnabled,
           isEInkMode: settings.isEInkMode,
           textScale: settings.textScale,
           bookActionsOrder: settings.bookActionsOrder,
@@ -523,6 +526,47 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         ),
       );
     }
+  }
+
+  Future<void> _onSetKoSyncEnabled(
+    SetKoSyncEnabled event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      await repository.setKoSyncEnabled(event.enabled);
+
+      emit(
+        state.copyWith(
+          isKoSyncEnabled: event.enabled,
+          koSyncTestStatus: ConnectionTestStatus.initial,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onTestKoSyncConnection(
+    TestKoSyncConnection event,
+    Emitter<SettingsState> emit,
+  ) async {
+    emit(state.copyWith(koSyncTestStatus: ConnectionTestStatus.loading));
+    final result = await repository.testKoSyncConnection();
+
+    emit(
+      state.copyWith(
+        koSyncTestStatus:
+            result.isOk
+                ? ConnectionTestStatus.success
+                : ConnectionTestStatus.error,
+        koSyncTestMessage: result.status.name,
+      ),
+    );
   }
 
   void _onResetConnectionTestStatus(

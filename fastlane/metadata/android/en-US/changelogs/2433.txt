@@ -1,0 +1,1 @@
+Feature: Integrated the KOReader Sync Plugin

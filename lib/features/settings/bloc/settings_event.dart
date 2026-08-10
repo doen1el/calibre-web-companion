@@ -178,6 +178,17 @@ class SetWebDavCredentials extends SettingsEvent {
   List<Object?> get props => [username, password];
 }
 
+class SetKoSyncEnabled extends SettingsEvent {
+  final bool enabled;
+  const SetKoSyncEnabled(this.enabled);
+  @override
+  List<Object?> get props => [enabled];
+}
+
+class TestKoSyncConnection extends SettingsEvent {
+  const TestKoSyncConnection();
+}
+
 class TestDownloaderConnection extends SettingsEvent {
   final String url;
   final String username;

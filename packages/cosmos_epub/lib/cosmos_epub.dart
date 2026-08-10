@@ -73,6 +73,8 @@ class CosmosEpub {
     String chapterListTitle = 'Table of Contents',
     bool shouldOpenDrawer = false,
     int starterChapter = -1,
+    double? startPercentage,
+    Function(double percentage, int spineIndex)? onProgressChanged,
   }) async {
     EpubBook epubBook = await EpubReader.readBook(bytes.buffer.asUint8List());
     if (!context.mounted) return;
@@ -86,6 +88,8 @@ class CosmosEpub {
       onPageFlip: onPageFlip,
       onLastPage: onLastPage,
       accentColor: accentColor,
+      startPercentage: startPercentage,
+      onProgressChanged: onProgressChanged,
     );
   }
 
@@ -225,6 +229,8 @@ class CosmosEpub {
     required String chapterListTitle,
     Function(int currentPage, int totalPages)? onPageFlip,
     Function(int lastPageIndex)? onLastPage,
+    double? startPercentage,
+    Function(double percentage, int spineIndex)? onProgressChanged,
   }) async {
     _checkInitialization();
 
@@ -246,6 +252,8 @@ class CosmosEpub {
           chapterListTitle: chapterListTitle,
           onPageFlip: onPageFlip,
           onLastPage: onLastPage,
+          startPercentage: startPercentage,
+          onProgressChanged: onProgressChanged,
         );
       },
     );

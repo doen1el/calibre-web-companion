@@ -34,6 +34,7 @@ class SettingsState extends Equatable {
   final bool showSendToEReaderButton;
   final bool storeReadNowAndSendToEReaderOnDevice;
   final bool isWebDavSyncEnabled;
+  final bool isKoSyncEnabled;
   final String webDavUrl;
   final String webDavUsername;
   final String webDavPassword;
@@ -52,6 +53,8 @@ class SettingsState extends Equatable {
 
   final ConnectionTestStatus downloaderTestStatus;
   final ConnectionTestStatus webDavTestStatus;
+  final ConnectionTestStatus koSyncTestStatus;
+  final String? koSyncTestMessage;
   final String? testErrorMessage;
 
   const SettingsState({
@@ -77,6 +80,7 @@ class SettingsState extends Equatable {
     this.showSendToEReaderButton = true,
     this.storeReadNowAndSendToEReaderOnDevice = false,
     this.isWebDavSyncEnabled = false,
+    this.isKoSyncEnabled = false,
     this.webDavUrl = '',
     this.webDavUsername = '',
     this.webDavPassword = '',
@@ -94,6 +98,8 @@ class SettingsState extends Equatable {
     this.enabledCategoryItems = const [],
     this.downloaderTestStatus = ConnectionTestStatus.initial,
     this.webDavTestStatus = ConnectionTestStatus.initial,
+    this.koSyncTestStatus = ConnectionTestStatus.initial,
+    this.koSyncTestMessage,
     this.testErrorMessage,
   });
 
@@ -123,6 +129,7 @@ class SettingsState extends Equatable {
     bool? showSendToEReaderButton,
     bool? storeReadNowAndSendToEReaderOnDevice,
     bool? isWebDavSyncEnabled,
+    bool? isKoSyncEnabled,
     String? webDavUrl,
     String? webDavUsername,
     String? webDavPassword,
@@ -140,6 +147,8 @@ class SettingsState extends Equatable {
     List<String>? enabledCategoryItems,
     ConnectionTestStatus? downloaderTestStatus,
     ConnectionTestStatus? webDavTestStatus,
+    ConnectionTestStatus? koSyncTestStatus,
+    String? koSyncTestMessage,
     String? testErrorMessage,
   }) {
     return SettingsState(
@@ -169,6 +178,7 @@ class SettingsState extends Equatable {
           storeReadNowAndSendToEReaderOnDevice ??
           this.storeReadNowAndSendToEReaderOnDevice,
       isWebDavSyncEnabled: isWebDavSyncEnabled ?? this.isWebDavSyncEnabled,
+      isKoSyncEnabled: isKoSyncEnabled ?? this.isKoSyncEnabled,
       webDavUrl: webDavUrl ?? this.webDavUrl,
       webDavUsername: webDavUsername ?? this.webDavUsername,
       webDavPassword: webDavPassword ?? this.webDavPassword,
@@ -190,6 +200,8 @@ class SettingsState extends Equatable {
       enabledCategoryItems: enabledCategoryItems ?? this.enabledCategoryItems,
       downloaderTestStatus: downloaderTestStatus ?? this.downloaderTestStatus,
       webDavTestStatus: webDavTestStatus ?? this.webDavTestStatus,
+      koSyncTestStatus: koSyncTestStatus ?? this.koSyncTestStatus,
+      koSyncTestMessage: koSyncTestMessage ?? this.koSyncTestMessage,
       testErrorMessage: testErrorMessage,
     );
   }
@@ -218,6 +230,7 @@ class SettingsState extends Equatable {
     showSendToEReaderButton,
     storeReadNowAndSendToEReaderOnDevice,
     isWebDavSyncEnabled,
+    isKoSyncEnabled,
     webDavUrl,
     webDavUsername,
     webDavPassword,
@@ -235,6 +248,8 @@ class SettingsState extends Equatable {
     enabledCategoryItems,
     downloaderTestStatus,
     webDavTestStatus,
+    koSyncTestStatus,
+    koSyncTestMessage,
     testErrorMessage,
   ];
 }

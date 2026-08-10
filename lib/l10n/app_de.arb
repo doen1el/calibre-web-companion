@@ -564,5 +564,21 @@
   "isbnTryMoreSources": "Mehr Quellen",
   "isbnSourceApiKeyOptional": "API-Schlüssel (optional)",
   "isbnSourceGoogleBooksKeyHint": "Nur nötig, wenn Googles gemeinsames Gratis-Kontingent erschöpft ist und die Suche fehlschlägt.",
-  "isbnSourceOrderHint": "Zum Sortieren ziehen: Bei widersprüchlichen Angaben gewinnt der Katalog weiter oben."
+  "isbnSourceOrderHint": "Zum Sortieren ziehen: Bei widersprüchlichen Angaben gewinnt der Katalog weiter oben.",
+  "koSyncTitle": "KOReader-Synchronisierung",
+  "koSyncDescription": "Synchronisiert deine Leseposition über deinen Calibre-Web-Server mit KOReader. Benötigt Calibre-Web NextGen oder CWA mit aktivierter KOReader-Synchronisierung.",
+  "koSyncPullOnlyHint": "Positionen werden als Prozentwert des Buchs geteilt — andere Reader landen also im richtigen Kapitel, nicht auf der exakten Zeile.",
+  "koSyncConnected": "Verbunden. KOReader-Synchronisierung ist verfügbar.",
+  "koSyncUnauthorized": "Der Server hat deine Anmeldung für die KOReader-Synchronisierung abgelehnt.",
+  "koSyncUnavailable": "Dieser Server hat keinen KOReader-Sync-Endpunkt.",
+  "koSyncDisabledOnServer": "Die KOReader-Synchronisierung ist auf dem Server deaktiviert.",
+  "koSyncTestFailed": "Der KOReader-Sync-Endpunkt war nicht erreichbar.",
+  "koSyncContinueTitle": "Dort weiterlesen, wo KOReader aufgehört hat?",
+  "koSyncContinueBody": "{device} ist bei {percentage}% dieses Buchs.",
+  "koSyncContinueBodyUnknownDevice": "Ein anderes Gerät ist bei {percentage}% dieses Buchs.",
+  "koSyncJumpThere": "Dorthin springen",
+  "koSyncStayHere": "Hier bleiben",
+  "koSyncProgressTitle": "Lesefortschritt",
+  "koSyncProgressSyncedBy": "Zuletzt von {device} am {date} synchronisiert",
+  "koSyncProgressSyncedOn": "Zuletzt am {date} synchronisiert"
 }
