@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
+import 'package:calibre_web_companion/core/utils/http_header_utils.dart';
 import 'package:calibre_web_companion/shared/widgets/app_skeletonizer.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -88,35 +89,12 @@ class BookCoverWidget extends StatelessWidget {
           'Basic ${base64.encode(utf8.encode('$username:$password'))}';
     }
 
-    try {
-      final headersJson = prefs.getString('custom_login_headers') ?? '[]';
-      final List<dynamic> decodedList = jsonDecode(headersJson);
-
-      for (final dynamic item in decodedList) {
-        if (item is Map) {
-          final map = Map<String, dynamic>.from(item);
-          String? key;
-          String? value;
-
-          if (map.containsKey('key') && map.containsKey('value')) {
-            key = map['key']?.toString();
-            value = map['value']?.toString();
-          } else if (map.isNotEmpty) {
-            key = map.keys.first;
-            value = map.values.first;
-          }
-
-          if (key != null && value != null) {
-            if (value.contains('\${USERNAME}') && username.isNotEmpty) {
-              value = value.replaceAll('\${USERNAME}', username);
-            }
-            headers[key] = value;
-          }
-        }
-      }
-    } catch (e) {
-      // Error parsing custom headers; proceed without them
-    }
+    headers.addAll(
+      parseCustomHeaders(
+        prefs.getString(customHeadersPrefsKey) ?? '[]',
+        username: username,
+      ),
+    );
 
     headers['Accept'] =
         'image/avif;q=0,image/webp;q=0,image/jpeg,image/png,*/*;q=0.5';

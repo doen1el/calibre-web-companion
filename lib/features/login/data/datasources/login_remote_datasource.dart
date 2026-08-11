@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/utils/http_header_utils.dart';
 import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
 import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
 import 'package:logger/logger.dart';
@@ -500,6 +501,10 @@ class LoginRemoteDataSource {
 
       final request = await client.getUrl(uri);
       request.followRedirects = true;
+      parseCustomHeaders(
+        prefs.getString(customHeadersPrefsKey) ?? '[]',
+        username: prefs.getString('username'),
+      ).forEach(request.headers.set);
       final response = await request.close().timeout(
         const Duration(seconds: 10),
       );

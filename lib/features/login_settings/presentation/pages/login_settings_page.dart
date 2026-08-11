@@ -3,6 +3,7 @@ import 'package:calibre_web_companion/features/login_settings/bloc/login_setting
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_event.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_state.dart';
 import 'package:calibre_web_companion/features/login_settings/presentation/pages/connection_diagnostics_page.dart';
+import 'package:calibre_web_companion/features/login_settings/presentation/widgets/add_header_dialog.dart';
 import 'package:calibre_web_companion/features/login_settings/presentation/widgets/header_section_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
@@ -142,11 +143,7 @@ class _LoginSettingsPage extends State<LoginSettingsPage> {
                           ),
                           child: Center(
                             child: ElevatedButton.icon(
-                              onPressed: () {
-                                context.read<LoginSettingsBloc>().add(
-                                  const AddCustomHeader(),
-                                );
-                              },
+                              onPressed: () => AddHeaderDialog.show(context),
                               icon: const Icon(Icons.add),
                               label: Text(localizations.addHeader),
                               style: ElevatedButton.styleFrom(

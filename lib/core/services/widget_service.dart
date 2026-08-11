@@ -56,10 +56,17 @@ class WidgetService {
     required this.offlineRepository,
   });
 
-  static const String _currentBookProvider = 'CurrentBookWidgetProvider';
-  static const String _statsProvider = 'LibraryStatsWidgetProvider';
-  static const String _shelfProvider = 'ShelfWidgetProvider';
-  static const String _quickActionsProvider = 'QuickActionsWidgetProvider';
+  // home_widget resolves a bare androidName against the *applicationId*, which
+  // carries the ".debug" suffix in debug builds. The Kotlin package never
+  // changes, so the providers are addressed fully qualified.
+  static const String _providerPackage = 'de.doen1el.calibreWebCompanion';
+  static const String _currentBookProvider =
+      '$_providerPackage.CurrentBookWidgetProvider';
+  static const String _statsProvider =
+      '$_providerPackage.LibraryStatsWidgetProvider';
+  static const String _shelfProvider = '$_providerPackage.ShelfWidgetProvider';
+  static const String _quickActionsProvider =
+      '$_providerPackage.QuickActionsWidgetProvider';
 
   static const String kTapTargetKey = 'widget_tap_target';
   static const String kShelfSourceKey = 'widget_shelf_source';
@@ -168,7 +175,7 @@ class WidgetService {
         'cb_progress',
         (clamped * 100).round().toString(),
       );
-      await HomeWidget.updateWidget(androidName: _currentBookProvider);
+      await HomeWidget.updateWidget(qualifiedAndroidName: _currentBookProvider);
     } catch (e) {
       logger.w('Failed to update widget progress: $e');
     }
@@ -179,7 +186,7 @@ class WidgetService {
     if (!_supported) return;
     try {
       await HomeWidget.saveWidgetData<String>('cb_uuid', '');
-      await HomeWidget.updateWidget(androidName: _currentBookProvider);
+      await HomeWidget.updateWidget(qualifiedAndroidName: _currentBookProvider);
     } catch (e) {
       logger.w('Failed to clear current book widget: $e');
     }
@@ -220,7 +227,7 @@ class WidgetService {
         'cb_progress',
         (progress * 100).round().toString(),
       );
-      await HomeWidget.updateWidget(androidName: _currentBookProvider);
+      await HomeWidget.updateWidget(qualifiedAndroidName: _currentBookProvider);
     } catch (e) {
       logger.w('Failed to push current book widget: $e');
     }
@@ -241,7 +248,7 @@ class WidgetService {
         categories.toString(),
       );
       await HomeWidget.saveWidgetData<String>('st_series', series.toString());
-      await HomeWidget.updateWidget(androidName: _statsProvider);
+      await HomeWidget.updateWidget(qualifiedAndroidName: _statsProvider);
     } catch (e) {
       logger.w('Failed to push stats widget: $e');
     }
@@ -295,7 +302,7 @@ class WidgetService {
               .toList(),
         ),
       );
-      await HomeWidget.updateWidget(androidName: _shelfProvider);
+      await HomeWidget.updateWidget(qualifiedAndroidName: _shelfProvider);
     } catch (e) {
       logger.w('Failed to push shelf widget: $e');
     }
@@ -309,7 +316,7 @@ class WidgetService {
         'qa_downloads',
         downloaderEnabled ? '1' : '0',
       );
-      await HomeWidget.updateWidget(androidName: _quickActionsProvider);
+      await HomeWidget.updateWidget(qualifiedAndroidName: _quickActionsProvider);
     } catch (e) {
       logger.w('Failed to push quick actions widget: $e');
     }
@@ -350,10 +357,10 @@ class WidgetService {
       for (final entry in palette.entries) {
         await HomeWidget.saveWidgetData<String>(entry.key, _hex(entry.value));
       }
-      await HomeWidget.updateWidget(androidName: _currentBookProvider);
-      await HomeWidget.updateWidget(androidName: _statsProvider);
-      await HomeWidget.updateWidget(androidName: _shelfProvider);
-      await HomeWidget.updateWidget(androidName: _quickActionsProvider);
+      await HomeWidget.updateWidget(qualifiedAndroidName: _currentBookProvider);
+      await HomeWidget.updateWidget(qualifiedAndroidName: _statsProvider);
+      await HomeWidget.updateWidget(qualifiedAndroidName: _shelfProvider);
+      await HomeWidget.updateWidget(qualifiedAndroidName: _quickActionsProvider);
     } catch (e) {
       logger.w('Failed to push widget theme colors: $e');
     }

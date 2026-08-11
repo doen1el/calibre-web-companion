@@ -44,6 +44,19 @@ class UpdateCustomHeaderValue extends LoginSettingsEvent {
   List<Object?> get props => [index, newValue];
 }
 
+class ApplyCloudflareAccessToken extends LoginSettingsEvent {
+  final String clientId;
+  final String clientSecret;
+
+  const ApplyCloudflareAccessToken({
+    required this.clientId,
+    required this.clientSecret,
+  });
+
+  @override
+  List<Object?> get props => [clientId, clientSecret];
+}
+
 class UpdateBasePath extends LoginSettingsEvent {
   final String basePath;
 

@@ -1,6 +1,7 @@
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/connection_diagnostics.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/core/utils/http_header_utils.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/utils/status_colors.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ class ConnectionDiagnosticsPage extends StatefulWidget {
 class _ConnectionDiagnosticsPageState extends State<ConnectionDiagnosticsPage> {
   bool _isRunning = false;
   List<DiagnosticResult> _results = const [];
+  List<CustomHeaderSummary> _customHeaders = const [];
 
   @override
   void initState() {
@@ -27,10 +29,12 @@ class _ConnectionDiagnosticsPageState extends State<ConnectionDiagnosticsPage> {
   Future<void> _run() async {
     setState(() => _isRunning = true);
     try {
+      final customHeaders = await ApiService().describeCustomHeaders();
       final results = await ApiService().runConnectionDiagnostics();
       if (!mounted) return;
       setState(() {
         _results = results;
+        _customHeaders = customHeaders;
         _isRunning = false;
       });
     } catch (e) {
@@ -46,6 +50,15 @@ class _ConnectionDiagnosticsPageState extends State<ConnectionDiagnosticsPage> {
   String _buildReport() {
     final buffer = StringBuffer('Connection diagnostics\n');
     buffer.writeln('Base URL: ${ApiService().getBaseUrl()}');
+    buffer.writeln('---');
+    buffer.writeln(
+      _customHeaders.isEmpty
+          ? 'Custom headers: none'
+          : 'Custom headers (values redacted):',
+    );
+    for (final h in _customHeaders) {
+      buffer.writeln('      ${h.toReportLine()}');
+    }
     buffer.writeln('---');
     for (final r in _results) {
       buffer.writeln(r.toReportLine());
@@ -70,7 +83,27 @@ class _ConnectionDiagnosticsPageState extends State<ConnectionDiagnosticsPage> {
         stats.statusCode == 404;
   }
 
+  bool _hasHeader(String name) =>
+      _customHeaders.any((h) => h.name.toLowerCase() == name.toLowerCase());
+
+  String? _cloudflareHint(AppLocalizations l) {
+    final blocked = _results.any(
+      (r) => isCloudflareAccessRedirect(r.redirectLocation),
+    );
+    if (!blocked) return null;
+
+    final hasTokenPair =
+        _hasHeader(cfAccessClientIdHeader) &&
+        _hasHeader(cfAccessClientSecretHeader);
+    return hasTokenPair
+        ? l.diagHintCloudflareTokenRejected
+        : l.diagHintCloudflareAccess;
+  }
+
   String? _interpretation(AppLocalizations l) {
+    final cloudflare = _cloudflareHint(l);
+    if (cloudflare != null) return cloudflare;
+
     final ajax = _resultFor(DiagnosticProbeId.bookList);
     if (ajax == null) return null;
 
@@ -175,6 +208,8 @@ class _ConnectionDiagnosticsPageState extends State<ConnectionDiagnosticsPage> {
                   ),
                 ),
                 if (_results.isNotEmpty) ...[
+                  _buildSectionTitle(context, l.diagnosticsCustomHeaders),
+                  _buildCustomHeadersCard(context, l),
                   _buildSectionTitle(context, l.diagnosticsEndpoints),
                   ..._results.map((r) => _buildResultCard(context, r, l)),
                   _buildInterpretationCard(context, l),
@@ -277,6 +312,77 @@ class _ConnectionDiagnosticsPageState extends State<ConnectionDiagnosticsPage> {
                   ],
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomHeadersCard(BuildContext context, AppLocalizations l) {
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.code_rounded, size: 28, color: scheme.secondary),
+            const SizedBox(width: 16),
+            Expanded(
+              child:
+                  _customHeaders.isEmpty
+                      ? Text(
+                        l.diagnosticsNoCustomHeaders,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      )
+                      : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l.diagnosticsCustomHeadersSent,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: scheme.onSurfaceVariant),
+                          ),
+                          const SizedBox(height: 8),
+                          ..._customHeaders.map(
+                            (h) => Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${h.name}: ${h.maskedValue}',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium?.copyWith(
+                                      fontFamily: 'monospace',
+                                      color:
+                                          h.suspicious
+                                              ? StatusColors.warning(context)
+                                              : null,
+                                    ),
+                                  ),
+                                  if (h.suspicious)
+                                    Text(
+                                      l.diagnosticsHeaderValueSuspicious,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall?.copyWith(
+                                        color: StatusColors.warning(context),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
             ),
           ],
         ),
