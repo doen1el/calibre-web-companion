@@ -316,7 +316,9 @@ class WidgetService {
         'qa_downloads',
         downloaderEnabled ? '1' : '0',
       );
-      await HomeWidget.updateWidget(qualifiedAndroidName: _quickActionsProvider);
+      await HomeWidget.updateWidget(
+        qualifiedAndroidName: _quickActionsProvider,
+      );
     } catch (e) {
       logger.w('Failed to push quick actions widget: $e');
     }
@@ -360,7 +362,9 @@ class WidgetService {
       await HomeWidget.updateWidget(qualifiedAndroidName: _currentBookProvider);
       await HomeWidget.updateWidget(qualifiedAndroidName: _statsProvider);
       await HomeWidget.updateWidget(qualifiedAndroidName: _shelfProvider);
-      await HomeWidget.updateWidget(qualifiedAndroidName: _quickActionsProvider);
+      await HomeWidget.updateWidget(
+        qualifiedAndroidName: _quickActionsProvider,
+      );
     } catch (e) {
       logger.w('Failed to push widget theme colors: $e');
     }
