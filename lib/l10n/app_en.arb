@@ -238,6 +238,7 @@
   "schemaCustom": "Custom path",
   "downloadPathTemplate": "Path template",
   "downloadPathTemplateHint": "Tap a building block to insert it. A '/' starts a sub-folder, the last part is the file name. Building blocks without a value are left out.",
+  "downloadPathTemplateCalibreHint": "Calibre's template syntax works as well: shorten a field with a precision, wrap it in a prefix and suffix that only show up when the field has a value, and use custom columns. Example:",
   "lightGreen": "Light green",
   "amber": "Amber",
   "blueGrey": "Blue grey",

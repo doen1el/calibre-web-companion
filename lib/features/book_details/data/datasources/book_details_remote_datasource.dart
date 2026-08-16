@@ -14,6 +14,7 @@ import 'package:calibre_web_companion/features/settings/data/models/download_sch
 import 'package:docman/docman.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
+import 'package:html/parser.dart' as html_parser;
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:logger/logger.dart';
@@ -615,11 +616,100 @@ class BookDetailsRemoteDatasource {
     return await parent.createDirectory(name) ?? parent;
   }
 
+  Future<Map<String, String>> _fetchCustomColumns(BookDetailsModel book) async {
+    final prefs = GetIt.instance<SharedPreferences>();
+    final serverType = prefs.getString('server_type');
+
+    try {
+      if (serverType == 'calibre') {
+        return await _fetchCalibreCustomColumns(book, prefs);
+      }
+      if (serverType == null || serverType == 'calibreWeb') {
+        return await _fetchCalibreWebCustomColumns(book);
+      }
+    } catch (e) {
+      logger.w('Could not resolve custom columns for book ${book.id}: $e');
+    }
+    return const {};
+  }
+
+  Future<Map<String, String>> _fetchCalibreCustomColumns(
+    BookDetailsModel book,
+    SharedPreferences prefs,
+  ) async {
+    final libraryId = prefs.getString('calibre_library_id');
+    final librarySegment =
+        (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
+
+    final data = await apiService.getJson(
+      endpoint: '/ajax/book/${book.id}$librarySegment',
+      authMethod: AuthMethod.auto,
+    );
+
+    final userMetadata = data['user_metadata'];
+    if (userMetadata is! Map) return const {};
+
+    final values = <String, String>{};
+    userMetadata.forEach((key, meta) {
+      final label = key.toString();
+      if (!label.startsWith('#') || meta is! Map) return;
+
+      final value = meta['#value#'];
+      if (value == null) return;
+
+      final text =
+          value is List
+              ? value.map((e) => e.toString()).join(', ')
+              : value.toString();
+      if (text.isEmpty || text == 'null') return;
+
+      values[DownloadPathTemplate.normalizeCustomField(label)] = text;
+    });
+    return values;
+  }
+
+  Future<Map<String, String>> _fetchCalibreWebCustomColumns(
+    BookDetailsModel book,
+  ) async {
+    final response = await apiService.get(
+      endpoint: '/book/${book.id}',
+      authMethod: AuthMethod.auto,
+      extraHeaders: ApiService.browserAcceptHeaders,
+    );
+
+    if (response.statusCode != 200) {
+      logger.w('Book detail page returned ${response.statusCode}');
+      return const {};
+    }
+
+    return parseCustomColumnsFromDetailPage(response.body);
+  }
+
+  static Map<String, String> parseCustomColumnsFromDetailPage(String html) {
+    final document = html_parser.parse(html);
+    final values = <String, String>{};
+
+    for (final element in document.querySelectorAll('.real_custom_columns')) {
+      final text = element.text.replaceAll(RegExp(r'\s+'), ' ').trim();
+      final separator = text.indexOf(':');
+      if (separator <= 0) continue;
+
+      final name = text.substring(0, separator).trim();
+      final value = text.substring(separator + 1).trim();
+      if (name.isEmpty || value.isEmpty) continue;
+
+      values[DownloadPathTemplate.normalizeCustomField(name)] = value;
+    }
+    return values;
+  }
+
   Map<String, String> _pathTemplateValues(
     BookDetailsModel book,
-    String format,
-  ) {
+    String format, {
+    Map<String, String> customColumns = const {},
+  }) {
     return {
+      ...customColumns,
       DownloadPathToken.title.key: book.title,
       DownloadPathToken.author.key: book.authors,
       DownloadPathToken.authorSort.key:
@@ -730,18 +820,40 @@ class BookDetailsRemoteDatasource {
             );
           }
         case DownloadSchema.custom:
+          final requestedColumns = DownloadPathTemplate.customColumnFields(
+            pathTemplate,
+          );
+          final customColumns =
+              requestedColumns.isEmpty
+                  ? const <String, String>{}
+                  : await _fetchCustomColumns(book);
+
+          final missingColumns = requestedColumns.difference(
+            customColumns.keys.toSet(),
+          );
+          if (missingColumns.isNotEmpty) {
+            logger.w(
+              'Custom columns without a value for "${book.title}": '
+              '${missingColumns.join(', ')}',
+            );
+          }
+
           final segments = DownloadPathTemplate.resolve(
             pathTemplate,
-            _pathTemplateValues(book, format),
+            _pathTemplateValues(book, format, customColumns: customColumns),
             fallbackName: book.title,
           );
           for (final folder in segments.take(segments.length - 1)) {
             targetDir = await _getOrCreateDirectory(targetDir, folder);
           }
-          fileName = '${segments.last}.$format';
+          final baseName = DownloadPathTemplate.sanitizeFileName(segments.last);
+          fileName = '${baseName.isEmpty ? 'book' : baseName}.$format';
       }
 
-      final existingFile = await targetDir.find(fileName.replaceAll(' ', '_'));
+      // docman replaces whitespace and brackets when it creates the file
+      final existingFile = await targetDir.find(
+        fileName.replaceAll(RegExp(r'[\[\]\s]'), '_'),
+      );
 
       if (reuseExistingFile && existingFile != null && existingFile.isFile) {
         logger.w('File already exists: $fileName');

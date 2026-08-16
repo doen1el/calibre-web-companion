@@ -238,6 +238,7 @@
     "schemaCustom": "Eigener Pfad",
     "downloadPathTemplate": "Pfadvorlage",
     "downloadPathTemplateHint": "Tippe auf einen Baustein, um ihn einzufügen. Ein '/' beginnt einen Unterordner, der letzte Teil ist der Dateiname. Bausteine ohne Wert werden weggelassen.",
+    "downloadPathTemplateCalibreHint": "Die Vorlagen-Syntax von Calibre funktioniert ebenfalls: Felder lassen sich kürzen, mit Präfix und Suffix umgeben, die nur bei gefülltem Feld erscheinen, und eigene Spalten verwenden. Beispiel:",
     "lightGreen": "Hellgrün",
     "amber": "Bernstein",
     "blueGrey": "Blaugrau",
