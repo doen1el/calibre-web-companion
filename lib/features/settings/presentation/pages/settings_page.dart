@@ -194,7 +194,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
                           const SizedBox(height: 24),
                           _buildSectionTitle(context, localizations.about),
-                          _buyMeACoffeeButton(context, 'Buy Me a Coffee'),
+                          // _buyMeACoffeeButton(context, 'Buy Me a Coffee'),
                           _buildAppLogsButton(context, localizations),
                           _buildLicensesButton(context, state, localizations),
                           _buildVersionCard(context, state, localizations),
