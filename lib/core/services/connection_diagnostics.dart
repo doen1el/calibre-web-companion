@@ -16,6 +16,24 @@ enum DiagnosticProbeId {
   coverImage,
 }
 
+/// A custom header as it left the app, with the value redacted so the report
+/// can be pasted into a bug report.
+class CustomHeaderSummary {
+  final String name;
+  final String maskedValue;
+
+  /// The value looks like a header *name* — a filled-in-wrong form.
+  final bool suspicious;
+
+  const CustomHeaderSummary({
+    required this.name,
+    required this.maskedValue,
+    this.suspicious = false,
+  });
+
+  String toReportLine() => '$name: $maskedValue${suspicious ? '  <-- ?' : ''}';
+}
+
 class DiagnosticResult {
   final DiagnosticProbeId id;
   final String label;

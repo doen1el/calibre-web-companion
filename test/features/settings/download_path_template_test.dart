@@ -77,6 +77,135 @@ void main() {
       expect(resolve(''), ['The Eye of the World']);
       expect(resolve('{series}', {'series': ''}), ['The Eye of the World']);
     });
+
+    test('accepts calibre field names', () {
+      expect(resolve('{authors}/{languages}/{title}'), [
+        'Robert Jordan',
+        'eng',
+        'The Eye of the World',
+      ]);
+    });
+  });
+
+  group('calibre format specs', () {
+    test('truncates with a precision', () {
+      expect(resolve('{title:.15}'), ['The Eye of the']);
+      expect(resolve('{author_sort:.20}'), ['Jordan, Robert']);
+    });
+
+    test('pads with fill and alignment', () {
+      expect(
+        resolve('{series_index:0>2s} - {title}', {
+          ...values,
+          'series_index': '1',
+        }),
+        ['01 - The Eye of the World'],
+      );
+      expect(resolve('{id:0>5s}'), ['00042']);
+      expect(resolve('{id:*<5s}'), ['42***']);
+    });
+
+    test('formats numbers', () {
+      expect(
+        resolve('{series_index:05.1f}', {...values, 'series_index': '2.5'}),
+        ['002.5'],
+      );
+      expect(resolve('{id:03d}'), ['042']);
+    });
+
+    test('emits prefix and suffix only for non empty fields', () {
+      expect(resolve('{series:|| - }{title}'), [
+        'The Wheel of Time - The Eye of the World',
+      ]);
+      expect(resolve('{series:|| - }{title}', {...values, 'series': ''}), [
+        'The Eye of the World',
+      ]);
+    });
+
+    test('resolves the template from issue #192', () {
+      const template =
+          '{#library}/{author_sort:.20}/'
+          '{series:|| - }{series_index:0>2s|| - }{title:.15}';
+
+      expect(resolve(template, {...values, '#library': 'Manuals'}), [
+        'Manuals',
+        'Jordan, Robert',
+        'The Wheel of Time - 01 - The Eye of the',
+      ]);
+    });
+
+    test('never pads an empty field into a value', () {
+      const template =
+          '{author_sort:.20}/'
+          '{series:|| - }{series_index:0>2s|| - }{title:.15}';
+
+      expect(resolve(template, {...values, 'series': '', 'series_index': ''}), [
+        'Jordan, Robert',
+        'The Eye of the',
+      ]);
+    });
+
+    test('drops folders for custom columns without a value', () {
+      const template = '{#library}/{author_sort:.20}/{title:.15}';
+
+      expect(resolve(template), ['Jordan, Robert', 'The Eye of the']);
+    });
+
+    test('leaves values untouched for unsupported calibre functions', () {
+      expect(resolve('{title:re(The,A)}'), ['The Eye of the World']);
+    });
+
+    test('caps overly long segments', () {
+      final longTitle = 'A' * 300;
+      expect(
+        resolve('{title}', {...values, 'title': longTitle}).single.length,
+        DownloadPathTemplate.maxSegmentLength,
+      );
+    });
+  });
+
+  group('custom columns', () {
+    test('collects the custom column fields of a template', () {
+      expect(
+        DownloadPathTemplate.customColumnFields('{#My Library}/{#shelf-name}'),
+        {'#my_library', '#shelf_name'},
+      );
+      expect(
+        DownloadPathTemplate.customColumnFields('{author}/{title}'),
+        isEmpty,
+      );
+    });
+
+    test('normalizes display names to calibre labels', () {
+      expect(
+        DownloadPathTemplate.normalizeCustomField('My Library'),
+        '#my_library',
+      );
+      expect(DownloadPathTemplate.normalizeCustomField('#library'), '#library');
+    });
+  });
+
+  group('file names', () {
+    test('removes dots so the mime type stays detectable', () {
+      expect(
+        DownloadPathTemplate.sanitizeFileName('Vol. 1 - Dr. No'),
+        'Vol 1 - Dr No',
+      );
+    });
+
+    test('preview keeps the extension detectable', () {
+      expect(
+        DownloadPathTemplate.preview('{author}/{title:.7}.{id}'),
+        '/Robert Jordan/The Eye 42.epub',
+      );
+    });
+
+    test('preview shows the label of a custom column', () {
+      expect(
+        DownloadPathTemplate.preview('{#library}/{title}'),
+        '/library/The Eye of the World.epub',
+      );
+    });
   });
 
   group('DownloadPathTemplate helpers', () {

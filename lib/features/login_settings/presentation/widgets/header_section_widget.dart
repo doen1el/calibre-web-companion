@@ -1,5 +1,7 @@
+import 'package:calibre_web_companion/core/utils/http_header_utils.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_bloc.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_state.dart';
+import 'package:calibre_web_companion/features/login_settings/data/models/custom_header.dart';
 import 'package:calibre_web_companion/features/login_settings/presentation/widgets/header_item_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +9,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HeadersSection extends StatelessWidget {
   const HeadersSection({super.key});
+
+  static bool _isDuplicate(List<CustomHeaderModel> headers, int index) {
+    final name = sanitizeHeaderName(headers[index].key).toLowerCase();
+    if (name.isEmpty) return false;
+    for (int i = 0; i < headers.length; i++) {
+      if (i == index) continue;
+      if (sanitizeHeaderName(headers[i].key).toLowerCase() == name) return true;
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,9 +90,11 @@ class HeadersSection extends StatelessWidget {
                     final header = entry.value;
 
                     return HeaderItem(
+                      key: ValueKey('${state.formVersion}_$index'),
                       index: index,
                       header: header,
                       isLast: index == state.customHeaders.length - 1,
+                      isDuplicate: _isDuplicate(state.customHeaders, index),
                     );
                   }),
               ],

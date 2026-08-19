@@ -53,15 +53,18 @@ Future<ApiService> setupIntegrationTest() async {
 
 SharedPreferences testPrefs() => GetIt.instance<SharedPreferences>();
 
-Future<BookViewModel> fetchFirstBook(ApiService api) async {
+Future<List<BookViewModel>> fetchBooks(ApiService api, {int limit = 1}) async {
   final ds = BookViewRemoteDatasource(
     apiService: api,
     logger: Logger(level: Level.off),
     preferences: testPrefs(),
   );
-  final books = await ds.fetchBooks(offset: 0, limit: 1);
+  final books = await ds.fetchBooks(offset: 0, limit: limit);
   if (books.isEmpty) {
     throw Exception('Library is empty!');
   }
-  return books.first;
+  return books;
 }
+
+Future<BookViewModel> fetchFirstBook(ApiService api) async =>
+    (await fetchBooks(api)).first;

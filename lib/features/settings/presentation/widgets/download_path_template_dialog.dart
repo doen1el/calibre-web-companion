@@ -16,6 +16,10 @@ class DownloadPathTemplateDialog extends StatefulWidget {
 
 class _DownloadPathTemplateDialogState
     extends State<DownloadPathTemplateDialog> {
+  static const String _calibreExample =
+      '{#library}/{author_sort:.20}/'
+      '{series:|| - }{series_index:0>2s|| - }{title:.15}';
+
   late final TextEditingController _controller;
 
   @override
@@ -88,10 +92,26 @@ class _DownloadPathTemplateDialogState
                     onPressed: () => _insert(token.placeholder),
                   ),
                 ActionChip(
+                  label: const Text('{#column}'),
+                  onPressed: () => _insert('{#column}'),
+                ),
+                ActionChip(
                   label: const Text('/'),
                   onPressed: () => _insert('/'),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              localizations.downloadPathTemplateCalibreHint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const SelectableText(
+              _calibreExample,
+              style: TextStyle(fontFamily: 'monospace', fontSize: 12),
             ),
             const SizedBox(height: 16),
             Text(

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/core/services/kosync_service.dart';
 import 'package:calibre_web_companion/core/services/server_capabilities.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
@@ -65,6 +66,12 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
   int _lastWidgetPercent = -1;
   late final WebDavSyncService _webDavService;
   Timer? _readerProgressTimer;
+  int? _koSyncBookId;
+  String? _koSyncBookUuid;
+  double? _koSyncPercentage;
+  int _koSyncSpineIndex = -1;
+  double? _koSyncPushedPercentage;
+  KoSyncProgress? _koSyncProgress;
 
   @override
   void dispose() {
@@ -175,6 +182,21 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     super.initState();
     _webDavService = WebDavSyncService(logger: GetIt.instance<Logger>());
     _initWebDav();
+    _loadKoSyncProgress();
+  }
+
+  /// Reads the position other devices reported for this book, for the reading
+  /// progress card.
+  Future<void> _loadKoSyncProgress() async {
+    final koSync = getIt<KoSyncService>();
+    if (!await koSync.isEnabled()) return;
+
+    final progress = await koSync.fetchProgress(
+      document: widget.bookViewModel.id.toString(),
+    );
+    if (!mounted || progress == null || progress.percentage <= 0) return;
+
+    setState(() => _koSyncProgress = progress);
   }
 
   Future<void> _initWebDav() async {
@@ -217,15 +239,33 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
       return;
     }
 
+    final startPercentage = await _koSyncStartPercentage(
+      context,
+      bytes,
+      bookDetailsModel,
+    );
+    if (!context.mounted) return;
+
+    _koSyncBookId = bookDetailsModel.id;
+    _koSyncBookUuid = bookUuid;
+    _koSyncPercentage = null;
+    _koSyncSpineIndex = -1;
+    _koSyncPushedPercentage = startPercentage;
+
     try {
       await CosmosEpub.openFileBook(
         context: context,
         bytes: bytes,
         bookId: bookUuid,
+        startPercentage: startPercentage,
         accentColor: Theme.of(context).colorScheme.primary,
         onPageFlip: (currentPage, totalPages) {
           _scheduleReaderProgressSync(bookUuid);
           _pushReadingProgressToWidget(bookUuid, currentPage, totalPages);
+        },
+        onProgressChanged: (percentage, spineIndex) {
+          _koSyncPercentage = percentage;
+          _koSyncSpineIndex = spineIndex;
         },
       );
     } catch (e) {
@@ -240,14 +280,47 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
 
     _readerProgressTimer?.cancel();
     await _saveReaderProgressToCloud(bookUuid);
+    await _pushKoSyncProgress();
+
+    // Re-read rather than reuse what was pushed: the server keeps the furthest
+    // position, so a push from behind another device leaves that one standing.
+    await _loadKoSyncProgress();
   }
 
   void _scheduleReaderProgressSync(String bookUuid) {
     _readerProgressTimer?.cancel();
-    _readerProgressTimer = Timer(
-      const Duration(seconds: 5),
-      () => _saveReaderProgressToCloud(bookUuid),
+    _readerProgressTimer = Timer(const Duration(seconds: 5), () {
+      _saveReaderProgressToCloud(bookUuid);
+      _pushKoSyncProgress();
+    });
+  }
+
+  /// Shares the reader's position with the other devices. Debounced while
+  /// reading and run once more when the reader closes.
+  Future<void> _pushKoSyncProgress() async {
+    final bookId = _koSyncBookId;
+    final bookUuid = _koSyncBookUuid;
+    final percentage = _koSyncPercentage;
+    if (bookId == null || bookUuid == null || percentage == null) return;
+
+    final pushed = _koSyncPushedPercentage;
+    if (pushed != null && (pushed - percentage).abs() < 0.1) return;
+
+    final koSync = getIt<KoSyncService>();
+    if (!await koSync.isEnabled()) return;
+
+    final ok = await koSync.pushProgress(
+      bookId: bookId,
+      percentage: percentage,
+      spineIndex: _koSyncSpineIndex,
     );
+    if (!ok) return;
+
+    _koSyncPushedPercentage = percentage;
+
+    // Our own position must not come back as an offer to jump on next open.
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('kosync_applied_$bookUuid', percentage);
   }
 
   void _pushReadingProgressToWidget(
@@ -336,6 +409,71 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
         pathTemplate: settingsState.downloadPathTemplate,
       ),
     );
+  }
+
+  /// Asks the KOReader sync endpoint where the user is in this book and, if
+  /// that is somewhere else than the app last jumped to, offers to follow it.
+  Future<double?> _koSyncStartPercentage(
+    BuildContext context,
+    Uint8List bytes,
+    BookDetailsModel book,
+  ) async {
+    final koSync = getIt<KoSyncService>();
+    if (!await koSync.isEnabled()) return null;
+
+    final KoSyncProgress? remote;
+    try {
+      remote = await koSync.fetchProgress(
+        document: KoSyncService.partialMd5(bytes),
+        fallbackDocument: book.id.toString(),
+      );
+    } catch (_) {
+      return null;
+    }
+    if (remote == null || remote.percentage <= 0) return null;
+
+    // Following the same position twice would re-ask on every open and undo
+    // reading the app did since, so a position we already applied is done.
+    final prefs = await SharedPreferences.getInstance();
+    final appliedKey = 'kosync_applied_${book.uuid}';
+    final applied = prefs.getDouble(appliedKey);
+    if (applied != null && (applied - remote.percentage).abs() < 0.5) {
+      return null;
+    }
+
+    if (!context.mounted) return null;
+    final localization = AppLocalizations.of(context)!;
+    final percentage = remote.percentage.toStringAsFixed(0);
+    final device = remote.device;
+
+    final follow = await showDialog<bool>(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: Text(localization.koSyncContinueTitle),
+            content: Text(
+              device == null || device.isEmpty
+                  ? localization.koSyncContinueBodyUnknownDevice(percentage)
+                  : localization.koSyncContinueBody(device, percentage),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(localization.koSyncStayHere),
+              ),
+              AppDialogButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                label: localization.koSyncJumpThere,
+              ),
+            ],
+          ),
+    );
+
+    // Remember it either way: declining once should not mean being asked
+    // again on the next open for the same position.
+    await prefs.setDouble(appliedKey, remote.percentage);
+
+    return follow == true ? remote.percentage : null;
   }
 
   Future<void> _restoreReaderProgressFromCloud(String bookUuid) async {
@@ -806,6 +944,8 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
           actions,
         );
       },
+      BookDetailsSection.readingProgress.key:
+          () => _buildReadingProgressSection(context, localizations),
       BookDetailsSection.rating.key:
           () =>
               book.rating > 0
@@ -1349,6 +1489,80 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
           ),
         );
       },
+    );
+  }
+
+  /// Shows up only once a synced position is actually there, so a library
+  /// without KOReader sync never grows an empty card.
+  Widget _buildReadingProgressSection(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) {
+    final progress = _koSyncProgress;
+    if (progress == null) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final percentage = progress.percentage.clamp(0.0, 100.0);
+    final timestamp = progress.timestamp;
+    final device = progress.device;
+
+    final String? subtitle;
+    if (timestamp == null) {
+      subtitle = device != null && device.isNotEmpty ? device : null;
+    } else {
+      final date = intl.DateFormat.yMMMMd(
+        localizations.localeName,
+      ).add_Hm().format(timestamp.toLocal());
+      subtitle =
+          device != null && device.isNotEmpty
+              ? localizations.koSyncProgressSyncedBy(device, date)
+              : localizations.koSyncProgressSyncedOn(date);
+    }
+
+    return _buildCard(
+      context,
+      Icons.timeline_rounded,
+      localizations.koSyncProgressTitle,
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: percentage / 100,
+                      minHeight: 8,
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '${percentage.toStringAsFixed(0)} %',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 

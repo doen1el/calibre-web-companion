@@ -16,10 +16,46 @@ class EpubContentParser {
   final EpubBook epubBook;
   late final List<LocalChapterModel> flatChapters;
   late final Map<String, Uint8List> imageMap;
+  late final Map<String, int> _spineIndexByFile;
 
   EpubContentParser(this.epubBook) {
     flatChapters = _buildChapterList();
     imageMap = _extractImages();
+    _spineIndexByFile = _buildSpineIndex();
+  }
+
+  /// Spine position of [chapterIndex], or -1 when it cannot be resolved —
+  /// a chapter whose file is not in the spine, or an EPUB without one.
+  int spineIndexForChapter(int chapterIndex) {
+    if (chapterIndex < 0 || chapterIndex >= flatChapters.length) return -1;
+    final key = _fileKey(flatChapters[chapterIndex].sourceHref);
+    if (key.isEmpty) return -1;
+    return _spineIndexByFile[key] ?? -1;
+  }
+
+  Map<String, int> _buildSpineIndex() {
+    final index = <String, int>{};
+    final spineItems = epubBook.Schema?.Package?.Spine?.Items;
+    final manifest = epubBook.Schema?.Package?.Manifest?.Items;
+    if (spineItems == null || manifest == null) return index;
+
+    for (var i = 0; i < spineItems.length; i++) {
+      final manifestItem =
+          manifest.where((m) => m.Id == spineItems[i].IdRef).firstOrNull;
+      final key = _fileKey(manifestItem?.Href ?? '');
+      // First spine entry wins: a file listed twice is entered at its first
+      // appearance, which is where a position in it starts.
+      if (key.isNotEmpty) index.putIfAbsent(key, () => i);
+    }
+    return index;
+  }
+
+  /// Paths in the TOC, the manifest and the archive are written relative to
+  /// different bases, so only the file name is comparable between them.
+  String _fileKey(String href) {
+    if (href.isEmpty) return '';
+    final withoutFragment = href.split('#').first;
+    return withoutFragment.split('/').last.toLowerCase();
   }
 
   List<LocalChapterModel> _buildChapterList() {
@@ -46,10 +82,9 @@ class EpubContentParser {
   void _flattenNavPoints(List<EpubNavigationPoint> points,
       List<LocalChapterModel> list, int depth) {
     for (final point in points) {
-      final title =
-          point.NavigationLabels?.isNotEmpty == true
-              ? point.NavigationLabels!.first.Text ?? '...'
-              : '...';
+      final title = point.NavigationLabels?.isNotEmpty == true
+          ? point.NavigationLabels!.first.Text ?? '...'
+          : '...';
       final source = point.Content?.Source ?? '';
       final htmlContent = _resolveContentBySource(source);
 
@@ -60,12 +95,14 @@ class EpubContentParser {
           htmlContent: '',
           isSectionTitle: true,
           depth: depth,
+          sourceHref: source,
         ));
       } else {
         list.add(LocalChapterModel(
           chapter: title,
           htmlContent: htmlContent,
           depth: depth,
+          sourceHref: source,
         ));
       }
 
@@ -111,6 +148,7 @@ class EpubContentParser {
         chapter: chapter.Title ?? '...',
         htmlContent: chapter.HtmlContent ?? '',
         depth: depth,
+        sourceHref: chapter.ContentFileName ?? '',
       ));
       if (chapter.SubChapters != null && chapter.SubChapters!.isNotEmpty) {
         _flattenEpubChapters(chapter.SubChapters!, list, depth + 1);
@@ -146,6 +184,7 @@ class EpubContentParser {
           chapter: 'Chapter ${list.length + 1}',
           htmlContent: content,
           depth: 0,
+          sourceHref: href,
         ));
       }
     } else {
@@ -156,6 +195,7 @@ class EpubContentParser {
           chapter: entry.key.split('/').last.replaceAll('.xhtml', ''),
           htmlContent: entry.value.Content ?? '',
           depth: 0,
+          sourceHref: entry.key,
         ));
       }
     }

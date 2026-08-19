@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:calibre_web_companion/core/di/injection_container.dart';
+import 'package:calibre_web_companion/core/services/kosync_service.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 import 'package:calibre_web_companion/features/settings/data/datasources/settings_local_datasource.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
@@ -282,6 +283,18 @@ class SettingsRepository {
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<void> setKoSyncEnabled(bool enabled) async {
+    try {
+      await dataSource.saveKoSyncEnabled(enabled);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<KoSyncResult> testKoSyncConnection() async {
+    return getIt<KoSyncService>().testConnection();
   }
 
   Future<void> setEInkMode(bool enabled) async {

@@ -7,6 +7,7 @@ import 'package:calibre_web_companion/core/exceptions/redirect_exception.dart';
 import 'package:calibre_web_companion/core/services/connection_diagnostics.dart';
 import 'package:calibre_web_companion/core/services/digest_auth.dart';
 import 'package:calibre_web_companion/core/services/session_reauth_service.dart';
+import 'package:calibre_web_companion/core/utils/http_header_utils.dart';
 import 'package:calibre_web_companion/core/utils/upload_file_name.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/book_view_remote_datasource.dart';
 import 'package:html/parser.dart' as parser;
@@ -443,6 +444,7 @@ class ApiService {
       final uri = _buildUri(endpoint: endpoint);
       final headers = getAuthHeaders(authMethod: AuthMethod.auto);
       if (_userAgent != null) headers['User-Agent'] = _userAgent!;
+      headers.addAll(await resolveCustomHeaders());
 
       final request = await httpClient.getUrl(uri);
       request.followRedirects = false;
@@ -464,6 +466,7 @@ class ApiService {
     Map<String, String> queryParams = const {},
     bool followRedirects = true,
     Map<String, String> extraHeaders = const {},
+    bool checkStatus = true,
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
@@ -473,7 +476,7 @@ class ApiService {
       headers['User-Agent'] = _userAgent!;
     }
 
-    final customHeaders = await _processCustomHeaders();
+    final customHeaders = await resolveCustomHeaders();
     headers.addAll(customHeaders);
     headers.addAll(extraHeaders);
 
@@ -515,7 +518,9 @@ class ApiService {
           }
         }
 
-        _checkResponseStatus(statusCode: response.statusCode);
+        if (checkStatus) {
+          _checkResponseStatus(statusCode: response.statusCode);
+        }
         return response;
       } catch (e) {
         _logger.e('Request failed: $e');
@@ -594,6 +599,8 @@ class ApiService {
     bool csrfOnlyInHeader = false,
     List<http.MultipartFile>? files,
     bool followRedirects = true,
+    Map<String, String> extraHeaders = const {},
+    bool checkStatus = true,
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
@@ -617,8 +624,9 @@ class ApiService {
           headers['User-Agent'] = _userAgent!;
         }
 
-        final customHeaders = await _processCustomHeaders();
+        final customHeaders = await resolveCustomHeaders();
         headers.addAll(customHeaders);
+        headers.addAll(extraHeaders);
 
         headers.forEach((key, value) {
           request.headers.set(key, value);
@@ -655,7 +663,7 @@ class ApiService {
       }
     }
 
-    final customHeaders = await _processCustomHeaders();
+    final customHeaders = await resolveCustomHeaders();
 
     if (useCsrf) {
       _logger.i('Making CSRF-protected POST request to: $uri');
@@ -775,6 +783,7 @@ class ApiService {
         }
 
         request.headers.addAll(customHeaders);
+        request.headers.addAll(extraHeaders);
 
         if (body is Map) {
           final bodyMap = body;
@@ -805,7 +814,9 @@ class ApiService {
             }
           }
 
-          _checkResponseStatus(statusCode: response.statusCode);
+          if (checkStatus) {
+            _checkResponseStatus(statusCode: response.statusCode);
+          }
           return response;
         } catch (e) {
           _logger.e('Multipart POST request failed: $e');
@@ -827,6 +838,7 @@ class ApiService {
         }
 
         postHeaders.addAll(customHeaders);
+        postHeaders.addAll(extraHeaders);
 
         Map<String, dynamic> finalBody = {};
         if (body is Map) {
@@ -873,7 +885,9 @@ class ApiService {
             }
           }
 
-          _checkResponseStatus(statusCode: response.statusCode);
+          if (checkStatus) {
+            _checkResponseStatus(statusCode: response.statusCode);
+          }
           return response;
         } catch (e) {
           _logger.e('CSRF-protected POST request failed: $e');
@@ -892,6 +906,7 @@ class ApiService {
         }
 
         headers.addAll(customHeaders);
+        headers.addAll(extraHeaders);
         request.headers.addAll(headers);
 
         if (body is Map) {
@@ -920,7 +935,9 @@ class ApiService {
             }
           }
 
-          _checkResponseStatus(statusCode: response.statusCode);
+          if (checkStatus) {
+            _checkResponseStatus(statusCode: response.statusCode);
+          }
           return response;
         } catch (e) {
           _logger.e('Multipart POST request failed: $e');
@@ -935,6 +952,7 @@ class ApiService {
         }
 
         headers.addAll(customHeaders);
+        headers.addAll(extraHeaders);
 
         final preDigest = _preemptiveDigestHeader(authMethod, 'POST', uri);
         if (preDigest != null) {
@@ -983,7 +1001,9 @@ class ApiService {
             }
           }
 
-          _checkResponseStatus(statusCode: response.statusCode);
+          if (checkStatus) {
+            _checkResponseStatus(statusCode: response.statusCode);
+          }
           return response;
         } catch (e) {
           _logger.e('POST request failed: $e');
@@ -1014,7 +1034,7 @@ class ApiService {
       headers['User-Agent'] = _userAgent!;
     }
 
-    final customHeaders = await _processCustomHeaders();
+    final customHeaders = await resolveCustomHeaders();
     headers.addAll(customHeaders);
 
     Future<http.StreamedResponse> send(Map<String, String> requestHeaders) {
@@ -1220,35 +1240,28 @@ class ApiService {
     return headers;
   }
 
-  /// Process custom headers, replacing placeholders with actual values
-  Future<Map<String, String>> _processCustomHeaders() async {
+  /// Reads the user-configured custom headers, replacing placeholders with
+  /// actual values. Malformed entries are dropped rather than thrown at the
+  /// HTTP client.
+  Future<Map<String, String>> resolveCustomHeaders() async {
     final prefs = await SharedPreferences.getInstance();
-    final headersJson = prefs.getString('custom_login_headers') ?? '[]';
+    final headersJson = prefs.getString(customHeadersPrefsKey) ?? '[]';
+    return parseCustomHeaders(headersJson, username: _username);
+  }
 
-    final List<dynamic> decodedList = jsonDecode(headersJson);
-    final List<Map<String, String>> customHeaders =
-        decodedList
-            .map((item) => Map<String, String>.from(item as Map))
-            .toList();
-
-    final Map<String, String> processedHeaders = {};
-
-    for (final header in customHeaders) {
-      final String? headerName = header['key'];
-      String? headerValue = header['value'];
-
-      if (headerName == null || headerValue == null) {
-        continue;
-      }
-
-      if (headerValue.contains('\${USERNAME}') && _username != null) {
-        headerValue = headerValue.replaceAll('\${USERNAME}', _username!);
-      }
-
-      processedHeaders[headerName] = headerValue;
-    }
-
-    return processedHeaders;
+  /// Masked view of the custom headers for the diagnostics report.
+  Future<List<CustomHeaderSummary>> describeCustomHeaders() async {
+    await _ensureInitialized();
+    final headers = await resolveCustomHeaders();
+    return headers.entries
+        .map(
+          (entry) => CustomHeaderSummary(
+            name: entry.key,
+            maskedValue: maskHeaderValue(entry.value),
+            suspicious: valueLooksLikeHeaderName(entry.value, entry.key),
+          ),
+        )
+        .toList();
   }
 
   /// Gets authentication headers based on the auth method
@@ -1432,7 +1445,7 @@ class ApiService {
 
       final headers = getAuthHeaders(authMethod: authMethod);
       if (_userAgent != null) headers['User-Agent'] = _userAgent!;
-      headers.addAll(await _processCustomHeaders());
+      headers.addAll(await resolveCustomHeaders());
       headers.addAll(extraHeaders);
 
       final preDigest = _preemptiveDigestHeader(authMethod, 'GET', uri);
@@ -1773,7 +1786,7 @@ class ApiService {
       request.fields[key] = value;
     });
 
-    final customHeaders = await _processCustomHeaders();
+    final customHeaders = await resolveCustomHeaders();
     request.headers.addAll(customHeaders);
 
     // Prefer the name the picker reported over the cache path: some Android

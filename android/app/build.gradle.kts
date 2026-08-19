@@ -42,6 +42,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode * 10 + 3
         versionName = flutter.versionName
+
+        manifestPlaceholders["appLabel"] = "Calibre Web Companion"
     }
 
     dependenciesInfo {
@@ -62,6 +64,12 @@ android {
 
     buildTypes {
         getByName("debug") {
+            // Own applicationId so a local debug build installs next to the
+            // release app instead of replacing it.
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            manifestPlaceholders["appLabel"] = "CWC Debug"
+
             isMinifyEnabled = true
             isShrinkResources = true
 

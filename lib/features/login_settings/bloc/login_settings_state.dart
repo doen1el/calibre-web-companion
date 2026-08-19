@@ -9,6 +9,7 @@ class LoginSettingsState extends Equatable {
   final bool isSaved;
   final bool allowSelfSigned;
   final String? errorMessage;
+  final int formVersion;
 
   const LoginSettingsState({
     this.customHeaders = const [],
@@ -18,6 +19,7 @@ class LoginSettingsState extends Equatable {
     this.isSaved = false,
     this.allowSelfSigned = false,
     this.errorMessage,
+    this.formVersion = 0,
   });
 
   LoginSettingsState copyWith({
@@ -28,6 +30,7 @@ class LoginSettingsState extends Equatable {
     bool? isSaved,
     bool? allowSelfSigned,
     String? errorMessage,
+    int? formVersion,
   }) {
     return LoginSettingsState(
       customHeaders: customHeaders ?? this.customHeaders,
@@ -37,6 +40,7 @@ class LoginSettingsState extends Equatable {
       isSaved: isSaved ?? this.isSaved,
       allowSelfSigned: allowSelfSigned ?? this.allowSelfSigned,
       errorMessage: errorMessage,
+      formVersion: formVersion ?? this.formVersion,
     );
   }
 
@@ -49,5 +53,6 @@ class LoginSettingsState extends Equatable {
     isSaved,
     allowSelfSigned,
     errorMessage,
+    formVersion,
   ];
 }

@@ -1,0 +1,4 @@
+Feature: Integrated the KOReader Sync Plugin
+Fix: fixed WebDAV connection issue where first request would fail with 401/403, but subsequent requests would succeed.
+Fix: Fixed issue within the custom download path configuration
+Fix: Removed "Buy me a coffee" button from the settings page to avoid getting removed from the Google Play Store due to policy violations.

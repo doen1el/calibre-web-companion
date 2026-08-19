@@ -4,7 +4,7 @@
 <p align="center">
     <img src="docs/icon/icon.png" alt="App Icon" width="100" />
     <br>
-    v2.2.3
+    v2.3.0
 </p>
 
 <p align="center">
@@ -30,7 +30,7 @@
 
 # Calibre Web Companion
 
-This is an unofficial companion application for [Calibre Web](https://github.com/janeczku/calibre-web) (which also works for [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated), [Grimmory](https://github.com/grimmory-tools/grimmory), [Calibre 'Sharing over the net'](https://github.com/kovidgoyal/calibre) and other OPDS providers (beta)), that allows you to browse your book collection and download books directly to your device. You can also interact with your books by marking them as read, unread or bookmarked. It is also possible to send books directly to your e-reader (Kindle/Kobo) thanks to the great work of [send2ereader](https://github.com/daniel-j/send2ereader).
+This is an unofficial companion application for [Calibre Web](https://github.com/janeczku/calibre-web) (which also works for [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated), [Calibre-Web-NextGen](https://github.com/new-usemame/Calibre-Web-NextGen), [Grimmory](https://github.com/grimmory-tools/grimmory), [Calibre 'Sharing over the net'](https://github.com/kovidgoyal/calibre) and other OPDS providers (beta)), that allows you to browse your book collection and download books directly to your device. You can also interact with your books by marking them as read, unread or bookmarked. It is also possible to send books directly to your e-reader (Kindle/Kobo) thanks to the great work of [send2ereader](https://github.com/daniel-j/send2ereader).
 
 The app is built with [Flutter](https://github.com/flutter/flutter) and uses **Material You**. It is currently available for **Android** only.
 
@@ -58,9 +58,9 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 - Discover books by category, authors, series, publishers, ratings, hot & trending, and more.
 - View rich details for every book, edit its metadata, and upload new covers.
 - Mark books as read or unread, archive them, and organize them into shelves.
-- Create, edit and browse Magic Shelves, dynamic, rule‑based shelves (Calibre‑Web Automated only).
+- Create, edit and browse Magic Shelves, dynamic, rule‑based shelves (Calibre‑Web Automated & Calibre-Web-NextGen only).
 - Add books quickly by scanning their ISBN barcode.
-- Read books in the built‑in eBook reader and sync your reading progress across devices via WebDAV.
+- Read books on the built-in eReader and sync your reading progress across devices using the WebDAV and KOReader Sync plugins.
 - Send books to your e‑reader via [send2ereader](https://github.com/daniel-j/send2ereader) (or your own instance) or Calibre‑Web's email function.
 - Download books straight into your collection with [shelfmark](https://github.com/calibrain/shelfmark).
   - ⚠️ This app does **not** support, encourage or facilitate the piracy of copyrighted works. Please only download content you are legally entitled to, respecting copyright is your responsibility.

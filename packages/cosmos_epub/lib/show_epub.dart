@@ -15,6 +15,7 @@ import 'Component/theme_colors.dart';
 import 'Helpers/chapters.dart';
 import 'Helpers/custom_toast.dart';
 import 'Helpers/pagination.dart';
+import 'Helpers/progress_mapping.dart';
 import 'Helpers/progress_singleton.dart';
 import 'Model/chapter_model.dart';
 
@@ -56,6 +57,8 @@ class ShowEpub extends StatefulWidget {
   final Function(int currentPage, int totalPages)? onPageFlip;
   final Function(int lastPageIndex)? onLastPage;
   final Color accentColor;
+  final double? startPercentage;
+  final Function(double percentage, int spineIndex)? onProgressChanged;
 
   ShowEpub({
     super.key,
@@ -67,6 +70,8 @@ class ShowEpub extends StatefulWidget {
     required this.chapterListTitle,
     this.onPageFlip,
     this.onLastPage,
+    this.startPercentage,
+    this.onProgressChanged,
   });
 
   @override
@@ -98,6 +103,9 @@ class ShowEpubState extends State<ShowEpub> {
   int prevSwipe = 0;
   bool showPrevious = false;
   bool showNext = false;
+  bool _startPercentageApplied = false;
+  List<int> _chapterWeights = [];
+  double? _startPageFraction;
   var dropDownFontItems;
 
   GetStorage gs = GetStorage();
@@ -152,6 +160,28 @@ class ShowEpubState extends State<ShowEpub> {
     // Build content parser once — it extracts chapters and images
     contentParser ??= EpubContentParser(epubBook);
     chaptersList = contentParser!.flatChapters;
+    _chapterWeights =
+        chaptersList.map((chapter) => chapter.htmlContent.length).toList();
+
+    // A synced position knows only how far into the book it is, so it gets
+    // resolved here, where the chapters exist, and only on the first load.
+    if (index == -1 &&
+        !_startPercentageApplied &&
+        widget.startPercentage != null) {
+      _startPercentageApplied = true;
+      widget.starterChapter = chapterIndexForPercentage(
+        _chapterWeights,
+        widget.startPercentage!,
+      );
+      // The page is resolved by the paging widget, which is the only place
+      // that knows how many pages this chapter has on this screen.
+      _startPageFraction = fractionWithinChapter(
+        _chapterWeights,
+        widget.starterChapter,
+        widget.startPercentage!,
+      );
+      await bookProgress.setCurrentPageIndex(bookId, 0);
+    }
 
     if (widget.starterChapter >= 0 &&
         widget.starterChapter < chaptersList.length) {
@@ -499,293 +529,397 @@ class ShowEpubState extends State<ShowEpub> {
     return WillPopScope(
         onWillPop: backPress,
         child: Theme(
-          data: Theme.of(context).copyWith(
-            textSelectionTheme: const TextSelectionThemeData(
-              selectionColor: Color(0x664285F4),
-              selectionHandleColor: Color(0xFF4285F4),
+            data: Theme.of(context).copyWith(
+              textSelectionTheme: const TextSelectionThemeData(
+                selectionColor: Color(0x664285F4),
+                selectionHandleColor: Color(0xFF4285F4),
+              ),
             ),
-          ),
-          child: Scaffold(
-            backgroundColor: backColor,
-          body: SafeArea(
-            child: Stack(
-              children: [
-                Column(
+            child: Scaffold(
+              backgroundColor: backColor,
+              body: SafeArea(
+                child: Stack(
                   children: [
-                    Expanded(
-                        child: Stack(
+                    Column(
                       children: [
-                        FutureBuilder<void>(
-                            future: loadChapterFuture,
-                            builder: (context, snapshot) {
-                              switch (snapshot.connectionState) {
-                                case ConnectionState.waiting:
-                                  {
-                                    return Center(
-                                        child: CupertinoActivityIndicator(
-                                      color: Theme.of(context).primaryColor,
-                                      radius: 30.r,
-                                    ));
+                        Expanded(
+                            child: Stack(
+                          children: [
+                            FutureBuilder<void>(
+                                future: loadChapterFuture,
+                                builder: (context, snapshot) {
+                                  switch (snapshot.connectionState) {
+                                    case ConnectionState.waiting:
+                                      {
+                                        return Center(
+                                            child: CupertinoActivityIndicator(
+                                          color: Theme.of(context).primaryColor,
+                                          radius: 30.r,
+                                        ));
+                                      }
+                                    default:
+                                      {
+                                        if (widget.shouldOpenDrawer) {
+                                          WidgetsBinding.instance
+                                              .addPostFrameCallback((_) {
+                                            openTableOfContents();
+                                          });
+
+                                          widget.shouldOpenDrawer = false;
+                                        }
+
+                                        var currentChapterIndex = bookProgress
+                                                .getBookProgress(bookId)
+                                                .currentChapterIndex ??
+                                            0;
+
+                                        return PagingWidget(
+                                          htmlContent: htmlContent,
+                                          contentParser: contentParser,
+                                          bookId: bookId,
+                                          chapterIndex: currentChapterIndex,
+                                          rawFontFamily: selectedTextStyle,
+                                          accentColor: widget.accentColor,
+                                          backgroundColor: backColor,
+                                          lastWidget: null,
+                                          starterPageIndex: bookProgress
+                                                  .getBookProgress(bookId)
+                                                  .currentPageIndex ??
+                                              0,
+                                          starterPageFraction:
+                                              _startPageFraction,
+                                          style: TextStyle(
+                                              fontSize: _fontSize.sp,
+                                              fontFamily: selectedTextStyle,
+                                              package: 'cosmos_epub',
+                                              color: fontColor),
+                                          handlerCallback: (ctrl) {
+                                            controllerPaging = ctrl;
+                                          },
+                                          onTextTap: () {
+                                            if (showHeader) {
+                                              showHeader = false;
+                                            } else {
+                                              showHeader = true;
+                                            }
+                                            updateUI();
+                                          },
+                                          onPageFlip:
+                                              (currentPage, totalPages) {
+                                            // Consumed on the first report, so a
+                                            // later chapter does not reopen at the
+                                            // same share of its own text.
+                                            _startPageFraction = null;
+
+                                            widget.onPageFlip
+                                                ?.call(currentPage, totalPages);
+
+                                            widget.onProgressChanged?.call(
+                                              percentageForPosition(
+                                                  _chapterWeights,
+                                                  currentChapterIndex,
+                                                  currentPage,
+                                                  totalPages),
+                                              contentParser
+                                                      ?.spineIndexForChapter(
+                                                          currentChapterIndex) ??
+                                                  -1,
+                                            );
+
+                                            bookProgress.setCurrentPageIndex(
+                                                bookId,
+                                                currentPage == totalPages - 1
+                                                    ? 0
+                                                    : currentPage);
+
+                                            // Reset swipe counters when not on boundary pages
+                                            if (currentPage != totalPages - 1) {
+                                              lastSwipe = 0;
+                                            }
+                                            if (currentPage != 0) {
+                                              prevSwipe = 0;
+                                            }
+
+                                            isLastPage = false;
+                                            updateUI();
+                                          },
+                                          onLastPage:
+                                              (index, totalPages) async {
+                                            widget.onLastPage?.call(index);
+
+                                            // For all chapters: require 2 swipes past last page
+                                            // except 1-page chapters which advance immediately
+                                            if (totalPages <= 1) {
+                                              nextChapter();
+                                            } else {
+                                              lastSwipe++;
+                                              if (lastSwipe > 1) {
+                                                nextChapter();
+                                              }
+                                            }
+
+                                            isLastPage = true;
+                                            updateUI();
+                                          },
+                                          onFirstPageBack: (index, totalPages) {
+                                            if (totalPages <= 1) {
+                                              prevChapter();
+                                            } else {
+                                              prevSwipe++;
+                                              if (prevSwipe > 1) {
+                                                prevChapter();
+                                              }
+                                            }
+                                          },
+                                          chapterTitle:
+                                              chaptersList[currentChapterIndex]
+                                                  .chapter,
+                                          totalChapters: chaptersList.length,
+                                        );
+                                      }
                                   }
-                                default:
-                                  {
-                                    if (widget.shouldOpenDrawer) {
-                                      WidgetsBinding.instance
-                                          .addPostFrameCallback((_) {
-                                        openTableOfContents();
-                                      });
-
-                                      widget.shouldOpenDrawer = false;
-                                    }
-
-                                    var currentChapterIndex = bookProgress
-                                            .getBookProgress(bookId)
-                                            .currentChapterIndex ??
-                                        0;
-
-                                    return PagingWidget(
-                                      htmlContent: htmlContent,
-                                      contentParser: contentParser,
-                                      bookId: bookId,
-                                      chapterIndex: currentChapterIndex,
-                                      rawFontFamily: selectedTextStyle,
-                                      accentColor: widget.accentColor,
-                                      backgroundColor: backColor,
-                                      lastWidget: null,
-                                      starterPageIndex: bookProgress
-                                              .getBookProgress(bookId)
-                                              .currentPageIndex ??
-                                          0,
-                                      style: TextStyle(
-                                          fontSize: _fontSize.sp,
-                                          fontFamily: selectedTextStyle,
-                                          package: 'cosmos_epub',
-                                          color: fontColor),
-                                      handlerCallback: (ctrl) {
-                                        controllerPaging = ctrl;
-                                      },
-                                      onTextTap: () {
-                                        if (showHeader) {
-                                          showHeader = false;
-                                        } else {
-                                          showHeader = true;
-                                        }
-                                        updateUI();
-                                      },
-                                      onPageFlip: (currentPage, totalPages) {
-                                        widget.onPageFlip
-                                            ?.call(currentPage, totalPages);
-
-                                        bookProgress.setCurrentPageIndex(
-                                            bookId,
-                                            currentPage == totalPages - 1
-                                                ? 0
-                                                : currentPage);
-
-                                        // Reset swipe counters when not on boundary pages
-                                        if (currentPage != totalPages - 1) {
-                                          lastSwipe = 0;
-                                        }
-                                        if (currentPage != 0) {
-                                          prevSwipe = 0;
-                                        }
-
-                                        isLastPage = false;
-                                        updateUI();
-                                      },
-                                      onLastPage: (index, totalPages) async {
-                                        widget.onLastPage?.call(index);
-
-                                        // For all chapters: require 2 swipes past last page
-                                        // except 1-page chapters which advance immediately
-                                        if (totalPages <= 1) {
-                                          nextChapter();
-                                        } else {
-                                          lastSwipe++;
-                                          if (lastSwipe > 1) {
-                                            nextChapter();
-                                          }
-                                        }
-
-                                        isLastPage = true;
-                                        updateUI();
-                                      },
-                                      onFirstPageBack:
-                                          (index, totalPages) {
-                                        if (totalPages <= 1) {
-                                          prevChapter();
-                                        } else {
-                                          prevSwipe++;
-                                          if (prevSwipe > 1) {
-                                            prevChapter();
-                                          }
-                                        }
-                                      },
-                                      chapterTitle:
-                                          chaptersList[currentChapterIndex]
-                                              .chapter,
-                                      totalChapters: chaptersList.length,
-                                    );
-                                  }
-                              }
-                            }),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: Visibility(
-                            visible: showBrightnessWidget,
-                            child: Container(
-                                height: 150.h,
-                                width: 30.w,
-                                alignment: Alignment.bottomCenter,
-                                margin:
-                                    EdgeInsets.only(bottom: 40.h, right: 15.w),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.brightness_7,
-                                      size: 14.h,
-                                      color: fontColor,
-                                    ),
-                                    SizedBox(
-                                      height: 120.h,
-                                      width: 30.w,
-                                      child: RotatedBox(
-                                          quarterTurns: -1,
-                                          child: SliderTheme(
-                                              data: SliderThemeData(
-                                                activeTrackColor:
-                                                    staticThemeId == 4
-                                                        ? Colors.white
+                                }),
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: Visibility(
+                                visible: showBrightnessWidget,
+                                child: Container(
+                                    height: 150.h,
+                                    width: 30.w,
+                                    alignment: Alignment.bottomCenter,
+                                    margin: EdgeInsets.only(
+                                        bottom: 40.h, right: 15.w),
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.brightness_7,
+                                          size: 14.h,
+                                          color: fontColor,
+                                        ),
+                                        SizedBox(
+                                          height: 120.h,
+                                          width: 30.w,
+                                          child: RotatedBox(
+                                              quarterTurns: -1,
+                                              child: SliderTheme(
+                                                  data: SliderThemeData(
+                                                    activeTrackColor:
+                                                        staticThemeId == 4
+                                                            ? Colors.white
+                                                            : Colors.blue,
+                                                    disabledThumbColor:
+                                                        Colors.transparent,
+                                                    inactiveTrackColor: Colors
+                                                        .grey
+                                                        .withOpacity(0.5),
+                                                    trackHeight: 5.0,
+                                                    thumbColor: staticThemeId ==
+                                                            4
+                                                        ? Colors.grey
+                                                            .withOpacity(0.8)
                                                         : Colors.blue,
-                                                disabledThumbColor:
-                                                    Colors.transparent,
-                                                inactiveTrackColor: Colors.grey
-                                                    .withOpacity(0.5),
-                                                trackHeight: 5.0,
-                                                thumbColor: staticThemeId == 4
-                                                    ? Colors.grey
-                                                        .withOpacity(0.8)
-                                                    : Colors.blue,
-                                                thumbShape:
-                                                    RoundSliderThumbShape(
-                                                        enabledThumbRadius:
-                                                            0.r),
-                                                overlayShape:
-                                                    RoundSliderOverlayShape(
-                                                        overlayRadius: 10.r),
-                                              ),
-                                              child: Slider(
-                                                value: brightnessLevel,
-                                                min: 0.0,
-                                                max: 1.0,
-                                                onChangeEnd: (double value) {
-                                                  setBrightness(value);
-                                                },
-                                                onChanged: (double value) {
-                                                  setState(() {
-                                                    brightnessLevel = value;
-                                                  });
-                                                },
-                                              ))),
-                                    ),
-                                  ],
-                                )),
-                          ),
-                        )
-                      ],
-                    )),
-                    AnimatedContainer(
-                      height: showHeader ? 40.h : 0,
-                      duration: const Duration(milliseconds: 100),
-                      color: backColor,
-                      child: Container(
-                        height: 40.h,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: backColor,
-                          border: Border(
-                            top: BorderSide(
-                                width: 3.w, color: widget.accentColor),
-                          ),
-                        ),
-                        child: Directionality(
-                          textDirection: currentTextDirection,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              SizedBox(
-                                width: 5.w,
-                              ),
-                              Visibility(
-                                visible:
-                                    currentTextDirection == TextDirection.rtl
-                                        ? showNext
-                                        : showPrevious,
-                                child: IconButton(
-                                    onPressed: () {
-                                      currentTextDirection == TextDirection.rtl
-                                          ? nextChapter()
-                                          : prevChapter();
-                                    },
-                                    icon: Icon(
-                                      currentTextDirection == TextDirection.rtl
-                                          ? Icons.arrow_forward_ios_rounded
-                                          : Icons.arrow_back_ios,
-                                      size: 15.h,
-                                      color: fontColor,
+                                                    thumbShape:
+                                                        RoundSliderThumbShape(
+                                                            enabledThumbRadius:
+                                                                0.r),
+                                                    overlayShape:
+                                                        RoundSliderOverlayShape(
+                                                            overlayRadius:
+                                                                10.r),
+                                                  ),
+                                                  child: Slider(
+                                                    value: brightnessLevel,
+                                                    min: 0.0,
+                                                    max: 1.0,
+                                                    onChangeEnd:
+                                                        (double value) {
+                                                      setBrightness(value);
+                                                    },
+                                                    onChanged: (double value) {
+                                                      setState(() {
+                                                        brightnessLevel = value;
+                                                      });
+                                                    },
+                                                  ))),
+                                        ),
+                                      ],
                                     )),
                               ),
-                              SizedBox(
-                                width: 5.w,
+                            )
+                          ],
+                        )),
+                        AnimatedContainer(
+                          height: showHeader ? 40.h : 0,
+                          duration: const Duration(milliseconds: 100),
+                          color: backColor,
+                          child: Container(
+                            height: 40.h,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: backColor,
+                              border: Border(
+                                top: BorderSide(
+                                    width: 3.w, color: widget.accentColor),
                               ),
-                              Expanded(
-                                flex: 10,
-                                child: Text(
-                                  chaptersList.isNotEmpty
-                                      ? chaptersList[bookProgress
-                                                  .getBookProgress(bookId)
-                                                  .currentChapterIndex ??
-                                              0]
-                                          .chapter
-                                      : 'Loading...',
-                                  maxLines: 1,
-                                  textAlign: TextAlign.center,
-                                  textDirection: currentTextDirection,
-                                  style: TextStyle(
-                                      fontSize: 13.sp,
-                                      overflow: TextOverflow.ellipsis,
-                                      fontFamily: selectedTextStyle,
-                                      package: 'cosmos_epub',
-                                      fontWeight: FontWeight.bold,
-                                      color: fontColor),
-                                ),
-                              ),
-                              SizedBox(
-                                width: 5.w,
-                              ),
-                              Visibility(
-                                  visible:
-                                      currentTextDirection == TextDirection.rtl
+                            ),
+                            child: Directionality(
+                              textDirection: currentTextDirection,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  SizedBox(
+                                    width: 5.w,
+                                  ),
+                                  Visibility(
+                                    visible: currentTextDirection ==
+                                            TextDirection.rtl
+                                        ? showNext
+                                        : showPrevious,
+                                    child: IconButton(
+                                        onPressed: () {
+                                          currentTextDirection ==
+                                                  TextDirection.rtl
+                                              ? nextChapter()
+                                              : prevChapter();
+                                        },
+                                        icon: Icon(
+                                          currentTextDirection ==
+                                                  TextDirection.rtl
+                                              ? Icons.arrow_forward_ios_rounded
+                                              : Icons.arrow_back_ios,
+                                          size: 15.h,
+                                          color: fontColor,
+                                        )),
+                                  ),
+                                  SizedBox(
+                                    width: 5.w,
+                                  ),
+                                  Expanded(
+                                    flex: 10,
+                                    child: Text(
+                                      chaptersList.isNotEmpty
+                                          ? chaptersList[bookProgress
+                                                      .getBookProgress(bookId)
+                                                      .currentChapterIndex ??
+                                                  0]
+                                              .chapter
+                                          : 'Loading...',
+                                      maxLines: 1,
+                                      textAlign: TextAlign.center,
+                                      textDirection: currentTextDirection,
+                                      style: TextStyle(
+                                          fontSize: 13.sp,
+                                          overflow: TextOverflow.ellipsis,
+                                          fontFamily: selectedTextStyle,
+                                          package: 'cosmos_epub',
+                                          fontWeight: FontWeight.bold,
+                                          color: fontColor),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 5.w,
+                                  ),
+                                  Visibility(
+                                      visible: currentTextDirection ==
+                                              TextDirection.rtl
                                           ? showPrevious
                                           : showNext,
-                                  child: IconButton(
-                                      onPressed: () {
-                                        currentTextDirection ==
-                                                TextDirection.rtl
-                                            ? prevChapter()
-                                            : nextChapter();
-                                      },
-                                      icon: Icon(
-                                        currentTextDirection ==
-                                                TextDirection.rtl
-                                            ? Icons.arrow_back_ios
-                                            : Icons.arrow_forward_ios_rounded,
-                                        size: 15.h,
-                                        color: fontColor,
-                                      ))),
+                                      child: IconButton(
+                                          onPressed: () {
+                                            currentTextDirection ==
+                                                    TextDirection.rtl
+                                                ? prevChapter()
+                                                : nextChapter();
+                                          },
+                                          icon: Icon(
+                                            currentTextDirection ==
+                                                    TextDirection.rtl
+                                                ? Icons.arrow_back_ios
+                                                : Icons
+                                                    .arrow_forward_ios_rounded,
+                                            size: 15.h,
+                                            color: fontColor,
+                                          ))),
+                                  SizedBox(
+                                    width: 5.w,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    AnimatedContainer(
+                      height: showHeader ? 50.h : 0,
+                      duration: const Duration(milliseconds: 100),
+                      color: backColor,
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 3.h),
+                        child: Directionality(
+                          textDirection: currentTextDirection,
+                          child: AppBar(
+                            centerTitle: true,
+                            title: Text(
+                              bookTitle,
+                              textDirection: currentTextDirection,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16.sp,
+                                  color: fontColor),
+                            ),
+                            backgroundColor: backColor,
+                            shape: Border(
+                                bottom: BorderSide(
+                                    color: widget.accentColor, width: 3.h)),
+                            elevation: 0,
+                            leading: IconButton(
+                              onPressed: openTableOfContents,
+                              icon: Icon(
+                                Icons.menu,
+                                color: fontColor,
+                                size: 20.h,
+                              ),
+                            ),
+                            actions: [
+                              InkWell(
+                                  onTap: () {
+                                    updateFontSettings();
+                                  },
+                                  child: Container(
+                                    width: 40.w,
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      "Aa",
+                                      style: TextStyle(
+                                          fontSize: 18.sp,
+                                          color: fontColor,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  )),
                               SizedBox(
                                 width: 5.w,
                               ),
+                              InkWell(
+                                  onTap: () async {
+                                    setState(() {
+                                      showBrightnessWidget = true;
+                                    });
+                                    await Future.delayed(
+                                        const Duration(seconds: 7));
+                                    setState(() {
+                                      showBrightnessWidget = false;
+                                    });
+                                  },
+                                  child: Icon(
+                                    Icons.brightness_high_sharp,
+                                    size: 20.h,
+                                    color: fontColor,
+                                  )),
+                              SizedBox(
+                                width: 10.w,
+                              )
                             ],
                           ),
                         ),
@@ -793,84 +927,8 @@ class ShowEpubState extends State<ShowEpub> {
                     ),
                   ],
                 ),
-                AnimatedContainer(
-                  height: showHeader ? 50.h : 0,
-                  duration: const Duration(milliseconds: 100),
-                  color: backColor,
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 3.h),
-                    child: Directionality(
-                      textDirection: currentTextDirection,
-                      child: AppBar(
-                        centerTitle: true,
-                        title: Text(
-                          bookTitle,
-                          textDirection: currentTextDirection,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16.sp,
-                              color: fontColor),
-                        ),
-                        backgroundColor: backColor,
-                        shape: Border(
-                            bottom: BorderSide(
-                                color: widget.accentColor, width: 3.h)),
-                        elevation: 0,
-                        leading: IconButton(
-                          onPressed: openTableOfContents,
-                          icon: Icon(
-                            Icons.menu,
-                            color: fontColor,
-                            size: 20.h,
-                          ),
-                        ),
-                        actions: [
-                          InkWell(
-                              onTap: () {
-                                updateFontSettings();
-                              },
-                              child: Container(
-                                width: 40.w,
-                                alignment: Alignment.center,
-                                child: Text(
-                                  "Aa",
-                                  style: TextStyle(
-                                      fontSize: 18.sp,
-                                      color: fontColor,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              )),
-                          SizedBox(
-                            width: 5.w,
-                          ),
-                          InkWell(
-                              onTap: () async {
-                                setState(() {
-                                  showBrightnessWidget = true;
-                                });
-                                await Future.delayed(
-                                    const Duration(seconds: 7));
-                                setState(() {
-                                  showBrightnessWidget = false;
-                                });
-                              },
-                              child: Icon(
-                                Icons.brightness_high_sharp,
-                                size: 20.h,
-                                color: fontColor,
-                              )),
-                          SizedBox(
-                            width: 10.w,
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        )));
+              ),
+            )));
   }
 
   openTableOfContents() async {
@@ -884,8 +942,7 @@ class ShowEpubState extends State<ShowEpub> {
                 ))) ??
         false;
     if (shouldUpdate) {
-      var index =
-          bookProgress.getBookProgress(bookId).currentChapterIndex ?? 0;
+      var index = bookProgress.getBookProgress(bookId).currentChapterIndex ?? 0;
 
       await bookProgress.setCurrentPageIndex(bookId, 0);
       reLoadChapter(index: index);

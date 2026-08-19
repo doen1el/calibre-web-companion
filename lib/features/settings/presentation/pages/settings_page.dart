@@ -23,6 +23,7 @@ import 'package:calibre_web_companion/features/settings/presentation/widgets/she
 import 'package:calibre_web_companion/features/settings/presentation/widgets/sync_settings_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/theme_selector_widget.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
+import 'package:calibre_web_companion/shared/utils/status_colors.dart';
 import 'package:docman/docman.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -193,7 +194,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
                           const SizedBox(height: 24),
                           _buildSectionTitle(context, localizations.about),
-                          _buyMeACoffeeButton(context, 'Buy Me a Coffee'),
                           _buildAppLogsButton(context, localizations),
                           _buildLicensesButton(context, state, localizations),
                           _buildVersionCard(context, state, localizations),
@@ -361,6 +361,8 @@ class _SettingsPageState extends State<SettingsPage> {
           (context, state, localizations) => [
             _buildSectionTitle(context, localizations.webDavSync),
             _buildWebDavSettings(context, state, localizations),
+            _buildSectionTitle(context, localizations.koSyncTitle),
+            _buildKoSyncSettings(context, state, localizations),
           ],
     );
   }
@@ -1260,36 +1262,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buyMeACoffeeButton(BuildContext context, String title) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8.0),
-        onTap: () {
-          context.read<SettingsBloc>().add(const BuyMeACoffee());
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(
-                Icons.coffee,
-                size: 28,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 16),
-
-              Text(title, style: Theme.of(context).textTheme.titleMedium),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildBookDetailsSettings(
     BuildContext context,
     SettingsState state,
@@ -1672,6 +1644,8 @@ class _SettingsPageState extends State<SettingsPage> {
     switch (section) {
       case BookDetailsSection.bookActions:
         return localizations.bookActions;
+      case BookDetailsSection.readingProgress:
+        return localizations.koSyncProgressTitle;
       case BookDetailsSection.rating:
         return localizations.rating;
       case BookDetailsSection.series:
@@ -1691,6 +1665,8 @@ class _SettingsPageState extends State<SettingsPage> {
     switch (section) {
       case BookDetailsSection.bookActions:
         return Icons.menu_book_rounded;
+      case BookDetailsSection.readingProgress:
+        return Icons.timeline_rounded;
       case BookDetailsSection.rating:
         return Icons.star_rate_rounded;
       case BookDetailsSection.series:
@@ -2171,6 +2147,125 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKoSyncSettings(
+    BuildContext context,
+    SettingsState state,
+    AppLocalizations localizations,
+  ) {
+    String? statusText;
+    switch (state.koSyncTestStatus) {
+      case ConnectionTestStatus.success:
+        statusText = localizations.koSyncConnected;
+      case ConnectionTestStatus.error:
+        statusText = switch (state.koSyncTestMessage) {
+          'unauthorized' => localizations.koSyncUnauthorized,
+          'unavailable' => localizations.koSyncUnavailable,
+          'disabled' => localizations.koSyncDisabledOnServer,
+          _ => localizations.koSyncTestFailed,
+        };
+      case ConnectionTestStatus.initial:
+      case ConnectionTestStatus.loading:
+        statusText = null;
+    }
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.import_contacts_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    localizations.koSyncTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Switch(
+                  value: state.isKoSyncEnabled,
+                  activeThumbColor: Theme.of(context).colorScheme.primary,
+                  onChanged: (value) {
+                    context.read<SettingsBloc>().add(SetKoSyncEnabled(value));
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              localizations.koSyncDescription,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            if (state.isKoSyncEnabled) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed:
+                      state.koSyncTestStatus == ConnectionTestStatus.loading
+                          ? null
+                          : () => context.read<SettingsBloc>().add(
+                            const TestKoSyncConnection(),
+                          ),
+                  icon:
+                      state.koSyncTestStatus == ConnectionTestStatus.loading
+                          ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                          )
+                          : Icon(
+                            state.koSyncTestStatus ==
+                                    ConnectionTestStatus.success
+                                ? Icons.check_circle
+                                : Icons.wifi_find,
+                          ),
+                  label: Text(
+                    state.koSyncTestStatus == ConnectionTestStatus.loading
+                        ? localizations.testing
+                        : localizations.testConnection,
+                  ),
+                ),
+              ),
+              if (statusText != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  statusText,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color:
+                        state.koSyncTestStatus == ConnectionTestStatus.success
+                            ? StatusColors.success(context)
+                            : StatusColors.error(context),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 8),
+              Text(
+                localizations.koSyncPullOnlyHint,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

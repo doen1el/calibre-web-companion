@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/core/utils/http_header_utils.dart';
 import 'package:calibre_web_companion/features/homepage/presentation/pages/home_page.dart';
 import 'package:calibre_web_companion/features/login/bloc/login_bloc.dart';
 import 'package:calibre_web_companion/features/login/bloc/login_event.dart';
@@ -42,12 +43,28 @@ class _WebViewLoginPageState extends State<WebViewLoginPage> {
   bool _isLoading = true;
   String _currentUrl = '';
   bool _isExtracting = false;
+  Map<String, String>? _customHeaders;
 
   @override
   void initState() {
     super.initState();
     _currentUrl = widget.redirectUrl;
     _clearSession();
+    _loadCustomHeaders();
+  }
+
+  Future<void> _loadCustomHeaders() async {
+    Map<String, String> headers = const {};
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      headers = parseCustomHeaders(
+        prefs.getString(customHeadersPrefsKey) ?? '[]',
+        username: widget.username ?? prefs.getString('username'),
+      );
+    } catch (e) {
+      _logger.w('Could not load custom headers for the web view: $e');
+    }
+    if (mounted) setState(() => _customHeaders = headers);
   }
 
   Future<void> _clearSession() async {
@@ -217,35 +234,41 @@ class _WebViewLoginPageState extends State<WebViewLoginPage> {
                 ),
               ),
 
-            Expanded(
-              child: InAppWebView(
-                initialUrlRequest: URLRequest(url: WebUri(widget.redirectUrl)),
-                onWebViewCreated: (controller) {
-                  _webViewController = controller;
-                },
-                onLoadStart: (controller, url) {
-                  if (mounted) {
-                    setState(() {
-                      _isLoading = true;
-                      _currentUrl = url.toString();
-                    });
-                  }
-                },
-                onLoadStop: (controller, url) async {
-                  if (mounted) {
-                    setState(() {
-                      _isLoading = false;
-                      _currentUrl = url.toString();
-                    });
-                  }
+            if (_customHeaders == null)
+              const Expanded(child: SizedBox.shrink())
+            else
+              Expanded(
+                child: InAppWebView(
+                  initialUrlRequest: URLRequest(
+                    url: WebUri(widget.redirectUrl),
+                    headers: _customHeaders!.isEmpty ? null : _customHeaders,
+                  ),
+                  onWebViewCreated: (controller) {
+                    _webViewController = controller;
+                  },
+                  onLoadStart: (controller, url) {
+                    if (mounted) {
+                      setState(() {
+                        _isLoading = true;
+                        _currentUrl = url.toString();
+                      });
+                    }
+                  },
+                  onLoadStop: (controller, url) async {
+                    if (mounted) {
+                      setState(() {
+                        _isLoading = false;
+                        _currentUrl = url.toString();
+                      });
+                    }
 
-                  final urlString = url.toString();
-                  if (_isLoginSuccessPage(urlString)) {
-                    await _extractCookiesAndFinish();
-                  }
-                },
+                    final urlString = url.toString();
+                    if (_isLoginSuccessPage(urlString)) {
+                      await _extractCookiesAndFinish();
+                    }
+                  },
+                ),
               ),
-            ),
           ],
         ),
       ),

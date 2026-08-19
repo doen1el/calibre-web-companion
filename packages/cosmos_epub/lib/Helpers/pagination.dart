@@ -2,6 +2,7 @@ import 'package:cosmos_epub/Component/highlight_toolbar.dart';
 import 'package:cosmos_epub/Helpers/epub_content_parser.dart';
 import 'package:cosmos_epub/Helpers/html_paginator.dart';
 import 'package:cosmos_epub/Helpers/html_text_builder.dart';
+import 'package:cosmos_epub/Helpers/progress_mapping.dart';
 import 'package:cosmos_epub/Model/highlight_model.dart';
 import 'package:cosmos_epub/PageFlip/builders/builder.dart' as flip_cache;
 import 'package:cosmos_epub/PageFlip/page_flip_widget.dart';
@@ -115,6 +116,11 @@ class PagingWidget extends StatefulWidget {
   final String chapterTitle;
   final int totalChapters;
   final int starterPageIndex;
+
+  /// Where in the chapter to open, as 0-1. Set when the position came from a
+  /// sync source, which knows a share of the book but no page — pages only
+  /// exist once the chapter is laid out for this screen and font size.
+  final double? starterPageFraction;
   final TextStyle style;
   final Function handlerCallback;
   final VoidCallback onTextTap;
@@ -142,6 +148,7 @@ class PagingWidget extends StatefulWidget {
     required this.onLastPage,
     this.onFirstPageBack,
     this.starterPageIndex = 0,
+    this.starterPageFraction,
     required this.chapterTitle,
     required this.totalChapters,
     this.lastWidget,
@@ -205,6 +212,8 @@ class _PagingWidgetState extends State<PagingWidget> {
     // directly to native RichText (not flutter_html which strips \u00AD)
     _pageHtmls = _pageHtmls.map((h) => _hyphenateHtml(h)).toList();
 
+    final pageHtmlCount = _pageHtmls.length;
+
     pages = _pageHtmls.map((pageHtml) {
       return _HighlightablePage(
         pageHtml: pageHtml,
@@ -218,6 +227,27 @@ class _PagingWidgetState extends State<PagingWidget> {
         onTextTap: widget.onTextTap,
       );
     }).toList();
+
+    // Report the resolved page, so a jumped-to position is recorded like any
+    // other and does not fall back to the chapter start on the next open.
+    if (widget.starterPageFraction != null && pageHtmlCount > 0) {
+      final resolved = _resolveInitialIndex(pageHtmlCount);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _currentPageIndex = resolved;
+        widget.onPageFlip(resolved, pageHtmlCount);
+      });
+    }
+  }
+
+  int _resolveInitialIndex(int pageCount) {
+    if (pageCount <= 0) return 0;
+
+    final fraction = widget.starterPageFraction;
+    if (fraction != null) return pageIndexForFraction(fraction, pageCount);
+
+    final start = widget.starterPageIndex;
+    return start > 0 && start < pageCount ? start : 0;
   }
 
   @override
@@ -248,12 +278,8 @@ class _PagingWidgetState extends State<PagingWidget> {
                             key: _pageKey,
                             child: PageFlipWidget(
                               key: _pageController,
-                              initialIndex: widget.starterPageIndex != 0
-                                  ? (pages.isNotEmpty &&
-                                          widget.starterPageIndex < pages.length
-                                      ? widget.starterPageIndex
-                                      : 0)
-                                  : widget.starterPageIndex,
+                              initialIndex:
+                                  _resolveInitialIndex(_pageHtmls.length),
                               onPageFlip: (pageIndex, {bool? isForward}) {
                                 _currentPageIndex = pageIndex;
                                 widget.onPageFlip(pageIndex, pages.length);

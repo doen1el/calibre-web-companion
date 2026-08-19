@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/utils/http_header_utils.dart';
 import 'package:calibre_web_companion/features/login_settings/data/models/custom_header.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,8 +37,13 @@ class LoginSettingsLocalDataSource {
 
   Future<void> saveCustomHeaders(List<CustomHeaderModel> headers) async {
     try {
-      final validHeaders =
-          headers.where((header) => header.key.trim().isNotEmpty).toList();
+      final validHeaders = <CustomHeaderModel>[];
+      for (final header in headers) {
+        final name = sanitizeHeaderName(header.key);
+        final value = sanitizeHeaderValue(header.value);
+        if (!isValidHeaderName(name) || value.isEmpty) continue;
+        validHeaders.add(CustomHeaderModel(key: name, value: value));
+      }
 
       final List<Map<String, dynamic>> jsonList =
           validHeaders.map((header) => header.toMap()).toList();

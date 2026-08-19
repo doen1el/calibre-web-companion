@@ -130,6 +130,43 @@ void main() {
     expect(path == null || path.isNotEmpty, isTrue);
   });
 
+  test('custom columns are readable from the book detail page', () async {
+    await setUpDataSource();
+
+    final books = await fetchBooks(api, limit: 25);
+    final found = <String, String>{};
+    String? sampleTitle;
+
+    for (final book in books) {
+      final response = await api.get(
+        endpoint: '/book/${book.id}',
+        authMethod: AuthMethod.auto,
+        extraHeaders: ApiService.browserAcceptHeaders,
+      );
+      expect(response.statusCode, 200);
+
+      final columns =
+          BookDetailsRemoteDatasource.parseCustomColumnsFromDetailPage(
+            response.body,
+          );
+      if (columns.isNotEmpty) {
+        found.addAll(columns);
+        sampleTitle ??= book.title;
+      }
+    }
+
+    if (found.isEmpty) {
+      markTestSkipped(
+        'None of the first ${books.length} books has a custom column value.',
+      );
+      return;
+    }
+
+    // ignore: avoid_print
+    print('Custom columns (e.g. on "$sampleTitle"): $found');
+    expect(found.keys.every((key) => key.startsWith('#')), isTrue);
+  });
+
   test(
     'deleteBook() — POST /delete/{id}',
     () async {},

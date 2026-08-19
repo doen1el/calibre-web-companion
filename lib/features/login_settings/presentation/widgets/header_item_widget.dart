@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/core/utils/http_header_utils.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_bloc.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_event.dart';
 import 'package:calibre_web_companion/features/login_settings/data/models/custom_header.dart';
@@ -9,12 +10,14 @@ class HeaderItem extends StatelessWidget {
   final int index;
   final CustomHeaderModel header;
   final bool isLast;
+  final bool isDuplicate;
 
   const HeaderItem({
     super.key,
     required this.index,
     required this.header,
     required this.isLast,
+    this.isDuplicate = false,
   });
 
   @override
@@ -58,6 +61,7 @@ class HeaderItem extends StatelessWidget {
           context: context,
           initialValue: header.key,
           labelText: localizations.headerKey,
+          errorText: _nameError(localizations),
           onChanged: (newKey) {
             context.read<LoginSettingsBloc>().add(
               UpdateCustomHeaderKey(index, newKey),
@@ -71,6 +75,7 @@ class HeaderItem extends StatelessWidget {
           context: context,
           initialValue: header.value,
           labelText: localizations.headerValue,
+          errorText: _valueError(localizations),
           onChanged: (newValue) {
             context.read<LoginSettingsBloc>().add(
               UpdateCustomHeaderValue(index, newValue),
@@ -89,12 +94,41 @@ class HeaderItem extends StatelessWidget {
     );
   }
 
+  String? _nameError(AppLocalizations l) {
+    final issue = inspectHeaderName(header.key, isDuplicate: isDuplicate);
+    switch (issue) {
+      case null:
+        return null;
+      case HeaderNameIssue.empty:
+        return header.value.trim().isEmpty ? null : l.headerIssueEmptyName;
+      case HeaderNameIssue.invalidCharacters:
+        return l.headerIssueInvalidName;
+      case HeaderNameIssue.duplicate:
+        return l.headerIssueDuplicateName;
+    }
+  }
+
+  String? _valueError(AppLocalizations l) {
+    final issue = inspectHeaderValue(header.value, name: header.key);
+    switch (issue) {
+      case null:
+        return null;
+      case HeaderValueIssue.empty:
+        return header.key.trim().isEmpty ? null : l.headerIssueEmptyValue;
+      case HeaderValueIssue.invalidCharacters:
+        return l.headerIssueInvalidValue;
+      case HeaderValueIssue.looksLikeHeaderName:
+        return l.headerIssueValueIsHeaderName;
+    }
+  }
+
   Widget _buildTextField({
     required BuildContext context,
     String? initialValue,
     required String labelText,
     IconData? prefixIcon,
     String? hintText,
+    String? errorText,
     bool obscureText = false,
     Function(String)? onChanged,
   }) {
@@ -102,10 +136,16 @@ class HeaderItem extends StatelessWidget {
       initialValue: initialValue,
       obscureText: obscureText,
       onChanged: onChanged,
+      autocorrect: false,
+      enableSuggestions: false,
+      textCapitalization: TextCapitalization.none,
+      style: const TextStyle(fontFamily: 'monospace'),
       decoration: InputDecoration(
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
         labelText: labelText,
         hintText: hintText,
+        errorText: errorText,
+        errorMaxLines: 4,
         prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
         filled: true,
         fillColor: Theme.of(context).colorScheme.surface,

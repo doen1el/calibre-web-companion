@@ -58,6 +58,7 @@ class SettingsLocalDataSource {
         'webdav_username': sharedPreferences.getString('webdav_username') ?? '',
         'webdav_password': sharedPreferences.getString('webdav_password') ?? '',
         'webdav_enabled': sharedPreferences.getBool('webdav_enabled') ?? false,
+        'kosync_enabled': sharedPreferences.getBool('kosync_enabled') ?? false,
         'epub_scroll_direction':
             sharedPreferences.getString('epub_scroll_direction') ?? 'vertical',
         'is_eink_mode': sharedPreferences.getBool('is_eink_mode') ?? false,
@@ -301,6 +302,15 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error saving WebDav sync enabled: $e');
       throw Exception('Failed to save WebDav sync enabled: $e');
+    }
+  }
+
+  Future<void> saveKoSyncEnabled(bool enabled) async {
+    try {
+      await sharedPreferences.setBool('kosync_enabled', enabled);
+    } catch (e) {
+      logger.e('Error saving KOReader sync enabled: $e');
+      throw Exception('Failed to save KOReader sync enabled: $e');
     }
   }
 

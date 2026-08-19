@@ -1,5 +1,6 @@
 import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
+import 'package:calibre_web_companion/core/utils/http_header_utils.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_event.dart';
 import 'package:calibre_web_companion/features/login_settings/bloc/login_settings_state.dart';
 import 'package:calibre_web_companion/features/login_settings/data/models/custom_header.dart';
@@ -18,6 +19,7 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
     on<DeleteCustomHeader>(_onDeleteCustomHeader);
     on<UpdateCustomHeaderKey>(_onUpdateCustomHeaderKey);
     on<UpdateCustomHeaderValue>(_onUpdateCustomHeaderValue);
+    on<ApplyCloudflareAccessToken>(_onApplyCloudflareAccessToken);
     on<UpdateBasePath>(_onUpdateBasePath);
     on<UpdateReachabilityProbe>(_onUpdateReachabilityProbe);
     on<UpdateAllowSelfSigned>(_onUpdateAllowSelfSigned);
@@ -45,6 +47,7 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
           reachabilityProbe: reachabilityProbe,
           allowSelfSigned: allowSelfSigned,
           isLoading: false,
+          formVersion: state.formVersion + 1,
         ),
       );
     } catch (e) {
@@ -76,9 +79,43 @@ class LoginSettingsBloc extends Bloc<LoginSettingsEvent, LoginSettingsState> {
     final updatedHeaders = List<CustomHeaderModel>.from(state.customHeaders);
     if (event.index >= 0 && event.index < updatedHeaders.length) {
       updatedHeaders.removeAt(event.index);
-      emit(state.copyWith(customHeaders: updatedHeaders));
+      emit(
+        state.copyWith(
+          customHeaders: updatedHeaders,
+          formVersion: state.formVersion + 1,
+        ),
+      );
       await _persistHeaders();
     }
+  }
+
+  Future<void> _onApplyCloudflareAccessToken(
+    ApplyCloudflareAccessToken event,
+    Emitter<LoginSettingsState> emit,
+  ) async {
+    final clientId = sanitizeHeaderValue(event.clientId);
+    final clientSecret = sanitizeHeaderValue(event.clientSecret);
+
+    final updatedHeaders = List<CustomHeaderModel>.from(state.customHeaders)
+      ..removeWhere((header) {
+        final name = sanitizeHeaderName(header.key).toLowerCase();
+        return name == cfAccessClientIdHeader.toLowerCase() ||
+            name == cfAccessClientSecretHeader.toLowerCase();
+      });
+
+    updatedHeaders
+      ..add(CustomHeaderModel(key: cfAccessClientIdHeader, value: clientId))
+      ..add(
+        CustomHeaderModel(key: cfAccessClientSecretHeader, value: clientSecret),
+      );
+
+    emit(
+      state.copyWith(
+        customHeaders: updatedHeaders,
+        formVersion: state.formVersion + 1,
+      ),
+    );
+    await _persistHeaders();
   }
 
   Future<void> _onUpdateCustomHeaderKey(
