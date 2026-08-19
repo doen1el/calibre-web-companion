@@ -607,5 +607,6 @@
     "diagnosticsCustomHeadersSent": "Enviat amb cada petició (valors redactats):",
     "diagnosticsNoCustomHeaders": "No s'han configurat capçaleres personalitzades",
     "diagHintCloudflareAccess": "Cloudflare Access està interceptant les peticions i redirigint-les a la seva pàgina d'inici de sessió. Per permetre que l'aplicació pugui passar-hi, crea un testimoni de servei a Cloudflare Zero Trust, dona-hi permisos a les polítiques d'accés per a aquesta aplicació, i afegeix les dues meitats sota \"Cloudflare Access\" als paràmetres de connexió.",
-    "diagHintCloudflareTokenRejected": "S'ha configurat un testimoni de servei Cloudflare Access, però Cloudflare encara redirigeix a la seva pàgina d'inici de sessió. Comprova que les polítiques d'accés per a aquesta aplicació inclou el testimoni (acció: Service Auth), que la ID del client acaba en \".access\", i que no s'hagin intercanviant la ID i el secret."
+    "diagHintCloudflareTokenRejected": "S'ha configurat un testimoni de servei Cloudflare Access, però Cloudflare encara redirigeix a la seva pàgina d'inici de sessió. Comprova que les polítiques d'accés per a aquesta aplicació inclou el testimoni (acció: Service Auth), que la ID del client acaba en \".access\", i que no s'hagin intercanviant la ID i el secret.",
+    "downloadPathTemplateCalibreHint": "La sintaxi de les plantilles de Calibre també funciona: escurça un camp amb precisió, embolica'l amb un prefix i un sufix que només apareguin quan el camp tingui un valor, i utilitza columnes personalitzades. Per exemple:"
 }
