@@ -194,7 +194,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
                           const SizedBox(height: 24),
                           _buildSectionTitle(context, localizations.about),
-                          // _buyMeACoffeeButton(context, 'Buy Me a Coffee'),
                           _buildAppLogsButton(context, localizations),
                           _buildLicensesButton(context, state, localizations),
                           _buildVersionCard(context, state, localizations),
@@ -1258,36 +1257,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   }).toList(),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buyMeACoffeeButton(BuildContext context, String title) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8.0),
-        onTap: () {
-          context.read<SettingsBloc>().add(const BuyMeACoffee());
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(
-                Icons.coffee,
-                size: 28,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 16),
-
-              Text(title, style: Theme.of(context).textTheme.titleMedium),
-            ],
-          ),
         ),
       ),
     );
