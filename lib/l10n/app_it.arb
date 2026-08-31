@@ -508,5 +508,15 @@
     "serverReachable": "Server raggiungibile",
     "serverLoginRequired": "Server raggiungibile - necessario login",
     "serverUnreachable": "Non è possibile raggiungere il server",
-    "diagHintStockCalibre": "Il server risponde, ma gli endpoint di Calibre-Web (/ajax/listbooks, /opds/stats) restituiscono un errore 404. Sembra il Content Server integrato di Calibre, non Calibre-Web. Disconnettiti e scegli il tipo di server \"Calibre\" per connetterti direttamente."
+    "diagHintStockCalibre": "Il server risponde, ma gli endpoint di Calibre-Web (/ajax/listbooks, /opds/stats) restituiscono un errore 404. Sembra il Content Server integrato di Calibre, non Calibre-Web. Disconnettiti e scegli il tipo di server \"Calibre\" per connetterti direttamente.",
+    "isbnSourceOrderHint": "Trascina per ordinare: quando i cataloghi non coincidono, quello più in alto nella lista ha la precedenza.",
+    "koSyncTitle": "Sincronizzazione KOReader",
+    "koSyncDescription": "Sincronizza la tua posizione in lettura con KOReader attraverso il suo server Calibre-Web. Necessita di Calibre-Web NextGen o CWA con la sincronizzazione KOReader attiva.",
+    "koSyncPullOnlyHint": "Le posizioni sono condivise come percentuale del libro, in modo che altri lettori portino al capitolo piuttosto che alla riga esatta.",
+    "koSyncConnected": "Connesso. La sincronizzazione KOReader è disponibile.",
+    "koSyncUnauthorized": "Il server rifiuta il tuo login per la sincronizzazione KOReader",
+    "koSyncUnavailable": "Questo server non supporta la sincronizzazione KOReader.",
+    "koSyncDisabledOnServer": "La sincronizzazione di KOReader è stata disattivata sul server.",
+    "koSyncTestFailed": "Impossibile raggiungere l'endpoint di sincronizzazione KOReader.",
+    "koSyncContinueTitle": "Vuoi continuare da dove avevi interrotto su KOReader?"
 }
