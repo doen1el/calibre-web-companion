@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/server_capabilities.dart';
+import 'package:calibre_web_companion/core/utils/book_mime_types.dart';
 import 'package:calibre_web_companion/core/utils/upload_file_name.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:logger/logger.dart';
@@ -246,38 +247,28 @@ class BookViewRemoteDatasource {
             final type = link['_type'] ?? link['type'];
             final href = link['_href'] ?? link['href'];
 
+            final isAcquisition =
+                rel != null &&
+                rel.toString().startsWith('http://opds-spec.org/acquisition');
+
             if (rel == 'http://opds-spec.org/image' ||
                 rel == 'http://opds-spec.org/image/thumbnail' ||
-                (type != null && type.toString().startsWith('image/'))) {
+                (!isAcquisition &&
+                    type != null &&
+                    type.toString().startsWith('image/'))) {
               hasCover = true;
               if (href != null) {
                 coverUrl = href.toString();
               }
             }
 
-            if (rel == 'http://opds-spec.org/acquisition' && type != null) {
-              final mimeType = type.toString().toLowerCase();
-              if (mimeType.contains('application/epub+zip')) {
-                formats.add('epub');
-              } else if (mimeType.contains('application/pdf')) {
-                formats.add('pdf');
-              } else if (mimeType.contains('application/x-mobipocket-ebook') ||
-                  mimeType.contains('application/mobi')) {
-                formats.add('mobi');
-              } else if (mimeType.contains(
-                'application/vnd.amazon.mobi8-ebook',
-              )) {
-                formats.add('azw3');
-              } else if (mimeType.contains('application/fb2')) {
-                formats.add('fb2');
-              } else if (mimeType.contains('application/vnd.comicbook+zip') ||
-                  mimeType.contains('application/x-cbz')) {
-                formats.add('cbz');
-              } else if (mimeType.contains('application/vnd.comicbook-rar') ||
-                  mimeType.contains('application/x-cbr')) {
-                formats.add('cbr');
-              } else if (mimeType.contains('text/plain')) {
-                formats.add('txt');
+            if (isAcquisition) {
+              final format = bookFormatFromAcquisition(
+                mimeType: type?.toString(),
+                href: href?.toString(),
+              );
+              if (format != null && !formats.contains(format)) {
+                formats.add(format);
               }
             }
           }

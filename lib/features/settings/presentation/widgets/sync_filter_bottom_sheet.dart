@@ -20,7 +20,19 @@ class _SyncFilterBottomSheetState extends State<SyncFilterBottomSheet> {
   ShelfListViewModel shelves = const ShelfListViewModel(shelves: []);
   bool isLoadingShelves = true;
 
-  List<String> availableFormats = ['epub', 'pdf', 'mobi', 'cbz'];
+  static const List<String> _fallbackFormats = [
+    'epub',
+    'pdf',
+    'mobi',
+    'azw3',
+    'cbz',
+    'cbr',
+    'djvu',
+    'fb2',
+    'txt',
+  ];
+
+  List<String> availableFormats = _fallbackFormats;
   bool isLoadingFormats = true;
 
   @override
@@ -138,7 +150,7 @@ class _SyncFilterBottomSheetState extends State<SyncFilterBottomSheet> {
                   Wrap(
                     spacing: 8,
                     children:
-                        availableFormats.map((fmt) {
+                        _formatChoices().map((fmt) {
                           final isSelected = filter.selectedFormats.contains(
                             fmt,
                           );
@@ -326,6 +338,16 @@ class _SyncFilterBottomSheetState extends State<SyncFilterBottomSheet> {
         ],
       ),
     );
+  }
+
+  List<String> _formatChoices() {
+    final choices =
+        <String>{
+          ...availableFormats,
+          ...filter.selectedFormats.map((f) => f.toLowerCase()),
+        }.toList();
+    choices.sort();
+    return choices;
   }
 
   Widget _buildSectionTitle(String title) {

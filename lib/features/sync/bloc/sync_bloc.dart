@@ -283,6 +283,15 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
             }
           }
 
+          // formats stay unknown on servers that do not report them, those
+          // books are format-checked again before the download
+          if (filter.selectedFormats.isNotEmpty && book.formats.isNotEmpty) {
+            if (_pickFormat(book.formats, filter.selectedFormats) == null) {
+              skippedByCriteria++;
+              return false;
+            }
+          }
+
           if (filter.publishers.isNotEmpty) {
             final hasPub = filter.publishers.any(
               (fp) => book.publishers.toLowerCase().contains(fp.toLowerCase()),
@@ -317,6 +326,27 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     );
 
     return filtered;
+  }
+
+  /// First selected format the book actually offers, `null` when it offers none.
+  static String? _pickFormat(
+    List<String> bookFormats,
+    List<String> wantedFormats,
+  ) {
+    final available = bookFormats.map((f) => f.toLowerCase().trim()).toList();
+
+    for (final wanted in wantedFormats) {
+      final format = wanted.toLowerCase().trim();
+      if (available.contains(format)) return wanted;
+    }
+
+    // servers that report formats as e.g. "EPUB (1.2 MB)"
+    for (final wanted in wantedFormats) {
+      final format = wanted.toLowerCase().trim();
+      if (available.any((f) => f.contains(format))) return wanted;
+    }
+
+    return null;
   }
 
   Future<List<BookViewModel>> _fetchAllBooks() async {
@@ -444,14 +474,10 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       String? formatToDownload;
 
       if (state.filter.selectedFormats.isNotEmpty) {
-        for (final f in state.filter.selectedFormats) {
-          if (bookDetails.formats.any(
-            (bf) => bf.toLowerCase().contains(f.toLowerCase()),
-          )) {
-            formatToDownload = f;
-            break;
-          }
-        }
+        formatToDownload = _pickFormat(
+          bookDetails.formats,
+          state.filter.selectedFormats,
+        );
 
         if (formatToDownload == null) {
           logger.i(
