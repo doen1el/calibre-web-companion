@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:calibre_web_companion/features/book_details/data/datasources/book_details_remote_datasource.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
-import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:docman/docman.dart';
 import 'package:http/http.dart';
@@ -54,7 +53,7 @@ class BookDetailsRepository {
     BookDetailsModel book,
     DocumentFile? selectedDirectory,
     DownloadSchema schema, {
-    String pathTemplate = DownloadPathTemplate.defaultTemplate,
+    required String pathTemplate,
     Function(int)? progressCallback,
     Future<void> Function(String path)? onFileDownloaded,
   }) async {
@@ -167,7 +166,7 @@ class BookDetailsRepository {
     BookDetailsModel book,
     DocumentFile selectedDirectory,
     DownloadSchema schema, {
-    String pathTemplate = DownloadPathTemplate.defaultTemplate,
+    required String pathTemplate,
     String format = 'epub',
     Function(int)? progressCallback,
   }) async {

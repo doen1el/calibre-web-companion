@@ -286,7 +286,7 @@ class BookDetailsRemoteDatasource {
     BookDetailsModel book,
     DocumentFile selectedDirectory,
     DownloadSchema schema, {
-    String pathTemplate = DownloadPathTemplate.defaultTemplate,
+    required String pathTemplate,
     String format = 'epub',
     Function(int)? progressCallback,
   }) async {
@@ -613,7 +613,12 @@ class BookDetailsRemoteDatasource {
     if (existing != null && existing.isDirectory) {
       return existing;
     }
-    return await parent.createDirectory(name) ?? parent;
+    final created = await parent.createDirectory(name);
+    if (created == null) {
+      logger.w('Could not create directory "$name", using ${parent.uri}');
+      return parent;
+    }
+    return created;
   }
 
   Future<Map<String, String>> _fetchCustomColumns(BookDetailsModel book) async {
@@ -733,7 +738,7 @@ class BookDetailsRemoteDatasource {
     required BookDetailsModel book,
     required DocumentFile selectedDirectory,
     required DownloadSchema schema,
-    String pathTemplate = DownloadPathTemplate.defaultTemplate,
+    required String pathTemplate,
     String format = 'epub',
     Function(int)? progressCallback,
     bool reuseExistingFile = true,
@@ -936,7 +941,7 @@ class BookDetailsRemoteDatasource {
     BookDetailsModel book,
     DocumentFile? selectedDirectory,
     DownloadSchema schema, {
-    String pathTemplate = DownloadPathTemplate.defaultTemplate,
+    required String pathTemplate,
     Function(int)? progressCallback,
     Future<void> Function(String path)? onFileDownloaded,
   }) async {

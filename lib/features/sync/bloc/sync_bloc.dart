@@ -500,6 +500,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         bookDetails,
         dir,
         settings.downloadSchema,
+        pathTemplate: settings.downloadPathTemplate,
         format: formatToDownload,
         progressCallback: (bytes) {},
       );

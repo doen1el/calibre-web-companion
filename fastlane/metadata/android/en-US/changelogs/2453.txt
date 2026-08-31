@@ -1,0 +1,1 @@
+Fix: Library sync now uses the custom download path template (custom columns and truncation included) instead of the default path.

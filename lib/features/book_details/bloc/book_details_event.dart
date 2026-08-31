@@ -1,6 +1,5 @@
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
-import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:docman/docman.dart';
 import 'package:equatable/equatable.dart';
@@ -80,7 +79,7 @@ class DownloadBook extends BookDetailsEvent {
     required this.seriesIndex,
     this.directory,
     required this.schema,
-    this.pathTemplate = DownloadPathTemplate.defaultTemplate,
+    required this.pathTemplate,
   });
 
   @override
@@ -122,7 +121,7 @@ class OpenBookInReader extends BookDetailsEvent {
   const OpenBookInReader({
     this.selectedDirectory,
     required this.schema,
-    this.pathTemplate = DownloadPathTemplate.defaultTemplate,
+    required this.pathTemplate,
   });
 
   @override
@@ -227,7 +226,7 @@ class SendToEReaderViaBrowser extends BookDetailsEvent {
     this.downloadToDeviceFirst = false,
     this.selectedDirectory,
     this.schema,
-    this.pathTemplate = DownloadPathTemplate.defaultTemplate,
+    required this.pathTemplate,
   });
 
   @override
