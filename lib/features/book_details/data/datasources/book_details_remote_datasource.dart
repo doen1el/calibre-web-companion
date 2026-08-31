@@ -165,6 +165,13 @@ class BookDetailsRemoteDatasource {
       uuid: data['uuid']?.toString() ?? bookListModel.uuid,
       title: data['title']?.toString() ?? bookListModel.title,
       authors: joinList(data['authors'], bookListModel.authors),
+      authorList:
+          data['authors'] is List
+              ? (data['authors'] as List)
+                  .map((e) => e.toString().trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList()
+              : const [],
       cover: coverUrl,
       coverUrl: coverUrl,
       hasCover: true,
@@ -286,7 +293,7 @@ class BookDetailsRemoteDatasource {
     BookDetailsModel book,
     DocumentFile selectedDirectory,
     DownloadSchema schema, {
-    String pathTemplate = DownloadPathTemplate.defaultTemplate,
+    required String pathTemplate,
     String format = 'epub',
     Function(int)? progressCallback,
   }) async {
@@ -613,7 +620,12 @@ class BookDetailsRemoteDatasource {
     if (existing != null && existing.isDirectory) {
       return existing;
     }
-    return await parent.createDirectory(name) ?? parent;
+    final created = await parent.createDirectory(name);
+    if (created == null) {
+      logger.w('Could not create directory "$name", using ${parent.uri}');
+      return parent;
+    }
+    return created;
   }
 
   Future<Map<String, String>> _fetchCustomColumns(BookDetailsModel book) async {
@@ -733,7 +745,7 @@ class BookDetailsRemoteDatasource {
     required BookDetailsModel book,
     required DocumentFile selectedDirectory,
     required DownloadSchema schema,
-    String pathTemplate = DownloadPathTemplate.defaultTemplate,
+    required String pathTemplate,
     String format = 'epub',
     Function(int)? progressCallback,
     bool reuseExistingFile = true,
@@ -936,7 +948,7 @@ class BookDetailsRemoteDatasource {
     BookDetailsModel book,
     DocumentFile? selectedDirectory,
     DownloadSchema schema, {
-    String pathTemplate = DownloadPathTemplate.defaultTemplate,
+    required String pathTemplate,
     Function(int)? progressCallback,
     Future<void> Function(String path)? onFileDownloaded,
   }) async {
@@ -1335,5 +1347,67 @@ class BookDetailsRemoteDatasource {
       logger.e('Error finding series path: $e');
       return null;
     }
+  }
+
+  Future<String?> getAuthorPath(String authorName) async {
+    try {
+      if (authorName.trim().isEmpty) return null;
+
+      final response = await apiService.getXmlAsJson(
+        endpoint: '/opds/author/letter/00',
+        authMethod: AuthMethod.auto,
+      );
+
+      final entriesRaw = response['feed']?['entry'];
+
+      List<dynamic> entries = [];
+
+      if (entriesRaw is List) {
+        entries = entriesRaw;
+      } else if (entriesRaw is Map) {
+        entries = [entriesRaw];
+      }
+
+      final wanted = _authorMatchKeys(authorName);
+
+      for (final entry in entries) {
+        final title = entry['title'] as String?;
+        if (title == null) continue;
+        if (_authorMatchKeys(title).intersection(wanted).isNotEmpty) {
+          return entry['id'] as String?;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      logger.e('Error finding author path: $e');
+      return null;
+    }
+  }
+
+  // Calibre may store an author as "Firstname Lastname" or sorted as
+  // "Lastname, Firstname", so match on both spellings.
+  Set<String> _authorMatchKeys(String name) {
+    final normalized = name.trim().toLowerCase().replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+    if (normalized.isEmpty) return {};
+
+    final keys = <String>{normalized};
+    final commaIndex = normalized.indexOf(',');
+    if (commaIndex > 0) {
+      final last = normalized.substring(0, commaIndex).trim();
+      final first = normalized.substring(commaIndex + 1).trim();
+      if (last.isNotEmpty && first.isNotEmpty) keys.add('$first $last');
+    } else {
+      final parts = normalized.split(' ');
+      if (parts.length > 1) {
+        keys.add(
+          '${parts.last}, ${parts.sublist(0, parts.length - 1).join(' ')}',
+        );
+      }
+    }
+    return keys;
   }
 }

@@ -14,6 +14,8 @@ enum DeleteBookState { initial, loading, success, error }
 
 enum SeriesNavigationStatus { initial, loading, success, error }
 
+enum AuthorNavigationStatus { initial, loading, success, error }
+
 enum DownloadState {
   initial,
   selectingDestination,
@@ -65,6 +67,9 @@ class BookDetailsState extends Equatable {
   final BookViewModel? bookViewModel;
   final SeriesNavigationStatus seriesNavigationStatus;
   final String? seriesNavigationPath;
+  final AuthorNavigationStatus authorNavigationStatus;
+  final String? authorNavigationPath;
+  final String? authorNavigationName;
   final String? startCfi;
   final bool isDownloaded;
 
@@ -92,6 +97,9 @@ class BookDetailsState extends Equatable {
     this.bookViewModel,
     this.seriesNavigationStatus = SeriesNavigationStatus.initial,
     this.seriesNavigationPath,
+    this.authorNavigationStatus = AuthorNavigationStatus.initial,
+    this.authorNavigationPath,
+    this.authorNavigationName,
     this.startCfi,
     this.isDownloaded = false,
   });
@@ -120,6 +128,9 @@ class BookDetailsState extends Equatable {
     BookViewModel? bookViewModel,
     SeriesNavigationStatus? seriesNavigationStatus,
     String? seriesNavigationPath,
+    AuthorNavigationStatus? authorNavigationStatus,
+    String? authorNavigationPath,
+    String? authorNavigationName,
     String? startCfi,
     bool? isDownloaded,
   }) {
@@ -150,6 +161,10 @@ class BookDetailsState extends Equatable {
       seriesNavigationStatus:
           seriesNavigationStatus ?? this.seriesNavigationStatus,
       seriesNavigationPath: seriesNavigationPath ?? this.seriesNavigationPath,
+      authorNavigationStatus:
+          authorNavigationStatus ?? this.authorNavigationStatus,
+      authorNavigationPath: authorNavigationPath ?? this.authorNavigationPath,
+      authorNavigationName: authorNavigationName ?? this.authorNavigationName,
       startCfi: startCfi ?? this.startCfi,
       isDownloaded: isDownloaded ?? this.isDownloaded,
     );
@@ -179,6 +194,9 @@ class BookDetailsState extends Equatable {
     bookViewModel,
     seriesNavigationStatus,
     seriesNavigationPath,
+    authorNavigationStatus,
+    authorNavigationPath,
+    authorNavigationName,
     startCfi,
     isDownloaded,
   ];

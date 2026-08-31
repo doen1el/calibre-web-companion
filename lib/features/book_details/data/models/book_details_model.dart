@@ -15,6 +15,9 @@ class BookDetailsModel extends BookViewModel {
   // ignore: annotate_overrides, overridden_fields
   final List<String> tags;
   final List<TagModel> tagModels;
+  // Individual authors as reported by the server; `authors` joins them for
+  // display and must not be split again (a name can be "Lastname, Firstname").
+  final List<String> authorList;
 
   const BookDetailsModel({
     required super.id,
@@ -51,6 +54,7 @@ class BookDetailsModel extends BookViewModel {
     this.rating = 0.0,
     this.comments = '',
     this.tagModels = const [],
+    this.authorList = const [],
   });
 
   @override
@@ -66,6 +70,7 @@ class BookDetailsModel extends BookViewModel {
     comments,
     tags,
     tagModels,
+    authorList,
   ];
 
   factory BookDetailsModel.fromBookListModel(
@@ -88,6 +93,11 @@ class BookDetailsModel extends BookViewModel {
       authors: (additionalData['authors'] as List)
           .map((f) => f.toString())
           .join(', '),
+      authorList:
+          (additionalData['authors'] as List)
+              .map((f) => f.toString().trim())
+              .where((f) => f.isNotEmpty)
+              .toList(),
       authorSort: bookListModel.authorSort,
       data: bookListModel.data,
       flags: bookListModel.flags,
@@ -206,6 +216,7 @@ class BookDetailsModel extends BookViewModel {
     String? comments,
     List<String>? tags,
     List<TagModel>? tagModels,
+    List<String>? authorList,
     String? coverUrl,
   }) {
     return BookDetailsModel(
@@ -242,6 +253,7 @@ class BookDetailsModel extends BookViewModel {
       comments: comments ?? this.comments,
       tags: tags ?? this.tags,
       tagModels: tagModels ?? this.tagModels,
+      authorList: authorList ?? this.authorList,
     );
   }
 }

@@ -54,3 +54,7 @@ release_notes.md
 distribution/whatsnew/
 
 .mcp.json
+
+# Build artifacts should never be committed (they used to live in LFS)
+*.apk
+prerelease/

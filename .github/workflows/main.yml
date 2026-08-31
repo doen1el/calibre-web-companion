@@ -203,6 +203,8 @@ jobs:
           artifacts: 'build/app/outputs/flutter-apk/*.apk'
           tag: v${{ env.VERSION }}
           draft: true
+          allowUpdates: true
+          updateOnlyUnreleased: true
           token: ${{ secrets.TOKEN }}
           name: 'Release v${{ env.VERSION }}'
           bodyFile: release_notes.md

@@ -18,6 +18,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      # An old commit still contains an LFS pointer for a debug APK that was
+      # committed by accident. The blob is not on Codeberg and is not worth
+      # uploading, so let the push go through with the pointer alone.
+      - name: Allow incomplete LFS push
+        run: git config lfs.allowincompletepush true
+
       - name: Push to Codeberg
         uses: yesolutions/mirror-action@master
         with:
