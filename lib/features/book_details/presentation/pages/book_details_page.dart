@@ -566,7 +566,9 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                   previous.metadataUpdateState != current.metadataUpdateState ||
                   previous.bookDetails != current.bookDetails ||
                   previous.seriesNavigationStatus !=
-                      current.seriesNavigationStatus,
+                      current.seriesNavigationStatus ||
+                  previous.authorNavigationStatus !=
+                      current.authorNavigationStatus,
           listener: (context, state) {
             if (!_didAutoOpen &&
                 widget.autoOpenAction != BookAutoOpen.none &&
@@ -673,6 +675,27 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
             }
 
             if (state.seriesNavigationStatus == SeriesNavigationStatus.error) {
+              context.showSnackBar(
+                localizations.errorLoadingData,
+                isError: true,
+              );
+            }
+
+            if (state.authorNavigationStatus ==
+                    AuthorNavigationStatus.success &&
+                state.authorNavigationPath != null) {
+              Navigator.of(context).push(
+                AppTransitions.createSlideRoute(
+                  DiscoverDetailsPage(
+                    title: state.authorNavigationName ?? '',
+                    categoryType: CategoryType.author,
+                    fullPath: state.authorNavigationPath!,
+                  ),
+                ),
+              );
+            }
+
+            if (state.authorNavigationStatus == AuthorNavigationStatus.error) {
               context.showSnackBar(
                 localizations.errorLoadingData,
                 isError: true,
@@ -1148,16 +1171,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        localizations.by(book.authors),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(
-                          color: Colors.white.withValues(alpha: .9),
-                        ),
-                      ),
+                      _buildAuthorLine(context, localizations, state, book),
                     ],
                   ),
                 ),
@@ -1174,6 +1188,114 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
         ),
       ],
     );
+  }
+
+  Widget _buildAuthorLine(
+    BuildContext context,
+    AppLocalizations localizations,
+    BookDetailsState state,
+    BookDetailsModel book,
+  ) {
+    final style = Theme.of(context).textTheme.titleMedium?.copyWith(
+      color: Colors.white.withValues(alpha: .9),
+    );
+
+    final serverType = GetIt.instance<SharedPreferences>().getString(
+      'server_type',
+    );
+    final canBrowseAuthors =
+        ServerCapabilities.fromServerType(serverType).discover;
+
+    final authors = _authorsOf(book);
+    final isNavigating =
+        state.authorNavigationStatus == AuthorNavigationStatus.loading;
+
+    if (authors.isEmpty || !canBrowseAuthors) {
+      return Text(
+        localizations.by(book.authors),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+      );
+    }
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(8.0),
+      onTap:
+          isNavigating
+              ? null
+              : () => _onAuthorTap(context, localizations, authors),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                localizations.by(book.authors),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: style,
+              ),
+            ),
+            const SizedBox(width: 6),
+            if (isNavigating)
+              const SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            else
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: Colors.white.withValues(alpha: .7),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onAuthorTap(
+    BuildContext context,
+    AppLocalizations localizations,
+    List<String> authors,
+  ) {
+    final bloc = context.read<BookDetailsBloc>();
+
+    if (authors.length == 1) {
+      bloc.add(OpenAuthor(authors.first));
+      return;
+    }
+
+    showAppOptionsSheet(
+      context,
+      title: localizations.authors,
+      options:
+          authors
+              .map(
+                (author) => AppSheetOption(
+                  icon: Icons.person_rounded,
+                  title: author,
+                  onTap: () => bloc.add(OpenAuthor(author)),
+                ),
+              )
+              .toList(),
+    );
+  }
+
+  List<String> _authorsOf(BookDetailsModel book) {
+    if (book.authorList.isNotEmpty) return book.authorList;
+
+    return book.authors
+        .split('&')
+        .map((author) => author.trim())
+        .where((author) => author.isNotEmpty)
+        .toList();
   }
 
   Widget _buildAllSectionsDisabledFallback(

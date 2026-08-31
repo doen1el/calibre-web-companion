@@ -51,6 +51,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       emit(state.copyWith(sendToEReaderProgress: event.progress));
     });
     on<OpenSeries>(_onOpenSeries);
+    on<OpenAuthor>(_onOpenAuthor);
     on<LoadReadingProgress>(_onLoadReadingProgress);
     on<SyncReadingProgress>(_onSyncReadingProgress);
   }
@@ -864,6 +865,44 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       );
       emit(
         state.copyWith(seriesNavigationStatus: SeriesNavigationStatus.initial),
+      );
+    }
+  }
+
+  Future<void> _onOpenAuthor(
+    OpenAuthor event,
+    Emitter<BookDetailsState> emit,
+  ) async {
+    emit(
+      state.copyWith(authorNavigationStatus: AuthorNavigationStatus.loading),
+    );
+
+    final path = await repository.getAuthorPath(event.authorName);
+
+    if (path != null) {
+      emit(
+        state.copyWith(
+          authorNavigationStatus: AuthorNavigationStatus.success,
+          authorNavigationPath: path,
+          authorNavigationName: event.authorName,
+        ),
+      );
+      emit(
+        state.copyWith(
+          authorNavigationStatus: AuthorNavigationStatus.initial,
+          authorNavigationPath: null,
+          authorNavigationName: null,
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(
+          authorNavigationStatus: AuthorNavigationStatus.error,
+          errorMessage: 'Author not found',
+        ),
+      );
+      emit(
+        state.copyWith(authorNavigationStatus: AuthorNavigationStatus.initial),
       );
     }
   }

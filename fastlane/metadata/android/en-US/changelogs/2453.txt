@@ -1,1 +1,3 @@
+Feat: Added support for the djvu book format.
+Feat: Added ability to press on an authors name in the book details page to view all books by that author.
 Fix: Library sync now uses the custom download path template (custom columns and truncation included) instead of the default path.

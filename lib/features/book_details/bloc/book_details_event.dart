@@ -273,6 +273,15 @@ class OpenSeries extends BookDetailsEvent {
   List<Object> get props => [seriesName];
 }
 
+class OpenAuthor extends BookDetailsEvent {
+  final String authorName;
+
+  const OpenAuthor(this.authorName);
+
+  @override
+  List<Object> get props => [authorName];
+}
+
 class LoadReadingProgress extends BookDetailsEvent {
   final String bookUuid;
   const LoadReadingProgress(this.bookUuid);

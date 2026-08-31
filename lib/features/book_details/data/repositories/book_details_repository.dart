@@ -221,4 +221,12 @@ class BookDetailsRepository {
       rethrow;
     }
   }
+
+  Future<String?> getAuthorPath(String authorName) async {
+    try {
+      return await datasource.getAuthorPath(authorName);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
