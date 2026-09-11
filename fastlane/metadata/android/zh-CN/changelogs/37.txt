@@ -1,0 +1,1 @@
+- 修复：移除了 libisar.so 并更改了 cosmos_epub 包，以实现 F-Droid 的可重现构建。

@@ -1,0 +1,13 @@
+- 更新流水线以移除错误创建的标签
+- 更新了编辑元数据图标按钮的背景颜色
+- 增加了生成 iOS .ipa 文件的脚本
+- 为 Booklore 和 OPDS（测试版）增加了新的连接设置
+- 为 calibre-web-automated-book-downloader 增加了认证功能
+- 增加了从服务器加载 calibre-web-automated-book-downloader 配置的功能
+- 为 calibre-web-automated-book-downloader 请求增加了认证标头
+- 增加了爱沙尼亚语和意大利语翻译
+- 增加了新的内部 EPUB 阅读器
+- 增加了通过 WebDAV 将阅读进度同步到其他设备的功能
+- 改进了 SSO 处理机制
+- 在设置中增加了许可证页面
+- 一些次要的错误修复和改进

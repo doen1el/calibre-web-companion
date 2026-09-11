@@ -1,0 +1,6 @@
+- 将 Calibre-Web-Book-Downloader 更改为 Shelfmark
+- 增加了匈牙利语、瑞典语和土耳其语翻译
+- 修复了使用 Booklore 时的认证问题
+- 修复了使用 Shelfmark 时的认证问题
+- 增加了更好的检查机制，以判断书籍是否已下载
+- 增加了库同步功能以批量下载书籍
