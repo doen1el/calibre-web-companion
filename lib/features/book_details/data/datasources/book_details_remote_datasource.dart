@@ -364,6 +364,9 @@ class BookDetailsRemoteDatasource {
       final response = await apiService.getStream(
         endpoint: endpoint,
         authMethod: authMethod,
+        expectFile: !const {'html', 'htm', 'xhtml'}.contains(
+          format.toLowerCase(),
+        ),
       );
 
       if (response.statusCode == 200) {

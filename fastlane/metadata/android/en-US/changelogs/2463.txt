@@ -1,0 +1,2 @@
+Fix: Book loading no longer crashes when opening a book without a publication date
+Fix: Downloads no longer save the server's login page instead of the book when the session expired

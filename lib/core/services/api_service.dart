@@ -317,6 +317,9 @@ class ApiService {
         t.contains('id="login"');
   }
 
+  bool _isHtmlContentType(String? contentType) =>
+      contentType?.toLowerCase().contains('text/html') ?? false;
+
   bool get _hasStoredCredentials =>
       (_username?.isNotEmpty ?? false) && (_password?.isNotEmpty ?? false);
 
@@ -1020,10 +1023,14 @@ class ApiService {
   ///
   /// - `endpoint`: The API endpoint to request
   /// - `authMethod`: The authentication method to use
+  /// - `expectFile`: Treat an HTML response as a lost session instead of
+  ///   returning it as the file.
   Future<http.StreamedResponse> getStream({
     String endpoint = '',
     AuthMethod authMethod = AuthMethod.basic,
     Map<String, String> queryParams = const {},
+    bool expectFile = false,
+    bool allowReauthRetry = true,
   }) async {
     await _ensureInitialized();
     final uri = _buildUri(endpoint: endpoint, queryParams: queryParams);
@@ -1068,6 +1075,35 @@ class ApiService {
 
       _logger.d('GET (stream) $uri -> ${response.statusCode}');
       _checkResponseStatus(statusCode: response.statusCode);
+
+      if (expectFile && _isHtmlContentType(response.headers['content-type'])) {
+        // A rejected session is redirected to the login page, which the client
+        // follows transparently and would otherwise be saved as the book.
+        await response.stream.drain<void>();
+        _logger.w('Got HTML instead of a file from "$endpoint"');
+
+        if (allowReauthRetry &&
+            authMethod == AuthMethod.cookie &&
+            await _reauthenticate()) {
+          return await getStream(
+            endpoint: endpoint,
+            authMethod: authMethod,
+            queryParams: queryParams,
+            expectFile: true,
+            allowReauthRetry: false,
+          );
+        }
+
+        if (_isSsoSession) {
+          unawaited(SessionReauthService().requestReauth());
+        }
+        throw Exception(
+          'The server returned its login page instead of the book file. '
+          'Log in again, or set session protection to "Basic" in the '
+          'Calibre-Web settings.',
+        );
+      }
+
       return response;
     } catch (e) {
       _logger.e('Stream request failed: $e');
