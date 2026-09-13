@@ -4,7 +4,7 @@
 <p align="center">
     <img src="docs/icon/icon.png" alt="App Icon" width="100" />
     <br>
-    v2.3.1
+    v2.3.2
 </p>
 
 <p align="center">
