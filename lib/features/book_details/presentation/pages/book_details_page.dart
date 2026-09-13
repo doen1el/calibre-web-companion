@@ -1057,6 +1057,20 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                 ),
             ],
           ),
+      BookDetailsSection.customColumns.key:
+          () => _buildInfoCard(
+            context,
+            Icons.view_column_rounded,
+            localizations.customColumns,
+            [
+              for (final column in book.customColumns)
+                _buildInfoRow(context, column.name, switch (column.boolValue) {
+                  true => localizations.yes,
+                  false => localizations.no,
+                  null => column.value,
+                }),
+            ],
+          ),
       BookDetailsSection.fileInfo.key:
           () => _buildInfoCard(
             context,

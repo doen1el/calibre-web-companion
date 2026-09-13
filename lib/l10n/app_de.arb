@@ -601,5 +601,8 @@
   "diagnosticsNoCustomHeaders": "Keine eigenen Header konfiguriert",
   "diagnosticsHeaderValueSuspicious": "Dieser Wert sieht aus wie ein Header-Name — das Paar ist vermutlich falsch eingetragen.",
   "diagHintCloudflareAccess": "Cloudflare Access fängt die Anfragen ab und leitet sie auf die eigene Login-Seite um. Damit die App durchkommt: In Cloudflare Zero Trust ein Service-Token anlegen, es in der Access-Policy dieser Anwendung erlauben und beide Hälften in den Verbindungseinstellungen unter „Cloudflare Access“ eintragen.",
-  "diagHintCloudflareTokenRejected": "Ein Cloudflare-Access-Service-Token ist hinterlegt, trotzdem leitet Cloudflare auf die Login-Seite um. Prüfe, ob die Access-Policy dieser Anwendung das Token enthält (Action: Service Auth), ob die Client ID auf „.access“ endet und ob ID und Secret nicht vertauscht sind."
+  "diagHintCloudflareTokenRejected": "Ein Cloudflare-Access-Service-Token ist hinterlegt, trotzdem leitet Cloudflare auf die Login-Seite um. Prüfe, ob die Access-Policy dieser Anwendung das Token enthält (Action: Service Auth), ob die Client ID auf „.access“ endet und ob ID und Secret nicht vertauscht sind.",
+  "customColumns": "Benutzerdefinierte Spalten",
+  "yes": "Ja",
+  "no": "Nein"
 }

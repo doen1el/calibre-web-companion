@@ -6,7 +6,9 @@ import 'dart:typed_data';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:calibre_web_companion/core/utils/book_mime_types.dart';
+import 'package:calibre_web_companion/core/utils/pubdate.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/custom_column_model.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
@@ -77,6 +79,9 @@ class BookDetailsRemoteDatasource {
         await tagService.initialize();
       }
 
+      // Custom columns are only in the detail page HTML, so load it alongside.
+      final customColumns = _fetchCalibreWebCustomColumns(bookListModel.id);
+
       final response = await apiService.getJson(
         endpoint: '/ajax/book/$bookUuid',
         authMethod: AuthMethod.auto,
@@ -86,6 +91,7 @@ class BookDetailsRemoteDatasource {
         bookListModel,
         response,
         tagService,
+        customColumns: await customColumns,
       );
     } catch (e) {
       logger.e('Error fetching book details: $e');
@@ -185,6 +191,7 @@ class BookDetailsRemoteDatasource {
       comments: _removeHtmlTags(rawComments),
       tags: tags,
       tagModels: tagService.convertTagsToModels(tags),
+      customColumns: parseCalibreUserMetadata(data['user_metadata']),
     );
   }
 
@@ -364,9 +371,8 @@ class BookDetailsRemoteDatasource {
       final response = await apiService.getStream(
         endpoint: endpoint,
         authMethod: authMethod,
-        expectFile: !const {'html', 'htm', 'xhtml'}.contains(
-          format.toLowerCase(),
-        ),
+        expectFile:
+            !const {'html', 'htm', 'xhtml'}.contains(format.toLowerCase()),
       );
 
       if (response.statusCode == 200) {
@@ -635,20 +641,32 @@ class BookDetailsRemoteDatasource {
     final prefs = GetIt.instance<SharedPreferences>();
     final serverType = prefs.getString('server_type');
 
+    List<CustomColumnModel> columns = const [];
     try {
       if (serverType == 'calibre') {
-        return await _fetchCalibreCustomColumns(book, prefs);
-      }
-      if (serverType == null || serverType == 'calibreWeb') {
-        return await _fetchCalibreWebCustomColumns(book);
+        columns = await _fetchCalibreCustomColumns(book, prefs);
+      } else if (serverType == null || serverType == 'calibreWeb') {
+        columns =
+            book.customColumns.isNotEmpty
+                ? book.customColumns
+                : await _fetchCalibreWebCustomColumns(book.id);
       }
     } catch (e) {
       logger.w('Could not resolve custom columns for book ${book.id}: $e');
     }
-    return const {};
+    return customColumnTemplateValues(columns);
   }
 
-  Future<Map<String, String>> _fetchCalibreCustomColumns(
+  static Map<String, String> customColumnTemplateValues(
+    List<CustomColumnModel> columns,
+  ) {
+    return {
+      for (final column in columns)
+        if (column.value.isNotEmpty) column.key: column.value,
+    };
+  }
+
+  Future<List<CustomColumnModel>> _fetchCalibreCustomColumns(
     BookDetailsModel book,
     SharedPreferences prefs,
   ) async {
@@ -660,49 +678,93 @@ class BookDetailsRemoteDatasource {
       endpoint: '/ajax/book/${book.id}$librarySegment',
       authMethod: AuthMethod.auto,
     );
+    return parseCalibreUserMetadata(data['user_metadata']);
+  }
 
-    final userMetadata = data['user_metadata'];
-    if (userMetadata is! Map) return const {};
+  static List<CustomColumnModel> parseCalibreUserMetadata(dynamic metadata) {
+    if (metadata is! Map) return const [];
 
-    final values = <String, String>{};
-    userMetadata.forEach((key, meta) {
+    final columns = <CustomColumnModel>[];
+    metadata.forEach((key, meta) {
       final label = key.toString();
       if (!label.startsWith('#') || meta is! Map) return;
 
       final value = meta['#value#'];
       if (value == null) return;
 
-      final text =
+      final name = meta['name']?.toString() ?? label.substring(1);
+      final field = DownloadPathTemplate.normalizeCustomField(label);
+
+      if (value is bool) {
+        columns.add(
+          CustomColumnModel(key: field, name: name, boolValue: value),
+        );
+        return;
+      }
+
+      final text = switch (meta['datatype']) {
+        // calibre stores ratings as 0-10 half stars
+        'rating' when value is num => _formatNumber(value / 2),
+        'datetime' => _formatCalibreDate(value.toString()),
+        'comments' => html_parser.parse(value.toString()).body?.text.trim(),
+        'series' when meta['#extra#'] != null =>
+          '$value [${_formatNumber(meta['#extra#'])}]',
+        _ =>
           value is List
               ? value.map((e) => e.toString()).join(', ')
-              : value.toString();
-      if (text.isEmpty || text == 'null') return;
+              : value.toString(),
+      };
+      if (text == null || text.isEmpty || text == 'null') return;
 
-      values[DownloadPathTemplate.normalizeCustomField(label)] = text;
+      columns.add(CustomColumnModel(key: field, name: name, value: text));
     });
-    return values;
-  }
 
-  Future<Map<String, String>> _fetchCalibreWebCustomColumns(
-    BookDetailsModel book,
-  ) async {
-    final response = await apiService.get(
-      endpoint: '/book/${book.id}',
-      authMethod: AuthMethod.auto,
-      extraHeaders: ApiService.browserAcceptHeaders,
+    columns.sort(
+      (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
     );
-
-    if (response.statusCode != 200) {
-      logger.w('Book detail page returned ${response.statusCode}');
-      return const {};
-    }
-
-    return parseCustomColumnsFromDetailPage(response.body);
+    return columns;
   }
 
-  static Map<String, String> parseCustomColumnsFromDetailPage(String html) {
+  static String _formatNumber(dynamic value) {
+    final number = value is num ? value : num.tryParse(value.toString());
+    if (number == null) return value.toString();
+    return number == number.roundToDouble()
+        ? number.toInt().toString()
+        : number.toString();
+  }
+
+  static String? _formatCalibreDate(String value) {
+    final date = parsePubdate(value);
+    if (date == null) return null;
+    return '${date.year.toString().padLeft(4, '0')}-'
+        '${date.month.toString().padLeft(2, '0')}-'
+        '${date.day.toString().padLeft(2, '0')}';
+  }
+
+  Future<List<CustomColumnModel>> _fetchCalibreWebCustomColumns(
+    int bookId,
+  ) async {
+    try {
+      final response = await apiService.get(
+        endpoint: '/book/$bookId',
+        authMethod: AuthMethod.auto,
+        extraHeaders: ApiService.browserAcceptHeaders,
+      );
+
+      if (response.statusCode != 200) {
+        logger.w('Book detail page returned ${response.statusCode}');
+        return const [];
+      }
+      return parseCustomColumnsFromDetailPage(response.body);
+    } catch (e) {
+      logger.w('Could not load custom columns for book $bookId: $e');
+      return const [];
+    }
+  }
+
+  static List<CustomColumnModel> parseCustomColumnsFromDetailPage(String html) {
     final document = html_parser.parse(html);
-    final values = <String, String>{};
+    final columns = <CustomColumnModel>[];
 
     for (final element in document.querySelectorAll('.real_custom_columns')) {
       final text = element.text.replaceAll(RegExp(r'\s+'), ' ').trim();
@@ -711,11 +773,20 @@ class BookDetailsRemoteDatasource {
 
       final name = text.substring(0, separator).trim();
       final value = text.substring(separator + 1).trim();
-      if (name.isEmpty || value.isEmpty) continue;
+      if (name.isEmpty) continue;
 
-      values[DownloadPathTemplate.normalizeCustomField(name)] = value;
+      final field = DownloadPathTemplate.normalizeCustomField(name);
+      if (value.isNotEmpty) {
+        columns.add(CustomColumnModel(key: field, name: name, value: value));
+      } else if (element.querySelector('.glyphicon-ok') != null) {
+        columns.add(CustomColumnModel(key: field, name: name, boolValue: true));
+      } else if (element.querySelector('.glyphicon-remove') != null) {
+        columns.add(
+          CustomColumnModel(key: field, name: name, boolValue: false),
+        );
+      }
     }
-    return values;
+    return columns;
   }
 
   Map<String, String> _pathTemplateValues(

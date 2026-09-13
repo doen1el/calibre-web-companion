@@ -4,6 +4,7 @@ enum BookDetailsSection {
   rating,
   series,
   publicationInfo,
+  customColumns,
   fileInfo,
   tags,
   description,
@@ -22,6 +23,8 @@ extension BookDetailsSectionX on BookDetailsSection {
         return 'series';
       case BookDetailsSection.publicationInfo:
         return 'publication_info';
+      case BookDetailsSection.customColumns:
+        return 'custom_columns';
       case BookDetailsSection.fileInfo:
         return 'file_info';
       case BookDetailsSection.tags:
@@ -42,6 +45,28 @@ extension BookDetailsSectionX on BookDetailsSection {
 class BookDetailsSectionConfig {
   static final List<String> defaultOrder =
       BookDetailsSection.values.map((section) => section.key).toList();
+
+  static const List<String> legacySections = [
+    'book_actions',
+    'reading_progress',
+    'rating',
+    'series',
+    'publication_info',
+    'file_info',
+    'tags',
+    'description',
+  ];
+
+  static List<String> addNewSections(
+    List<String> enabled,
+    List<String> knownSections,
+  ) {
+    final added = defaultOrder.where(
+      (sectionKey) =>
+          !knownSections.contains(sectionKey) && !enabled.contains(sectionKey),
+    );
+    return [...enabled, ...added];
+  }
 
   static List<String> normalizeOrder(List<String> order) {
     final known =

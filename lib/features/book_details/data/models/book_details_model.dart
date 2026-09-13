@@ -1,4 +1,5 @@
 import 'package:calibre_web_companion/core/services/tag_service.dart';
+import 'package:calibre_web_companion/features/book_details/data/models/custom_column_model.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/form_metadata_model.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/tag_model.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
@@ -18,6 +19,7 @@ class BookDetailsModel extends BookViewModel {
   // Individual authors as reported by the server; `authors` joins them for
   // display and must not be split again (a name can be "Lastname, Firstname").
   final List<String> authorList;
+  final List<CustomColumnModel> customColumns;
 
   const BookDetailsModel({
     required super.id,
@@ -55,6 +57,7 @@ class BookDetailsModel extends BookViewModel {
     this.comments = '',
     this.tagModels = const [],
     this.authorList = const [],
+    this.customColumns = const [],
   });
 
   @override
@@ -71,13 +74,15 @@ class BookDetailsModel extends BookViewModel {
     tags,
     tagModels,
     authorList,
+    customColumns,
   ];
 
   factory BookDetailsModel.fromBookListModel(
     BookViewModel bookListModel,
     Map<String, dynamic> additionalData,
-    TagService tagService,
-  ) {
+    TagService tagService, {
+    List<CustomColumnModel> customColumns = const [],
+  }) {
     final List<String> tagNames =
         (additionalData['tags'] as List?)
             ?.map((tag) => tag.toString())
@@ -148,6 +153,7 @@ class BookDetailsModel extends BookViewModel {
               .toList() ??
           const [],
       tagModels: tagModels,
+      customColumns: customColumns,
     );
   }
 
@@ -217,6 +223,7 @@ class BookDetailsModel extends BookViewModel {
     List<String>? tags,
     List<TagModel>? tagModels,
     List<String>? authorList,
+    List<CustomColumnModel>? customColumns,
     String? coverUrl,
   }) {
     return BookDetailsModel(
@@ -254,6 +261,7 @@ class BookDetailsModel extends BookViewModel {
       tags: tags ?? this.tags,
       tagModels: tagModels ?? this.tagModels,
       authorList: authorList ?? this.authorList,
+      customColumns: customColumns ?? this.customColumns,
     );
   }
 }
