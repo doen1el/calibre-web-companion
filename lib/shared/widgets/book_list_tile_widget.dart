@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/core/utils/pubdate.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/shared/widgets/book_cover_widget.dart';
 import 'package:flutter/material.dart';
@@ -109,7 +110,7 @@ class BookListTile extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                          if (book.pubdate.isNotEmpty)
+                          if (parsePubdate(book.pubdate) != null)
                             Text(
                               book.pubdate.split(' ').first,
                               style: Theme.of(context).textTheme.labelSmall,

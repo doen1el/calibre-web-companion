@@ -5,6 +5,7 @@ import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/image_cache_manager.dart';
 import 'package:calibre_web_companion/core/services/server_capabilities.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/core/utils/pubdate.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
@@ -135,16 +136,10 @@ class _EditBookMetadataDialogState extends State<_EditBookMetadataDialog> {
       text: widget.book.seriesIndex.toString(),
     );
 
-    String formattedDate = '';
-    if (widget.book.pubdate.isNotEmpty) {
-      try {
-        final parsed = DateTime.parse(widget.book.pubdate);
-        formattedDate = DateFormat('yyyy-MM-dd').format(parsed);
-      } catch (e) {
-        formattedDate = widget.book.pubdate;
-      }
-    }
-    _pubdateController = TextEditingController(text: formattedDate);
+    final pubdate = parsePubdate(widget.book.pubdate);
+    _pubdateController = TextEditingController(
+      text: pubdate == null ? '' : DateFormat('yyyy-MM-dd').format(pubdate),
+    );
 
     _publisherController = TextEditingController(text: widget.book.publishers);
 

@@ -1,0 +1,21 @@
+这是适用于 Calibre-Web 和 Calibre-Web Automated 的非官方配套应用。让您能够随时随地浏览藏书并管理数字图书馆。
+
+基于 Flutter 和 Material You 构建，提供现代、直观且响应迅速的体验。支持 Android 平台及 15 种语言。
+
+功能特色：
+
+- 连接到您的 Calibre-Web (Automated) 服务器，支持反向代理/SSO 配置、自定义 HTTP 标头以及自签名证书。
+- 浏览完整书库，并通过作者、系列、出版社、评分、热门趋势等维度发现好书。
+- 查看每本书的详细信息，编辑元数据，并上传新封面。
+- 标记书籍为已读或未读，归档书籍，并将其整理到书架中。
+- 创建、编辑和浏览“魔法书架”（Magic Shelves）：基于规则的动态书架（仅限 Calibre-Web Automated）。
+- 通过扫描 ISBN 条形码快速添加书籍。
+- 使用内置电子书阅读器阅读书籍，并通过 WebDAV 在多设备间同步阅读进度。
+- 通过 send2ereader 或 Calibre-Web 的邮件功能将书籍发送到您的电子阅读器（Kindle/Kobo）。
+- 使用 Shelfmark 将书籍下载到您的藏书中。本应用不支持也不鼓励盗版受版权保护的作品；请仅下载您拥有合法权利的内容。
+- 将书籍上传到您的服务器，并同步整个书库或选定书籍以供离线阅读。
+- 个性化定制：重新排序或隐藏书籍操作和板块，选择主题，启用墨水屏模式，并调整字体大小。
+
+本应用正在积极开发中。您可以在 GitHub 上提交 Issue 以反馈错误、建议或新功能想法。
+
+致谢：Calibre-Web, Calibre-Web Automated, Shelfmark, send2ereader, Flutter。

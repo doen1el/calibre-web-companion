@@ -73,8 +73,7 @@ class SettingsLocalDataSource {
             sharedPreferences.getStringList('book_details_sections_order') ??
             BookDetailsSectionConfig.defaultOrder,
         'enabled_book_details_sections':
-            sharedPreferences.getStringList('enabled_book_details_sections') ??
-            BookDetailsSectionConfig.defaultOrder,
+            await _loadEnabledBookDetailsSections(),
         'discover_main_sections_order':
             sharedPreferences.getStringList('discover_main_sections_order') ??
             DiscoverLayoutConfig.defaultMainSectionsOrder,
@@ -390,11 +389,32 @@ class SettingsLocalDataSource {
     }
   }
 
+  Future<List<String>> _loadEnabledBookDetailsSections() async {
+    final enabled = sharedPreferences.getStringList(
+      'enabled_book_details_sections',
+    );
+    if (enabled == null) return BookDetailsSectionConfig.defaultOrder;
+
+    final known =
+        sharedPreferences.getStringList('known_book_details_sections') ??
+        BookDetailsSectionConfig.legacySections;
+    final migrated = BookDetailsSectionConfig.addNewSections(enabled, known);
+
+    if (!known.toSet().containsAll(BookDetailsSectionConfig.defaultOrder)) {
+      await saveEnabledBookDetailsSections(migrated);
+    }
+    return migrated;
+  }
+
   Future<void> saveEnabledBookDetailsSections(List<String> sectionKeys) async {
     try {
       await sharedPreferences.setStringList(
         'enabled_book_details_sections',
         sectionKeys,
+      );
+      await sharedPreferences.setStringList(
+        'known_book_details_sections',
+        BookDetailsSectionConfig.defaultOrder,
       );
     } catch (e) {
       logger.e('Error saving enabled book details sections: $e');

@@ -1,0 +1,1 @@
+- Исправление: пакет mobile_scanner заменён на barcode_scan2.

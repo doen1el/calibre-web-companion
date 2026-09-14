@@ -609,5 +609,8 @@
   "diagnosticsNoCustomHeaders": "No custom headers configured",
   "diagnosticsHeaderValueSuspicious": "This value looks like a header name — the pair is probably filled in wrong.",
   "diagHintCloudflareAccess": "Cloudflare Access is intercepting the requests and redirecting them to its login page. To let the app through, create a service token in Cloudflare Zero Trust, allow it in the Access policy for this application, and add both halves under \"Cloudflare Access\" in the connection settings.",
-  "diagHintCloudflareTokenRejected": "A Cloudflare Access service token is configured, but Cloudflare still redirects to its login page. Check that the Access policy for this application includes the token (Action: Service Auth), that the client ID ends in \".access\", and that ID and secret have not been swapped."
+  "diagHintCloudflareTokenRejected": "A Cloudflare Access service token is configured, but Cloudflare still redirects to its login page. Check that the Access policy for this application includes the token (Action: Service Auth), that the client ID ends in \".access\", and that ID and secret have not been swapped.",
+  "customColumns": "Custom columns",
+  "yes": "Yes",
+  "no": "No"
 }

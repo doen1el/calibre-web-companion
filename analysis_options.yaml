@@ -8,6 +8,9 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude:
     - packages/**
+    - build/**
+    - android/**
+    - ios/**
   errors:
     # CI analyzes with --fatal-infos, so everything enabled below blocks a merge.
     todo: ignore

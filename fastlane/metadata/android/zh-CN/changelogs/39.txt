@@ -1,0 +1,4 @@
+- 新功能：增加了主屏幕小部件（快捷操作、统计、当前阅读书籍、书架网格）。
+- 修复：修复了 FileOpener 未对 EPUB 文件使用正确 MIME 类型的问题，这导致某些应用无法正确打开它们。
+- 修复：更新了 SSO 登录流程，并增强了 LoginRemoteDataSource 中的 Cookie 处理
+- 语言：更新了翻译：西班牙语（@Libre）、意大利语（@Michele Abbondanza）、匈牙利语（@Márton Kónya）和简体中文（@Mas Wang）。

@@ -10,6 +10,7 @@ import 'package:calibre_web_companion/core/services/server_capabilities.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 import 'package:calibre_web_companion/core/services/widget_service.dart';
+import 'package:calibre_web_companion/core/utils/pubdate.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
@@ -1031,13 +1032,13 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
             Icons.info_outline_rounded,
             localizations.publicationInfo,
             [
-              if (book.pubdate != '')
+              if (parsePubdate(book.pubdate) case final pubdate?)
                 _buildInfoRow(
                   context,
                   localizations.updated,
                   intl.DateFormat.yMMMMd(
                     localizations.localeName,
-                  ).format(DateTime.parse(book.pubdate)),
+                  ).format(pubdate),
                   Icons.update_rounded,
                 ),
               if (book.publishers != '')
@@ -1054,6 +1055,20 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                   _formatLanguage(book.languages, localizations),
                   Icons.language_rounded,
                 ),
+            ],
+          ),
+      BookDetailsSection.customColumns.key:
+          () => _buildInfoCard(
+            context,
+            Icons.view_column_rounded,
+            localizations.customColumns,
+            [
+              for (final column in book.customColumns)
+                _buildInfoRow(context, column.name, switch (column.boolValue) {
+                  true => localizations.yes,
+                  false => localizations.no,
+                  null => column.value,
+                }),
             ],
           ),
       BookDetailsSection.fileInfo.key:

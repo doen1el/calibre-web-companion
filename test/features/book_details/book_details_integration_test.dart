@@ -150,7 +150,9 @@ void main() {
             response.body,
           );
       if (columns.isNotEmpty) {
-        found.addAll(columns);
+        found.addAll(
+          BookDetailsRemoteDatasource.customColumnTemplateValues(columns),
+        );
         sampleTitle ??= book.title;
       }
     }

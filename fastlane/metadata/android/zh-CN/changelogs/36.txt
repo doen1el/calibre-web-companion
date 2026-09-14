@@ -1,0 +1,1 @@
+- 修复：将 mobile_scanner 包替换为 barcode_scan2

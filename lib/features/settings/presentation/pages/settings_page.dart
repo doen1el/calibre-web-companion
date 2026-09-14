@@ -1652,6 +1652,8 @@ class _SettingsPageState extends State<SettingsPage> {
         return localizations.series;
       case BookDetailsSection.publicationInfo:
         return localizations.publicationInfo;
+      case BookDetailsSection.customColumns:
+        return localizations.customColumns;
       case BookDetailsSection.fileInfo:
         return localizations.fileInfo;
       case BookDetailsSection.tags:
@@ -1673,6 +1675,8 @@ class _SettingsPageState extends State<SettingsPage> {
         return Icons.bookmark_rounded;
       case BookDetailsSection.publicationInfo:
         return Icons.info_outline_rounded;
+      case BookDetailsSection.customColumns:
+        return Icons.view_column_rounded;
       case BookDetailsSection.fileInfo:
         return Icons.description_rounded;
       case BookDetailsSection.tags:
