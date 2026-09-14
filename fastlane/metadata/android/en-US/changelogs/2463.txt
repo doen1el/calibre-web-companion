@@ -1,3 +1,4 @@
 Feat: Custom columns from Calibre-Web and Calibre are now shown on the book details page (can be hidden or reordered in the settings)
 Fix: Book loading no longer crashes when opening a book without a publication date
 Fix: Downloads no longer save the server's login page instead of the book when the session expired
+Fix: The app no longer crashes when opening large downloaded books in the internal reader

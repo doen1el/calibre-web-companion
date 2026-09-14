@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:calibre_web_companion/core/exceptions/cancellation_exception.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/core/services/widget_service.dart';
+import 'package:calibre_web_companion/core/utils/document_bytes.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
@@ -698,8 +699,8 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           throw Exception('Downloaded file could not be read from device');
         }
 
-        final bytes = await downloadedFile.read();
-        if (bytes == null || bytes.isEmpty) {
+        final bytes = await readDocumentBytes(downloadedFile);
+        if (bytes.isEmpty) {
           throw Exception('Downloaded file is empty');
         }
         bookBytes.addAll(bytes);

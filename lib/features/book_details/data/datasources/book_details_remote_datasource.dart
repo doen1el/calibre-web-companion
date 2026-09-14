@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:calibre_web_companion/core/utils/book_mime_types.dart';
+import 'package:calibre_web_companion/core/utils/document_bytes.dart';
 import 'package:calibre_web_companion/core/utils/pubdate.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/custom_column_model.dart';
@@ -1284,38 +1285,41 @@ class BookDetailsRemoteDatasource {
 
   Future<Uint8List?> readLocalEpubBytes(String path) async {
     try {
-      String name;
+      bool isEpubName(String name) {
+        final lower = name.toLowerCase();
+        return lower.endsWith('.epub') || lower.endsWith('.kepub');
+      }
+
       Uint8List bytes;
 
       if (Platform.isAndroid &&
           (path.startsWith('content://') || path.startsWith('file://'))) {
         final doc = await DocumentFile.fromUri(path);
         if (doc == null || !doc.isFile) return null;
-        name = doc.name;
-        final read = await doc.read();
-        if (read == null || read.isEmpty) return null;
-        bytes = read;
+        if (!isEpubName(doc.name)) {
+          logger.i('Local copy "${doc.name}" is not an EPUB — will stream.');
+          return null;
+        }
+        bytes = await readDocumentBytes(doc);
       } else {
         final file = File(path);
         if (!file.existsSync()) return null;
-        name = file.path.split('/').last;
+        final name = file.path.split('/').last;
+        if (!isEpubName(name)) {
+          logger.i('Local copy "$name" is not an EPUB — will stream.');
+          return null;
+        }
         bytes = await file.readAsBytes();
-        if (bytes.isEmpty) return null;
       }
 
-      final lower = name.toLowerCase();
-      final isEpubName = lower.endsWith('.epub') || lower.endsWith('.kepub');
       final looksLikeZip =
           bytes.length >= 2 && bytes[0] == 0x50 && bytes[1] == 0x4B;
-
-      if (!isEpubName || !looksLikeZip) {
-        logger.i(
-          'Local copy "$name" is not a readable EPUB — will stream instead.',
-        );
+      if (!looksLikeZip) {
+        logger.i('Local copy at $path is not a valid EPUB — will stream.');
         return null;
       }
 
-      return Uint8List.fromList(bytes);
+      return bytes;
     } catch (e) {
       logger.w('Could not read local copy ($path), will stream instead: $e');
       return null;
