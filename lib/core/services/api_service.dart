@@ -1945,7 +1945,7 @@ class ApiService {
         if (allowReauthRetry && await _reauthenticate()) {
           _logger.w('Upload was redirected to the login page, retrying once');
           client.close();
-          return uploadFile(
+          return await uploadFile(
             file: file,
             endpoint: endpoint,
             fileName: fileName,

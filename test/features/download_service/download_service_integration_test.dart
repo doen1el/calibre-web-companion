@@ -41,41 +41,29 @@ void main() {
     );
   }
 
-  test(
-    'searchBooks() returns results (GET /api/releases)',
-    () async {
-      await setUpDataSource();
+  test('searchBooks() returns results (GET /api/releases)', () async {
+    await setUpDataSource();
 
-      final books = await dataSource.searchBooks('Tolkien');
+    final books = await dataSource.searchBooks('Tolkien');
 
-      expect(books, isA<List>());
-    },
-    skip: TestEnv.hasDownloader ? false : 'TestEnv.downloaderUrl not set',
-  );
+    expect(books, isA<List>());
+  }, skip: TestEnv.hasDownloader ? false : 'TestEnv.downloaderUrl not set');
 
-  test(
-    'getDownloadStatus() returns status (GET /api/status)',
-    () async {
-      await setUpDataSource();
+  test('getDownloadStatus() returns status (GET /api/status)', () async {
+    await setUpDataSource();
 
-      final books = await dataSource.getDownloadStatus();
+    final books = await dataSource.getDownloadStatus();
 
-      expect(books, isA<List>());
-    },
-    skip: TestEnv.hasDownloader ? false : 'TestEnv.downloaderUrl not set',
-  );
+    expect(books, isA<List>());
+  }, skip: TestEnv.hasDownloader ? false : 'TestEnv.downloaderUrl not set');
 
-  test(
-    'getConfig() returns the downloader config (GET /api/config)',
-    () async {
-      await setUpDataSource();
+  test('getConfig() returns the downloader config (GET /api/config)', () async {
+    await setUpDataSource();
 
-      final config = await dataSource.getConfig();
+    final config = await dataSource.getConfig();
 
-      expect(config, isNotNull);
-    },
-    skip: TestEnv.hasDownloader ? false : 'TestEnv.downloaderUrl not set',
-  );
+    expect(config, isNotNull);
+  }, skip: TestEnv.hasDownloader ? false : 'TestEnv.downloaderUrl not set');
 
   test(
     'downloadBook() — POST /api/releases/download',

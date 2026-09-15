@@ -97,30 +97,26 @@ void main() {
     expect(providers, isA<List>());
   });
 
-  test(
-    'searchMetadata() returns results for a query',
-    () async {
-      await setUpDataSource();
+  test('searchMetadata() returns results for a query', () async {
+    await setUpDataSource();
 
-      try {
-        final results = await dataSource
-            .searchMetadata('Tolkien', const [])
-            .timeout(const Duration(seconds: 20));
-        expect(results, isA<List>());
-      } catch (e) {
-        final msg = e.toString();
-        if (e is TimeoutException ||
-            msg.contains('Server error') ||
-            msg.contains('Connection closed') ||
-            msg.contains('ClientException')) {
-          markTestSkipped('Metadata provider search slow/unavailable ($msg)');
-          return;
-        }
-        rethrow;
+    try {
+      final results = await dataSource
+          .searchMetadata('Tolkien', const [])
+          .timeout(const Duration(seconds: 20));
+      expect(results, isA<List>());
+    } catch (e) {
+      final msg = e.toString();
+      if (e is TimeoutException ||
+          msg.contains('Server error') ||
+          msg.contains('Connection closed') ||
+          msg.contains('ClientException')) {
+        markTestSkipped('Metadata provider search slow/unavailable ($msg)');
+        return;
       }
-    },
-    timeout: const Timeout(Duration(seconds: 40)),
-  );
+      rethrow;
+    }
+  }, timeout: const Timeout(Duration(seconds: 40)));
 
   test('getSeriesPath() resolves without throwing', () async {
     await setUpDataSource();

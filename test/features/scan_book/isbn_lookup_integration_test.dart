@@ -22,52 +22,38 @@ void main() {
     expect(book.languageCode, 'fr');
   }, timeout: const Timeout(Duration(seconds: 60)));
 
-  test(
-    'Open Library resolves the same edition',
-    () async {
-      final book = await OpenLibraryProvider(
+  test('Open Library resolves the same edition', () async {
+    final book = await OpenLibraryProvider(logger: _silent).lookup(_frenchIsbn);
+
+    expect(book, isNotNull);
+    expect(book!.title.toLowerCase(), contains('prince'));
+  }, timeout: const Timeout(Duration(seconds: 60)));
+
+  test('Google Books resolves the same edition', () async {
+    try {
+      final book = await GoogleBooksProvider(
         logger: _silent,
       ).lookup(_frenchIsbn);
-
       expect(book, isNotNull);
-      expect(book!.title.toLowerCase(), contains('prince'));
-    },
-    timeout: const Timeout(Duration(seconds: 60)),
-  );
+    } catch (e) {
+      expect(e.toString(), contains('429'));
+    }
+  }, timeout: const Timeout(Duration(seconds: 60)));
 
-  test(
-    'Google Books resolves the same edition',
-    () async {
-      try {
-        final book = await GoogleBooksProvider(
-          logger: _silent,
-        ).lookup(_frenchIsbn);
-        expect(book, isNotNull);
-      } catch (e) {
-        expect(e.toString(), contains('429'));
-      }
-    },
-    timeout: const Timeout(Duration(seconds: 60)),
-  );
+  test('the merged lookup fills cover and language', () async {
+    final book = await IsbnRemoteDataSource(
+      logger: _silent,
+      providerOverride: [
+        OpenLibraryProvider(logger: _silent),
+        BnfProvider(logger: _silent),
+      ],
+    ).lookupByIsbn(_frenchIsbn);
 
-  test(
-    'the merged lookup fills cover and language',
-    () async {
-      final book = await IsbnRemoteDataSource(
-        logger: _silent,
-        providerOverride: [
-          OpenLibraryProvider(logger: _silent),
-          BnfProvider(logger: _silent),
-        ],
-      ).lookupByIsbn(_frenchIsbn);
-
-      expect(book, isNotNull);
-      expect(book!.title.toLowerCase(), contains('prince'));
-      expect(book.authors, isNotEmpty);
-      expect(book.coverUrl, isNotNull);
-      expect(book.languageCode, 'fr');
-      expect(book.sources.length, 2);
-    },
-    timeout: const Timeout(Duration(seconds: 90)),
-  );
+    expect(book, isNotNull);
+    expect(book!.title.toLowerCase(), contains('prince'));
+    expect(book.authors, isNotEmpty);
+    expect(book.coverUrl, isNotNull);
+    expect(book.languageCode, 'fr');
+    expect(book.sources.length, 2);
+  }, timeout: const Timeout(Duration(seconds: 90)));
 }

@@ -32,12 +32,12 @@ jobs:
       - name: Set Up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.2'
+          flutter-version: '3.47.3'
           channel: 'stable'
 
       #4 Install Dependencies
       - name: Install Dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       #4.5 Generate translation files
       - name: Generate Translation Files

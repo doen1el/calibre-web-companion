@@ -51,7 +51,7 @@ class BookDetailsRemoteDatasource {
           serverType == 'booklore';
 
       if (serverType == 'calibre') {
-        return _fetchCalibreBookDetails(bookListModel, prefs);
+        return await _fetchCalibreBookDetails(bookListModel, prefs);
       }
 
       if (isOpds) {
@@ -465,7 +465,7 @@ class BookDetailsRemoteDatasource {
     try {
       final prefs = GetIt.instance<SharedPreferences>();
       if (prefs.getString('server_type') == 'calibre') {
-        return _updateCalibreMetadata(
+        return await _updateCalibreMetadata(
           bookId,
           prefs,
           title: title,

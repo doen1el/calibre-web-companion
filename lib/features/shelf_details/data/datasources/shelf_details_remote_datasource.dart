@@ -34,7 +34,7 @@ class ShelfDetailsRemoteDataSource {
       if (serverType == 'opds' ||
           serverType == 'grimmory' ||
           serverType == 'booklore') {
-        return _getOpdsShelfDetails(shelfId);
+        return await _getOpdsShelfDetails(shelfId);
       }
 
       final response = await apiService.getXmlAsJson(
