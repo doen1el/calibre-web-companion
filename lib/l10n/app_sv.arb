@@ -386,7 +386,7 @@
     "diagHintAuth": "Servern avvisade sessionen (401/403). Logga in igen. Om \"Strong session protection\" är aktiverat binds sessionen till IP + User-Agent.",
     "diagHintServerError": "Servern returnerade ett 5xx-fel för dataslutpunkten.",
     "diagHintUnreachable": "Det gick inte att nå dataslutpunkten.",
-    "magicShelves": "Magic Shelves",
+    "magicShelves": "Magiska hyllor",
     "duplicateShelf": "Duplicera",
     "hideShelf": "Dölj",
     "magicShelfDeleted": "Magic Shelf raderad",
