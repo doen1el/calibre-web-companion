@@ -1,0 +1,3 @@
+- Arabiska och kinesiska översättningar har lagts till.
+- Rättat: Shelfmark-integrationen har anpassats till den nya versionen.
+- Nytt: alternativ för att spara böcker som skickas till e-bokläsaren i angiven hämtningsmapp.

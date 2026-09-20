@@ -1,0 +1,3 @@
+Nytt: Stöd för bokformatet DjVu har lagts till.
+Nytt: Det går nu att trycka på en författares namn på sidan med bokdetaljer för att visa alla böcker av författaren.
+Rättat: Bibliotekssynkronisering använder nu den anpassade mallen för hämtningssökväg (inklusive anpassade kolumner och avkortning) i stället för standardsökvägen.

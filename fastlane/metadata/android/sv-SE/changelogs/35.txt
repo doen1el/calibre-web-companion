@@ -1,0 +1,9 @@
+- Nytt: Magiska hyllor – skapa, redigera och bläddra i dynamiska, regelbaserade hyllor (endast Calibre-Web Automated).
+- Nytt: Skanna en boks ISBN-streckkod för att lägga till den i Calibre eller hämta den via Shelfmark.
+- Nytt: Skärm för anslutningsdiagnostik samt förbättrad inloggning med omvänd proxy/SSO.
+- Nytt: Sök efter bokmetadata hos nätbaserade leverantörer när en bok redigeras.
+- Nytt: Serieindex och seriefilter på bokkort, med automatiska sökförslag.
+- Nytt: Sidindelning och växling mellan lista/rutnät på hyllor; justerbar textstorlek och vy för rutnät/lista i Upptäck.
+- Nytt: Den inbyggda e-bokläsaren har förnyats och har valbart läsformat.
+- Nederländsk översättning och många översättningsuppdateringar har lagts till.
+- Rättat: självsignerade certifikat, ”inloggad men inga data” med omvända proxyservrar, Shelfmark-konfiguration, filtret Författare (A–Ö) och en krasch vid svep bakåt.

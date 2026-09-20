@@ -1,0 +1,4 @@
+- lade till möjlighet att ange hämtningsmapp globalt
+- lade till möjlighet att ange hämtningsschema globalt
+- rättade fel för serieschema vid hämtning
+- uppdaterade arbetsflödet för att förhoppningsvis lösa konflikten

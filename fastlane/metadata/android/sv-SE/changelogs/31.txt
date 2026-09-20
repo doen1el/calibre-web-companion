@@ -1,0 +1,4 @@
+- Uppdaterat: Koden har anpassats till det nya Calibre-databasformatet.
+- Nytt: stöd för ryska
+- Nytt: knappen ”Skicka till e-bokläsare” kan nu döljas.
+- Uppdaterat: Standardalternativet för hämtning har satts till engelska (Shelfmark).

@@ -1,0 +1,8 @@
+- Katalansk översättning har lagts till.
+- Byggskriptet för .ipa-filer har rättats.
+- Synkroniseringsfunktionen hämtar nu tillgängliga format från servern.
+- Indikator för lässtatus har lagts till på startsidan.
+- Problemet med flaggan för lässtatus har rättats.
+- Alternativet authorSort har lagts till i inställningarna för hämtningssökväg.
+- Det går nu att snabbt växla mellan Calibre Web-instans(er) och andra instanser.
+- Ett problem med alternativet ”Lägg till på hylla” på bokens beskrivningssida har rättats.

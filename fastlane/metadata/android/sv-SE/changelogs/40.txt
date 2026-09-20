@@ -1,0 +1,5 @@
+- Funktion: Ny hyllvy på startsidan.
+- Funktion: Det går nu att ändra kontrollens sondslutpunkt för nåbarhet.
+- Rättat: En dialogruta för ny autentisering visas när SSO-sessionen löper ut.
+- Rättat: Ett problem med identifiering av offlinestatus har åtgärdats.
+- Språk: Översättningar till ukrainska (@Vitalii) och katalanska (@Nric Pagès i Gassull) har uppdaterats.

@@ -1,0 +1,6 @@
+- Funktion: ISBN-skanning frågar nu flera kataloger samtidigt (Open Library, Google Books, BnF samt valfritt Hardcover och ISBNdb) och sammanfogar deras metadata. Källor kan aktiveras/inaktiveras och ordnas om i inställningarna.
+- Funktion: Det nya hämtningsschemat ”Endast serie” sparar böcker till /serie/bok.epub, och med en anpassad sökvägsbyggare sätts hämtningssökvägen ihop av byggblock som {author}, {series}, {series_index} eller {year}.
+- Funktion: Hämtade böcker kan öppnas i en extern läsare från offlinebiblioteket.
+- Rättat: Sidor i Upptäck använder nu sidindelning korrekt.
+- Rättat: När en redan hämtad bok öppnas i en extern läsare väntar den inte längre på en omslagsbegäran; cachelagrade offlinemetadata återanvänds.
+- Rättat: Uppladdningar behåller filnamnet från filväljaren och återställer en saknad filändelse från filinnehållet, så att böcker från molnleverantörer inte längre avvisas. En avvisad uppladdning rapporteras inte längre som lyckad, utan serverns felmeddelande visas i stället.

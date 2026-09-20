@@ -1,0 +1,5 @@
+- lade till möjlighet att ändra temafärg
+- lade till möjlighet att ange olika mappscheman
+- lade till en sida med bokrekommendationer
+- lade till hämtningsmöjlighet på rekommendationssidan
+- flera mindre felrättningar och UI-ändringar

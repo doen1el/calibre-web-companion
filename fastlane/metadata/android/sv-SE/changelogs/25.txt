@@ -1,0 +1,13 @@
+- uppdaterade byggkedjan för att ta bort felaktigt skapad tagg
+- uppdaterade bakgrundsfärgen för ikonknapparna vid redigering av metadata
+- lade till skript för att skapa .ipa-filer för iOS
+- lade till nya anslutningsinställningar för Booklore och OPDS (beta)
+- lade till autentisering för calibre-web-automated-book-downloader
+- lade till möjlighet att läsa in konfigurationen för calibre-web-automated-book-downloader från servern
+- lade till autentiseringsrubriker i begäranden till calibre-web-automated-book-downloader
+- lade till estnisk och italiensk översättning
+- lade till en ny intern EPUB-läsare
+- lade till möjlighet att synkronisera läsframsteg via WebDAV till andra enheter
+- förbättrade SSO-hanteringen
+- lade till en licenssida i inställningarna
+- mindre felrättningar och förbättringar

@@ -1,0 +1,1 @@
+- Rättat: ersatte paketet mobile_scanner med barcode_scan2
