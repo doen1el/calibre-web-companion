@@ -1,36 +1,21 @@
-Nem hivatalos kísérőalkalmazás a Calibre Webhez és a Calibre Web Automatedhez, amely lehetővé teszi könyvgyűjteményed böngészését és digitális könyvtárad kezelését útközben is.
+A Calibre-Web és a Calibre-Web Automated nem hivatalos kiegészítő alkalmazása. Böngésszen könyvgyűjteményében, és kezelje digitális könyvtárát bárhol, bármikor.
 
-<b>Flutterrel</b> és <b>Material You</b> dizájnnal készült, hogy modern, intuitív és reszponzív felhasználói élményt nyújtson.
+A Flutter és a Material You segítségével készült, modern, intuitív és reszponzív felhasználói élményt nyújt. Androidra érhető el, 15 nyelven.
 
-<b>Támogatott funkciók:</b>
+Funkciók:
 
-<ul>
-    <li>A Calibre Web könyvtár böngészése</li> 
-    <ul>
-        <li>Könyvek megtekintése szerző, sorozat, népszerűség és egyéb szempontok szerint</li> 
-        <li>Részletes könyvinformációk megtekintése</li>
-        <li>Átfogó gyűjteménystatisztikák elérése</li>
-    </ul>
-    <li>Könyvtárkezelés</li> 
-    <ul>
-        <li>Könyvek megjelölése olvasottként vagy olvasatlanként</li>
-        <li>Könyvek archiválása és visszaállítása</li>
-        <li>Könyvek rendszerezése polcokba</li>
-        <li>Polcok kezelése és testreszabása</li>
-    </ul>
-    <li>Olvasás és eszközök</li>
-    <ul>
-        <li>Könyvek közvetlen letöltése az eszközödre</li>
-        <li>Könyvek küldése e-olvasóra (Kindle/Kobo) a send2ereader segítségével</li>
-        <li>A Calibre Web e-mail funkciójának használata eszközre küldéshez</li>
-    </ul>
-    <li>Automatizálási integráció</li>
-    <ul>
-        <li>Együttműködik a Calibre Web Automateddel</li>
-       <li>Könyvek automatikus letöltése a calibre-web-automated-book-downloader segítségével</li>
-    </ul>
-</ul>
+- Csatlakozzon a Calibre-Web (Automated) szerveréhez, beleértve a fordított proxy / SSO beállításokat, az egyéni HTTP-fejléceket és az önaláírt tanúsítványokat.
+- Böngéssze át a teljes könyvtárát, és fedezzen fel könyveket szerző, sorozat, kiadó, értékelés, népszerű és trendi címek, valamint egyéb szempontok alapján.
+- Tekintse meg az egyes könyvek részletes adatait, szerkessze metaadataikat, és töltsön fel új borítókat.
+- Jelölje meg a könyveket olvasottként vagy olvasatlannak, archiválja őket, és rendezze őket polcokra.
+- Hozzon létre, szerkesszen és böngésszen Magic Shelves-t: dinamikus, szabályalapú polcokat (csak a Calibre-Web Automated verzióban).
+- Gyorsan adjon hozzá könyveket az ISBN-vonalkód beolvasásával.
+- Olvassa el a könyveket a beépített e-könyv-olvasóban, és szinkronizálja az olvasási előrehaladását a különböző eszközei között WebDAV segítségével.
+- Küldjön könyveket e-olvasójára (Kindle/Kobo) a send2ereader vagy a Calibre-Web e-mail funkciója segítségével.
+- Töltsön le könyveket a gyűjteményébe a Shelfmark segítségével. Ez az alkalmazás nem támogatja és nem ösztönzi a szerzői joggal védett művek kalózmásolását; kérjük, csak olyan tartalmakat töltsön le, amelyek jogilag megengedettek.
+- Töltsön fel könyveket a szerverére, és szinkronizálja az egész könyvtárát vagy a kiválasztott könyveket offline olvasáshoz.
+- Személyre szabható: átrendezheti vagy elrejtheti a könyv műveleteit és szakaszait, kiválaszthat egy témát, bekapcsolhatja az e-ink módot, és beállíthatja a szövegméretet.
 
-Kérjük, vedd figyelembe, hogy az alkalmazás jelenleg aktív fejlesztés alatt áll. Hibákat, visszajelzéseket és funkcióötleteket GitHubon lehet jelezni.
+Az alkalmazás fejlesztése jelenleg is folyik. A GitHubon jelenthet hibákat, adhat visszajelzéseket és új funkciókra vonatkozó ötleteket.
 
-Közreműködők: Calibre Web, Calibre Web Automated, send2ereader, calibre-web-automated-book-downloader
+Köszönet: Calibre-Web, Calibre-Web Automated, Shelfmark, send2ereader, Flutter.

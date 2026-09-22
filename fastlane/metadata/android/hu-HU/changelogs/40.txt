@@ -1,0 +1,5 @@
+- Új: Új polcnézet a kezdőképernyőn.
+- Új: Lehetőséget biztosítottunk az elérhetőségi ellenőrzésekhez használt próba végpontjának módosítására.
+- Javítás: Az SSO-munkamenet lejárta esetén megjelenő újrahitelesítési felugró ablakot adtunk hozzá.
+- Javítás: Kijavítottuk az offline állapot felismerésével kapcsolatos problémát.
+- Nyelv: Frissített fordítások: ukrán (@Vitalii), katalán (@Nric Pagès i Gassull).

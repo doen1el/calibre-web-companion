@@ -1,0 +1,9 @@
+- Új: Magic Shelves – dinamikus, szabályalapú polcok létrehozása, szerkesztése és böngészése (csak Calibre-Web Automated).
+- Új: A könyv ISBN-vonalkódjának beolvasásával hozzáadhatja a könyvet a Calibre-hez, vagy letöltheti Shelfmark segítségével.
+- Új: Kapcsolatdiagnosztika képernyő, valamint továbbfejlesztett reverse-proxy / SSO bejelentkezés.
+- Új: Könyv szerkesztése közben online szolgáltatók könyv-metadatainak keresése.
+- Új: Sorozatindex és sorozatszűrő a könyvkártyákon, keresési automatikus javaslatokkal.
+- Új: Oldalszámozás és lista/rács nézet közötti váltás a polcokban; állítható betűméret és rács/lista nézet a Felfedezésben.
+- Új: Frissített beépített e-könyv-olvasó, választható olvasási formátummal.
+- Hozzáadva a holland fordítás és számos fordítási frissítés.
+- Javítás: az önaláírt tanúsítványok, a „bejelentkezve, de nincs adat” hiba a fordított proxyknál, a Shelfmark konfig, a Szerző (A–Z) szűrő és a visszacsúsztatáskori összeomlás.

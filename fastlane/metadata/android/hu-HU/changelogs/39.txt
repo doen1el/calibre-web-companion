@@ -1,0 +1,4 @@
+- Új: Kezdőképernyő-widgetek hozzáadva (Gyorsműveletek, Statisztikák, Jelenleg olvasott könyv, Polcrács).
+- Javítás: Kijavítottuk azt a hibát, amely miatt a FileOpener nem a megfelelő MIME-típust használta az EPUB-fájlokhoz, ezért egyes alkalmazások nem tudták azokat megfelelően megnyitni.
+- Javítás: Frissítettük az SSO bejelentkezési folyamatot, és javítottuk a cookie-kezelést a LoginRemoteDataSource-ban.
+- Nyelv: Frissített fordítások: spanyol (@Libre), olasz (@Michele Abbondanza), magyar (@Márton Kónya) és kínai (egyszerűsített han írás) (@Mas Wang).

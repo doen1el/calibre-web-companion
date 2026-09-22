@@ -1,0 +1,3 @@
+Újdonság: Hozzáadtuk a djvu könyvformátum támogatása.
+Újdonság: Mostantól a könyv részletei oldalon rákattintva a szerző nevére megtekinthetők az adott szerző összes könyvei.
+Javítás: A könyvtárszinkronizálás mostantól az alapértelmezett elérési út helyett az egyéni letöltési útvonal-sablont használja (beleértve az egyéni oszlopokat és a címek rövidítését is).
