@@ -656,6 +656,11 @@ class ApiService {
 
       getHeaders.addAll(customHeaders);
       getHeaders['Accept'] = 'text/html,application/xhtml+xml,application/xml';
+      // Calibre-Web-NextGen redirects browser navigations of /login and / to
+      // its SPA shell, which has no csrf_token field. Marking the fetch as
+      // non-navigational keeps the classic HTML page.
+      getHeaders['Sec-Fetch-Dest'] = 'empty';
+      getHeaders['Sec-Fetch-Mode'] = 'cors';
 
       final Uri tokenFetchUri =
           csrfTokenUrl != null ? _buildUri(endpoint: csrfTokenUrl) : uri;
@@ -707,6 +712,23 @@ class ApiService {
         getResponse = await _client!.get(rootUri, headers: getHeaders);
         if (getResponse.statusCode == 200) {
           csrfToken = _extractCsrfFromHtml(getResponse.body, csrfSelector);
+        }
+      }
+
+      // Calibre-Web-NextGen hands out the same Flask-WTF token as JSON.
+      if (csrfToken == null) {
+        final apiUri = _buildUri(endpoint: '/api/v1/auth/csrf');
+        _logger.d('Retrying CSRF GET at: $apiUri');
+        final apiResponse = await _client!.get(
+          apiUri,
+          headers: {...getHeaders, 'Accept': 'application/json'},
+        );
+        if (apiResponse.statusCode == 200) {
+          final token = _tryDecodeJsonMap(apiResponse.body)?['csrf_token'];
+          if (token is String && token.isNotEmpty) {
+            csrfToken = token;
+            getResponse = apiResponse;
+          }
         }
       }
 
