@@ -21,6 +21,8 @@ class SettingsState extends Equatable {
   final String downloaderUrl;
   final String downloaderUsername;
   final String downloaderPassword;
+  final bool useSsoSessionForDownloader;
+  final bool isSsoSession;
   final bool isSend2ereaderEnabled;
   final String send2ereaderUrl;
   final String defaultDownloadPath;
@@ -67,6 +69,8 @@ class SettingsState extends Equatable {
     this.downloaderUrl = '',
     this.downloaderUsername = '',
     this.downloaderPassword = '',
+    this.useSsoSessionForDownloader = false,
+    this.isSsoSession = false,
     this.isSend2ereaderEnabled = false,
     this.send2ereaderUrl = 'https://send.djazz.se',
     this.defaultDownloadPath = '',
@@ -116,6 +120,8 @@ class SettingsState extends Equatable {
     String? downloaderUrl,
     String? downloaderUsername,
     String? downloaderPassword,
+    bool? useSsoSessionForDownloader,
+    bool? isSsoSession,
     bool? isSend2ereaderEnabled,
     String? send2ereaderUrl,
     String? defaultDownloadPath,
@@ -161,6 +167,9 @@ class SettingsState extends Equatable {
       downloaderUrl: downloaderUrl ?? this.downloaderUrl,
       downloaderUsername: downloaderUsername ?? this.downloaderUsername,
       downloaderPassword: downloaderPassword ?? this.downloaderPassword,
+      useSsoSessionForDownloader:
+          useSsoSessionForDownloader ?? this.useSsoSessionForDownloader,
+      isSsoSession: isSsoSession ?? this.isSsoSession,
       isSend2ereaderEnabled:
           isSend2ereaderEnabled ?? this.isSend2ereaderEnabled,
       send2ereaderUrl: send2ereaderUrl ?? this.send2ereaderUrl,
@@ -217,6 +226,8 @@ class SettingsState extends Equatable {
     downloaderUrl,
     downloaderUsername,
     downloaderPassword,
+    useSsoSessionForDownloader,
+    isSsoSession,
     isSend2ereaderEnabled,
     send2ereaderUrl,
     defaultDownloadPath,

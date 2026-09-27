@@ -123,3 +123,24 @@ HeaderValueIssue? inspectHeaderValue(String rawValue, {required String name}) {
   }
   return null;
 }
+
+/// Merges two Cookie header strings; on a name clash [newCookie] wins.
+String mergeCookieHeaders(String existingCookie, String newCookie) {
+  if (existingCookie.trim().isEmpty) return newCookie.trim();
+  if (newCookie.trim().isEmpty) return existingCookie.trim();
+  final map = <String, String>{};
+  void addAll(String cookie) {
+    for (final part in cookie.split(';')) {
+      final kv = part.trim();
+      final idx = kv.indexOf('=');
+      if (idx <= 0) continue;
+      final k = kv.substring(0, idx).trim();
+      if (k.isEmpty) continue;
+      map[k] = kv.substring(idx + 1).trim();
+    }
+  }
+
+  addAll(existingCookie);
+  addAll(newCookie);
+  return map.entries.map((e) => '${e.key}=${e.value}').join('; ');
+}

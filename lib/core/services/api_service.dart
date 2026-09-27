@@ -193,29 +193,6 @@ class ApiService {
     return cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
   }
 
-  /// Merge two Cookie header strings, deduplicating by cookie name
-  String _mergeCookieHeaders(String existingCookie, String newCookie) {
-    if (existingCookie.trim().isEmpty) return newCookie.trim();
-    if (newCookie.trim().isEmpty) return existingCookie.trim();
-    final map = <String, String>{};
-    void addAll(String cookie) {
-      for (final part in cookie.split(';')) {
-        final kv = part.trim();
-        if (kv.isEmpty) continue;
-        final idx = kv.indexOf('=');
-        if (idx <= 0) continue;
-        final k = kv.substring(0, idx).trim();
-        final v = kv.substring(idx + 1).trim();
-        if (k.isEmpty) continue;
-        map[k] = v;
-      }
-    }
-
-    addAll(existingCookie);
-    addAll(newCookie);
-    return map.entries.map((e) => '${e.key}=${e.value}').join('; ');
-  }
-
   /// Extract CSRF token from HTML using multiple fallback selectors
   String? _extractCsrfFromHtml(String html, String preferredSelector) {
     try {
@@ -514,7 +491,7 @@ class ApiService {
           final newCookie = buildCookieHeaderFromSetCookie(
             response.headers['set-cookie'],
           );
-          final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+          final merged = mergeCookieHeaders(_cookie ?? '', newCookie);
           if (merged.trim().isNotEmpty) {
             await prefs.setString('calibre_web_cookie', merged);
             _cookie = merged;
@@ -767,7 +744,7 @@ class ApiService {
       if (getResponse.headers.containsKey('set-cookie')) {
         final setCookieHeader = getResponse.headers['set-cookie'];
         final newCookie = buildCookieHeaderFromSetCookie(setCookieHeader);
-        sessionCookie = _mergeCookieHeaders(sessionCookie, newCookie);
+        sessionCookie = mergeCookieHeaders(sessionCookie, newCookie);
       }
 
       if (files != null && files.isNotEmpty) {
@@ -810,7 +787,7 @@ class ApiService {
             final newCookie = buildCookieHeaderFromSetCookie(
               response.headers['set-cookie'],
             );
-            final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+            final merged = mergeCookieHeaders(_cookie ?? '', newCookie);
             if (merged.trim().isNotEmpty) {
               await prefs.setString('calibre_web_cookie', merged);
               _cookie = merged;
@@ -881,7 +858,7 @@ class ApiService {
             final newCookie = buildCookieHeaderFromSetCookie(
               response.headers['set-cookie'],
             );
-            final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+            final merged = mergeCookieHeaders(_cookie ?? '', newCookie);
             if (merged.trim().isNotEmpty) {
               await prefs.setString('calibre_web_cookie', merged);
               _cookie = merged;
@@ -931,7 +908,7 @@ class ApiService {
             final newCookie = buildCookieHeaderFromSetCookie(
               response.headers['set-cookie'],
             );
-            final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+            final merged = mergeCookieHeaders(_cookie ?? '', newCookie);
             if (merged.trim().isNotEmpty) {
               await prefs.setString('calibre_web_cookie', merged);
               _cookie = merged;
@@ -997,7 +974,7 @@ class ApiService {
             final newCookie = buildCookieHeaderFromSetCookie(
               response.headers['set-cookie'],
             );
-            final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+            final merged = mergeCookieHeaders(_cookie ?? '', newCookie);
             if (merged.trim().isNotEmpty) {
               await prefs.setString('calibre_web_cookie', merged);
               _cookie = merged;
@@ -1795,7 +1772,7 @@ class ApiService {
     final rawSetCookie = csrfResult['cookies'];
     if (rawSetCookie != null && rawSetCookie.isNotEmpty) {
       final newCookie = buildCookieHeaderFromSetCookie(rawSetCookie);
-      sessionCookie = _mergeCookieHeaders(sessionCookie, newCookie);
+      sessionCookie = mergeCookieHeaders(sessionCookie, newCookie);
     }
 
     final uri = _buildUri(endpoint: endpoint);

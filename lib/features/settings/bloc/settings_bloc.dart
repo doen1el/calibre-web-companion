@@ -26,6 +26,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<SetDownloaderEnabled>(_onSetDownloaderEnabled);
     on<SetDownloaderUrl>(_onSetDownloaderUrl);
     on<SetDownloaderCredentials>(_onSetDownloaderCredentials);
+    on<SetDownloaderUseSsoSession>(_onSetDownloaderUseSsoSession);
     on<SubmitFeedback>(_onSubmitFeedback);
     on<SetLanguage>(_onSetLanguage);
     on<SetShowReadNowButton>(_onSetShowReadNowButton);
@@ -81,6 +82,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           downloaderUrl: settings.downloaderUrl,
           downloaderUsername: settings.downloaderUsername,
           downloaderPassword: settings.downloaderPassword,
+          useSsoSessionForDownloader: settings.useSsoSessionForDownloader,
+          isSsoSession: settings.isSsoSession,
           isSend2ereaderEnabled: settings.isSend2ereaderEnabled,
           send2ereaderUrl: settings.send2ereaderUrl,
           defaultDownloadPath: settings.defaultDownloadPath,
@@ -292,6 +295,23 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       await repository.setDownloaderUrl(event.url);
       emit(state.copyWith(downloaderUrl: event.url));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSetDownloaderUseSsoSession(
+    SetDownloaderUseSsoSession event,
+    Emitter<SettingsState> emit,
+  ) async {
+    try {
+      await repository.setDownloaderUseSsoSession(event.enabled);
+      emit(state.copyWith(useSsoSessionForDownloader: event.enabled));
     } catch (e) {
       emit(
         state.copyWith(

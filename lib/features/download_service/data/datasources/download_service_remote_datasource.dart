@@ -1,11 +1,12 @@
 import 'dart:convert';
 
+import 'package:calibre_web_companion/core/services/session_reauth_service.dart';
+import 'package:calibre_web_companion/features/download_service/data/downloader_request_headers.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_config_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_filter_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_status.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_status_response.dart';
-import 'package:calibre_web_companion/features/login_settings/data/repositories/login_settings_repository.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,46 +15,28 @@ class DownloadServiceRemoteDataSource {
   final http.Client client;
   final SharedPreferences sharedPreferences;
   final Logger logger;
-  final LoginSettingsRepository loginSettingsRepository;
 
   DownloadServiceRemoteDataSource({
     required this.client,
     required this.sharedPreferences,
     required this.logger,
-    required this.loginSettingsRepository,
   });
 
   Future<String> _getBaseUrl() async {
     return sharedPreferences.getString('downloader_url') ?? '';
   }
 
-  Future<Map<String, String>> _getHeaders({bool includeCookie = true}) async {
-    final headers = {'Content-Type': 'application/json'};
+  Map<String, String> _getHeaders({bool includeCookie = true}) => {
+    'Content-Type': 'application/json',
+    ...buildDownloaderHeaders(
+      sharedPreferences,
+      includeDownloaderCookie: includeCookie,
+    ),
+  };
 
-    try {
-      final customHeaders = await loginSettingsRepository.getCustomHeaders();
-      for (final header in customHeaders) {
-        if (header.key.trim().isNotEmpty) {
-          headers[header.key] = header.value;
-        }
-      }
-    } catch (e) {
-      logger.w('Failed to load custom headers for downloader: $e');
-    }
-
-    if (includeCookie) {
-      final cookie = sharedPreferences.getString('downloader_cookie');
-      if (cookie != null && cookie.isNotEmpty) {
-        if (headers.containsKey('Cookie')) {
-          headers['Cookie'] = '${headers['Cookie']}; $cookie';
-        } else {
-          headers['Cookie'] = cookie;
-        }
-      }
-    }
-
-    return headers;
-  }
+  bool get _hasCredentials =>
+      (sharedPreferences.getString('downloader_username') ?? '').isNotEmpty &&
+      (sharedPreferences.getString('downloader_password') ?? '').isNotEmpty;
 
   Future<void> _login() async {
     final baseUrl = await _getBaseUrl();
@@ -69,7 +52,7 @@ class DownloadServiceRemoteDataSource {
 
     logger.i('Attempting to login to downloader service...');
 
-    final headers = await _getHeaders(includeCookie: false);
+    final headers = _getHeaders(includeCookie: false);
 
     final response = await client.post(
       Uri.parse('$baseUrl/api/auth/login'),
@@ -99,21 +82,39 @@ class DownloadServiceRemoteDataSource {
   Future<http.Response> _executeWithRetry(
     Future<http.Response> Function(Map<String, String> headers) requestFn,
   ) async {
-    try {
-      var headers = await _getHeaders();
-      final response = await requestFn(headers);
+    var response = await requestFn(_getHeaders());
+    final useSso = downloaderUsesSsoSession(sharedPreferences);
 
-      if (response.statusCode == 401) {
-        logger.w('Received 401, attempting re-login...');
+    if (response.statusCode == 401 && (!useSso || _hasCredentials)) {
+      logger.w('Received 401, attempting re-login...');
+      try {
         await _login();
-        headers = await _getHeaders();
-        return await requestFn(headers);
+        response = await requestFn(_getHeaders());
+      } catch (e) {
+        // Behind a forward-auth proxy the 401 may come from the proxy, which
+        // only the SSO web view below can satisfy.
+        if (!useSso) rethrow;
+        logger.w('Downloader re-login failed: $e');
       }
-
-      return response;
-    } catch (e) {
-      rethrow;
     }
+
+    if (useSso && isInterceptedByAuthProxy(response)) {
+      logger.w(
+        'Downloader request intercepted by auth proxy; requesting SSO re-auth.',
+      );
+      if (await SessionReauthService().requestReauth()) {
+        response = await requestFn(_getHeaders());
+      }
+    }
+
+    return response;
+  }
+
+  dynamic _decodeJson(http.Response response) {
+    if (looksLikeHtmlResponse(response)) {
+      throw const DownloaderLoginPageException();
+    }
+    return json.decode(response.body);
   }
 
   Future<List<DownloadServiceBookModel>> searchBooks(
@@ -148,7 +149,7 @@ class DownloadServiceRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
+        final decoded = _decodeJson(response);
         final results = _extractSearchResults(decoded);
         logger.d(response.body);
         final books =
@@ -161,6 +162,9 @@ class DownloadServiceRemoteDataSource {
         logger.e(errorMessage);
         throw Exception(errorMessage);
       }
+    } on DownloaderLoginPageException {
+      logger.e('Downloader returned a login page (auth proxy?)');
+      rethrow;
     } catch (e) {
       final errorMessage = 'Error searching books: $e';
       logger.e(errorMessage);
@@ -243,7 +247,7 @@ class DownloadServiceRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        final status = json.decode(response.body);
+        final status = _decodeJson(response);
         logger.i('Download status: $status');
         return true;
       } else {
@@ -251,6 +255,9 @@ class DownloadServiceRemoteDataSource {
         logger.e(errorMessage);
         throw Exception(errorMessage);
       }
+    } on DownloaderLoginPageException {
+      logger.e('Downloader returned a login page (auth proxy?)');
+      rethrow;
     } catch (e) {
       final errorMessage = 'Error downloading book: $e';
       logger.e(errorMessage);
@@ -268,7 +275,7 @@ class DownloadServiceRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        final status = json.decode(response.body);
+        final status = _decodeJson(response);
         logger.d(response.body);
         final downloadStatus = DownloadStatusResponse.fromJson(status);
         final books = downloadStatus.getAllBooks();
@@ -297,6 +304,9 @@ class DownloadServiceRemoteDataSource {
         logger.e(errorMessage);
         throw Exception(errorMessage);
       }
+    } on DownloaderLoginPageException {
+      logger.e('Downloader returned a login page (auth proxy?)');
+      rethrow;
     } catch (e) {
       final errorMessage = 'Error fetching download status: $e';
       logger.e(errorMessage);
@@ -314,7 +324,7 @@ class DownloadServiceRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        final jsonMap = json.decode(response.body);
+        final jsonMap = _decodeJson(response);
         return DownloadConfigModel.fromJson(jsonMap);
       } else {
         logger.w('Failed to load config: ${response.statusCode}');

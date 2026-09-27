@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/kosync_service.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
+import 'package:calibre_web_companion/features/download_service/data/downloader_request_headers.dart';
 import 'package:calibre_web_companion/features/settings/data/datasources/settings_local_datasource.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/settings_model.dart';
@@ -62,6 +63,14 @@ class SettingsRepository {
   Future<void> setDownloaderUrl(String url) async {
     try {
       await dataSource.saveDownloaderUrl(url);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> setDownloaderUseSsoSession(bool enabled) async {
+    try {
+      await dataSource.saveDownloaderUseSsoSession(enabled);
     } catch (e) {
       rethrow;
     }
@@ -204,10 +213,14 @@ class SettingsRepository {
           url.endsWith('/') ? url.substring(0, url.length - 1) : url;
 
       final client = getIt<http.Client>();
+      final headers = buildDownloaderHeaders(
+        getIt<SharedPreferences>(),
+        includeDownloaderCookie: false,
+      );
 
       if (username.isEmpty && password.isEmpty) {
         final uri = Uri.parse('$baseUrl/api/config');
-        final response = await client.get(uri);
+        final response = await client.get(uri, headers: headers);
 
         if (response.statusCode == 401 || response.statusCode == 403) {
           throw Exception('Authentication required');
@@ -219,7 +232,7 @@ class SettingsRepository {
       final uri = Uri.parse('$baseUrl/api/auth/login');
       final response = await client.post(
         uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: {...headers, 'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': username,
           'password': password,
@@ -242,7 +255,13 @@ class SettingsRepository {
           url.endsWith('/') ? url.substring(0, url.length - 1) : url;
       final client = getIt<http.Client>();
       final response = await client
-          .get(Uri.parse('$baseUrl/api/config'))
+          .get(
+            Uri.parse('$baseUrl/api/config'),
+            headers: buildDownloaderHeaders(
+              getIt<SharedPreferences>(),
+              includeDownloaderCookie: false,
+            ),
+          )
           .timeout(const Duration(seconds: 8));
       if (response.statusCode == 401 || response.statusCode == 403) {
         return DownloaderUrlStatus.authRequired;

@@ -102,6 +102,15 @@ class SetDownloaderUrl extends SettingsEvent {
   List<Object?> get props => [url];
 }
 
+class SetDownloaderUseSsoSession extends SettingsEvent {
+  final bool enabled;
+
+  const SetDownloaderUseSsoSession(this.enabled);
+
+  @override
+  List<Object?> get props => [enabled];
+}
+
 class SetDownloaderCredentials extends SettingsEvent {
   final String username;
   final String password;
