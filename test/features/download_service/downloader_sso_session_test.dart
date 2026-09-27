@@ -80,6 +80,22 @@ void main() {
         expect(headers.containsKey('cookie'), isFalse);
       },
     );
+
+    // #204: covers use these headers too, so a header-authenticating proxy
+    // must see the custom headers without the SSO toggle.
+    test('sends custom headers alongside the downloader cookie', () async {
+      final prefs = await _prefs({
+        'downloader_cookie': 'session=dl789',
+        'custom_login_headers': jsonEncode([
+          {'key': 'Proxy-Authorization', 'value': 'Basic abc'},
+        ]),
+      });
+
+      expect(buildDownloaderHeaders(prefs), {
+        'Proxy-Authorization': 'Basic abc',
+        'Cookie': 'session=dl789',
+      });
+    });
   });
 
   group('DownloadServiceRemoteDataSource', () {
