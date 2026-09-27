@@ -1,0 +1,2 @@
+- Det går nu att ta bort böcker från servern via sidan med bokdetaljer.
+- Alternativ för att inaktivera appanimationer för e-bläcksenheter har lagts till

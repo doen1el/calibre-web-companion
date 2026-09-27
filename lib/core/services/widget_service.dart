@@ -402,7 +402,7 @@ class WidgetService {
       if (offlinePath != null && offlinePath.isNotEmpty) {
         final file = File(offlinePath);
         if (file.existsSync() && await file.length() > 0) {
-          return _copyToWidgetDir(uuid, file);
+          return await _copyToWidgetDir(uuid, file);
         }
       }
     } catch (e) {
@@ -414,7 +414,7 @@ class WidgetService {
       try {
         final cached = await CustomCacheManager().getSingleFile(url);
         if (cached.existsSync() && await cached.length() > 0) {
-          return _copyToWidgetDir(uuid, cached);
+          return await _copyToWidgetDir(uuid, cached);
         }
       } catch (e) {
         logger.w('Widget cover fetch failed for "$url": $e');

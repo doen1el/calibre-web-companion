@@ -1,0 +1,6 @@
+- Nya översättningar till ukrainska (@Vitali) och tamil (@தமிழ்நேரம்) har lagts till.
+- Funktion: Offlineläge har lagts till i appen, så att användare kan komma åt sina hämtade böcker utan internetanslutning.
+- Funktion: Stöd har lagts till för webbservern som tillhandahålls av Calibre Desktop.
+- Rättat: knappen ”Läs nu” hämtar nu boken korrekt.
+- Rättat: När en bok redigeras och systemets bakåtknapp sedan används sparas ändringarna nu korrekt.
+- Rättat: Shelfmark-integrationen faller inte längre tillbaka till ”tyska” som standard.

@@ -1,0 +1,8 @@
+- Det går nu att ändra läsriktningen för den interna läsaren i inställningarna.
+- Hämtarens konfiguration hämtas nu direkt när den aktiveras i inställningarna.
+- Ett fel där dubblettböcker visades i bokvyn är rättat.
+- Ett fel där användare inte kunde skicka e-böcker via e-post utan uppladdningsbehörighet är rättat.
+- Hämtarfilter sparas nu mellan appstarter.
+- F-Droid-byggfelet är rättat.
+- CSRF-tokenhanteringen har förbättrats.
+- Italiensk och ungersk översättning har lagts till.

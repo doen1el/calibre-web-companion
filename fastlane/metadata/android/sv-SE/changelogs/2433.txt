@@ -1,0 +1,4 @@
+Funktion: KOReader Sync-insticksprogrammet har integrerats
+Rättat: WebDAV-anslutningsproblemet där den första begäran misslyckades med 401/403 men efterföljande begäranden lyckades har åtgärdats.
+Rättat: Ett problem i konfigurationen av den anpassade hämtningssökvägen har åtgärdats
+Rättat: Knappen ”Buy me a coffee” har tagits bort från inställningssidan för att undvika att appen tas bort från Google Play Store på grund av policybrott.

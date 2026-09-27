@@ -1,0 +1,10 @@
+- Ett tydligare felmeddelande visas på sidan Synkroniseringsinställningar när Calibre Web-avsnittet är inaktiverat.
+- Det går nu att visa och kopiera apploggar för felrapporter.
+- Det går nu att ordna om och inaktivera avsnitt i Upptäck via Inställningar.
+- Det går nu att ordna om och dölja bokdetaljer via inställningarna.
+- Det går nu att ändra ordning och synlighet för bokåtgärder via inställningarna.
+- Rättat: 401 Unauthorized för hyllomslag har åtgärdats.
+- Rättat: Det gick inte att lägga till eller ta bort från hyllan på grund av saknad csrfTokenUrl (fel 405).
+- Sidan Inställningar har gjorts om.
+- Mindre förbättringar av användargränssnittet
+- Sidan med bokdetaljer har arbetats om.

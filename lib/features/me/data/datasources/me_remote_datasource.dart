@@ -15,7 +15,7 @@ class MeRemoteDataSource {
       if (serverType == 'opds' ||
           serverType == 'grimmory' ||
           serverType == 'booklore') {
-        return _getOpdsStats();
+        return await _getOpdsStats();
       }
 
       if (serverType == 'calibre') {

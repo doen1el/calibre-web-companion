@@ -41,15 +41,15 @@ class BookViewRemoteDatasource {
       final serverType = _preferences.getString('server_type');
 
       if (serverType == 'grimmory' || serverType == 'booklore') {
-        return _fetchBooksBooklore(
+        return await _fetchBooksBooklore(
           offset: offset,
           limit: limit,
           searchQuery: searchQuery,
         );
       } else if (serverType == 'opds') {
-        return _fetchBooksOpds();
+        return await _fetchBooksOpds();
       } else if (serverType == 'calibre') {
-        return _fetchBooksCalibre(
+        return await _fetchBooksCalibre(
           offset: offset,
           limit: limit,
           searchQuery: searchQuery,
@@ -503,7 +503,7 @@ class BookViewRemoteDatasource {
   }) async {
     try {
       if (_preferences.getString('server_type') == 'calibre') {
-        return _uploadEbookCalibre(book, fileName: fileName);
+        return await _uploadEbookCalibre(book, fileName: fileName);
       }
 
       final result = await _apiService.uploadFile(

@@ -1,0 +1,4 @@
+Új funkció: A Calibre-Web és a Calibre egyéni oszlopai mostantól megjelennek a könyvrészletek oldalon (a beállításokban elrejthetők vagy átrendezhetők)
+Hibajavítás: A könyv betöltése már nem okoz összeomlást, ha megjelenési dátum nélküli könyvet nyitunk meg
+Hibajavítás: A letöltések már nem a szerver bejelentkezési oldalát mentik el a könyv helyett, amikor a munkamenet lejár
+Hibajavítás: Az alkalmazás már nem omlik össze, amikor nagy méretű, letöltött könyveket nyitunk meg a beépített olvasóban

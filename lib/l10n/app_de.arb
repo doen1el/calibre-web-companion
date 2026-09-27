@@ -143,6 +143,8 @@
     "notDownloaded": "Nicht heruntergeladen",
     "downloadServiceUrl": "Download-Service-URL",
     "enterUrlOfYourDownloadService": "Gib die URL deines Download-Services ein",
+    "downloaderUseSsoSession": "SSO-Sitzung für den Downloader verwenden",
+    "downloaderUseSsoSessionDescription": "Sendet das SSO-Anmelde-Cookie (z. B. Authelia, Authentik) bei Downloader-Anfragen mit. Aktivieren, wenn der Downloader hinter demselben Auth-Proxy wie Calibre-Web liegt.",
     "bookWillBeSendToYourEmailAdress": "Das Buch wird als EPUB an deine registrierte E-Mail-Adresse gesendet.",
     "makeSureEmailSettingsAreConfigured": "Stelle sicher, dass die SMTP-Mail-Einstellungen auf dem Server konfiguriert sind.",
     "markAsReadUnread": "Als gelesen/ungelesen markieren",

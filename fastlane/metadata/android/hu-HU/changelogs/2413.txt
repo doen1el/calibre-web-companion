@@ -1,0 +1,6 @@
+- Új: Az ISBN-beolvasás mostantól egyszerre több katalógust is lekérdez (Open Library, Google Books, BnF, opcionálisan Hardcover és ISBNdb), és egyesíti azok metaadatait. A beállításokban a források be- és kikapcsolhatók, valamint sorrendjük is megváltoztatható.
+- Új: Az új „Csak sorozat” letöltési séma a könyveket a /series/book.epub könyvtárba menti, emellett egy egyéni útvonal-összeállító is rendelkezésre áll, amely a letöltési útvonalat olyan építőelemekből állítja össze, mint az {author}, {series}, {series_index} vagy {year}.
+- Új: A letöltött könyvek az offline könyvtárból megnyithatók egy külső olvasóprogramban.
+- Javítás: A „Felfedezés” oldalak most már helyesen használják az oldalszámozást.
+- Javítás: A már letöltött könyvek külső olvasóban történő megnyitásakor a rendszer már nem várja meg a borítókép lekérését; a gyorsítótárban tárolt offline metaadatokat újra felhasználja.
+- Javítás: A feltöltések megtartják a fájlválasztó által jelzett fájlnevet, és a fájl tartalmából pótolják a hiányzó kiterjesztést, így a felhőszolgáltatóktól leszedett könyveket már nem utasítja el a rendszer. Az elutasított feltöltést a rendszer többé nem jelzi sikeresnek; helyette a szerver hibaüzenete jelenik meg.

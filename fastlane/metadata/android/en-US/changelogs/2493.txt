@@ -1,0 +1,3 @@
+Feat: New "Use SSO session for downloader" option lets the downloader work behind the same SSO proxy (e.g. Authelia, Authentik) as Calibre-Web, including covers and automatic re-login
+Fix: The downloader now shows a clear error instead of a JSON error when an auth proxy returns its login page
+Fix: Logging in and automatic re-login work again on Calibre-Web-NextGen, which now answered with "CSRF token not found" or "Session not accepted"

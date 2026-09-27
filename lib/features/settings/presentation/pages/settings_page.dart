@@ -874,6 +874,23 @@ class _SettingsPageState extends State<SettingsPage> {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
+              if (state.isSsoSession) ...[
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(localizations.downloaderUseSsoSession),
+                  subtitle: Text(
+                    localizations.downloaderUseSsoSessionDescription,
+                  ),
+                  value: state.useSsoSessionForDownloader,
+                  onChanged: (value) {
+                    context.read<SettingsBloc>().add(
+                      SetDownloaderUseSsoSession(value),
+                    );
+                    _reloadDownloadService(context);
+                  },
+                ),
+              ],
               if (_showDownloaderAuth) ...[
                 const SizedBox(height: 16),
                 Row(

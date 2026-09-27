@@ -31,7 +31,7 @@ class ShelfViewRemoteDataSource {
       if (serverType == 'opds' ||
           serverType == 'grimmory' ||
           serverType == 'booklore') {
-        return _loadOpdsShelves();
+        return await _loadOpdsShelves();
       }
 
       final res = await apiService.getXmlAsJson(

@@ -1,0 +1,4 @@
+Újdonság: Beépítettük a KOReader Sync bővítményt
+Javítás: Kijavítottuk azt a WebDAV-kapcsolati hibát, amelynek következtében az első kérés 401/403-as hibakóddal bukott meg, az azt követő kérések viszont sikeresek voltak.
+Javítás: Kijavítottuk az egyéni letöltési útvonal beállításával kapcsolatos hibát
+Javítás: Eltávolítottuk a „Vegyél nekem egy kávét” gombot a beállítások oldaláról, hogy elkerüljük a Google Play Áruházból való eltávolítást szabálysértés miatt.

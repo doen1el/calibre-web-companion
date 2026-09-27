@@ -1,0 +1,4 @@
+Nytt: Anpassade kolumner från Calibre-Web och Calibre visas nu på sidan med bokdetaljer (de kan döljas eller ordnas om i inställningarna)
+Rättat: Bokläsningen kraschar inte längre när en bok utan publiceringsdatum öppnas
+Rättat: Hämtningar sparar inte längre serverns inloggningssida i stället för boken när sessionen har löpt ut
+Rättat: Appen kraschar inte längre när stora hämtade böcker öppnas i den interna läsaren

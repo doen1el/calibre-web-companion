@@ -1,0 +1,6 @@
+- Új: új ukrán (@Vitali) és tamil (@தமிழ்நேரம்) fordítások.
+- Új: Az apphoz hozzáadtuk az offline módot, ez lehetővé teszi, hogy internetkapcsolat nélkül is hozzáférhetőek legyenek a letöltött könyvek.
+- Új: Hozzáadtuk a Calibre Desktop alkalmazás által biztosított webszerver támogatását.
+- Javítva: A „Most olvasom” gomb most már helyesen tölti le a könyvet.
+- Javítva: Ha egy könyvet szerkesztünk, majd a vissza gombot használjuk, a módosítások most már helyesen mentődnek.
+- Javítva: A Shelfmark integrációja többé nem fog német nyelvre váltani.

@@ -1,0 +1,6 @@
+- Calibre-Web-Book-Downloader har bytt namn till Shelfmark
+- ungerska, svenska och turkiska översättningar har lagts till
+- åtgärdat autentiseringsproblem vid användning av Booklore
+- åtgärdat autentiseringsproblem vid användning av Shelfmark
+- förbättrad kontroll av om boken redan har hämtats
+- lagt till bibliotekssynkronisering för att hämta många böcker samtidigt

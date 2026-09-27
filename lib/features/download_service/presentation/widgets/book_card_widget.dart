@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
+import 'package:calibre_web_companion/features/download_service/data/downloader_request_headers.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_status.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -37,15 +38,10 @@ class _BookCardWidgetState extends State<BookCardWidget> {
 
   Future<Map<String, dynamic>> _getImageContext() async {
     final prefs = await SharedPreferences.getInstance();
-    final cookie = prefs.getString('downloader_cookie');
-    final baseUrl = prefs.getString('downloader_url') ?? '';
-
-    final headers = <String, String>{};
-    if (cookie != null && cookie.isNotEmpty) {
-      headers['Cookie'] = cookie;
-    }
-
-    return {'headers': headers, 'baseUrl': baseUrl};
+    return {
+      'headers': buildDownloaderHeaders(prefs),
+      'baseUrl': prefs.getString('downloader_url') ?? '',
+    };
   }
 
   @override

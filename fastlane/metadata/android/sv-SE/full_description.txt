@@ -1,0 +1,21 @@
+Inofficiell följeslagarapp för Calibre-Web och Calibre-Web Automated. Bläddra i din boksamling och hantera ditt digitala bibliotek var du än är.
+
+Byggd med Flutter och Material You för en modern, intuitiv och responsiv upplevelse. Finns för Android på 15 språk.
+
+Funktioner:
+
+- Anslut till din Calibre-Web-server (Automated), även med omvänd proxy/SSO, egna HTTP-rubriker och självsignerade certifikat.
+- Bläddra i hela biblioteket och upptäck böcker efter författare, serie, förlag, betyg, populära/trendande och mer.
+- Visa rika detaljer för varje bok, redigera metadata och ladda upp nya omslag.
+- Markera böcker som lästa eller olästa, arkivera dem och organisera dem på hyllor.
+- Skapa, redigera och bläddra i Magiska hyllor: dynamiska regelbaserade hyllor (endast Calibre-Web Automated).
+- Lägg snabbt till böcker genom att skanna ISBN-streckkoden.
+- Läs böcker i den inbyggda e-boksläsaren och synkronisera läsframsteg mellan enheter via WebDAV.
+- Skicka böcker till e-boksläsaren (Kindle/Kobo) via send2ereader eller Calibre-Webs e-postfunktion.
+- Hämta böcker till samlingen med Shelfmark. Appen stöder eller uppmuntrar inte piratkopiering av upphovsrättsskyddade verk; hämta endast innehåll som du har laglig rätt till.
+- Ladda upp böcker till servern och synkronisera hela biblioteket eller utvalda böcker för läsning offline.
+- Gör appen till din: ändra ordning på eller dölj bokåtgärder och avsnitt, välj tema, aktivera e-bläckläge och justera textstorleken.
+
+Appen utvecklas aktivt. Du kan öppna ärenden på GitHub för fel, återkoppling och funktionsidéer.
+
+Tack till: Calibre-Web, Calibre-Web Automated, Shelfmark, send2ereader, Flutter.

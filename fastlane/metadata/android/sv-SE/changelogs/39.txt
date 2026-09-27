@@ -1,0 +1,4 @@
+- Funktion: Widgetar för startskärmen har lagts till (snabbåtgärder, statistik, bok som läses just nu, hyllrutnät).
+- Rättat: FileOpener använde inte rätt MIME-typ för EPUB-filer, vilket gjorde att vissa appar inte kunde öppna dem korrekt.
+- Rättat: SSO-inloggningsflödet har uppdaterats och cookiehanteringen i LoginRemoteDataSource har förbättrats
+- Språk: Översättningar till spanska (@Libre), italienska (@Michele Abbondanza), ungerska (@Márton Kónya) och kinesiska (förenklad han-skrift) (@Mas Wang) har uppdaterats.

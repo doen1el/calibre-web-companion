@@ -1,0 +1,20 @@
+- Inloggningsuppgifter sparas nu mellan appstarter, och appen försöker logga in automatiskt när sessionen upphör.
+- Fler filtyper tillåts nu när böcker laddas upp.
+- Det går att skapa offentliga och icke-offentliga hyllor.
+- Ett fel som uppstod när det bara fanns en hylla är rättat.
+- Serier visas nu korrekt i bokdetaljer.
+- Byggkedjan är uppdaterad för stöd för andra APK-typer, iOS-bygge och publicering på Play Store.
+- Ett problem vid hämtning av böcker med flera format är rättat.
+- Integreringen med Calibre-Web-Automated-Book-Downloader är uppdaterad till senaste versionen.
+- HTML-element har tagits bort från bokkommentarer.
+- Alfabetisk sortering har lagts till på Upptäck-sidan.
+- Det går nu att ändra ”Skicka till e-boksläsare” till ”Läs nu”.
+- En listvy har lagts till på startsidan.
+- Inläsningen av böcker från hyllor och Upptäck-sidan är optimerad.
+- Det går nu att ändra bokmetadata.
+- Det går nu att ändra bokomslag.
+- Bättre återkoppling visas om en Upptäck-kategori är inaktiverad.
+- Funktionen för egna HTTP-rubriker har förbättrats.
+- Stöd för Weblate-översättning har lagts till.
+- Portugisisk översättning har lagts till.
+- Mindre felrättningar

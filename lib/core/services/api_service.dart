@@ -193,29 +193,6 @@ class ApiService {
     return cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
   }
 
-  /// Merge two Cookie header strings, deduplicating by cookie name
-  String _mergeCookieHeaders(String existingCookie, String newCookie) {
-    if (existingCookie.trim().isEmpty) return newCookie.trim();
-    if (newCookie.trim().isEmpty) return existingCookie.trim();
-    final map = <String, String>{};
-    void addAll(String cookie) {
-      for (final part in cookie.split(';')) {
-        final kv = part.trim();
-        if (kv.isEmpty) continue;
-        final idx = kv.indexOf('=');
-        if (idx <= 0) continue;
-        final k = kv.substring(0, idx).trim();
-        final v = kv.substring(idx + 1).trim();
-        if (k.isEmpty) continue;
-        map[k] = v;
-      }
-    }
-
-    addAll(existingCookie);
-    addAll(newCookie);
-    return map.entries.map((e) => '${e.key}=${e.value}').join('; ');
-  }
-
   /// Extract CSRF token from HTML using multiple fallback selectors
   String? _extractCsrfFromHtml(String html, String preferredSelector) {
     try {
@@ -514,7 +491,7 @@ class ApiService {
           final newCookie = buildCookieHeaderFromSetCookie(
             response.headers['set-cookie'],
           );
-          final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+          final merged = mergeCookieHeaders(_cookie ?? '', newCookie);
           if (merged.trim().isNotEmpty) {
             await prefs.setString('calibre_web_cookie', merged);
             _cookie = merged;
@@ -679,6 +656,11 @@ class ApiService {
 
       getHeaders.addAll(customHeaders);
       getHeaders['Accept'] = 'text/html,application/xhtml+xml,application/xml';
+      // Calibre-Web-NextGen redirects browser navigations of /login and / to
+      // its SPA shell, which has no csrf_token field. Marking the fetch as
+      // non-navigational keeps the classic HTML page.
+      getHeaders['Sec-Fetch-Dest'] = 'empty';
+      getHeaders['Sec-Fetch-Mode'] = 'cors';
 
       final Uri tokenFetchUri =
           csrfTokenUrl != null ? _buildUri(endpoint: csrfTokenUrl) : uri;
@@ -733,6 +715,23 @@ class ApiService {
         }
       }
 
+      // Calibre-Web-NextGen hands out the same Flask-WTF token as JSON.
+      if (csrfToken == null) {
+        final apiUri = _buildUri(endpoint: '/api/v1/auth/csrf');
+        _logger.d('Retrying CSRF GET at: $apiUri');
+        final apiResponse = await _client!.get(
+          apiUri,
+          headers: {...getHeaders, 'Accept': 'application/json'},
+        );
+        if (apiResponse.statusCode == 200) {
+          final token = _tryDecodeJsonMap(apiResponse.body)?['csrf_token'];
+          if (token is String && token.isNotEmpty) {
+            csrfToken = token;
+            getResponse = apiResponse;
+          }
+        }
+      }
+
       // If still not found, try from cookies commonly used for CSRF
       if (csrfToken == null) {
         final setCookieHeader = getResponse.headers['set-cookie'];
@@ -767,7 +766,7 @@ class ApiService {
       if (getResponse.headers.containsKey('set-cookie')) {
         final setCookieHeader = getResponse.headers['set-cookie'];
         final newCookie = buildCookieHeaderFromSetCookie(setCookieHeader);
-        sessionCookie = _mergeCookieHeaders(sessionCookie, newCookie);
+        sessionCookie = mergeCookieHeaders(sessionCookie, newCookie);
       }
 
       if (files != null && files.isNotEmpty) {
@@ -810,7 +809,7 @@ class ApiService {
             final newCookie = buildCookieHeaderFromSetCookie(
               response.headers['set-cookie'],
             );
-            final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+            final merged = mergeCookieHeaders(_cookie ?? '', newCookie);
             if (merged.trim().isNotEmpty) {
               await prefs.setString('calibre_web_cookie', merged);
               _cookie = merged;
@@ -881,7 +880,7 @@ class ApiService {
             final newCookie = buildCookieHeaderFromSetCookie(
               response.headers['set-cookie'],
             );
-            final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+            final merged = mergeCookieHeaders(_cookie ?? '', newCookie);
             if (merged.trim().isNotEmpty) {
               await prefs.setString('calibre_web_cookie', merged);
               _cookie = merged;
@@ -931,7 +930,7 @@ class ApiService {
             final newCookie = buildCookieHeaderFromSetCookie(
               response.headers['set-cookie'],
             );
-            final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+            final merged = mergeCookieHeaders(_cookie ?? '', newCookie);
             if (merged.trim().isNotEmpty) {
               await prefs.setString('calibre_web_cookie', merged);
               _cookie = merged;
@@ -997,7 +996,7 @@ class ApiService {
             final newCookie = buildCookieHeaderFromSetCookie(
               response.headers['set-cookie'],
             );
-            final merged = _mergeCookieHeaders(_cookie ?? '', newCookie);
+            final merged = mergeCookieHeaders(_cookie ?? '', newCookie);
             if (merged.trim().isNotEmpty) {
               await prefs.setString('calibre_web_cookie', merged);
               _cookie = merged;
@@ -1795,7 +1794,7 @@ class ApiService {
     final rawSetCookie = csrfResult['cookies'];
     if (rawSetCookie != null && rawSetCookie.isNotEmpty) {
       final newCookie = buildCookieHeaderFromSetCookie(rawSetCookie);
-      sessionCookie = _mergeCookieHeaders(sessionCookie, newCookie);
+      sessionCookie = mergeCookieHeaders(sessionCookie, newCookie);
     }
 
     final uri = _buildUri(endpoint: endpoint);
@@ -1945,7 +1944,7 @@ class ApiService {
         if (allowReauthRetry && await _reauthenticate()) {
           _logger.w('Upload was redirected to the login page, retrying once');
           client.close();
-          return uploadFile(
+          return await uploadFile(
             file: file,
             endpoint: endpoint,
             fileName: fileName,

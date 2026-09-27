@@ -1,0 +1,1 @@
+- Rättat: libisar.so togs bort och paketet cosmos_epub ändrades för att möjliggöra reproducerbara F-Droid-byggen.

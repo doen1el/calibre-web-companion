@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/features/download_service/data/downloader_request_headers.dart';
 import 'package:calibre_web_companion/features/download_service/data/models/download_service_book_model.dart';
 import 'package:calibre_web_companion/features/download_service/data/repositories/download_service_repository.dart';
 import 'package:calibre_web_companion/features/scan_book/data/models/isbn_book.dart';
@@ -42,13 +43,10 @@ class _DownloaderResultsSheetState extends State<DownloaderResultsSheet> {
 
   Future<void> _loadCoverContext() async {
     final prefs = await SharedPreferences.getInstance();
-    final cookie = prefs.getString('downloader_cookie');
     if (!mounted) return;
     setState(() {
       _coverBaseUrl = prefs.getString('downloader_url') ?? '';
-      _coverHeaders = {
-        if (cookie != null && cookie.isNotEmpty) 'Cookie': cookie,
-      };
+      _coverHeaders = buildDownloaderHeaders(prefs);
     });
   }
 

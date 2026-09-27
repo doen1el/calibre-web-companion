@@ -334,7 +334,6 @@ Future<void> init() async {
       client: getIt<http.Client>(),
       logger: getIt<Logger>(),
       sharedPreferences: getIt<SharedPreferences>(),
-      loginSettingsRepository: getIt<LoginSettingsRepository>(),
     ),
   );
 

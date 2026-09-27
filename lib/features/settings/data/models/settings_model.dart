@@ -15,6 +15,8 @@ class SettingsModel extends Equatable {
   final String downloaderUrl;
   final String downloaderUsername;
   final String downloaderPassword;
+  final bool useSsoSessionForDownloader;
+  final bool isSsoSession;
   final bool isSend2ereaderEnabled;
   final String send2ereaderUrl;
   final String defaultDownloadPath;
@@ -50,6 +52,8 @@ class SettingsModel extends Equatable {
     required this.downloaderUrl,
     required this.downloaderUsername,
     required this.downloaderPassword,
+    this.useSsoSessionForDownloader = false,
+    this.isSsoSession = false,
     required this.isSend2ereaderEnabled,
     required this.send2ereaderUrl,
     required this.defaultDownloadPath,
@@ -87,6 +91,8 @@ class SettingsModel extends Equatable {
       downloaderUrl: json['downloader_url'] ?? '',
       downloaderUsername: json['downloader_username'] ?? '',
       downloaderPassword: json['downloader_password'] ?? '',
+      useSsoSessionForDownloader: json['downloader_use_sso_session'] ?? false,
+      isSsoSession: json['is_sso_session'] ?? false,
       isSend2ereaderEnabled: json['send2ereader_enabled'] ?? false,
       send2ereaderUrl: json['send2ereader_url'] ?? 'https://send.djazz.se',
       defaultDownloadPath: json['default_download_path'] ?? '',
@@ -178,6 +184,8 @@ class SettingsModel extends Equatable {
     downloaderUrl,
     downloaderUsername,
     downloaderPassword,
+    useSsoSessionForDownloader,
+    isSsoSession,
     isSend2ereaderEnabled,
     send2ereaderUrl,
     defaultDownloadPath,

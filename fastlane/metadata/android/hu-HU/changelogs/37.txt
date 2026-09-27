@@ -1,0 +1,1 @@
+- Javítva: eltávolítottuk a libisar.so fájlt, és módosítottuk a cosmos_epub csomagot, hogy az F-Droid számára reprodukálható összeállítás legyen lehetséges.

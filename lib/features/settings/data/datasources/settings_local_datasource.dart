@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/features/download_service/data/downloader_request_headers.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
@@ -33,6 +34,9 @@ class SettingsLocalDataSource {
             sharedPreferences.getString('downloader_username') ?? '',
         'downloader_password':
             sharedPreferences.getString('downloader_password') ?? '',
+        'downloader_use_sso_session':
+            sharedPreferences.getBool(downloaderUseSsoSessionKey) ?? false,
+        'is_sso_session': sharedPreferences.getBool('is_sso_session') ?? false,
         'send2ereader_enabled':
             sharedPreferences.getBool('send2ereader_enabled') ?? false,
         'send2ereader_url':
@@ -154,6 +158,15 @@ class SettingsLocalDataSource {
     } catch (e) {
       logger.e('Error saving downloader credentials: $e');
       throw Exception('Failed to save downloader credentials: $e');
+    }
+  }
+
+  Future<void> saveDownloaderUseSsoSession(bool enabled) async {
+    try {
+      await sharedPreferences.setBool(downloaderUseSsoSessionKey, enabled);
+    } catch (e) {
+      logger.e('Error saving downloader SSO session setting: $e');
+      throw Exception('Failed to save downloader SSO session setting: $e');
     }
   }
 

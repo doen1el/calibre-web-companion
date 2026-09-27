@@ -149,7 +149,7 @@ class BookDetailsRepository {
     Function(int)? onProgressUpdate,
   }) async {
     try {
-      return datasource.uploadToSend2Ereader(
+      return await datasource.uploadToSend2Ereader(
         url,
         code,
         filename,
