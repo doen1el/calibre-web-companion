@@ -612,5 +612,7 @@
     "diagHintCloudflareTokenRejected": "Un jeton de service Cloudflare Access est configuré, mais Cloudflare redirige toujours vers sa page de connexion. Vérifiez que la politique d'accès de cette application inclut le jeton (Action : Service Auth), que l'ID client se termine par « .access » et que l'ID et la clé secrète n'ont pas été intervertis.",
     "customColumns": "Colonnes personnalisées",
     "yes": "Oui",
-    "no": "Non"
+    "no": "Non",
+    "downloaderUseSsoSessionDescription": "Envoyez le cookie de connexion SSO (par exemple, Authelia, Authentik) avec les requêtes du téléchargeur. Activez cette option si le téléchargeur se trouve derrière le même proxy d'authentification que Calibre-Web.",
+    "downloaderUseSsoSession": "Utiliser la session SSO pour le téléchargeur"
 }
