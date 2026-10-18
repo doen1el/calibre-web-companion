@@ -1,0 +1,2 @@
+- Afegida la traducció dels paràmetres de descàrrega
+- S'ha canviat l'ordre d'obtenció dels permisos de directori

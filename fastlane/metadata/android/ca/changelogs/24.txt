@@ -1,0 +1,20 @@
+- Ara les credencials d'inici de sessió són persistents a través dels reinicis de l'aplicació, i l'aplicació intentarà connectar-se automàticament quan la sessió expiri.
+- Ara s'admeten més tipus de fitxer quan es carreguen llibres.
+- Opció de crear prestatges públics i privats.
+- Corregit un error que es donava quan només hi havia un prestatge.
+- Les sèries ara es mostren correctament als detalls dels llibres.
+- Actualitzada el canal de compilació per admetre altres tipus d'APK, compilacions iOS, i publicar a Play Store.
+- Corregit un problema quan es descarregaven llibres amb formats múltiples.
+- Actualitzat Calibre-Web-Automated-Book-Downloader a la darrera versió.
+- Els elements HTML s'han eliminat dels comentaris dels llibres.
+- Afegit l'ordre alfabètic a la pàgina de Descobriments.
+- Afegida la opció de canviar 'Enviar al lector electrònic' per 'Llegir Ara'.
+- Afegida la vista de llista a la pàgina inicial.
+- Optimitzada la càrrega de llibres des dels prestatges i des de la pàgina de Descobriments.
+- Implementada la opció de canviar les metadades dels llibres.
+- Implementada la opció de canviar la portada dels llibres.
+- Afegits comentaris millors quan es deshabilita una categoria de Descobriments.
+- Millores a la funcionalitat de capçaleres personalitzades.
+- Afegit suport per a la traducció a Weblate.
+- Afegida la traducció al portugès.
+- Correcció d'errors menors

@@ -1,0 +1,5 @@
+- Afegits els noms de les sèries clicables
+- Afegides les etiquetes clicables
+- Afegit l'emplenament automàtic de la pàgina d'inici de sessió
+- Afegida la possibilitat d'obrir llibres als lectors instal·lats
+- Afegit suport per a l'autenticació a servidors intermediaris inversos
