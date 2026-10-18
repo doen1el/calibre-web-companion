@@ -1,0 +1,8 @@
+- Afegida als paràmetres la opció de canviar la direcció de lectura per al lector intern.
+- La configuració del descarregador ara s'agafarà directament quan estigui activat a la configuració.
+- Corregit un error on els llibres duplicats apareixien a la vista de Llibres.
+- Corregit un error on els usuaris no podien enviar llibres electrònics via correu electrònic sense permisos de càrrega.
+- Els filtres del descarregador ara es conserven entre reinicis.
+- Corregit un error de compilació F-Droid.
+- Algunes millores del testimoni CSRF.
+- Afegides les traduccions a l'italià i l'hongarès.

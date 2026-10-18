@@ -1,0 +1,5 @@
+- Afegida la opció de canviar el color del tema
+- Afegida la opció d'establir diferents esquemes de directoris
+- Afegida la pàgina de recomanacions de llibres
+- Afegida la opció de descarregar a la pàgina de recomanacions
+- Algunes correccions menors i canvis d'interfície d'usuari

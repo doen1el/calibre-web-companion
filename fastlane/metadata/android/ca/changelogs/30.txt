@@ -1,0 +1,8 @@
+- Afegida la traducció al català.
+- Corregit l'script de compilació a fitxers .ipa
+- La funció de sincronització demanarà els formats disponibles del servidor.
+- Indicador d'estat de lectura afegit a la pàgina inicial.
+- Corregit el problema de l'estat de la marca de llegit.
+- Afegida la opció d'ordenar per autor als paràmetres del camí de descàrrega.
+- Afegida la opció de canviar ràpidament entre instàncies de Calibre-Web (i d'altres).
+- Corregit un problema amb la opció 'Afegir al prestatge' de la pàgina de descripció del llibre.
