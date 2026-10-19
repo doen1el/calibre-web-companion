@@ -1,0 +1,10 @@
+- Afegit un missatge millor per a la pàgina dels paràmetres de sincronització quan la secció de Calibre-Web està deshabilitada.
+- Afegida la opció de veure i copiar registres d'aplicacions per enviar errors.
+- Afegida la opció de reordenar i deshabilitar les seccions de Descobriments, a la configuració.
+- Afegida la opció de reordenar i amagar els detalls dels llibres, a la configuració.
+- Afegida la opció de canviar l'ordre i visibilitat de les opcions per als llibres, a la configuració.
+- Corregit: Resolt l'error 401 No autoritzat a les portades dels prestatges.
+- Corregit: Error en afegir/eliminar prestatges per falta de csrfTokenUrl (error 405).
+- Redisseny de la pàgina de paràmetres.
+- Petites millores d'interfície d'usuari.
+- Revisada la pàgina de detalls del llibre.

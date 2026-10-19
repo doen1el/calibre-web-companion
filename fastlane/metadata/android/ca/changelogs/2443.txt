@@ -1,4 +1,4 @@
-Feature: Integrated the KOReader Sync Plugin
-Fix: fixed WebDAV connection issue where first request would fail with 401/403, but subsequent requests would succeed.
-Fix: Fixed issue within the custom download path configuration
-Fix: Removed "Buy me a coffee" button from the settings page to avoid getting removed from the Google Play Store due to policy violations.
+Funció: Integrat el plugin de sincronització de KOReader
+Correcció: corregit el problema de connexió WebDAV on la primera petició fallava amb 401/403, però les següents peticions funcionaven.
+Correcció: corregit un problema dins els paràmetres de camins de descàrrega personalitzats
+Correcció: Eliminat el botó "Convida'm a un cafè" de la pàgina de configuració per evitar ser exclòs de la botiga Google Play per incompliment de les seves polítiques.

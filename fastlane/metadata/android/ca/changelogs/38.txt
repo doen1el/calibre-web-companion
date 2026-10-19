@@ -1,0 +1,6 @@
+- Afegit: Noves traduccions a l'ucrainès (@Vitali) i tamil (@தமிழ்நேரம்).
+- Funció: S'ha afegit el mode fora de línia a l'aplicació, i es permet als usuaris accedir als seus llibres descarregats sense connexió a Internet.
+- Funció: Afegit el suport per al WebServer proporcionat per l'aplicació d'escriptori de Calibre.
+- Corregit: El botó "Llegir ara" ja descarrega el llibre correctament.
+- Correcció: Quan s'edita un llibre i s'utilitza el botó de tornar enrere del sistema, els canvis ja es desen correctament.
+- Correcció: La integració Shelfmark ja no torna a 'Alemany' per defecte.
