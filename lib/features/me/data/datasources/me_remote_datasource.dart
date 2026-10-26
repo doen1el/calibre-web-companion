@@ -15,7 +15,9 @@ class MeRemoteDataSource {
       if (serverType == 'opds' ||
           serverType == 'grimmory' ||
           serverType == 'booklore') {
-        return await _getOpdsStats();
+        return await _getOpdsStats(
+          feedEndpoint: serverType == 'opds' ? '' : '/catalog',
+        );
       }
 
       if (serverType == 'calibre') {
@@ -32,9 +34,9 @@ class MeRemoteDataSource {
     }
   }
 
-  Future<StatsModel> _getOpdsStats() async {
+  Future<StatsModel> _getOpdsStats({required String feedEndpoint}) async {
     final json = await apiService.getXmlAsJson(
-      endpoint: '/catalog',
+      endpoint: feedEndpoint,
       authMethod: AuthMethod.basic,
       queryParams: {'page': '1', 'size': '1'},
     );

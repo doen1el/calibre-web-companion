@@ -105,7 +105,7 @@ class BookViewRemoteDatasource {
     try {
       final response = await _apiService.getXmlAsJson(
         endpoint: '',
-        authMethod: AuthMethod.none,
+        authMethod: AuthMethod.basic,
       );
 
       final List<BookViewModel> books = [];
