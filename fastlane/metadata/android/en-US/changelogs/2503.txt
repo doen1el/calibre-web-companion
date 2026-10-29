@@ -1,0 +1,6 @@
+Feat: The internal reader now opens PDF and CBZ books too
+Feat: Books opened in the reader stay on the device (with a storage limit) and are available offline
+Feat: Books are marked as read when you finish them in the internal reader
+Feat: Remove downloaded books from the device in the offline library
+Feat: Browse generic OPDS catalogs with folders, paging and search suggestions
+Fix: Password-protected OPDS feeds now ask for credentials

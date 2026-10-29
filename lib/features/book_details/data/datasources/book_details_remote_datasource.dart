@@ -12,6 +12,7 @@ import 'package:calibre_web_companion/features/book_details/data/models/book_det
 import 'package:calibre_web_companion/features/book_details/data/models/custom_column_model.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
+import 'package:calibre_web_companion/features/reader/data/internal_reader_formats.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:docman/docman.dart';
@@ -1304,11 +1305,18 @@ class BookDetailsRemoteDatasource {
     return file.path;
   }
 
-  Future<Uint8List?> readLocalEpubBytes(String path) async {
+  Future<Uint8List?> readLocalBookBytes(
+    String path, {
+    String format = 'epub',
+  }) async {
     try {
-      bool isEpubName(String name) {
+      final lowerFormat = format.toLowerCase();
+      bool matchesFormat(String name) {
         final lower = name.toLowerCase();
-        return lower.endsWith('.epub') || lower.endsWith('.kepub');
+        if (lowerFormat == 'epub') {
+          return lower.endsWith('.epub') || lower.endsWith('.kepub');
+        }
+        return lower.endsWith('.$lowerFormat');
       }
 
       Uint8List bytes;
@@ -1317,8 +1325,8 @@ class BookDetailsRemoteDatasource {
           (path.startsWith('content://') || path.startsWith('file://'))) {
         final doc = await DocumentFile.fromUri(path);
         if (doc == null || !doc.isFile) return null;
-        if (!isEpubName(doc.name)) {
-          logger.i('Local copy "${doc.name}" is not an EPUB — will stream.');
+        if (!matchesFormat(doc.name)) {
+          logger.i('Local copy "${doc.name}" is not $format — will stream.');
           return null;
         }
         bytes = await readDocumentBytes(doc);
@@ -1326,17 +1334,15 @@ class BookDetailsRemoteDatasource {
         final file = File(path);
         if (!file.existsSync()) return null;
         final name = file.path.split('/').last;
-        if (!isEpubName(name)) {
-          logger.i('Local copy "$name" is not an EPUB — will stream.');
+        if (!matchesFormat(name)) {
+          logger.i('Local copy "$name" is not $format — will stream.');
           return null;
         }
         bytes = await file.readAsBytes();
       }
 
-      final looksLikeZip =
-          bytes.length >= 2 && bytes[0] == 0x50 && bytes[1] == 0x4B;
-      if (!looksLikeZip) {
-        logger.i('Local copy at $path is not a valid EPUB — will stream.');
+      if (!InternalReaderFormats.bytesMatch(lowerFormat, bytes)) {
+        logger.i('Local copy at $path is not a valid $format — will stream.');
         return null;
       }
 

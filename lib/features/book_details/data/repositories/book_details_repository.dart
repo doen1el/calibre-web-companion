@@ -213,8 +213,10 @@ class BookDetailsRepository {
   Future<Uint8List?> fetchCoverBytes(int bookId, String? coverUrl) =>
       datasource.fetchCoverBytes(bookId, coverUrl);
 
-  Future<Uint8List?> readLocalEpubBytes(String path) =>
-      datasource.readLocalEpubBytes(path);
+  Future<Uint8List?> readLocalBookBytes(
+    String path, {
+    String format = 'epub',
+  }) => datasource.readLocalBookBytes(path, format: format);
 
   Future<bool> openLocalFileExternally(String path, {String format = 'epub'}) =>
       datasource.openLocalFileExternally(path, format: format);
