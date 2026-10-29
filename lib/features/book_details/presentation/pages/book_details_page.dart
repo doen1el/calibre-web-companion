@@ -23,6 +23,9 @@ import 'package:calibre_web_companion/features/book_details/presentation/widgets
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
+import 'package:calibre_web_companion/features/reader/data/internal_reader_formats.dart';
+import 'package:calibre_web_companion/features/reader/data/reader_preferences.dart';
+import 'package:calibre_web_companion/features/reader/presentation/page_reader_launcher.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
@@ -44,6 +47,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 enum BookAutoOpen { none, internalReader, externalReader }
+
+// Back matter (index, ads, previews) often keeps readers from the very last
+// page, so "finished" starts a little before 100%.
+const double _finishedPercentage = 98;
 
 class BookDetailsPage extends StatefulWidget {
   final BookViewModel bookViewModel;
@@ -73,6 +80,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
   int _koSyncSpineIndex = -1;
   double? _koSyncPushedPercentage;
   KoSyncProgress? _koSyncProgress;
+  String _readerFormat = 'epub';
 
   @override
   void dispose() {
@@ -80,8 +88,18 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     super.dispose();
   }
 
-  bool _isInternalReaderSupportedFormat(String format) {
-    return format.toLowerCase() == 'epub';
+  bool _isInternalReaderSupportedFormat(String format) =>
+      InternalReaderFormats.isSupported(format);
+
+  void _requestInternalReader(
+    BuildContext context,
+    BookDetailsModel book,
+    String format,
+  ) {
+    _readerFormat = format.toLowerCase();
+    context.read<BookDetailsBloc>().add(
+      OpenBookInInternalReader(book: book, format: format),
+    );
   }
 
   void _showUnsupportedInternalReaderFormatMessage(
@@ -92,7 +110,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     final formats = availableFormats.map((f) => f.toUpperCase()).join(', ');
 
     context.showSnackBar(
-      localizations.internalReaderSupportsOnlyEpub(formats),
+      localizations.internalReaderUnsupportedFormat(formats),
       isError: true,
       duration: const Duration(seconds: 10),
     );
@@ -154,6 +172,8 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                       icon = Icons.menu_book;
                     case 'pdf':
                       icon = Icons.picture_as_pdf;
+                    case 'cbz':
+                      icon = Icons.collections_bookmark_rounded;
                     case 'kepub':
                       icon = Icons.book;
                     default:
@@ -167,7 +187,8 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                     subtitle:
                         isSupported
                             ? null
-                            : localizations.internalReaderSupportsOnlyEpubShort,
+                            : localizations
+                                .internalReaderUnsupportedFormatShort,
                     onTap: () => Navigator.pop(sheetContext, format),
                   );
                 }),
@@ -220,6 +241,30 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
   ) async {
     final localization = AppLocalizations.of(context)!;
     final bookUuid = bookDetailsModel.uuid;
+    final format = _readerFormat;
+
+    if (!InternalReaderFormats.bytesMatch(format, bytes)) {
+      context.showSnackBar(
+        localization.errorOpeningBookInInternalReader,
+        isError: true,
+      );
+      return;
+    }
+
+    if (InternalReaderFormats.isPageBased(format)) {
+      final percentage = await openPageReader(
+        context,
+        bytes: bytes,
+        format: format,
+        bookUuid: bookUuid,
+        title: bookDetailsModel.title,
+        onPageChanged:
+            (page, pageCount) =>
+                _pushReadingProgressToWidget(bookUuid, page, pageCount),
+      );
+      if (context.mounted) _autoMarkAsRead(context, percentage);
+      return;
+    }
 
     await _restoreReaderProgressFromCloud(bookUuid);
     if (!context.mounted) return;
@@ -280,12 +325,28 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
     }
 
     _readerProgressTimer?.cancel();
+    if (context.mounted) _autoMarkAsRead(context, _koSyncPercentage);
     await _saveReaderProgressToCloud(bookUuid);
     await _pushKoSyncProgress();
 
     // Re-read rather than reuse what was pushed: the server keeps the furthest
     // position, so a push from behind another device leaves that one standing.
     await _loadKoSyncProgress();
+  }
+
+  void _autoMarkAsRead(BuildContext context, double? percentage) {
+    if (percentage == null || percentage < _finishedPercentage) return;
+    final prefs = getIt<SharedPreferences>();
+    if (!ReaderPreferences.autoMarkRead(prefs)) return;
+    final caps = ServerCapabilities.fromServerType(
+      prefs.getString('server_type'),
+    );
+    if (!caps.readingProgress) return;
+
+    final bloc = context.read<BookDetailsBloc>();
+    final book = bloc.state.bookDetails;
+    if (book == null || bloc.state.isBookRead) return;
+    bloc.add(ToggleReadStatus(book.id));
   }
 
   void _scheduleReaderProgressSync(String bookUuid) {
@@ -357,9 +418,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
           details,
         );
         if (format == null || !context.mounted) return;
-        context.read<BookDetailsBloc>().add(
-          OpenBookInInternalReader(book: details, format: format),
-        );
+        _requestInternalReader(context, details, format);
         return;
       case BookAutoOpen.externalReader:
         await _triggerExternalReader(context, localizations);
@@ -1452,12 +1511,7 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                       }
 
                       // ignore: use_build_context_synchronously
-                      context.read<BookDetailsBloc>().add(
-                        OpenBookInInternalReader(
-                          book: book,
-                          format: selectedFormat,
-                        ),
-                      );
+                      _requestInternalReader(context, book, selectedFormat);
                     },
             tooltip: localizations.openInInternalReader,
           ),

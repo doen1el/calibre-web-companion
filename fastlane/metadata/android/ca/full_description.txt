@@ -1,0 +1,21 @@
+Aplicació complementària per a Calibre-Web i Calibre-Web Automated. Navega per la teva col·lecció de llibres i gestiona la teva llibreria digital sobre la marxa.
+
+Escrita amb Flutter i Material You per a una experiència moderna, intuïtiva i adaptiva. Disponible per a Android, en 15 idiomes.
+
+Característiques:
+
+- Connecta el teu servidor Calibre-Web (Automated), incloent servidors intermediaris inversos / configuracions SSO, capçaleres HTTP personalitzades i certificats auto-signats.
+- Navega per la teva llibreria completa i descobreix llibres per autor, sèrie, editorial, puntuació, de moda, i més.
+- Visualitza els detalls de cada llibre, edita'n les metadades, i carrega-hi noves portades.
+- Marca els llibres com a llegits o no llegits, arxiva'ls, i organitza'ls en prestatges.
+- Crea, edita i navega pels Prestatges Màgics: prestatges dinàmics basats en normes (només a Calibre-Web Automated).
+- Afegeix llibres ràpidament escannejant el seu codi de barres ISBN.
+- Llegeix llibres al lector integrat de llibres electrònics, i sincronitza el teu progrés amb altres dispositius via WebDAV.
+- Envia llibres al teu lector (Kindle/Kobo) via send2ereader o la funció de correu de Calibre-Web.
+- Descarrega llibres a la teva col·lecció amb Shelfmark. Aquesta aplicació no promociona ni encoratja la pirateria d'obres amb drets d'autor; si us plau, descarrega només contingut del qual estiguis autoritzat legalment a fer-ho.
+- Carrega llibres al teu servidor, i sincronitza tota la teva llibreria o llibres seleccionats per llegir-los fora de línia.
+- Fes-lo teu: reordena o amaga llibres, accions i seccions, escull un tema, permet el mode de tinta electrònica, i ajusta la mida del text.
+
+L'aplicació es troba en desenvolupament actiu. Pots obrir incidències a GitHub per errors, comentaris i propostes d'idees.
+
+Crèdits: Calibre-Web, Calibre-Web Automated, Shelfmark, send2ereades, Flutter.

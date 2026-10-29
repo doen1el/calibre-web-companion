@@ -611,5 +611,7 @@
     "downloadPathTemplateCalibreHint": "La sintaxi de les plantilles de Calibre també funciona: escurça un camp amb precisió, embolica'l amb un prefix i un sufix que només apareguin quan el camp tingui un valor, i utilitza columnes personalitzades. Per exemple:",
     "customColumns": "Columnes personalitzades",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "downloaderUseSsoSession": "Utilitza Inici de Sessió Únic (SSO) per al descarregador",
+    "downloaderUseSsoSessionDescription": "Envia la galeta de d'Inici de Sessió Única (SSO, per exemple Authelia, Authentik) per a les peticions del descarregador. Cal activar-ho si el descarregador és rere el mateix servidor intermediari d'autenticació que Calibre-Web."
 }

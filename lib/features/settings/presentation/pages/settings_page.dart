@@ -19,6 +19,7 @@ import 'package:calibre_web_companion/features/settings/presentation/pages/app_l
 import 'package:calibre_web_companion/features/settings/presentation/widgets/download_options_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/feedback_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/reachable_url_field.dart';
+import 'package:calibre_web_companion/features/settings/presentation/widgets/reader_storage_settings_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/shelf_widget_source_card.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/sync_settings_widget.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/theme_selector_widget.dart';
@@ -359,6 +360,9 @@ class _SettingsPageState extends State<SettingsPage> {
       title: localizations.readerSettings,
       bodyBuilder:
           (context, state, localizations) => [
+            _buildSectionTitle(context, localizations.readerGeneral),
+            const ReaderStorageSettingsWidget(),
+            const SizedBox(height: 24),
             _buildSectionTitle(context, localizations.webDavSync),
             _buildWebDavSettings(context, state, localizations),
             _buildSectionTitle(context, localizations.koSyncTitle),

@@ -1,7 +1,7 @@
 {
-    "loginToCalibreWb": "تسجيل الدخول إلى Calibre Web",
+    "loginToCalibreWb": "سجّل الدخول إلى كالِبري وِب",
     "calibreWebUrl": "https://calibre.example.com",
-    "enterCalibreWebUrl": "أدخل رابط Calibre Web",
+    "enterCalibreWebUrl": "أدخل رابط كالِبري وِب",
     "username": "اسم المستخدم",
     "enterYourUsername": "أدخل اسم المستخدم الخاص بك",
     "password": "كلمة المرور",

@@ -606,5 +606,20 @@
   "diagHintCloudflareTokenRejected": "Ein Cloudflare-Access-Service-Token ist hinterlegt, trotzdem leitet Cloudflare auf die Login-Seite um. Prüfe, ob die Access-Policy dieser Anwendung das Token enthält (Action: Service Auth), ob die Client ID auf „.access“ endet und ob ID und Secret nicht vertauscht sind.",
   "customColumns": "Benutzerdefinierte Spalten",
   "yes": "Ja",
-  "no": "Nein"
+  "no": "Nein",
+  "internalReaderUnsupportedFormat": "Der interne Reader unterstützt EPUB, PDF und CBZ. Verfügbare Formate: {formats}",
+  "internalReaderUnsupportedFormatShort": "Vom internen Reader nicht unterstützt",
+  "comicReadingDirection": "Leserichtung",
+  "comicHasNoPages": "Dieser Comic enthält keine Seiten.",
+  "removeFromDevice": "Vom Gerät entfernen",
+  "removeFromDeviceConfirm": "Die lokale Kopie von „{title}“ löschen? Das Buch bleibt auf deinem Server.",
+  "readerGeneral": "Lesen",
+  "autoMarkAsRead": "Nach dem Lesen als gelesen markieren",
+  "autoMarkAsReadDescription": "Markiert das Buch auf deinem Server als gelesen, sobald du im internen Reader das Ende erreichst.",
+  "readerCache": "Im Reader geöffnete Bücher behalten",
+  "readerCacheDescription": "Im internen Reader geöffnete Bücher bleiben auf dem Gerät, öffnen beim nächsten Mal sofort und sind offline verfügbar. Bei Erreichen des Limits werden die ältesten entfernt.",
+  "readerCacheLimit": "Speicherlimit",
+  "readerCacheUsage": "Aktuell belegt: {size}",
+  "readerCacheClear": "Leeren",
+  "opdsReadOnlyHint": "Über OPDS kannst du Bücher durchsuchen, herunterladen und lesen. Metadaten bearbeiten, Regale und Lesestatus brauchen einen direkten Login: Für Calibre-Web und seine Forks den Tab „Calibre Web“ verwenden."
 }

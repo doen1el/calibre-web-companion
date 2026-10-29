@@ -1,0 +1,3 @@
+- actualitzada la generació de codis de versió
+- Correcció per a la descàrrega de llibres
+- Eliminada la recomanació de llibres (per ara)

@@ -1,0 +1,2 @@
+- Afegida la opció de suprimir llibres del servidor des de la pàgina de detalls del llibres.
+- Afegida la opció d'inhabilitar les animacions de l'aplicació per a dispositius de tinta electrònica

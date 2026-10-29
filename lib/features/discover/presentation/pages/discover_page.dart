@@ -4,6 +4,8 @@ import 'package:calibre_web_companion/features/discover/blocs/discover_bloc.dart
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_state.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
+import 'package:calibre_web_companion/features/opds_browser/cubit/opds_feed_cubit.dart';
+import 'package:calibre_web_companion/features/opds_browser/presentation/pages/opds_feed_page.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
@@ -12,6 +14,8 @@ import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/widgets/long_button_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DiscoverPage extends StatelessWidget {
   const DiscoverPage({super.key});
@@ -19,6 +23,13 @@ class DiscoverPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+
+    // The Discover endpoints are Booklore's; a generic catalog offers its own
+    // search and categories instead.
+    if (GetIt.instance<SharedPreferences>().getString('server_type') ==
+        'opds') {
+      return const _OpdsDiscoverView();
+    }
 
     return BlocProvider(
       create: (context) => getIt<DiscoverBloc>(),
@@ -507,7 +518,7 @@ class DiscoverPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title) {
+  static Widget _buildSectionHeader(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
       child: Column(
@@ -526,6 +537,58 @@ class DiscoverPage extends StatelessWidget {
             thickness: 2,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _OpdsDiscoverView extends StatelessWidget {
+  const _OpdsDiscoverView();
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
+    return BlocProvider(
+      create: (_) => createOpdsFeedCubit()..load(),
+      child: BlocBuilder<OpdsFeedCubit, OpdsFeedState>(
+        buildWhen: (previous, current) => previous.feed != current.feed,
+        builder: (context, state) {
+          return SafeArea(
+            child: Scaffold(
+              body: OpdsFeedView(
+                header: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (context.read<OpdsFeedCubit>().searchSource != null) ...[
+                      DiscoverPage._buildSectionHeader(
+                        context,
+                        localizations.search,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        // Opens the search dialog with its suggestions.
+                        child: TextField(
+                          readOnly: true,
+                          decoration: InputDecoration(
+                            hintText: localizations.searchForBooks,
+                            prefixIcon: const Icon(Icons.search_rounded),
+                            border: const OutlineInputBorder(),
+                          ),
+                          onTap: () => showOpdsSearchDialog(context),
+                        ),
+                      ),
+                    ],
+                    DiscoverPage._buildSectionHeader(
+                      context,
+                      localizations.categories,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

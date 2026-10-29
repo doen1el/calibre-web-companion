@@ -1,0 +1,6 @@
+- Funció: L'escanneig ISBN ara consulta diversos catàlegs a la vegada (Open Library, Google Books, BnF, optionally Hardcover and ISBNdb) i n'uneix les metadades. Les fonts d'informació es poden activar o desactivar i ordenar a la configuració.
+- Funció: El nou esquema de descàrrega "Només sèries" desa els llibres a /series/book.epub, a més d'un camí personalitzat on el camí de descàrrega s'obté d'unitats com {autor}, {series}, {series_index} o {any}-
+- Funció: Els llibres descarregats es poden obrir a lectors externs des de la biblioteca fora de línia.
+- Correcció: Les pàgines de Descobriment ara utilitzen correctament la paginació.
+- Correcció: Obrir un llibre ja descarregat a un lector extern ja no espera la petició de la portada; es reutilitza la metadada de la memòria cau fora de línia.
+- Correcció: Les càrregues mantenen el nom indicat pel selector de fitxers, i recuperen una extensió desapareguda del contingut del fitxer, de tal manera que ja no es rebutgen els llibres de proveïdors al núvol. Una càrrega recent ja no s'indica com a correcta, sinó que es mostra el missatge d'error del servidor.

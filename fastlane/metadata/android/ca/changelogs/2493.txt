@@ -1,0 +1,3 @@
+Funció: La nova opció "Utilitza la sessió SSO per al descarregador" permet al descarregador treballar rere el mateix servidor intermediari SSO (com ara Authelia, Authentik) com a Calibre-Web, incloent portades i l'inici de sessió automàtic
+Correcció: Ara el descarregador mostra un error clar en lloc d'un error JSON quan el servidor intermediari d'autenticació torna a la seva pàgina d'inici de sessió
+Correcció: L'inici de sessió i el re-inici de sessió automàtic tornen a funcionar a Calibre-Web-NextGen, que ara contestaven amb "CSRF token not found" o "Session not accepted"

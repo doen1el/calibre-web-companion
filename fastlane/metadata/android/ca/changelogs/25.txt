@@ -1,0 +1,13 @@
+- Actualitzat el canal per eliminar etiquetes creades erròniament
+- Actualitzat el color de fons del botó de la icona per a editar les metadades
+- Afegit un script per generar fitxers .ipa per a iOS
+- Afegits nous paràmetres de connexió per a Booklore i OPDS (beta)
+- Afegida l'autenticació per a calibre-web-automated-book-downloader
+- Afegida la opció de carregar la configuració de calibre-web-automated-book-downloader des del servidor
+- Afegides les capçaleres d'autenticació per a peticions de calibre-web-automated-book-downloader
+- Afegides les traduccions a l'estonià i l'italià
+- Afegit un nou lector epub integrat
+- Afegida la opció de sincronitzar el progrés de lectura via WebDAV amb altres dispositius
+- Millorada la gestió de SSO
+- Afegides les pàgines de llicències als paràmetres
+- Algunes millores i correccions menors

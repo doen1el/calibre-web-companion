@@ -4,7 +4,7 @@
 <p align="center">
     <img src="docs/icon/icon.png" alt="App Icon" width="100" />
     <br>
-    v2.3.2
+    v2.3.4
 </p>
 
 <p align="center">
@@ -60,7 +60,8 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 - Mark books as read or unread, archive them, and organize them into shelves.
 - Create, edit and browse Magic Shelves, dynamic, rule‑based shelves (Calibre‑Web Automated & Calibre-Web-NextGen only).
 - Add books quickly by scanning their ISBN barcode.
-- Read books on the built-in eReader and sync your reading progress across devices using the WebDAV and KOReader Sync plugins.
+- Read EPUB, PDF and CBZ books in the built-in reader without leaving the app. Books are fetched only when you open them, kept on the device up to a storage limit you choose, and automatically marked as read when you finish them.
+- Sync your reading progress across devices with KOReader Sync or your own WebDAV server (see [Reading progress sync](#-reading-progress-sync)).
 - Send books to your e‑reader via [send2ereader](https://github.com/daniel-j/send2ereader) (or your own instance) or Calibre‑Web's email function.
 - Download books straight into your collection with [shelfmark](https://github.com/calibrain/shelfmark).
   - ⚠️ This app does **not** support, encourage or facilitate the piracy of copyrighted works. Please only download content you are legally entitled to, respecting copyright is your responsibility.
@@ -68,6 +69,18 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 - Sync your whole library or selected books for offline reading.
 - Check your collection statistics at a glance.
 - Make it yours: reorder or hide book actions, detail sections and Discover sections, choose a theme, enable e‑ink mode, and adjust the text size, available in 15 languages.
+
+## 📖 Reading progress sync
+
+Stock Calibre-Web has no API for reading positions, so progress is synced through one of these:
+
+| Method | Works with | Notes |
+|---|---|---|
+| KOReader Sync | Calibre-Web-Automated, Calibre-Web-NextGen | Built into the server, also syncs with KOReader devices. Enable it under *Settings → Reader*. EPUB only. |
+| WebDAV | Any server | Needs your own WebDAV storage (e.g. Nextcloud). Syncs EPUB, PDF and CBZ positions between devices running the app. |
+| Read status | Calibre-Web and its forks | Books are marked as read on the server when you reach the end in the internal reader. |
+
+> **OPDS:** OPDS catalogs can be browsed, downloaded and read, but the protocol is read-only. To edit metadata, use shelves or sync read status with Calibre-Web (or a fork), log in with the *Calibre Web* server type instead of OPDS.
 
 ## 🖼️ Impressions
 
@@ -104,3 +117,4 @@ The source code is also mirrored on [Codeberg](https://codeberg.org/doen1el/cali
 - [IconKitchen](https://icon.kitchen)
 - [Weblate](https://hosted.weblate.org/)
 - [CosmosEpub](https://github.com/Mamasodikov/cosmos_epub)
+- [pdfx](https://github.com/ScerIO/packages.flutter/tree/main/packages/pdfx)

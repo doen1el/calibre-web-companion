@@ -1,0 +1,4 @@
+- Funció: Afegits ginys a la finestra d'inici (Accions ràpides, Estadístiques, Llibre llegint actualment, Graella de prestatges).
+- Correcció: Corregit un problema on FileOpener no utilitzava el tipus correcte de MIME per a fitxers ePUB, provocant que algunes aplicacions no els puguin obrir correctament.
+- Correcció: Actualitzat el flux d'inici de sessió SSO i millorada la gestió de galetes a LoginRemoteDataSource.
+- Idioma: Traduccions actualitzades: castellà (@Libre), italià (@Michele Abbondanza), hongarès (@Márton Kónya) i xinès (escriptura Han simplificada) (@Mas Wang).

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:calibre_web_companion/core/exceptions/cancellation_exception.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
+import 'package:calibre_web_companion/core/services/reader_cache_service.dart';
 import 'package:calibre_web_companion/core/services/widget_service.dart';
 import 'package:calibre_web_companion/core/utils/document_bytes.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
@@ -515,15 +516,28 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       final uuid = state.bookViewModel?.uuid ?? state.bookDetails!.uuid;
 
       Uint8List? bytes;
+      String? cachedPath;
+      final readerCache = GetIt.instance<ReaderCacheService>();
 
       if (await downloadManager.checkFileExistence(uuid)) {
         final path = downloadManager.getBookPath(uuid)!;
         logger.i('Trying downloaded copy for reader from: $path');
-        bytes = await repository.readLocalEpubBytes(path);
+        bytes = await repository.readLocalBookBytes(path, format: event.format);
       }
 
       if (bytes == null) {
-        logger.i('Streaming EPUB bytes into reader (no local EPUB copy).');
+        final cached = await readerCache.find(uuid, event.format);
+        if (cached != null) {
+          logger.i('Opening reader-cached copy from: ${cached.path}');
+          bytes = await repository.readLocalBookBytes(
+            cached.path,
+            format: event.format,
+          );
+        }
+      }
+
+      if (bytes == null) {
+        logger.i('Streaming book bytes into reader (no local copy).');
         bytes = await repository.streamBookBytes(
           event.book,
           format: event.format,
@@ -532,6 +546,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
             emit(state.copyWith(downloadProgress: progress));
           },
         );
+        cachedPath = await readerCache.store(uuid, event.format, bytes);
       }
 
       emit(
@@ -541,6 +556,16 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         ),
       );
       await _recordCurrentBookForWidget(format: event.format);
+
+      // Lets the offline library show the cached copy with title and cover.
+      if (cachedPath != null) {
+        await _cacheOfflineSnapshot(
+          uuid,
+          state.bookDetails!,
+          cachedPath,
+          event.format,
+        );
+      }
     } catch (e) {
       logger.e('Error opening book in internal reader: $e');
       emit(
@@ -664,7 +689,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     try {
       emit(state.copyWith(sendToEReaderState: SendToEReaderState.downloading));
 
-      final List<int> bookBytes = [];
+      final bookBytes = BytesBuilder(copy: false);
 
       if (event.downloadToDeviceFirst) {
         if (state.bookDetails == null) {
@@ -703,11 +728,12 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         if (bytes.isEmpty) {
           throw Exception('Downloaded file is empty');
         }
-        bookBytes.addAll(bytes);
+        bookBytes.add(bytes);
       } else {
         final response = await repository.getDownloadStream(
           event.bookId,
           'epub',
+          downloadUrl: state.bookDetails?.downloadLinks['epub'],
         );
 
         final contentLength = response.contentLength ?? -1;
@@ -722,7 +748,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           }
 
           receivedBytes += chunk.length;
-          bookBytes.addAll(chunk);
+          bookBytes.add(chunk);
 
           if (contentLength > 0) {
             final progress = (receivedBytes / contentLength * 100).round();
@@ -756,7 +782,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         event.send2ereaderUrl,
         event.code,
         '${event.title}.epub',
-        bookBytes,
+        bookBytes.takeBytes(),
         isKindle: event.isKindle,
         onProgressUpdate: (progress) {
           if (!_sendToEReaderCancelled) {

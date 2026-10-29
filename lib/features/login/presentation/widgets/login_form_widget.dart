@@ -172,6 +172,7 @@ class _LoginFormState extends State<LoginForm> {
             _urlController.text = state.url;
           }
           setState(() {});
+          _scheduleEndpointCheck();
         }
 
         if (_usernameController.text != state.username) {
@@ -281,6 +282,47 @@ class _LoginFormState extends State<LoginForm> {
                         ),
                       ),
                       const SizedBox(height: 24),
+
+                      if (state.serverType == ServerType.opds) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.info_outline_rounded,
+                                size: 20,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.onSecondaryContainer,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  localizations.opdsReadOnlyHint,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodySmall?.copyWith(
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onSecondaryContainer,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
 
                       LoginTextField(
                         controller: _urlController,

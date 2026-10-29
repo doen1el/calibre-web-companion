@@ -1,12 +1,16 @@
 import 'dart:io';
 
 import 'package:calibre_web_companion/core/services/download_manager.dart';
+import 'package:calibre_web_companion/core/services/reader_cache_service.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
 import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
+import 'package:calibre_web_companion/features/reader/data/internal_reader_formats.dart';
+import 'package:calibre_web_companion/features/reader/presentation/page_reader_launcher.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:cosmos_epub/cosmos_epub.dart';
+import 'package:docman/docman.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
@@ -19,6 +23,7 @@ class OfflineLibraryPage extends StatefulWidget {
 
 class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
   List<OfflineBookModel> _books = const [];
+  Set<String> _cachedOnly = const {};
   bool _opening = false;
 
   @override
@@ -27,23 +32,46 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
     _load();
   }
 
-  void _load() {
+  Future<void> _load() async {
     final downloads = GetIt.instance<DownloadManager>().allDownloads;
+    final cached = await GetIt.instance<ReaderCacheService>().entries();
     final repo = GetIt.instance<OfflineLibraryRepository>();
 
     final books =
         downloads.entries.map((entry) {
           final meta = repo.getBook(entry.key);
-          if (meta != null && meta.filePath.isNotEmpty) return meta;
+          if (meta != null && meta.filePath.isNotEmpty) {
+            return meta.copyWith(filePath: entry.value);
+          }
           return _fallbackModel(entry.key, entry.value);
         }).toList();
+
+    // Books only opened in the reader; a real download of the same book wins.
+    final cachedOnly = <String>{};
+    for (final entry in cached) {
+      if (downloads.containsKey(entry.uuid) ||
+          cachedOnly.contains(entry.uuid)) {
+        continue;
+      }
+      cachedOnly.add(entry.uuid);
+      final meta = repo.getBook(entry.uuid);
+      books.add(
+        meta != null
+            ? meta.copyWith(filePath: entry.path, format: entry.format)
+            : _fallbackModel(entry.uuid, entry.path),
+      );
+    }
 
     books.sort((a, b) {
       if (b.savedAt != a.savedAt) return b.savedAt.compareTo(a.savedAt);
       return a.title.toLowerCase().compareTo(b.title.toLowerCase());
     });
 
-    setState(() => _books = books);
+    if (!mounted) return;
+    setState(() {
+      _books = books;
+      _cachedOnly = cachedOnly;
+    });
   }
 
   OfflineBookModel _fallbackModel(String uuid, String path) {
@@ -76,19 +104,31 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
     final localizations = AppLocalizations.of(context)!;
     setState(() => _opening = true);
     try {
+      final format = book.format.toLowerCase();
+      if (!InternalReaderFormats.isSupported(format)) {
+        await _openExternally(book, alreadyOpening: true);
+        return;
+      }
+
       final bytes = await GetIt.instance<BookDetailsRepository>()
-          .readLocalEpubBytes(book.filePath);
+          .readLocalBookBytes(book.filePath, format: format);
       if (!mounted) return;
 
-      final looksLikeZip =
-          bytes != null &&
-          bytes.length >= 4 &&
-          bytes[0] == 0x50 &&
-          bytes[1] == 0x4B;
-      if (!looksLikeZip) {
+      if (bytes == null) {
         context.showSnackBar(
           localizations.errorOpeningBookInInternalReader,
           isError: true,
+        );
+        return;
+      }
+
+      if (InternalReaderFormats.isPageBased(format)) {
+        await openPageReader(
+          context,
+          bytes: bytes,
+          format: format,
+          bookUuid: book.uuid,
+          title: book.title,
         );
         return;
       }
@@ -111,8 +151,11 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
     }
   }
 
-  Future<void> _openExternally(OfflineBookModel book) async {
-    if (_opening) return;
+  Future<void> _openExternally(
+    OfflineBookModel book, {
+    bool alreadyOpening = false,
+  }) async {
+    if (_opening && !alreadyOpening) return;
     final localizations = AppLocalizations.of(context)!;
     setState(() => _opening = true);
     try {
@@ -131,6 +174,59 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
     } finally {
       if (mounted) setState(() => _opening = false);
     }
+  }
+
+  Future<void> _remove(OfflineBookModel book) async {
+    final localizations = AppLocalizations.of(context)!;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: Text(localizations.removeFromDevice),
+            content: Text(localizations.removeFromDeviceConfirm(book.title)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(localizations.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(localizations.remove),
+              ),
+            ],
+          ),
+    );
+    if (confirm != true) return;
+
+    try {
+      if (_cachedOnly.contains(book.uuid)) {
+        await GetIt.instance<ReaderCacheService>().remove(book.uuid);
+      } else {
+        await _deleteFile(book.filePath);
+        await GetIt.instance<DownloadManager>().unregisterDownload(book.uuid);
+        await GetIt.instance<ReaderCacheService>().remove(book.uuid);
+      }
+      await GetIt.instance<OfflineLibraryRepository>().remove(book.uuid);
+    } catch (e) {
+      if (mounted) {
+        context.showSnackBar(
+          '${localizations.errorOpeningBook} $e',
+          isError: true,
+        );
+      }
+    }
+    await _load();
+  }
+
+  Future<void> _deleteFile(String path) async {
+    if (Platform.isAndroid &&
+        (path.startsWith('content://') || path.startsWith('file://'))) {
+      final doc = await DocumentFile.fromUri(path);
+      if (doc != null && doc.exists) await doc.delete();
+      return;
+    }
+    final file = File(path);
+    if (file.existsSync()) await file.delete();
   }
 
   @override
@@ -162,6 +258,7 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: _opening ? null : () => _open(book),
+        onLongPress: _opening ? null : () => _remove(book),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -197,11 +294,36 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.open_in_new_rounded, size: 20),
-                    visualDensity: VisualDensity.compact,
-                    tooltip: AppLocalizations.of(context)!.openInReader,
-                    onPressed: _opening ? null : () => _openExternally(book),
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert_rounded, size: 20),
+                    enabled: !_opening,
+                    onSelected: (value) {
+                      if (value == 'external') _openExternally(book);
+                      if (value == 'remove') _remove(book);
+                    },
+                    itemBuilder:
+                        (menuContext) => [
+                          PopupMenuItem(
+                            value: 'external',
+                            child: ListTile(
+                              leading: const Icon(Icons.open_in_new_rounded),
+                              title: Text(
+                                AppLocalizations.of(context)!.openInReader,
+                              ),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'remove',
+                            child: ListTile(
+                              leading: const Icon(Icons.delete_outline_rounded),
+                              title: Text(
+                                AppLocalizations.of(context)!.removeFromDevice,
+                              ),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ],
                   ),
                 ],
               ),

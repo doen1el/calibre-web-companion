@@ -1,0 +1,4 @@
+- Afegida la opció d'establir una carpeta de descàrregues global
+- Afegida la opció d'establir un esquema de descàrregues global
+- Corregit un error a l'esquema de descàrrega de sèries
+- Actualitzat el flux de treball per, amb una mica de sort, actualitzar el conflicte

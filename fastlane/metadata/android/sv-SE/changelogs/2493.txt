@@ -1,0 +1,3 @@
+Ny funktion: Alternativet ”Använd SSO-session för nedladdaren” gör att nedladdaren kan fungera bakom samma SSO-proxy (t.ex. Authelia, Authentik) som Calibre-Web; detta inkluderar hantering av omslagsbilder och automatisk återinloggning.
+Åtgärd: Nedladdaren visar nu ett tydligt felmeddelande istället för ett JSON-fel när en autentiseringsproxy returnerar sin inloggningssida.
+Åtgärd: Inloggning och automatisk återinloggning fungerar återigen i Calibre-Web-NextGen, som tidigare svarade med felmeddelanden som ”CSRF token not found” eller ”Session not accepted”

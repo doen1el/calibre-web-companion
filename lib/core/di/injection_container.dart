@@ -5,6 +5,7 @@ import 'package:calibre_web_companion/core/services/app_log_service.dart';
 import 'package:calibre_web_companion/core/services/connectivity_service.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/core/services/kosync_service.dart';
+import 'package:calibre_web_companion/core/services/reader_cache_service.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:calibre_web_companion/core/services/webdav_sync_service.dart';
 import 'package:calibre_web_companion/core/services/widget_service.dart';
@@ -92,6 +93,13 @@ Future<void> init() async {
 
   getIt.registerLazySingleton<DownloadManager>(
     () => DownloadManager(
+      prefs: getIt<SharedPreferences>(),
+      logger: getIt<Logger>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<ReaderCacheService>(
+    () => ReaderCacheService(
       prefs: getIt<SharedPreferences>(),
       logger: getIt<Logger>(),
     ),

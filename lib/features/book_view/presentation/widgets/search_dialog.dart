@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/features/book_view/data/datasources/vocabulary_remote_datasource.dart';
+import 'package:calibre_web_companion/features/book_view/data/repositories/book_view_repository.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/widgets/app_dialog_button.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,8 @@ class SearchDialog extends StatefulWidget {
 
 class _Suggestion {
   final String value;
-  final VocabularyType type;
+  // null = book title
+  final VocabularyType? type;
   const _Suggestion(this.value, this.type);
 }
 
@@ -61,6 +63,7 @@ class SearchDialogState extends State<SearchDialog> {
 
     setState(() => _loading = true);
     final results = await Future.wait([
+      _suggestTitles(query),
       _vocab.suggest(VocabularyType.authors, query),
       _vocab.suggest(VocabularyType.series, query),
       _vocab.suggest(VocabularyType.tags, query),
@@ -68,9 +71,10 @@ class SearchDialogState extends State<SearchDialog> {
     if (!mounted) return;
 
     final merged = <_Suggestion>[
-      ...results[0].take(4).map((v) => _Suggestion(v, VocabularyType.authors)),
-      ...results[1].take(4).map((v) => _Suggestion(v, VocabularyType.series)),
-      ...results[2].take(4).map((v) => _Suggestion(v, VocabularyType.tags)),
+      ...results[0].take(4).map((v) => _Suggestion(v, null)),
+      ...results[1].take(4).map((v) => _Suggestion(v, VocabularyType.authors)),
+      ...results[2].take(4).map((v) => _Suggestion(v, VocabularyType.series)),
+      ...results[3].take(4).map((v) => _Suggestion(v, VocabularyType.tags)),
     ];
 
     setState(() {
@@ -79,14 +83,36 @@ class SearchDialogState extends State<SearchDialog> {
     });
   }
 
+  // There is no title vocabulary endpoint, so search books and keep the
+  // ones whose title matches (#207).
+  Future<List<String>> _suggestTitles(String query) async {
+    try {
+      final books = await getIt<BookViewRepository>().fetchBooks(
+        offset: 0,
+        limit: 20,
+        searchQuery: query,
+      );
+      final needle = query.toLowerCase();
+      final seen = <String>{};
+      return books
+          .map((b) => b.title)
+          .where((t) => t.toLowerCase().contains(needle) && seen.add(t))
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
   void _submit(String value) {
     final query = value.trim();
     if (query.isEmpty) return;
     Navigator.of(context).pop(query);
   }
 
-  IconData _iconFor(VocabularyType type) {
+  IconData _iconFor(VocabularyType? type) {
     switch (type) {
+      case null:
+        return Icons.menu_book_rounded;
       case VocabularyType.authors:
         return Icons.person_rounded;
       case VocabularyType.series:
@@ -98,8 +124,10 @@ class SearchDialogState extends State<SearchDialog> {
     }
   }
 
-  String _labelFor(VocabularyType type, AppLocalizations localizations) {
+  String _labelFor(VocabularyType? type, AppLocalizations localizations) {
     switch (type) {
+      case null:
+        return localizations.title;
       case VocabularyType.authors:
         return localizations.author;
       case VocabularyType.series:

@@ -6,6 +6,7 @@ import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/utils/http_header_utils.dart';
 import 'package:calibre_web_companion/features/login/bloc/login_state.dart';
 import 'package:calibre_web_companion/features/login/data/models/login_credentials.dart';
+import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -36,25 +37,34 @@ class LoginRemoteDataSource {
         isLoggedIn = await _loginCalibre(credentials);
       } else if (serverType == ServerType.opds ||
           serverType == ServerType.booklore) {
+        // Only a URL parse error may fall back to the raw URL. Falling back on a
+        // failed login probed the server root instead, which on Calibre-Web is
+        // the HTML login page and "succeeded" without credentials.
+        String origin = credentials.baseUrl;
+        String path = '';
         try {
           final uri = Uri.parse(credentials.baseUrl);
-          final origin = uri.origin;
-          final path = uri.path + (uri.hasQuery ? '?${uri.query}' : '');
-
-          await prefs.setString('base_url', origin);
-          await apiService.initialize();
-
-          await _loginOpds(credentials, path);
-
-          await prefs.setString('base_url', credentials.baseUrl);
-          await apiService.initialize();
-
-          isLoggedIn = true;
+          origin = uri.origin;
+          path = uri.path + (uri.hasQuery ? '?${uri.query}' : '');
         } catch (e) {
           logger.w('Error parsing OPDS URL, falling back: $e');
-          await apiService.initialize();
-          isLoggedIn = await _loginOpds(credentials, '');
         }
+        await prefs.setString('base_url', origin);
+        await apiService.initialize();
+
+        final feedPath = await _loginOpds(credentials, path);
+        if (feedPath != path) {
+          credentials = LoginCredentials(
+            username: credentials.username,
+            password: credentials.password,
+            baseUrl: '$origin$feedPath',
+            serverType: credentials.serverType,
+          );
+        }
+
+        await prefs.setString('base_url', credentials.baseUrl);
+        await apiService.initialize();
+        isLoggedIn = true;
       } else {
         await apiService.initialize();
         isLoggedIn = await _loginCalibreWeb(credentials);
@@ -73,27 +83,66 @@ class LoginRemoteDataSource {
     }
   }
 
-  Future<bool> _loginOpds(LoginCredentials credentials, String endpoint) async {
+  /// Returns the feed path that was logged in to, which differs from
+  /// [endpoint] when a Calibre-Web base URL was given instead of its feed.
+  Future<String> _loginOpds(
+    LoginCredentials credentials,
+    String endpoint,
+  ) async {
     logger.i('Attempting OPDS login to endpoint: "$endpoint"...');
 
     final hasCredentials =
         credentials.username.isNotEmpty || credentials.password.isNotEmpty;
 
-    final response = await apiService.get(
-      endpoint: endpoint,
+    Future<http.Response> fetch(String path) => apiService.get(
+      endpoint: path,
       authMethod: hasCredentials ? AuthMethod.basic : AuthMethod.none,
       followRedirects: true,
+      checkStatus: false,
     );
 
+    var response = await fetch(endpoint);
+
+    if (response.statusCode == 200 && _isHtml(response)) {
+      final feedPath = _calibreWebFeedPath(endpoint);
+      if (feedPath != null) {
+        final feedResponse = await fetch(feedPath);
+        if (!_isHtml(feedResponse) && feedResponse.statusCode != 404) {
+          logger.i('Using Calibre-Web OPDS feed at "$feedPath"');
+          endpoint = feedPath;
+          response = feedResponse;
+        }
+      }
+    }
+
     if (response.statusCode == 200) {
+      if (_isHtml(response)) {
+        logger.w('OPDS endpoint returned HTML instead of a feed');
+        throw Exception('Not an OPDS feed (got an HTML page)');
+      }
       logger.i('OPDS Login successful');
-      return true;
+      return endpoint;
     } else if (response.statusCode == 401 || response.statusCode == 403) {
       logger.w('OPDS Login failed - invalid credentials or auth required');
       throw Exception('Invalid username or password');
     } else {
       throw Exception('Server returned ${response.statusCode}');
     }
+  }
+
+  // Calibre-Web serves its HTML UI at the base URL and the feed under /opds.
+  String? _calibreWebFeedPath(String path) {
+    if (path.contains('?') || path.contains('/opds')) return null;
+    final trimmed =
+        path.endsWith('/') ? path.substring(0, path.length - 1) : path;
+    return '$trimmed/opds';
+  }
+
+  bool _isHtml(http.Response response) {
+    final contentType = response.headers['content-type'] ?? '';
+    if (contentType.contains('html')) return true;
+    final head = response.body.trimLeft().toLowerCase();
+    return head.startsWith('<!doctype html') || head.startsWith('<html');
   }
 
   Future<bool> _loginCalibre(LoginCredentials credentials) async {
@@ -456,7 +505,9 @@ class LoginRemoteDataSource {
     return null;
   }
 
-  Future<EndpointStatus> probeEndpoint(
+  /// The returned URL is set when the feed was found under a different URL
+  /// than the one entered (a Calibre-Web base URL without `/opds`).
+  Future<(EndpointStatus, String?)> probeEndpoint(
     String url,
     ServerType serverType,
   ) async {
@@ -465,7 +516,7 @@ class LoginRemoteDataSource {
 
     if (!afterScheme.contains(RegExp(r'[a-zA-Z0-9]')) ||
         !afterScheme.contains('.')) {
-      return EndpointStatus.idle;
+      return (EndpointStatus.idle, null);
     }
 
     var base = trimmed;
@@ -485,7 +536,7 @@ class LoginRemoteDataSource {
 
     final uri = Uri.tryParse(probeUrl);
     if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
-      return EndpointStatus.idle;
+      return (EndpointStatus.idle, null);
     }
 
     HttpClient? client;
@@ -499,24 +550,49 @@ class LoginRemoteDataSource {
         client.badCertificateCallback = (cert, host, port) => true;
       }
 
-      final request = await client.getUrl(uri);
-      request.followRedirects = true;
-      parseCustomHeaders(
+      final customHeaders = parseCustomHeaders(
         prefs.getString(customHeadersPrefsKey) ?? '[]',
         username: prefs.getString('username'),
-      ).forEach(request.headers.set);
-      final response = await request.close().timeout(
-        const Duration(seconds: 10),
       );
-      final code = response.statusCode;
-      await response.drain<void>();
 
-      if (code == 401 || code == 403) return EndpointStatus.authRequired;
-      if (code >= 200 && code < 400) return EndpointStatus.reachable;
-      return EndpointStatus.unreachable;
+      Future<(int, bool)> probe(Uri target) async {
+        final request = await client!.getUrl(target);
+        request.followRedirects = true;
+        customHeaders.forEach(request.headers.set);
+        final response = await request.close().timeout(
+          const Duration(seconds: 10),
+        );
+        final isHtml = response.headers.contentType?.subType == 'html';
+        await response.drain<void>();
+        return (response.statusCode, isHtml);
+      }
+
+      var (code, isHtml) = await probe(uri);
+      String? resolvedUrl;
+
+      if (serverType == ServerType.opds && code == 200 && isHtml) {
+        final feedPath = _calibreWebFeedPath(uri.path);
+        if (feedPath != null) {
+          final (feedCode, feedIsHtml) = await probe(
+            uri.replace(path: feedPath),
+          );
+          if (!feedIsHtml && feedCode != 404) {
+            code = feedCode;
+            resolvedUrl = '$base/opds';
+          }
+        }
+      }
+
+      if (code == 401 || code == 403) {
+        return (EndpointStatus.authRequired, resolvedUrl);
+      }
+      if (code >= 200 && code < 400) {
+        return (EndpointStatus.reachable, resolvedUrl);
+      }
+      return (EndpointStatus.unreachable, null);
     } catch (e) {
       logger.w('Endpoint probe failed for $probeUrl: $e');
-      return EndpointStatus.unreachable;
+      return (EndpointStatus.unreachable, null);
     } finally {
       client?.close();
     }

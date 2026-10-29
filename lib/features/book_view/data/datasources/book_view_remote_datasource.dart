@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/server_capabilities.dart';
-import 'package:calibre_web_companion/core/utils/book_mime_types.dart';
+import 'package:calibre_web_companion/core/utils/opds_entry_mapper.dart';
 import 'package:calibre_web_companion/core/utils/upload_file_name.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:logger/logger.dart';
@@ -71,11 +71,24 @@ class BookViewRemoteDatasource {
         queryParams['search'] = searchQuery;
       }
 
-      final response = await _apiService.getJson(
+      var response = await _apiService.getJson(
         endpoint: '/ajax/listbooks',
         authMethod: AuthMethod.cookie,
         queryParams: queryParams,
       );
+
+      // CWA 4.x fails the paged title sort server-side ("no such column:
+      // title") and answers with empty rows. Its search path sorts fine, so
+      // retry with a match-all term (#207).
+      if (_isSwallowedSortError(response, offset) &&
+          !queryParams.containsKey('search')) {
+        _logger.w('Server returned no rows for sort=$sortBy, retrying');
+        response = await _apiService.getJson(
+          endpoint: '/ajax/listbooks',
+          authMethod: AuthMethod.cookie,
+          queryParams: {...queryParams, 'search': '%'},
+        );
+      }
 
       if (response.containsKey('rows') && response['rows'] is List) {
         final List<dynamic> rows = response['rows'];
@@ -101,11 +114,17 @@ class BookViewRemoteDatasource {
     }
   }
 
+  bool _isSwallowedSortError(Map<String, dynamic> response, int offset) {
+    final rows = response['rows'];
+    final total = response['total'];
+    return rows is List && rows.isEmpty && total is int && offset < total;
+  }
+
   Future<List<BookViewModel>> _fetchBooksOpds() async {
     try {
       final response = await _apiService.getXmlAsJson(
         endpoint: '',
-        authMethod: AuthMethod.none,
+        authMethod: AuthMethod.basic,
       );
 
       final List<BookViewModel> books = [];
@@ -118,11 +137,11 @@ class BookViewRemoteDatasource {
 
           if (entries is List) {
             for (final entry in entries) {
-              final book = _mapOpdsEntryToViewModel(entry);
+              final book = mapOpdsEntry(entry);
               if (book != null) books.add(book);
             }
           } else if (entries is Map) {
-            final book = _mapOpdsEntryToViewModel(entries);
+            final book = mapOpdsEntry(entries);
             if (book != null) books.add(book);
           }
         }
@@ -166,11 +185,11 @@ class BookViewRemoteDatasource {
 
           if (entries is List) {
             for (final entry in entries) {
-              final book = _mapOpdsEntryToViewModel(entry);
+              final book = mapOpdsEntry(entry);
               if (book != null) books.add(book);
             }
           } else if (entries is Map) {
-            final book = _mapOpdsEntryToViewModel(entries);
+            final book = mapOpdsEntry(entries);
             if (book != null) books.add(book);
           }
         }
@@ -181,157 +200,6 @@ class BookViewRemoteDatasource {
     } catch (e) {
       _logger.e('Error fetching OPDS books: $e');
       throw Exception('Failed to load OPDS books: $e');
-    }
-  }
-
-  BookViewModel? _mapOpdsEntryToViewModel(dynamic entry) {
-    try {
-      if (entry is! Map) return null;
-
-      final title = entry['title'] ?? 'Unknown Title';
-
-      final rawId = entry['id'] ?? '';
-      final uuid = rawId.toString().replaceFirst('urn:uuid:', '');
-
-      int id = 0;
-
-      final parts = rawId.toString().split(':');
-      if (parts.isNotEmpty) {
-        final lastPart = parts.last;
-        final parsed = int.tryParse(lastPart);
-        if (parsed != null) {
-          id = parsed;
-        }
-      }
-
-      if (id == 0 && entry.containsKey('link')) {
-        final links = entry['link'];
-        final linkList = links is List ? links : [links];
-        for (final link in linkList) {
-          if (link is Map && link['_href'] != null) {
-            final href = link['_href'].toString();
-            final uri = Uri.tryParse(href);
-            if (uri != null) {
-              for (final segment in uri.pathSegments) {
-                if (RegExp(r'^\d+$').hasMatch(segment)) {
-                  id = int.parse(segment);
-                  break;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      String authors = 'Unknown';
-      if (entry.containsKey('author')) {
-        final authorData = entry['author'];
-        if (authorData is Map && authorData.containsKey('name')) {
-          authors = authorData['name'];
-        } else if (authorData is List) {
-          authors = authorData.map((a) => a['name']).join(', ');
-        }
-      }
-
-      bool hasCover = false;
-      String? coverUrl;
-      final List<String> formats = [];
-
-      if (entry.containsKey('link')) {
-        final links = entry['link'];
-        final linkList = links is List ? links : [links];
-
-        for (final link in linkList) {
-          if (link is Map) {
-            final rel = link['_rel'] ?? link['rel'];
-            final type = link['_type'] ?? link['type'];
-            final href = link['_href'] ?? link['href'];
-
-            final isAcquisition =
-                rel != null &&
-                rel.toString().startsWith('http://opds-spec.org/acquisition');
-
-            if (rel == 'http://opds-spec.org/image' ||
-                rel == 'http://opds-spec.org/image/thumbnail' ||
-                (!isAcquisition &&
-                    type != null &&
-                    type.toString().startsWith('image/'))) {
-              hasCover = true;
-              if (href != null) {
-                coverUrl = href.toString();
-              }
-            }
-
-            if (isAcquisition) {
-              final format = bookFormatFromAcquisition(
-                mimeType: type?.toString(),
-                href: href?.toString(),
-              );
-              if (format != null && !formats.contains(format)) {
-                formats.add(format);
-              }
-            }
-          }
-        }
-      }
-
-      String pubdate = '';
-      if (entry.containsKey('published')) {
-        pubdate = entry['published'];
-      }
-
-      final List<String> tags = [];
-      if (entry.containsKey('category')) {
-        final categories = entry['category'];
-        final categoryList = categories is List ? categories : [categories];
-        for (final cat in categoryList) {
-          if (cat is Map) {
-            final term =
-                cat['term'] ?? cat['_term'] ?? cat['label'] ?? cat['_label'];
-            if (term != null && term.toString().isNotEmpty) {
-              tags.add(term.toString());
-            }
-          }
-        }
-      }
-
-      String description = '';
-      if (entry.containsKey('content')) {
-        final content = entry['content'];
-        if (content is Map) {
-          description =
-              content['__cdata'] ?? content['#text'] ?? content.toString();
-        } else {
-          description = content.toString();
-        }
-      } else if (entry.containsKey('summary')) {
-        final summary = entry['summary'];
-        if (summary is Map) {
-          description =
-              summary['__cdata'] ?? summary['#text'] ?? summary.toString();
-        } else {
-          description = summary.toString();
-        }
-      }
-
-      return BookViewModel(
-        id: id,
-        uuid: uuid,
-        title: title,
-        authors: authors,
-        hasCover: hasCover,
-        pubdate: pubdate,
-        data: description,
-        path: '',
-        series: '',
-        seriesIndex: 0,
-        coverUrl: coverUrl,
-        formats: formats.isNotEmpty ? formats : const [],
-        tags: tags,
-      );
-    } catch (e) {
-      _logger.w('Error mapping OPDS entry: $e');
-      return null;
     }
   }
 

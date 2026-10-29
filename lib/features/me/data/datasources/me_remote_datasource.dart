@@ -15,7 +15,9 @@ class MeRemoteDataSource {
       if (serverType == 'opds' ||
           serverType == 'grimmory' ||
           serverType == 'booklore') {
-        return await _getOpdsStats();
+        return await _getOpdsStats(
+          feedEndpoint: serverType == 'opds' ? '' : '/catalog',
+        );
       }
 
       if (serverType == 'calibre') {
@@ -32,23 +34,24 @@ class MeRemoteDataSource {
     }
   }
 
-  Future<StatsModel> _getOpdsStats() async {
+  Future<StatsModel> _getOpdsStats({required String feedEndpoint}) async {
     final json = await apiService.getXmlAsJson(
-      endpoint: '/catalog',
+      endpoint: feedEndpoint,
       authMethod: AuthMethod.basic,
       queryParams: {'page': '1', 'size': '1'},
     );
 
-    int totalBooks = 0;
+    // -1: the feed doesn't report a total (e.g. Calibre-Web's OPDS feeds).
+    int totalBooks = -1;
 
     if (json.containsKey('feed')) {
       final feed = json['feed'];
       if (feed is Map) {
         if (feed.containsKey('opensearch:totalResults')) {
           totalBooks =
-              int.tryParse(feed['opensearch:totalResults'].toString()) ?? 0;
+              int.tryParse(feed['opensearch:totalResults'].toString()) ?? -1;
         } else if (feed.containsKey('totalResults')) {
-          totalBooks = int.tryParse(feed['totalResults'].toString()) ?? 0;
+          totalBooks = int.tryParse(feed['totalResults'].toString()) ?? -1;
         }
       }
     }

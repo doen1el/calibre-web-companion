@@ -63,7 +63,7 @@ class StatsCard extends StatelessWidget {
                     context,
                     Icons.book,
                     localizations.books,
-                    stats.books.toString(),
+                    stats.books < 0 ? '–' : stats.books.toString(),
                   ),
 
                   if (!isOpds) ...[

@@ -1,0 +1,1 @@
+- Corregit un error on podies iniciar sessió amb credencials equivocades

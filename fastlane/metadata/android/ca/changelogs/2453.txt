@@ -1,0 +1,3 @@
+Funció: Afegit el suport per a llibres en format djvu.
+Funció: Afegida la opció de prémer sobre el nom de l'autor, a la pàgina de detalls del llibre, per veure tots els llibres d'aquell autor.
+Correcció: La sincronització de biblioteques ara utilitza la plantilla personalitzada de camins de descàrrega (columnes personalitzades, i s'inclou el truncat) en lloc del camí per defecte.
