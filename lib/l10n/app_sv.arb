@@ -611,5 +611,7 @@
     "downloadPathTemplateCalibreHint": "Calibres mallsyntax fungerar också: förkorta ett fält med en precision, omslut det med ett prefix och suffix som bara visas när fältet har ett värde och använd anpassade kolumner. Exempel:",
     "customColumns": "Anpassade kolumner",
     "yes": "Ja",
-    "no": "Nej"
+    "no": "Nej",
+    "downloaderUseSsoSession": "Använd SSO-session för nedladdaren",
+    "downloaderUseSsoSessionDescription": "Skicka SSO-inloggningscookien (t.ex. Authelia, Authentik) tillsammans med nedladdningsförfrågningar. Aktivera detta om nedladdningsfunktionen ligger bakom samma autentiseringsproxy som Calibre-Web."
 }

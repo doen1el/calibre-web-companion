@@ -1,0 +1,9 @@
+- Nou: Prestatges Màgics, crea, edita i navega per prestatges dinàmics basats en regles (només a Calibre-Web Automated).
+- Nou: Escaneja el codi de barres ISBN d'un llibre i afegeix-lo a Calibre o descarrega'l a través de Shelfmark.
+- Nou: Pantalla de diagnòstics de connexió, i millores de l'inici de sessió amb servidor intermediari / SSO.
+- Nou: Cerca les metadades del llibre als proveïdors en línia mentre edites un llibre.
+- Nou: Índex i filtres de sèries a les targetes dels llibres, amb suggestions automàtiques de cerca.
+- Nou: Paginació i alternar llista/graella als prestatges; mida de la tipografia ajustable i vista de graella/llista a Descobriments.
+- Nou: Revisat el lector de llibres electrònics integrat amb formats de lectura seleccionables.
+- Afegida la traducció al neerlandès, i actualització d'algunes traduccions.
+- Corregit: Certificats auto-signats, "registrat però sense dades" als servidors intermediaris inversos, configuració de Shelfmark, filtre d'autors (A-Z) i bloqueig amb el retrocés.

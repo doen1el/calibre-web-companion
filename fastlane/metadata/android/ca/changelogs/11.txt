@@ -1,0 +1,1 @@
+- Eliminada la informació de dependències a la compilació per a f-droid

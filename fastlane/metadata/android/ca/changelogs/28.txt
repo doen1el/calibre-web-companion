@@ -1,0 +1,6 @@
+- Canviat Calibre-Web-Book-Downloader a Shelfmark
+- Afegides les traduccions a l'hongarès, suec, i turc
+- Corregit un error d'autenticació quan utilitzes Booklore
+- Corregit un error d'autenticació quan utilitzes Shelfmark
+- Afegit una millor comprovació quan un llibre ja està descarregat
+- Afegida la funció de sincronitzar la biblioteca per descarregar un llibres a l'engròs

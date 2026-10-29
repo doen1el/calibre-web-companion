@@ -1,0 +1,3 @@
+- Afegides les traduccions a l'àrab i xinès.
+- Corregit: Adaptada la integració de Shelfmark per a la nova versió.
+- Afegit: Opció per desar els llibres enviats a l'e-reader a la carpeta de descàrregues especificada.

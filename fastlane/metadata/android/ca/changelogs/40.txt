@@ -1,0 +1,5 @@
+- Funció: Nova vista de prestatges a la finestra d'inici.
+- Funció: Afegida la opció de canviar la destinació de les sondes per a comprovacions d'abast.
+- Correcció: S'ha afegit una finestra emergent de reauth quan expira la sessió SSO.
+- Correcció: Corregida una incidència per identificar l'estat de fora de línia.
+- Idioma: Traduccions actualitzades: ucraïnès (@Vitalii), català (@Enric Pagès i Gassull).

@@ -1,0 +1,5 @@
+- Afegida la opció de canviar el número de columnes al llistat de llibres
+- Afegida la opció de carregar llibres a Calibre-Web
+- Afegida la opció d'incorporar instàncies personalitzades de send2ereader
+- Corregit l'error que impedia obrir pdf als lectors instal·lats
+- Corregit l'error que provocava que no apareguessin tots els llibres quan s'ordenava per autor

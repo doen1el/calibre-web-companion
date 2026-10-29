@@ -1,0 +1,4 @@
+Funció: Les columnes personalitzades de Calibre-Web i Calibre ara es mostren a la pàgina de detalls del llibre (es pot amagar o reordenar a la configuració)
+Correcció: La càrrega de llibres ja no es penja quan s'obre un llibre sense data d'edició
+Correcció: Les descàrregues ja no desen la pàgina d'inici de sessió del servidor enlloc del llibre quan expira la sessió
+Correcció: L'aplicació ja no es penja quan s'obren llibres pesants descarregats al lector intern

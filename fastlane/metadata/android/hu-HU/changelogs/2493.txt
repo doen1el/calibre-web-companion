@@ -1,0 +1,3 @@
+Új: Az új „SSO-munkamenet használata a letöltőhöz” opció lehetővé teszi, hogy a letöltő ugyanazon az SSO-proxyn (pl. Authelia, Authentik) keresztül működjön, mint a Calibre-Web, beleértve a borítókat és az automatikus újrabejelentkezést is
+Javítás: A letöltő most már egyértelmű hibaüzenetet jelenít meg a JSON-hiba helyett, amikor egy hitelesítési proxy a bejelentkezési oldalát adja vissza
+Javítás: A bejelentkezés és az automatikus újrabejelentkezés ismét működik a Calibre-Web-NextGen-en, amely korábban „CSRF token not found” vagy „Session not accepted” hibaüzenettel válaszolt

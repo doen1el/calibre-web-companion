@@ -1,0 +1,4 @@
+- Actualitzat: Ajustat el codi per al nou format de la base de dades de Calibre.
+- Afegit: Suport a l'idioma rus.
+- Afegit: Ara pots amagar el botó 'Enviar a l'e-reader'.
+- Actualitzat: Establerta a l'anglès la opció de descàrrega per defecte (Shelfmark).
