@@ -172,6 +172,7 @@ class _LoginFormState extends State<LoginForm> {
             _urlController.text = state.url;
           }
           setState(() {});
+          _scheduleEndpointCheck();
         }
 
         if (_usernameController.text != state.username) {

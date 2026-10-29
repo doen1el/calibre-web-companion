@@ -1193,7 +1193,9 @@ class ApiService {
       } else {
         fullPath = '/$basePath/$endpointPath';
       }
-    } else if (!endpoint.startsWith('/')) {
+    } else if (endpoint.isNotEmpty && !endpoint.startsWith('/')) {
+      // An empty endpoint means the base URL itself (an OPDS feed URL); a
+      // trailing slash turns e.g. Calibre-Web's /opds/new into a 404.
       fullPath = '/$endpoint';
     }
 

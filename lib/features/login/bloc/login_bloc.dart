@@ -66,14 +66,15 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     emit(state.copyWith(endpointStatus: EndpointStatus.checking));
 
-    final result = await loginRepository.probeEndpoint(
+    final (status, resolvedUrl) = await loginRepository.probeEndpoint(
       event.url,
       state.serverType,
     );
 
     if (_pendingProbeUrl != event.url) return;
 
-    emit(state.copyWith(endpointStatus: result));
+    // The form mirrors state.url, so this also completes the URL field.
+    emit(state.copyWith(endpointStatus: status, url: resolvedUrl));
   }
 
   static LoginErrorType _classifyLoginError(String? message) {
@@ -84,6 +85,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         m.contains('403')) {
       return LoginErrorType.invalidCredentials;
     }
+    // Wrapped as "Connection error: …", which the check below would misread.
+    if (m.contains('not an opds feed')) return LoginErrorType.generic;
     if (m.contains('socketexception') ||
         m.contains('failed host lookup') ||
         m.contains('connection') ||
@@ -138,25 +141,44 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         );
       } else {
         logger.w('Login failed');
+        final errorType = _classifyLoginError(result.errorMessage);
         emit(
           state.copyWith(
             status: LoginStatus.failure,
             errorMessage: result.errorMessage ?? 'Login failed',
-            errorType: _classifyLoginError(result.errorMessage),
+            errorType: errorType,
             loadingType: LoginLoadingType.initial,
+            endpointStatus: _endpointStatusAfterFailure(errorType),
           ),
         );
       }
     } catch (e) {
+      final errorType = _classifyLoginError(e.toString());
       emit(
         state.copyWith(
           status: LoginStatus.failure,
           errorMessage: e.toString(),
-          errorType: _classifyLoginError(e.toString()),
+          errorType: errorType,
           loadingType: LoginLoadingType.initial,
+          endpointStatus: _endpointStatusAfterFailure(errorType),
         ),
       );
     }
+  }
+
+  // Rejected without credentials means the server wants some, so the form
+  // reveals the (otherwise optional) credential fields.
+  EndpointStatus _endpointStatusAfterFailure(LoginErrorType errorType) {
+    final credentialsOptional =
+        state.serverType == ServerType.opds ||
+        state.serverType == ServerType.calibre;
+    if (credentialsOptional &&
+        errorType == LoginErrorType.invalidCredentials &&
+        state.username.isEmpty &&
+        state.password.isEmpty) {
+      return EndpointStatus.authRequired;
+    }
+    return state.endpointStatus;
   }
 
   Future<void> _onSubmitSsoLogin(

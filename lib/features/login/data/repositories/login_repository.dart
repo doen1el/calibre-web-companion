@@ -105,7 +105,10 @@ class LoginRepository {
     return dataSource.getStoredServerType();
   }
 
-  Future<EndpointStatus> probeEndpoint(String url, ServerType serverType) {
+  Future<(EndpointStatus, String?)> probeEndpoint(
+    String url,
+    ServerType serverType,
+  ) {
     return dataSource.probeEndpoint(url, serverType);
   }
 
