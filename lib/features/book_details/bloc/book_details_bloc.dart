@@ -689,7 +689,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     try {
       emit(state.copyWith(sendToEReaderState: SendToEReaderState.downloading));
 
-      final List<int> bookBytes = [];
+      final bookBytes = BytesBuilder(copy: false);
 
       if (event.downloadToDeviceFirst) {
         if (state.bookDetails == null) {
@@ -728,7 +728,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         if (bytes.isEmpty) {
           throw Exception('Downloaded file is empty');
         }
-        bookBytes.addAll(bytes);
+        bookBytes.add(bytes);
       } else {
         final response = await repository.getDownloadStream(
           event.bookId,
@@ -748,7 +748,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           }
 
           receivedBytes += chunk.length;
-          bookBytes.addAll(chunk);
+          bookBytes.add(chunk);
 
           if (contentLength > 0) {
             final progress = (receivedBytes / contentLength * 100).round();
@@ -782,7 +782,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         event.send2ereaderUrl,
         event.code,
         '${event.title}.epub',
-        bookBytes,
+        bookBytes.takeBytes(),
         isKindle: event.isKindle,
         onProgressUpdate: (progress) {
           if (!_sendToEReaderCancelled) {

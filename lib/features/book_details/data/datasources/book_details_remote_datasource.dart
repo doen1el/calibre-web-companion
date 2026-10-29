@@ -16,7 +16,6 @@ import 'package:calibre_web_companion/features/reader/data/internal_reader_forma
 import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:docman/docman.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:http/http.dart' as http;
@@ -970,25 +969,32 @@ class BookDetailsRemoteDatasource {
         'Download response status: ${response.statusCode}, Content length: $contentLength',
       );
 
-      final List<int> bytes = [];
-      int receivedBytes = 0;
-
-      await for (final chunk in response.stream) {
-        bytes.addAll(chunk);
-        receivedBytes += chunk.length;
-
-        if (contentLength > 0 && progressCallback != null) {
-          final progress = (receivedBytes / contentLength * 100).round();
-          progressCallback(progress);
-        }
-      }
-
-      final Uint8List fileData = Uint8List.fromList(bytes);
-
-      final createdFile = await targetDir.createFile(
-        name: fileName,
-        bytes: fileData,
+      // Spool to a temp file and let docman copy it natively: buffering the
+      // whole book in Dart and passing it over the platform channel OOMs on
+      // large books (#210).
+      final tempDir = await Directory(
+        '${(await getTemporaryDirectory()).path}/downloads',
+      ).create(recursive: true);
+      final tempFile = File(
+        '${tempDir.path}/${DateTime.now().microsecondsSinceEpoch}.$format',
       );
+
+      final DocumentFile? createdFile;
+      final int receivedBytes;
+      try {
+        receivedBytes = await _writeStreamToFile(
+          response,
+          tempFile,
+          progressCallback,
+        );
+        final tempDoc = await DocumentFile.fromUri(tempFile.path);
+        if (tempDoc == null) {
+          throw Exception('Could not open temporary download file');
+        }
+        createdFile = await tempDoc.copyTo(targetDir.uri, name: fileName);
+      } finally {
+        if (tempFile.existsSync()) await tempFile.delete();
+      }
 
       if (createdFile == null) {
         logger.e('Failed to create file in SAF directory');
@@ -1270,16 +1276,37 @@ class BookDetailsRemoteDatasource {
     );
     final contentLength = response.contentLength ?? -1;
 
-    final List<int> bytes = [];
-    int received = 0;
+    final bytes = BytesBuilder(copy: false);
     await for (final chunk in response.stream) {
-      bytes.addAll(chunk);
-      received += chunk.length;
+      bytes.add(chunk);
       if (contentLength > 0 && progressCallback != null) {
-        progressCallback((received / contentLength * 100).round());
+        progressCallback((bytes.length / contentLength * 100).round());
       }
     }
-    return Uint8List.fromList(bytes);
+    return bytes.takeBytes();
+  }
+
+  Future<int> _writeStreamToFile(
+    StreamedResponse response,
+    File file,
+    Function(int)? progressCallback,
+  ) async {
+    final contentLength = response.contentLength ?? -1;
+    final sink = file.openWrite();
+    int received = 0;
+    try {
+      await for (final chunk in response.stream) {
+        sink.add(chunk);
+        received += chunk.length;
+        if (contentLength > 0 && progressCallback != null) {
+          progressCallback((received / contentLength * 100).round());
+        }
+      }
+      await sink.flush();
+    } finally {
+      await sink.close();
+    }
+    return received;
   }
 
   Future<String> downloadBookToDevice(
@@ -1288,10 +1315,10 @@ class BookDetailsRemoteDatasource {
     Function(int)? progressCallback,
   }) async {
     logger.i('Downloading "${book.title}" to app sandbox, format: $format');
-    final bytes = await streamBookBytes(
-      book,
-      format: format,
-      progressCallback: progressCallback,
+    final response = await getDownloadStream(
+      book.id.toString(),
+      format,
+      downloadUrl: book.downloadLinks[format.toLowerCase()],
     );
 
     final dir = await getApplicationDocumentsDirectory();
@@ -1299,7 +1326,12 @@ class BookDetailsRemoteDatasource {
         book.title.replaceAll(RegExp(r'[\\/:*?"<>|.]'), '').trim();
     final fileName = '${safeTitle.isEmpty ? 'book' : safeTitle}.$format';
     final file = File('${dir.path}/$fileName');
-    await file.writeAsBytes(bytes, flush: true);
+    try {
+      await _writeStreamToFile(response, file, progressCallback);
+    } catch (_) {
+      if (file.existsSync()) await file.delete();
+      rethrow;
+    }
 
     logger.i('Saved book to ${file.path}');
     return file.path;
