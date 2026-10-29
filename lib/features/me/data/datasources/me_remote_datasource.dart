@@ -41,16 +41,17 @@ class MeRemoteDataSource {
       queryParams: {'page': '1', 'size': '1'},
     );
 
-    int totalBooks = 0;
+    // -1: the feed doesn't report a total (e.g. Calibre-Web's OPDS feeds).
+    int totalBooks = -1;
 
     if (json.containsKey('feed')) {
       final feed = json['feed'];
       if (feed is Map) {
         if (feed.containsKey('opensearch:totalResults')) {
           totalBooks =
-              int.tryParse(feed['opensearch:totalResults'].toString()) ?? 0;
+              int.tryParse(feed['opensearch:totalResults'].toString()) ?? -1;
         } else if (feed.containsKey('totalResults')) {
-          totalBooks = int.tryParse(feed['totalResults'].toString()) ?? 0;
+          totalBooks = int.tryParse(feed['totalResults'].toString()) ?? -1;
         }
       }
     }

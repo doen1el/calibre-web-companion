@@ -429,6 +429,7 @@ class WidgetService {
     final baseUrl = ApiService().getBaseUrl();
     if (baseUrl.isEmpty) return null;
 
+    if (coverUrl.startsWith('http')) return coverUrl;
     if (coverUrl.isNotEmpty) {
       var clean = coverUrl.split('/api/v1/opds/').last;
       if (clean.startsWith('/')) clean = clean.substring(1);

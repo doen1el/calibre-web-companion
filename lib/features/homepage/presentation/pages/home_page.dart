@@ -7,6 +7,7 @@ import 'package:calibre_web_companion/features/homepage/bloc/homepage_state.dart
 import 'package:calibre_web_companion/features/me/presentation/pages/me_page.dart';
 import 'package:calibre_web_companion/features/offline/cubit/connectivity_cubit.dart';
 import 'package:calibre_web_companion/features/offline/presentation/pages/offline_home_page.dart';
+import 'package:calibre_web_companion/features/opds_browser/presentation/pages/opds_feed_page.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -46,7 +47,10 @@ class HomePage extends StatelessWidget {
             final showDiscover = serverType != 'calibre';
 
             final pages = <Widget>[
-              const BookViewPage(),
+              if (serverType == 'opds')
+                const OpdsFeedPage()
+              else
+                const BookViewPage(),
               if (showDiscover) const DiscoverPage(),
               const MePage(),
               if (settingsState.isDownloaderEnabled)

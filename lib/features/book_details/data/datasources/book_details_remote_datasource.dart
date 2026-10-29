@@ -73,6 +73,11 @@ class BookDetailsRemoteDatasource {
                   : const ['epub'],
           comments: comments,
           tags: bookListModel.tags,
+          coverUrl: bookListModel.coverUrl,
+          series: bookListModel.series,
+          seriesIndex: bookListModel.seriesIndex,
+          pubdate: bookListModel.pubdate,
+          downloadLinks: bookListModel.downloadLinks,
         );
       }
 
@@ -337,10 +342,13 @@ class BookDetailsRemoteDatasource {
     }
   }
 
+  /// [downloadUrl] is the book's own acquisition link from a generic OPDS
+  /// feed; without it the URL is built from the server type.
   Future<StreamedResponse> getDownloadStream(
     String bookId,
-    String format,
-  ) async {
+    String format, {
+    String? downloadUrl,
+  }) async {
     try {
       logger.i('Getting download stream for book: $bookId, Format: $format');
 
@@ -360,6 +368,9 @@ class BookDetailsRemoteDatasource {
             (libraryId != null && libraryId.isNotEmpty) ? '/$libraryId' : '';
         endpoint = '/get/${format.toUpperCase()}/$bookId$librarySegment';
         authMethod = AuthMethod.auto;
+      } else if (isOpds && downloadUrl != null) {
+        endpoint = downloadUrl;
+        authMethod = AuthMethod.basic;
       } else if (isOpds) {
         endpoint = '/$bookId/download';
         authMethod = AuthMethod.basic;
@@ -947,7 +958,11 @@ class BookDetailsRemoteDatasource {
         return existingFile.uri.toString();
       }
 
-      final response = await getDownloadStream(book.id.toString(), format);
+      final response = await getDownloadStream(
+        book.id.toString(),
+        format,
+        downloadUrl: book.downloadLinks[format.toLowerCase()],
+      );
       final contentLength = response.contentLength ?? -1;
 
       logger.i(
@@ -1220,7 +1235,9 @@ class BookDetailsRemoteDatasource {
   Future<Uint8List?> fetchCoverBytes(int bookId, String? coverUrl) async {
     try {
       String endpoint;
-      if (coverUrl != null && coverUrl.isNotEmpty) {
+      if (coverUrl != null && coverUrl.startsWith('http')) {
+        endpoint = coverUrl;
+      } else if (coverUrl != null && coverUrl.isNotEmpty) {
         var clean = coverUrl.split('/api/v1/opds/').last;
         if (clean.startsWith('/')) clean = clean.substring(1);
         endpoint = '/$clean';
@@ -1245,7 +1262,11 @@ class BookDetailsRemoteDatasource {
     String format = 'epub',
     Function(int)? progressCallback,
   }) async {
-    final response = await getDownloadStream(book.id.toString(), format);
+    final response = await getDownloadStream(
+      book.id.toString(),
+      format,
+      downloadUrl: book.downloadLinks[format.toLowerCase()],
+    );
     final contentLength = response.contentLength ?? -1;
 
     final List<int> bytes = [];

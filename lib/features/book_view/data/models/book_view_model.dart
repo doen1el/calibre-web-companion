@@ -27,6 +27,8 @@ class BookViewModel extends Equatable {
   final String? coverUrl;
   final List<String> formats;
   final List<String> tags;
+  // Format -> absolute download URL, from OPDS acquisition links.
+  final Map<String, String> downloadLinks;
 
   static final Logger _logger = Logger();
 
@@ -56,6 +58,7 @@ class BookViewModel extends Equatable {
     this.coverUrl,
     this.formats = const [],
     this.tags = const [],
+    this.downloadLinks = const {},
   });
 
   String? get seriesBadge {
@@ -97,6 +100,7 @@ class BookViewModel extends Equatable {
     coverUrl,
     formats,
     tags,
+    downloadLinks,
   ];
 
   Map<String, dynamic> toJson() {
@@ -126,6 +130,7 @@ class BookViewModel extends Equatable {
       'cover_url': coverUrl,
       'formats': formats,
       'tags': tags,
+      'download_links': downloadLinks,
     };
   }
 
@@ -200,6 +205,12 @@ class BookViewModel extends Equatable {
                 )
                 : const [],
         tags: parsedTags,
+        downloadLinks:
+            json['download_links'] is Map
+                ? (json['download_links'] as Map).map(
+                  (k, v) => MapEntry(k.toString(), v.toString()),
+                )
+                : const {},
       );
     } catch (e) {
       _logger.e('Error creating BookItem from JSON: $e');
@@ -233,6 +244,7 @@ class BookViewModel extends Equatable {
     String? coverUrl,
     List<String>? formats,
     List<String>? tags,
+    Map<String, String>? downloadLinks,
   }) {
     return BookViewModel(
       id: id ?? this.id,
@@ -260,6 +272,7 @@ class BookViewModel extends Equatable {
       coverUrl: coverUrl ?? this.coverUrl,
       formats: formats ?? this.formats,
       tags: tags ?? this.tags,
+      downloadLinks: downloadLinks ?? this.downloadLinks,
     );
   }
 }

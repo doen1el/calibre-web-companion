@@ -104,7 +104,9 @@ class MePage extends StatelessWidget {
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(
                     children: [
-                      if (state.showStats)
+                      // A feed without a total (books < 0) has nothing to show.
+                      if (state.showStats &&
+                          !(state.isOpds && (state.stats?.books ?? 0) < 0))
                         StatsCard(
                           stats: state.stats ?? const StatsModel(),
                           isLoading: state.status == MeStatus.loading,

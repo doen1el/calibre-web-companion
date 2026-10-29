@@ -708,6 +708,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         final response = await repository.getDownloadStream(
           event.bookId,
           'epub',
+          downloadUrl: state.bookDetails?.downloadLinks['epub'],
         );
 
         final contentLength = response.contentLength ?? -1;

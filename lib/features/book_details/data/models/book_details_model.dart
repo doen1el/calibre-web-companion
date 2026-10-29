@@ -46,6 +46,7 @@ class BookDetailsModel extends BookViewModel {
     super.timestamp = '',
     super.formats = const [],
     super.coverUrl,
+    super.downloadLinks = const {},
     this.tags = const [],
     this.cover = '',
     this.formatMetadata = const FormatMetadata(formats: {}),
@@ -225,6 +226,7 @@ class BookDetailsModel extends BookViewModel {
     List<String>? authorList,
     List<CustomColumnModel>? customColumns,
     String? coverUrl,
+    Map<String, String>? downloadLinks,
   }) {
     return BookDetailsModel(
       id: id ?? this.id,
@@ -262,6 +264,8 @@ class BookDetailsModel extends BookViewModel {
       tagModels: tagModels ?? this.tagModels,
       authorList: authorList ?? this.authorList,
       customColumns: customColumns ?? this.customColumns,
+      coverUrl: coverUrl ?? this.coverUrl,
+      downloadLinks: downloadLinks ?? this.downloadLinks,
     );
   }
 }

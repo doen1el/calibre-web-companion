@@ -38,7 +38,11 @@ class BookCoverWidget extends StatelessWidget {
     final isCalibre = prefs.getString('server_type') == 'calibre';
 
     String imageUrl;
-    if (hasExplicitCover) {
+    if (hasExplicitCover &&
+        (coverUrl!.startsWith('http://') || coverUrl!.startsWith('https://'))) {
+      // Generic OPDS feeds resolve their cover links to absolute URLs.
+      imageUrl = coverUrl!;
+    } else if (hasExplicitCover) {
       var cleanCoverURL = coverUrl!.split('/api/v1/opds/').last;
       if (cleanCoverURL.startsWith('/')) {
         cleanCoverURL = cleanCoverURL.substring(1);

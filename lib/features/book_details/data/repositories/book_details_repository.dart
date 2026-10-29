@@ -81,10 +81,15 @@ class BookDetailsRepository {
 
   Future<StreamedResponse> getDownloadStream(
     String bookId,
-    String format,
-  ) async {
+    String format, {
+    String? downloadUrl,
+  }) async {
     try {
-      return await datasource.getDownloadStream(bookId, format);
+      return await datasource.getDownloadStream(
+        bookId,
+        format,
+        downloadUrl: downloadUrl,
+      );
     } catch (e) {
       rethrow;
     }
