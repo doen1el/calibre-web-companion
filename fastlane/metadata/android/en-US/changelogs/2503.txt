@@ -5,3 +5,5 @@ Feat: Remove downloaded books from the device in the offline library
 Feat: Browse generic OPDS catalogs with folders, paging and search suggestions
 Fix: Password-protected OPDS feeds now ask for credentials
 Fix: Saving large books to local storage no longer fails with "out of memory"
+Fix: Sorting books by title no longer shows "No books" on Calibre-Web Automated
+Fix: Search suggestions now include matching book titles

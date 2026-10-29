@@ -71,11 +71,24 @@ class BookViewRemoteDatasource {
         queryParams['search'] = searchQuery;
       }
 
-      final response = await _apiService.getJson(
+      var response = await _apiService.getJson(
         endpoint: '/ajax/listbooks',
         authMethod: AuthMethod.cookie,
         queryParams: queryParams,
       );
+
+      // CWA 4.x fails the paged title sort server-side ("no such column:
+      // title") and answers with empty rows. Its search path sorts fine, so
+      // retry with a match-all term (#207).
+      if (_isSwallowedSortError(response, offset) &&
+          !queryParams.containsKey('search')) {
+        _logger.w('Server returned no rows for sort=$sortBy, retrying');
+        response = await _apiService.getJson(
+          endpoint: '/ajax/listbooks',
+          authMethod: AuthMethod.cookie,
+          queryParams: {...queryParams, 'search': '%'},
+        );
+      }
 
       if (response.containsKey('rows') && response['rows'] is List) {
         final List<dynamic> rows = response['rows'];
@@ -99,6 +112,12 @@ class BookViewRemoteDatasource {
       _logger.e('Error fetching books: $e');
       throw Exception('Failed to load books: $e');
     }
+  }
+
+  bool _isSwallowedSortError(Map<String, dynamic> response, int offset) {
+    final rows = response['rows'];
+    final total = response['total'];
+    return rows is List && rows.isEmpty && total is int && offset < total;
   }
 
   Future<List<BookViewModel>> _fetchBooksOpds() async {
