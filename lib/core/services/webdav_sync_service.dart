@@ -50,6 +50,15 @@ class WebDavSyncService {
               response.statusCode == 204) {
             response.statusCode = 200;
           }
+          // webdav_client reads the challenge with headers.value(), which
+          // throws when a server (e.g. OpenCloud) sends several of them.
+          final challenges = response.headers.map['www-authenticate'];
+          if (challenges != null && challenges.length > 1) {
+            response.headers.set(
+              'www-authenticate',
+              _pickChallenge(challenges),
+            );
+          }
           handler.next(response);
         },
       ),
@@ -60,6 +69,15 @@ class WebDavSyncService {
     client.setReceiveTimeout(30000);
 
     _client = client;
+  }
+
+  static String _pickChallenge(List<String> challenges) {
+    for (final scheme in ['digest', 'basic']) {
+      for (final c in challenges) {
+        if (c.trimLeft().toLowerCase().startsWith(scheme)) return c;
+      }
+    }
+    return challenges.first;
   }
 
   Future<T> _locked<T>(Future<T> Function() action) {
