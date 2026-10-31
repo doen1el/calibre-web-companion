@@ -93,7 +93,16 @@ class BookDetailsModel extends BookViewModel {
     final List<TagModel> tagModels = tagService.convertTagsToModels(tagNames);
 
     return BookDetailsModel(
-      id: bookListModel.id,
+      // Books opened from a shelf arrive with id 0 (the OPDS shelf feed only
+      // exposes the UUID); the ajax payload carries the numeric id that the
+      // download and read/archive endpoints need.
+      id:
+          bookListModel.id > 0
+              ? bookListModel.id
+              : int.tryParse(
+                    additionalData['application_id']?.toString() ?? '',
+                  ) ??
+                  0,
       uuid: bookListModel.uuid,
       title: additionalData['title'] ?? '',
       authors: (additionalData['authors'] as List)
