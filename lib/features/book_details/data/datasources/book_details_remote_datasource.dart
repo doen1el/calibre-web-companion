@@ -86,18 +86,29 @@ class BookDetailsRemoteDatasource {
       }
 
       // Custom columns are only in the detail page HTML, so load it alongside.
-      final customColumns = _fetchCalibreWebCustomColumns(bookListModel.id);
+      // Shelf books arrive with id 0; their id is only known from the ajax
+      // payload, so the detail page has to wait for it.
+      final earlyCustomColumns =
+          bookListModel.id > 0
+              ? _fetchCalibreWebCustomColumns(bookListModel.id)
+              : null;
 
       final response = await apiService.getJson(
         endpoint: '/ajax/book/$bookUuid',
         authMethod: AuthMethod.auto,
       );
 
-      return BookDetailsModel.fromBookListModel(
+      final details = BookDetailsModel.fromBookListModel(
         bookListModel,
         response,
         tagService,
-        customColumns: await customColumns,
+      );
+      if (earlyCustomColumns != null) {
+        return details.copyWith(customColumns: await earlyCustomColumns);
+      }
+      if (details.id <= 0) return details;
+      return details.copyWith(
+        customColumns: await _fetchCalibreWebCustomColumns(details.id),
       );
     } catch (e) {
       logger.e('Error fetching book details: $e');
