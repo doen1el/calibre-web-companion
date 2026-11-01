@@ -111,6 +111,9 @@ jobs:
           status: completed
           releaseName: 'Release ${{ github.run_number }}'
           whatsNewDirectory: distribution/whatsnew
+          # Play rejects auto-submitting while the console has pending manual
+          # changes; the release is then sent for review from the console.
+          changesNotSentForReview: true
 
       # #8 Build iOS (.app)
       # - name: Build iOS (Unsigned)
