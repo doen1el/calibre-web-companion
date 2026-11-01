@@ -80,6 +80,8 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
   int _koSyncSpineIndex = -1;
   double? _koSyncPushedPercentage;
   KoSyncProgress? _koSyncProgress;
+  // Shelf books open with id 0 until the details resolve the real one.
+  late int _bookId = widget.bookViewModel.id;
   String _readerFormat = 'epub';
 
   @override
@@ -211,11 +213,9 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
   /// progress card.
   Future<void> _loadKoSyncProgress() async {
     final koSync = getIt<KoSyncService>();
-    if (!await koSync.isEnabled()) return;
+    if (_bookId <= 0 || !await koSync.isEnabled()) return;
 
-    final progress = await koSync.fetchProgress(
-      document: widget.bookViewModel.id.toString(),
-    );
+    final progress = await koSync.fetchProgress(document: _bookId.toString());
     if (!mounted || progress == null || progress.percentage <= 0) return;
 
     setState(() => _koSyncProgress = progress);
@@ -630,6 +630,12 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
                   previous.authorNavigationStatus !=
                       current.authorNavigationStatus,
           listener: (context, state) {
+            final resolvedId = state.bookDetails?.id ?? 0;
+            if (_bookId <= 0 && resolvedId > 0) {
+              _bookId = resolvedId;
+              _loadKoSyncProgress();
+            }
+
             if (!_didAutoOpen &&
                 widget.autoOpenAction != BookAutoOpen.none &&
                 state.status == BookDetailsStatus.loaded &&

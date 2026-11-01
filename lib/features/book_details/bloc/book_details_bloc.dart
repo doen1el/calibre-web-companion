@@ -60,6 +60,16 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
 
   bool _sendToEReaderCancelled = false;
 
+  /// Books opened from a shelf carry id 0; once the details resolved the real
+  /// numeric id, reflect it on the view model too.
+  BookViewModel _withResolvedId(
+    BookViewModel bookViewModel,
+    BookDetailsModel bookDetails,
+  ) {
+    if (bookViewModel.id > 0 || bookDetails.id <= 0) return bookViewModel;
+    return bookViewModel.copyWith(id: bookDetails.id);
+  }
+
   Future<void> _onLoadBookDetails(
     LoadBookDetails event,
     Emitter<BookDetailsState> emit,
@@ -91,7 +101,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       emit(
         state.copyWith(
           status: BookDetailsStatus.loaded,
-          bookViewModel: event.bookViewModel,
+          bookViewModel: _withResolvedId(event.bookViewModel, bookDetails),
           bookDetails: bookDetails,
           isDownloaded: isDownloaded,
           isBookRead: bookDetails.readStatus,
@@ -150,7 +160,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           bookDetails: bookDetails,
           isBookRead: event.bookViewModel.readStatus,
           isBookArchived: event.bookViewModel.isArchived,
-          bookViewModel: event.bookViewModel,
+          bookViewModel: _withResolvedId(event.bookViewModel, bookDetails),
         ),
       );
     } catch (e) {
