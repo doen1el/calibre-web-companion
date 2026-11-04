@@ -111,7 +111,7 @@
     "eInkModeDescription": "Vypne animácie pre zariadenia s E-Ink displejom",
     "deleteBook": "Odstrániť knihu",
     "deleteBookConfirmation": "Naozaj chcete odstrániť túto knihu?",
-    "delete": "Odstrániť",
+    "delete": "Zmazať",
     "bookDeletedSuccessfully": "Kniha bola úspešne odstránená",
     "failedToDeleteBook": "Knihu sa nepodarilo odstrániť",
     "errorLoadingData": "Chyba pri načítavaní údajov",
