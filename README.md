@@ -30,7 +30,7 @@
 
 # Calibre Web Companion
 
-This is an unofficial companion application for [Calibre Web](https://github.com/janeczku/calibre-web) (which also works for [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated), [Calibre-Web-NextGen](https://github.com/new-usemame/Calibre-Web-NextGen), [Grimmory](https://github.com/grimmory-tools/grimmory), [Calibre 'Sharing over the net'](https://github.com/kovidgoyal/calibre) and other OPDS providers (beta)), that allows you to browse your book collection and download books directly to your device. You can also interact with your books by marking them as read, unread or bookmarked. It is also possible to send books directly to your e-reader (Kindle/Kobo) thanks to the great work of [send2ereader](https://github.com/daniel-j/send2ereader).
+This is an unofficial companion application for [Calibre Web](https://github.com/janeczku/calibre-web) (which also works for [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated), [Calibre-Web-NextGen](https://github.com/new-usemame/Calibre-Web-NextGen), [Grimmory](https://github.com/grimmory-tools/grimmory), [Calibre 'Sharing over the net'](https://github.com/kovidgoyal/calibre) and other OPDS providers (beta)), that allows you to browse your book collection and download books directly to your device. You can also interact with your books by marking them as read, unread or bookmarked. It is also possible to send books directly to your e-reader (Kindle/Kobo) thanks to the great work of [BookDrop](https://github.com/eitan12345om/book-drop).
 
 The app is built with [Flutter](https://github.com/flutter/flutter) and uses **Material You**. It is currently available for **Android** only.
 
@@ -62,7 +62,7 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 - Add books quickly by scanning their ISBN barcode.
 - Read EPUB, PDF and CBZ books in the built-in reader without leaving the app. Books are fetched only when you open them, kept on the device up to a storage limit you choose, and automatically marked as read when you finish them.
 - Sync your reading progress across devices with KOReader Sync or your own WebDAV server (see [Reading progress sync](#-reading-progress-sync)).
-- Send books to your e‑reader via [send2ereader](https://github.com/daniel-j/send2ereader) (or your own instance) or Calibre‑Web's email function.
+- Send books to your e‑reader via [BookDrop](https://bookdrop.cc) (or your own instance) or Calibre‑Web's email function.
 - Download books straight into your collection with [shelfmark](https://github.com/calibrain/shelfmark).
   - ⚠️ This app does **not** support, encourage or facilitate the piracy of copyrighted works. Please only download content you are legally entitled to, respecting copyright is your responsibility.
 - Upload books to your Calibre‑Web server.
@@ -112,7 +112,7 @@ The source code is also mirrored on [Codeberg](https://codeberg.org/doen1el/cali
 - [Calibre Web](https://github.com/janeczku/calibre-web)
 - [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated)
 - [shelfmark](https://github.com/calibrain/shelfmark)
-- [send2ereader](https://github.com/daniel-j/send2ereader)
+- [BookDrop](https://github.com/eitan12345om/book-drop)
 - [Flutter](https://github.com/flutter/flutter)
 - [IconKitchen](https://icon.kitchen)
 - [Weblate](https://hosted.weblate.org/)

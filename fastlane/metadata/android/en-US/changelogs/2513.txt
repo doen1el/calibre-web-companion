@@ -1,0 +1,1 @@
+Fix: Send to e-reader now uses BookDrop (bookdrop.cc), the successor of the shut-down send2ereader service; saved send.djazz.se settings are switched automatically

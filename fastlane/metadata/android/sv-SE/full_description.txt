@@ -11,11 +11,11 @@ Funktioner:
 - Skapa, redigera och bläddra i Magiska hyllor: dynamiska regelbaserade hyllor (endast Calibre-Web Automated).
 - Lägg snabbt till böcker genom att skanna ISBN-streckkoden.
 - Läs böcker i den inbyggda e-boksläsaren och synkronisera läsframsteg mellan enheter via WebDAV.
-- Skicka böcker till e-boksläsaren (Kindle/Kobo) via send2ereader eller Calibre-Webs e-postfunktion.
+- Skicka böcker till e-boksläsaren (Kindle/Kobo) via BookDrop eller Calibre-Webs e-postfunktion.
 - Hämta böcker till samlingen med Shelfmark. Appen stöder eller uppmuntrar inte piratkopiering av upphovsrättsskyddade verk; hämta endast innehåll som du har laglig rätt till.
 - Ladda upp böcker till servern och synkronisera hela biblioteket eller utvalda böcker för läsning offline.
 - Gör appen till din: ändra ordning på eller dölj bokåtgärder och avsnitt, välj tema, aktivera e-bläckläge och justera textstorleken.
 
 Appen utvecklas aktivt. Du kan öppna ärenden på GitHub för fel, återkoppling och funktionsidéer.
 
-Tack till: Calibre-Web, Calibre-Web Automated, Shelfmark, send2ereader, Flutter.
+Tack till: Calibre-Web, Calibre-Web Automated, Shelfmark, BookDrop, Flutter.

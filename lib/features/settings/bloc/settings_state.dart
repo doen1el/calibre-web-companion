@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/core/utils/book_drop.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/data/models/predefined_colors.dart';
@@ -72,7 +73,7 @@ class SettingsState extends Equatable {
     this.useSsoSessionForDownloader = false,
     this.isSsoSession = false,
     this.isSend2ereaderEnabled = false,
-    this.send2ereaderUrl = 'https://send.djazz.se',
+    this.send2ereaderUrl = defaultBookDropUrl,
     this.defaultDownloadPath = '',
     this.downloadSchema = DownloadSchema.flat,
     this.downloadPathTemplate = DownloadPathTemplate.defaultTemplate,

@@ -20,7 +20,7 @@
     <li>القراءة والأجهزة</li>
     <ul>
         <li>تنزيل الكتب مباشرةً على جهازك</li>
-        <li>إرسال الكتب إلى قارئك الإلكتروني (Kindle/Kobo) عبر send2ereader</li>
+        <li>إرسال الكتب إلى قارئك الإلكتروني (Kindle/Kobo) عبر BookDrop</li>
         <li>استخدام وظيفة البريد في Calibre Web لتسليم الأجهزة</li>
     </ul>
     <li>تكامل الأتمتة</li>
@@ -32,4 +32,4 @@
 
 يُرجى ملاحظة أن التطبيق قيد التطوير حاليًا. يمكنك فتح مشكلات على GitHub للإبلاغ عن الأخطاء وتقديم الملاحظات واقتراح الأفكار الخاصة بالميزات.
 
-الاعتمادات: Calibre Web، Calibre Web Automated، send2ereader، calibre-web-automated-book-downloader
+الاعتمادات: Calibre Web، Calibre Web Automated، BookDrop، calibre-web-automated-book-downloader

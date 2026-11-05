@@ -11,11 +11,11 @@
 - 创建、编辑和浏览“魔法书架”（Magic Shelves）：基于规则的动态书架（仅限 Calibre-Web Automated）。
 - 通过扫描 ISBN 条形码快速添加书籍。
 - 使用内置电子书阅读器阅读书籍，并通过 WebDAV 在多设备间同步阅读进度。
-- 通过 send2ereader 或 Calibre-Web 的邮件功能将书籍发送到您的电子阅读器（Kindle/Kobo）。
+- 通过 BookDrop 或 Calibre-Web 的邮件功能将书籍发送到您的电子阅读器（Kindle/Kobo）。
 - 使用 Shelfmark 将书籍下载到您的藏书中。本应用不支持也不鼓励盗版受版权保护的作品；请仅下载您拥有合法权利的内容。
 - 将书籍上传到您的服务器，并同步整个书库或选定书籍以供离线阅读。
 - 个性化定制：重新排序或隐藏书籍操作和板块，选择主题，启用墨水屏模式，并调整字体大小。
 
 本应用正在积极开发中。您可以在 GitHub 上提交 Issue 以反馈错误、建议或新功能想法。
 
-致谢：Calibre-Web, Calibre-Web Automated, Shelfmark, send2ereader, Flutter。
+致谢：Calibre-Web, Calibre-Web Automated, Shelfmark, BookDrop, Flutter。
