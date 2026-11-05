@@ -1,0 +1,1 @@
+Correcció: Enviar al lector electrònic ara utilitza BookDrop (bookdrop.cc), el successor del servei send2ereader tancat; les configuracions desades de send.djazz.se es modifiquen automàticament
