@@ -101,7 +101,10 @@ jobs:
         run: bash .github/scripts/generate_whatsnew.sh "$VERSION_CODE"
 
       #7 Upload to Play Store
+      # Label the PR 'skip-play-upload' to rebuild the GitHub release when the
+      # build already reached Play (a versionCode can only be uploaded once).
       - name: Upload to Google Play
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-play-upload') }}
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
@@ -111,9 +114,6 @@ jobs:
           status: completed
           releaseName: 'Release ${{ github.run_number }}'
           whatsNewDirectory: distribution/whatsnew
-          # Play rejects auto-submitting while the console has pending manual
-          # changes; the release is then sent for review from the console.
-          changesNotSentForReview: true
 
       # #8 Build iOS (.app)
       # - name: Build iOS (Unsigned)

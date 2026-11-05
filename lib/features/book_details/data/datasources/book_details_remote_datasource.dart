@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
+import 'package:calibre_web_companion/core/utils/book_drop.dart';
 import 'package:calibre_web_companion/core/utils/book_mime_types.dart';
 import 'package:calibre_web_companion/core/utils/document_bytes.dart';
 import 'package:calibre_web_companion/core/utils/pubdate.dart';
@@ -1406,23 +1407,28 @@ class BookDetailsRemoteDatasource {
   }) async {
     try {
       logger.i(
-        'Uploading to send2ereader - URL: $url, Code: $code, Kindle: $isKindle',
+        'Uploading to BookDrop - URL: $url, Code: $code, Kindle: $isKindle',
       );
 
-      url = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
-
-      final request = http.MultipartRequest('POST', Uri.parse('$url/upload'));
-
-      request.fields['key'] = code;
-      request.fields['kepubify'] = (!isKindle).toString();
-      request.fields['kindlegen'] = isKindle.toString();
-
-      final multipartFile = http.MultipartFile.fromBytes(
-        'file',
-        bookBytes,
-        filename: path.basename(filename),
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse(bookDropUploadUrl(url)),
       );
-      request.files.add(multipartFile);
+      // BookDrop rejects uploads without this header (CSRF protection).
+      request.headers['X-Requested-With'] = 'XMLHttpRequest';
+
+      request.fields['key'] = code.trim().toUpperCase();
+      // Options are checkbox fields: any value counts as enabled, so only send
+      // the one we want. BookDrop applies it based on the receiving device.
+      request.fields[isKindle ? 'kindlegen' : 'kepubify'] = 'on';
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          bookBytes,
+          filename: path.basename(filename),
+        ),
+      );
 
       unawaited(
         _updateProgressWithDelay(onProgressUpdate, [20, 40, 70, 90, 100]),
@@ -1433,18 +1439,29 @@ class BookDetailsRemoteDatasource {
       final success = response.statusCode == 200;
 
       if (success) {
-        logger.i('Successfully uploaded to send2ereader');
+        logger.i('Successfully uploaded to BookDrop');
       } else {
         logger.e(
-          'Failed to upload: ${response.statusCode}, Body: $responseBody',
+          'BookDrop upload failed: ${response.statusCode}, '
+          '${_bookDropError(responseBody)}',
         );
       }
 
       return success;
     } catch (e) {
-      logger.e('Error uploading to send2ereader: $e');
+      logger.e('Error uploading to BookDrop: $e');
       return false;
     }
+  }
+
+  String _bookDropError(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map && decoded['error'] is String) {
+        return decoded['error'] as String;
+      }
+    } catch (_) {}
+    return body.length > 200 ? body.substring(0, 200) : body;
   }
 
   Future<void> _updateProgressWithDelay(

@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/core/utils/book_drop.dart';
 import 'package:calibre_web_companion/features/download_service/data/downloader_request_headers.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
@@ -39,9 +40,9 @@ class SettingsLocalDataSource {
         'is_sso_session': sharedPreferences.getBool('is_sso_session') ?? false,
         'send2ereader_enabled':
             sharedPreferences.getBool('send2ereader_enabled') ?? false,
-        'send2ereader_url':
-            sharedPreferences.getString('send2ereader_url') ??
-            'https://send.djazz.se',
+        'send2ereader_url': migrateBookDropUrl(
+          sharedPreferences.getString('send2ereader_url'),
+        ),
         'default_download_path':
             sharedPreferences.getString('default_download_path') ?? '',
         'download_schema': sharedPreferences.getInt('download_schema') ?? 0,

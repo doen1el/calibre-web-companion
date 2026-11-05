@@ -11,11 +11,11 @@ Característiques:
 - Crea, edita i navega pels Prestatges Màgics: prestatges dinàmics basats en normes (només a Calibre-Web Automated).
 - Afegeix llibres ràpidament escannejant el seu codi de barres ISBN.
 - Llegeix llibres al lector integrat de llibres electrònics, i sincronitza el teu progrés amb altres dispositius via WebDAV.
-- Envia llibres al teu lector (Kindle/Kobo) via send2ereader o la funció de correu de Calibre-Web.
+- Envia llibres al teu lector (Kindle/Kobo) via BookDrop o la funció de correu de Calibre-Web.
 - Descarrega llibres a la teva col·lecció amb Shelfmark. Aquesta aplicació no promociona ni encoratja la pirateria d'obres amb drets d'autor; si us plau, descarrega només contingut del qual estiguis autoritzat legalment a fer-ho.
 - Carrega llibres al teu servidor, i sincronitza tota la teva llibreria o llibres seleccionats per llegir-los fora de línia.
 - Fes-lo teu: reordena o amaga llibres, accions i seccions, escull un tema, permet el mode de tinta electrònica, i ajusta la mida del text.
 
 L'aplicació es troba en desenvolupament actiu. Pots obrir incidències a GitHub per errors, comentaris i propostes d'idees.
 
-Crèdits: Calibre-Web, Calibre-Web Automated, Shelfmark, send2ereades, Flutter.
+Crèdits: Calibre-Web, Calibre-Web Automated, Shelfmark, BookDrop, Flutter.

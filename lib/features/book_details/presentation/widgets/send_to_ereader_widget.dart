@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:calibre_web_companion/core/services/snackbar.dart';
+import 'package:calibre_web_companion/core/utils/book_drop.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_event.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_state.dart';
@@ -384,7 +385,8 @@ class SendToEreaderWidget extends StatelessWidget {
                 ),
                 children: <TextSpan>[
                   TextSpan(
-                    text: ' ${settingsState.send2ereaderUrl} ',
+                    text:
+                        ' ${bookDropReceiveUrl(settingsState.send2ereaderUrl)} ',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   TextSpan(text: localizations.onYourEReader),

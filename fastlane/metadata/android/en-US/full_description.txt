@@ -11,11 +11,11 @@ Features:
 - Create, edit and browse Magic Shelves: dynamic, rule-based shelves (Calibre-Web Automated only).
 - Add books quickly by scanning their ISBN barcode.
 - Read books in the built-in eBook reader and sync your reading progress across devices via WebDAV.
-- Send books to your e-reader (Kindle/Kobo) via send2ereader or Calibre-Web's email function.
+- Send books to your e-reader (Kindle/Kobo) via BookDrop or Calibre-Web's email function.
 - Download books into your collection with Shelfmark. This app does not support or encourage the piracy of copyrighted works; please only download content you are legally entitled to.
 - Upload books to your server, and sync your whole library or selected books for offline reading.
 - Make it yours: reorder or hide book actions and sections, choose a theme, enable e-ink mode, and adjust the text size.
 
 The app is in active development. You can open issues on GitHub for bugs, feedback and feature ideas.
 
-Credits: Calibre-Web, Calibre-Web Automated, Shelfmark, send2ereader, Flutter.
+Credits: Calibre-Web, Calibre-Web Automated, Shelfmark, BookDrop, Flutter.

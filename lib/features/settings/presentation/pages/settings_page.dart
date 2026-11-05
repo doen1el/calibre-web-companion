@@ -4,6 +4,7 @@ import 'package:calibre_web_companion/core/di/injection_container.dart';
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/widget_service.dart';
+import 'package:calibre_web_companion/core/utils/book_drop.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_bloc.dart';
 import 'package:calibre_web_companion/features/download_service/bloc/download_service_event.dart';
 import 'package:calibre_web_companion/features/login_settings/presentation/pages/login_settings_page.dart';
@@ -1039,7 +1040,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ReachableUrlField(
                 controller: _send2ereaderUrlController,
                 label: localizations.send2ereaderServiceUrl,
-                hint: 'https://send.djazz.se',
+                hint: defaultBookDropUrl,
                 onChanged:
                     (value) => context.read<SettingsBloc>().add(
                       SetCostumSend2EreaderUrl(value),

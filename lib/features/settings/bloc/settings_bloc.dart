@@ -1,4 +1,5 @@
 import 'package:calibre_web_companion/core/services/widget_service.dart';
+import 'package:calibre_web_companion/core/utils/book_drop.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
@@ -240,8 +241,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       await repository.setSend2ereaderEnabled(event.enabled);
       emit(state.copyWith(isSend2ereaderEnabled: event.enabled));
       if (!event.enabled) {
-        await repository.setSend2ereaderUrl('https://send.djazz.se');
-        emit(state.copyWith(send2ereaderUrl: 'https://send.djazz.se'));
+        await repository.setSend2ereaderUrl(defaultBookDropUrl);
+        emit(state.copyWith(send2ereaderUrl: defaultBookDropUrl));
       }
     } catch (e) {
       emit(

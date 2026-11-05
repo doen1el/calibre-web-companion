@@ -1,3 +1,4 @@
+import 'package:calibre_web_companion/core/utils/book_drop.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_section.dart';
 import 'package:calibre_web_companion/features/settings/data/models/discover_layout_config.dart';
@@ -94,7 +95,7 @@ class SettingsModel extends Equatable {
       useSsoSessionForDownloader: json['downloader_use_sso_session'] ?? false,
       isSsoSession: json['is_sso_session'] ?? false,
       isSend2ereaderEnabled: json['send2ereader_enabled'] ?? false,
-      send2ereaderUrl: json['send2ereader_url'] ?? 'https://send.djazz.se',
+      send2ereaderUrl: migrateBookDropUrl(json['send2ereader_url']),
       defaultDownloadPath: json['default_download_path'] ?? '',
       downloadSchema: DownloadSchema.values[json['download_schema'] ?? 0],
       downloadPathTemplate:
