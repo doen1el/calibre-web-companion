@@ -1,0 +1,11 @@
+Funció: El lector integrat ara obre també PDF i CBZ
+Funció: Els llibres oberts al lector queden al dispositiu per a llegir-los fora de línia
+Funció: Els llibres es marquen com a llegits quan els acabes amb el lector integrat
+Funció: Esborra els llibres descarregats al dispositiu a la llibreria fora de línia
+Funció: Explora catàlegs genèrics OPDS amb directoris, paginació i suggeriments de cerca
+Corregit: Els canals de contingut OPDS protegits amb contrasenya ara demanen les credencials
+Corregit: Desar llibres grans a l'emmagatzematge intern ja no falla amb "emmagatzematge esgotat"
+Corregit: Ordenar els llibres per títol ja no mostra "Cap llibre" a Calibre-Web Automated
+Corregit: Els suggeriments de cerca ara inclouen els títols dels llibres coincidents
+Corregit: La sincronització WebDAV ara connecta amb els servidors OpenCloud
+Corregit: La descàrrega i les marques als llibres oberts des d'un prestatge tornen a funcionar
