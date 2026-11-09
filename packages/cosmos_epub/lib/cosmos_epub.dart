@@ -51,7 +51,7 @@ class CosmosEpub {
     int starterChapter = -1,
   }) async {
     var bytes = File(localPath).readAsBytesSync();
-    EpubBook epubBook = await EpubReader.readBook(bytes.buffer.asUint8List());
+    EpubBook epubBook = await EpubReader.readBook(bytes);
     if (!context.mounted) return;
     await _openBook(
       context: context,
@@ -82,7 +82,7 @@ class CosmosEpub {
     EpubBookmarkSource? bookmarkSource,
     EpubBookmarkLabels bookmarkLabels = const EpubBookmarkLabels(),
   }) async {
-    EpubBook epubBook = await EpubReader.readBook(bytes.buffer.asUint8List());
+    EpubBook epubBook = await EpubReader.readBook(bytes);
     if (!context.mounted) return;
     await _openBook(
       context: context,
@@ -115,7 +115,7 @@ class CosmosEpub {
   }) async {
     final result = await http.get(Uri.parse(urlPath));
     final bytes = result.bodyBytes;
-    EpubBook epubBook = await EpubReader.readBook(bytes.buffer.asUint8List());
+    EpubBook epubBook = await EpubReader.readBook(bytes);
     if (!context.mounted) return;
     await _openBook(
       context: context,
