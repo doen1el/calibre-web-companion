@@ -614,5 +614,20 @@
     "yes": "Oui",
     "no": "Non",
     "downloaderUseSsoSessionDescription": "Envoyez le cookie de connexion SSO (par exemple, Authelia, Authentik) avec les requêtes du téléchargeur. Activez cette option si le téléchargeur se trouve derrière le même proxy d'authentification que Calibre-Web.",
-    "downloaderUseSsoSession": "Utiliser la session SSO pour le téléchargeur"
+    "downloaderUseSsoSession": "Utiliser la session SSO pour le téléchargeur",
+    "opdsReadOnlyHint": "OPDS vous permet de parcourir, de télécharger et de lire des livres. La modification des métadonnées, des étagères et du statut de lecture nécessite une connexion directe : pour Calibre-Web ou ses dérivés, utilisez l'onglet « Calibre Web ».",
+    "readerCacheClear": "Effacer",
+    "readerCacheUsage": "Taille actuellement utilisée : {size}",
+    "readerCacheLimit": "Limite de stockage",
+    "readerCacheDescription": "Les livres ouverts dans la liseuse intégrée restent sur l'appareil, s'ouvrent instantanément à la prochaine utilisation et sont disponibles hors ligne. Les plus anciens sont supprimés lorsque la limite est atteinte.",
+    "readerCache": "Gardez les livres ouverts dans la liseuse",
+    "autoMarkAsReadDescription": "Marque le livre comme « lu » sur votre serveur dès que vous arrivez à la fin dans la liseuse intégrée.",
+    "autoMarkAsRead": "Marquer comme lu une fois terminé",
+    "readerGeneral": "Lecture",
+    "removeFromDeviceConfirm": "Supprimer la copie locale de « {title} » ? Le livre reste sur votre serveur.",
+    "removeFromDevice": "Supprimer de l'appareil",
+    "comicHasNoPages": "Cette bande dessinée ne contient aucune page.",
+    "comicReadingDirection": "Sens de lecture",
+    "internalReaderUnsupportedFormatShort": "Non pris en charge par le lecteur intégré",
+    "internalReaderUnsupportedFormat": "La liseuse intégrée prend en charge les formats EPUB, PDF et CBZ. Formats disponibles : {formats}"
 }
