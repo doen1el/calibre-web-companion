@@ -92,6 +92,11 @@ class DownloadToDeviceWidget extends StatelessWidget {
       return;
     }
 
+    final downloadedFormats = context
+        .read<BookDetailsBloc>()
+        .downloadManager
+        .downloadedFormats(book.uuid);
+
     showAppOptionsSheet(
       context,
       title: localizations.downlaodFomat,
@@ -100,6 +105,17 @@ class DownloadToDeviceWidget extends StatelessWidget {
           AppSheetOption(
             icon: _formatIcon(format),
             title: format.toUpperCase(),
+            subtitle:
+                downloadedFormats.contains(format.toLowerCase())
+                    ? localizations.bookAlreadyDownloaded
+                    : null,
+            trailing:
+                downloadedFormats.contains(format.toLowerCase())
+                    ? Icon(
+                      Icons.check_circle_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                    )
+                    : null,
             onTap: () => _downloadBook(context, localizations, book, format),
           ),
       ],
