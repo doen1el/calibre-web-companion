@@ -1,0 +1,11 @@
+Nyhet: Den interna läsaren öppnar nu även PDF- och CBZ-böcker
+Nyhet: Böcker som öppnas i läsaren finns kvar på enheten för läsning utan internetanslutning
+Nyhet: Böcker markeras som lästa när du läser klart dem i den interna läsaren
+Nyhet: Ta bort hämtade böcker från enheten i biblioteket för offlineanvändning
+Nyhet: Bläddra i allmänna OPDS-kataloger med mappar, sidindelning och sökförslag
+Rättat: Lösenordsskyddade OPDS-flöden frågar nu efter inloggningsuppgifter
+Rättat: Det går åter att spara stora böcker lokalt utan felet ”slut på minne”
+Rättat: Sortering av böcker efter titel visar inte längre ”Inga böcker” i Calibre-Web Automated
+Rättat: Sökförslag innehåller nu matchande boktitlar
+Rättat: WebDAV-synkning ansluter nu till OpenCloud-servrar
+Rättat: Det går åter att hämta och markera böcker som öppnats från en hylla
