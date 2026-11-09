@@ -530,7 +530,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       final readerCache = GetIt.instance<ReaderCacheService>();
 
       if (await downloadManager.checkFileExistence(uuid)) {
-        final path = downloadManager.getBookPath(uuid)!;
+        final path = downloadManager.getBookPath(uuid, format: event.format)!;
         logger.i('Trying downloaded copy for reader from: $path');
         bytes = await repository.readLocalBookBytes(path, format: event.format);
       }

@@ -7,6 +7,7 @@ class AppSheetOption {
   final VoidCallback onTap;
   final bool isDestructive;
   final bool enabled;
+  final Widget? trailing;
 
   const AppSheetOption({
     required this.icon,
@@ -15,6 +16,7 @@ class AppSheetOption {
     this.subtitle,
     this.isDestructive = false,
     this.enabled = true,
+    this.trailing,
   });
 }
 
@@ -45,6 +47,7 @@ Future<void> showAppOptionsSheet(
                 subtitle: option.subtitle,
                 isDestructive: option.isDestructive,
                 enabled: option.enabled,
+                trailing: option.trailing,
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   option.onTap();
