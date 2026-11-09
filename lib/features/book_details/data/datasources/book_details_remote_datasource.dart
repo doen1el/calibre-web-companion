@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:calibre_web_companion/core/utils/book_drop.dart';
@@ -1385,7 +1386,7 @@ class BookDetailsRemoteDatasource {
         bytes = await file.readAsBytes();
       }
 
-      if (!InternalReaderFormats.bytesMatch(lowerFormat, bytes)) {
+      if (!_localBytesMatchFormat(lowerFormat, bytes)) {
         logger.i('Local copy at $path is not a valid $format — will stream.');
         return null;
       }
@@ -1394,6 +1395,25 @@ class BookDetailsRemoteDatasource {
     } catch (e) {
       logger.w('Could not read local copy ($path), will stream instead: $e');
       return null;
+    }
+  }
+
+  /// Validates that [bytes] are a structurally sound [format], not just a
+  /// magic-byte prefix. A damaged local copy (e.g. a corrupted or truncated
+  /// read back from storage) would otherwise be passed to the reader and
+  /// fail with errors like "META-INF/container.xml file not found"; returning
+  /// false here falls back to streaming the file from the server instead.
+  bool _localBytesMatchFormat(String lowerFormat, Uint8List bytes) {
+    if (!InternalReaderFormats.bytesMatch(lowerFormat, bytes)) return false;
+    if (lowerFormat != 'epub' && lowerFormat != 'cbz') return true;
+    try {
+      final archive = ZipDecoder().decodeBytes(bytes);
+      if (lowerFormat == 'epub') {
+        return archive.files.any((f) => f.name == 'META-INF/container.xml');
+      }
+      return archive.files.isNotEmpty;
+    } catch (_) {
+      return false;
     }
   }
 

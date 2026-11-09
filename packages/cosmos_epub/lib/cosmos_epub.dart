@@ -47,7 +47,7 @@ class CosmosEpub {
     int starterChapter = -1,
   }) async {
     var bytes = File(localPath).readAsBytesSync();
-    EpubBook epubBook = await EpubReader.readBook(bytes.buffer.asUint8List());
+    EpubBook epubBook = await EpubReader.readBook(bytes);
     if (!context.mounted) return;
     _openBook(
       context: context,
@@ -76,7 +76,7 @@ class CosmosEpub {
     double? startPercentage,
     Function(double percentage, int spineIndex)? onProgressChanged,
   }) async {
-    EpubBook epubBook = await EpubReader.readBook(bytes.buffer.asUint8List());
+    EpubBook epubBook = await EpubReader.readBook(bytes);
     if (!context.mounted) return;
     _openBook(
       context: context,
@@ -107,7 +107,7 @@ class CosmosEpub {
   }) async {
     final result = await http.get(Uri.parse(urlPath));
     final bytes = result.bodyBytes;
-    EpubBook epubBook = await EpubReader.readBook(bytes.buffer.asUint8List());
+    EpubBook epubBook = await EpubReader.readBook(bytes);
     if (!context.mounted) return;
     _openBook(
       context: context,
