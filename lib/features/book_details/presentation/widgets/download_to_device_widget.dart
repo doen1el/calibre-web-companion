@@ -62,7 +62,7 @@ class DownloadToDeviceWidget extends StatelessWidget {
               isLoading || state.downloadState == DownloadState.downloading
                   ? null
                   : () {
-                    if (isDownloaded) {
+                    if (isDownloaded && book.formats.length == 1) {
                       context.showSnackBar(localizations.bookAlreadyDownloaded);
                     } else {
                       _showDownloadOptions(context, localizations, book);
