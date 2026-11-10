@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:calibre_web_companion/features/reader/data/bookmark_store.dart';
 import 'package:calibre_web_companion/features/reader/presentation/widgets/page_reader_chrome.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ class PdfReaderPage extends StatefulWidget {
   final String title;
   final int initialPage;
   final void Function(int page, int pageCount) onPageChanged;
+  final BookmarkStore? bookmarkStore;
 
   const PdfReaderPage({
     super.key,
@@ -17,6 +19,7 @@ class PdfReaderPage extends StatefulWidget {
     required this.title,
     required this.initialPage,
     required this.onPageChanged,
+    this.bookmarkStore,
   });
 
   @override
@@ -56,6 +59,7 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
 
     return PageReaderChrome(
       title: widget.title,
+      bookmarkStore: widget.bookmarkStore,
       page: _page,
       pageCount: _pageCount,
       visible: _chromeVisible || _error != null,

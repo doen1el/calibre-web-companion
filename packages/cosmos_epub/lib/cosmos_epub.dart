@@ -1,10 +1,14 @@
 library cosmos_epub;
 
+export 'Model/bookmark_model.dart';
+
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cosmos_epub/Component/constants.dart';
 import 'package:cosmos_epub/Helpers/progress_singleton.dart';
 import 'package:cosmos_epub/Model/book_progress_model.dart';
+import 'package:cosmos_epub/Model/bookmark_model.dart';
 import 'package:cosmos_epub/Model/highlight_model.dart';
 import 'package:cosmos_epub/show_epub.dart';
 import 'package:epubx/epubx.dart';
@@ -49,7 +53,7 @@ class CosmosEpub {
     var bytes = File(localPath).readAsBytesSync();
     EpubBook epubBook = await EpubReader.readBook(bytes.buffer.asUint8List());
     if (!context.mounted) return;
-    _openBook(
+    await _openBook(
       context: context,
       epubBook: epubBook,
       bookId: bookId,
@@ -75,10 +79,12 @@ class CosmosEpub {
     int starterChapter = -1,
     double? startPercentage,
     Function(double percentage, int spineIndex)? onProgressChanged,
+    EpubBookmarkSource? bookmarkSource,
+    EpubBookmarkLabels bookmarkLabels = const EpubBookmarkLabels(),
   }) async {
     EpubBook epubBook = await EpubReader.readBook(bytes.buffer.asUint8List());
     if (!context.mounted) return;
-    _openBook(
+    await _openBook(
       context: context,
       epubBook: epubBook,
       bookId: bookId,
@@ -90,6 +96,8 @@ class CosmosEpub {
       accentColor: accentColor,
       startPercentage: startPercentage,
       onProgressChanged: onProgressChanged,
+      bookmarkSource: bookmarkSource,
+      bookmarkLabels: bookmarkLabels,
     );
   }
 
@@ -109,7 +117,7 @@ class CosmosEpub {
     final bytes = result.bodyBytes;
     EpubBook epubBook = await EpubReader.readBook(bytes.buffer.asUint8List());
     if (!context.mounted) return;
-    _openBook(
+    await _openBook(
       context: context,
       epubBook: epubBook,
       bookId: bookId,
@@ -137,7 +145,7 @@ class CosmosEpub {
     var bytes = await rootBundle.load(assetPath);
     EpubBook epubBook = await EpubReader.readBook(bytes.buffer.asUint8List());
     if (!context.mounted) return;
-    _openBook(
+    await _openBook(
       context: context,
       epubBook: epubBook,
       bookId: bookId,
@@ -219,7 +227,7 @@ class CosmosEpub {
     }
   }
 
-  static _openBook({
+  static Future<void> _openBook({
     required BuildContext context,
     required EpubBook epubBook,
     required String bookId,
@@ -231,6 +239,8 @@ class CosmosEpub {
     Function(int lastPageIndex)? onLastPage,
     double? startPercentage,
     Function(double percentage, int spineIndex)? onProgressChanged,
+    EpubBookmarkSource? bookmarkSource,
+    EpubBookmarkLabels bookmarkLabels = const EpubBookmarkLabels(),
   }) async {
     _checkInitialization();
 
@@ -254,14 +264,25 @@ class CosmosEpub {
           onLastPage: onLastPage,
           startPercentage: startPercentage,
           onProgressChanged: onProgressChanged,
+          bookmarkSource: bookmarkSource,
+          bookmarkLabels: bookmarkLabels,
         );
       },
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      shouldOpenDrawer || starterChapter != -1
-          ? Navigator.pushReplacement(context, route)
-          : Navigator.push(context, route);
+    // Completes when the reader is closed, so callers can run their
+    // "after reading" work (progress push, mark as read) at the right time.
+    final closed = Completer<void>();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        if (!context.mounted) return;
+        shouldOpenDrawer || starterChapter != -1
+            ? await Navigator.pushReplacement(context, route)
+            : await Navigator.push(context, route);
+      } finally {
+        closed.complete();
+      }
     });
+    return closed.future;
   }
 }

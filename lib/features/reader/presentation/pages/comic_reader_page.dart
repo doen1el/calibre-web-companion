@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
+import 'package:calibre_web_companion/features/reader/data/bookmark_store.dart';
 import 'package:calibre_web_companion/features/reader/presentation/widgets/page_reader_chrome.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ class ComicReaderPage extends StatefulWidget {
   final String title;
   final int initialPage;
   final void Function(int page, int pageCount) onPageChanged;
+  final BookmarkStore? bookmarkStore;
 
   const ComicReaderPage({
     super.key,
@@ -18,6 +20,7 @@ class ComicReaderPage extends StatefulWidget {
     required this.title,
     required this.initialPage,
     required this.onPageChanged,
+    this.bookmarkStore,
   });
 
   static const String rightToLeftKey = 'comic_reader_rtl';
@@ -143,6 +146,7 @@ class _ComicReaderPageState extends State<ComicReaderPage> {
 
     return PageReaderChrome(
       title: widget.title,
+      bookmarkStore: widget.bookmarkStore,
       page: _page,
       pageCount: _pages.length,
       visible: _chromeVisible || _pages.isEmpty,

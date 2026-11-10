@@ -1,0 +1,2 @@
+Feat: Set bookmarks in the internal reader (EPUB, PDF and CBZ) and jump back to them; they sync between devices via WebDAV
+Fix: EPUB books are now marked as read when you finish them in the internal reader, and the final reading position is synced when the reader closes

@@ -99,15 +99,6 @@ class PageProgressStore {
     }
   }
 
-  Future<WebDavSyncService?> _webDav() async {
-    if (!(prefs.getBool('webdav_enabled') ?? false)) return null;
-    final url = prefs.getString('webdav_url') ?? '';
-    if (url.isEmpty) return null;
-    return WebDavSyncService(logger: logger)..init(
-      url,
-      prefs.getString('webdav_username') ?? '',
-      prefs.getString('webdav_password') ?? '',
-      allowSelfSigned: prefs.getBool('allow_self_signed') ?? false,
-    );
-  }
+  Future<WebDavSyncService?> _webDav() async =>
+      WebDavSyncService.fromPrefs(prefs, logger);
 }

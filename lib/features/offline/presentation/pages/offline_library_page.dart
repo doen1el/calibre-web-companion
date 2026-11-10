@@ -6,6 +6,7 @@ import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
 import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
 import 'package:calibre_web_companion/features/offline/data/repositories/offline_library_repository.dart';
+import 'package:calibre_web_companion/features/reader/data/epub_bookmark_source.dart';
 import 'package:calibre_web_companion/features/reader/data/internal_reader_formats.dart';
 import 'package:calibre_web_companion/features/reader/presentation/page_reader_launcher.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
@@ -138,6 +139,8 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
         bytes: bytes,
         bookId: book.uuid,
         accentColor: Theme.of(context).colorScheme.primary,
+        bookmarkSource: StoreEpubBookmarkSource.forBook(book.uuid),
+        bookmarkLabels: epubBookmarkLabels(localizations),
       );
     } catch (e) {
       if (mounted) {

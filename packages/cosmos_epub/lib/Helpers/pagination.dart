@@ -127,6 +127,9 @@ class PagingWidget extends StatefulWidget {
   final Function(int, int) onPageFlip;
   final Function(int, int) onLastPage;
   final Function(int, int)? onFirstPageBack;
+
+  /// Page HTML of the laid-out chapter and the page it opens on.
+  final void Function(List<String> pageHtmls, int initialIndex)? onPaginated;
   final Widget? lastWidget;
 
   const PagingWidget({
@@ -147,6 +150,7 @@ class PagingWidget extends StatefulWidget {
     required this.onPageFlip,
     required this.onLastPage,
     this.onFirstPageBack,
+    this.onPaginated,
     this.starterPageIndex = 0,
     this.starterPageFraction,
     required this.chapterTitle,
@@ -227,6 +231,13 @@ class _PagingWidgetState extends State<PagingWidget> {
         onTextTap: widget.onTextTap,
       );
     }).toList();
+
+    final pageHtmls = List<String>.unmodifiable(_pageHtmls);
+    final initialIndex = _resolveInitialIndex(pageHtmlCount);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      widget.onPaginated?.call(pageHtmls, initialIndex);
+    });
 
     // Report the resolved page, so a jumped-to position is recorded like any
     // other and does not fall back to the chapter start on the next open.
