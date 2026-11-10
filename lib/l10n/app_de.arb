@@ -621,5 +621,18 @@
   "readerCacheLimit": "Speicherlimit",
   "readerCacheUsage": "Aktuell belegt: {size}",
   "readerCacheClear": "Leeren",
-  "opdsReadOnlyHint": "Über OPDS kannst du Bücher durchsuchen, herunterladen und lesen. Metadaten bearbeiten, Regale und Lesestatus brauchen einen direkten Login: Für Calibre-Web und seine Forks den Tab „Calibre Web“ verwenden."
+  "opdsReadOnlyHint": "Über OPDS kannst du Bücher durchsuchen, herunterladen und lesen. Metadaten bearbeiten, Regale und Lesestatus brauchen einen direkten Login: Für Calibre-Web und seine Forks den Tab „Calibre Web“ verwenden.",
+  "readerContents": "Inhalt",
+  "readerBookmarks": "Lesezeichen",
+  "readerNoBookmarks": "Noch keine Lesezeichen. Tippe beim Lesen auf das Lesezeichen-Symbol, um eine Seite zu merken.",
+  "readerAddBookmark": "Lesezeichen setzen",
+  "readerRemoveBookmark": "Lesezeichen entfernen",
+  "readerBookmarkAdded": "Lesezeichen gesetzt",
+  "readerBookmarkRemoved": "Lesezeichen entfernt",
+  "readerBookmarkPage": "Seite {page}",
+  "metadataSourceIssues": "Einige Quellen konnten nicht durchsucht werden",
+  "metadataStatusRateLimited": "Zu viele Anfragen",
+  "metadataStatusBlocked": "Von der Quelle blockiert",
+  "metadataStatusMissingKey": "API-Schlüssel fehlt",
+  "metadataStatusError": "Fehler"
 }

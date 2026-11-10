@@ -23,6 +23,7 @@ import 'package:calibre_web_companion/features/book_details/presentation/widgets
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/discover/blocs/discover_event.dart';
 import 'package:calibre_web_companion/features/discover_details/presentation/pages/discover_details_page.dart';
+import 'package:calibre_web_companion/features/reader/data/epub_bookmark_source.dart';
 import 'package:calibre_web_companion/features/reader/data/internal_reader_formats.dart';
 import 'package:calibre_web_companion/features/reader/data/reader_preferences.dart';
 import 'package:calibre_web_companion/features/reader/presentation/page_reader_launcher.dart';
@@ -305,6 +306,8 @@ class _BookDetailsPageState extends State<BookDetailsPage> {
         bookId: bookUuid,
         startPercentage: startPercentage,
         accentColor: Theme.of(context).colorScheme.primary,
+        bookmarkSource: StoreEpubBookmarkSource.forBook(bookUuid),
+        bookmarkLabels: epubBookmarkLabels(localization),
         onPageFlip: (currentPage, totalPages) {
           _scheduleReaderProgressSync(bookUuid);
           _pushReadingProgressToWidget(bookUuid, currentPage, totalPages);

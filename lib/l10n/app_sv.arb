@@ -613,5 +613,20 @@
     "yes": "Ja",
     "no": "Nej",
     "downloaderUseSsoSession": "Använd SSO-session för nedladdaren",
-    "downloaderUseSsoSessionDescription": "Skicka SSO-inloggningscookien (t.ex. Authelia, Authentik) tillsammans med nedladdningsförfrågningar. Aktivera detta om nedladdningsfunktionen ligger bakom samma autentiseringsproxy som Calibre-Web."
+    "downloaderUseSsoSessionDescription": "Skicka SSO-inloggningscookien (t.ex. Authelia, Authentik) tillsammans med nedladdningsförfrågningar. Aktivera detta om nedladdningsfunktionen ligger bakom samma autentiseringsproxy som Calibre-Web.",
+    "internalReaderUnsupportedFormat": "Den interna läsaren har stöd för EPUB, PDF och CBZ. Tillgängliga format: {formats}",
+    "internalReaderUnsupportedFormatShort": "Stöds inte av den interna läsaren",
+    "comicReadingDirection": "Läsriktning",
+    "comicHasNoPages": "Den här serien saknar sidor.",
+    "removeFromDevice": "Ta bort från enheten",
+    "removeFromDeviceConfirm": "Ta bort den lokala kopian av ”{title}”? Boken finns kvar på servern.",
+    "readerGeneral": "Läsning",
+    "autoMarkAsRead": "Markera som läst när boken är färdigläst",
+    "autoMarkAsReadDescription": "Markerar boken som läst på servern när du når slutet i den interna läsaren.",
+    "readerCache": "Behåll böcker som öppnats i läsaren",
+    "readerCacheDescription": "Böcker som öppnats i den interna läsaren finns kvar på enheten, öppnas direkt nästa gång och kan läsas utan internetanslutning. De äldsta tas bort när gränsen nås.",
+    "readerCacheLimit": "Lagringsgräns",
+    "readerCacheUsage": "Används just nu: {size}",
+    "readerCacheClear": "Rensa",
+    "opdsReadOnlyHint": "Med OPDS kan du bläddra bland, hämta och läsa böcker. För att redigera metadata, hyllor och lässtatus behöver du logga in direkt. För Calibre-Web eller dess grenar använder du fliken ”Calibre Web”."
 }

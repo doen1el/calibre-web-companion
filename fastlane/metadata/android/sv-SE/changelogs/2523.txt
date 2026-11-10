@@ -1,0 +1,1 @@
+Rättat: Skicka till e-boksläsare använder nu BookDrop (bookdrop.cc), efterföljaren till den nedlagda tjänsten send2ereader. Sparade inställningar för send.djazz.se ändras automatiskt

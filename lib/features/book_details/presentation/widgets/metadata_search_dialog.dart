@@ -24,6 +24,7 @@ class _MetadataSearchDialogState extends State<MetadataSearchDialog> {
   List<MetadataProvider> _providers = [];
   final Set<String> _selectedProviderIds = {};
   List<MetadataSearchResult>? _results;
+  List<MetadataProviderStatus> _problems = [];
   bool _isLoading = false;
   bool _showProviders = false;
 
@@ -66,15 +67,19 @@ class _MetadataSearchDialogState extends State<MetadataSearchDialog> {
     setState(() {
       _isLoading = true;
       _results = null;
+      _problems = [];
     });
 
     try {
-      final results = await _repository.searchMetadata(
+      final response = await _repository.searchMetadata(
         _searchController.text,
         _selectedProviderIds.toList(),
       );
       if (!mounted) return;
-      setState(() => _results = results);
+      setState(() {
+        _results = response.results;
+        _problems = response.problems;
+      });
     } catch (e) {
       if (mounted) {
         context.showSnackBar(
@@ -190,6 +195,9 @@ class _MetadataSearchDialogState extends State<MetadataSearchDialog> {
 
             const SizedBox(height: 12),
 
+            if (!_isLoading && _problems.isNotEmpty)
+              _buildProblems(context, localizations, scheme),
+
             Expanded(child: _buildResults(context, localizations, scheme)),
           ],
         ),
@@ -284,6 +292,76 @@ class _MetadataSearchDialogState extends State<MetadataSearchDialog> {
         );
       },
     );
+  }
+
+  Widget _buildProblems(
+    BuildContext context,
+    AppLocalizations localizations,
+    ColorScheme scheme,
+  ) {
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      width: double.infinity,
+      constraints: const BoxConstraints(maxHeight: 160),
+      margin: const EdgeInsets.only(right: 8, bottom: 12),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  size: 18,
+                  color: scheme.onErrorContainer,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    localizations.metadataSourceIssues,
+                    style: textTheme.labelLarge?.copyWith(
+                      color: scheme.onErrorContainer,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            for (final p in _problems)
+              Padding(
+                padding: const EdgeInsets.only(top: 6, left: 26),
+                child: Text(
+                  [
+                    '${p.name}: ${_stateLabel(localizations, p.state)}',
+                    if (p.message.isNotEmpty) p.message,
+                  ].join(' – '),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: scheme.onErrorContainer,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _stateLabel(
+    AppLocalizations localizations,
+    MetadataProviderState state,
+  ) {
+    return switch (state) {
+      MetadataProviderState.rateLimited =>
+        localizations.metadataStatusRateLimited,
+      MetadataProviderState.blocked => localizations.metadataStatusBlocked,
+      MetadataProviderState.missingKey =>
+        localizations.metadataStatusMissingKey,
+      _ => localizations.metadataStatusError,
+    };
   }
 
   Widget _buildEmpty(

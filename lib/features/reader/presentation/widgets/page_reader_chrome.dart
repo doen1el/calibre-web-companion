@@ -1,6 +1,8 @@
+import 'package:calibre_web_companion/features/reader/data/bookmark_store.dart';
+import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
-class PageReaderChrome extends StatelessWidget {
+class PageReaderChrome extends StatefulWidget {
   final String title;
   final int page;
   final int pageCount;
@@ -11,6 +13,7 @@ class PageReaderChrome extends StatelessWidget {
   final VoidCallback onToggleChrome;
   final List<Widget> actions;
   final bool reverseTapZones;
+  final BookmarkStore? bookmarkStore;
   final Widget child;
 
   const PageReaderChrome({
@@ -26,17 +29,95 @@ class PageReaderChrome extends StatelessWidget {
     required this.child,
     this.actions = const [],
     this.reverseTapZones = false,
+    this.bookmarkStore,
   });
+
+  @override
+  State<PageReaderChrome> createState() => _PageReaderChromeState();
+}
+
+class _PageReaderChromeState extends State<PageReaderChrome> {
+  List<ReaderBookmark> _bookmarks = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    final store = widget.bookmarkStore;
+    if (store != null) {
+      _bookmarks = store.active;
+      store.sync().then((bookmarks) {
+        if (mounted) setState(() => _bookmarks = bookmarks);
+      });
+    }
+  }
+
+  ReaderBookmark? get _bookmarkOnPage =>
+      _bookmarks.where((b) => b.page == widget.page).firstOrNull;
+
+  Future<void> _toggleBookmark() async {
+    final store = widget.bookmarkStore;
+    if (store == null || widget.pageCount == 0) return;
+    final localizations = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final existing = _bookmarkOnPage;
+    final bookmarks =
+        existing != null
+            ? await store.remove(existing.id)
+            : await store.add(
+              ReaderBookmark.create(
+                page: widget.page,
+                percentage:
+                    widget.pageCount <= 1
+                        ? 100
+                        : widget.page / (widget.pageCount - 1) * 100,
+                label: '',
+              ),
+            );
+    if (!mounted) return;
+    setState(() => _bookmarks = bookmarks);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 2),
+          content: Text(
+            existing != null
+                ? localizations.readerBookmarkRemoved
+                : localizations.readerBookmarkAdded,
+          ),
+        ),
+      );
+  }
+
+  Future<void> _showBookmarks() async {
+    final store = widget.bookmarkStore;
+    if (store == null) return;
+    final page = await showModalBottomSheet<int>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder:
+          (context) => _BookmarkSheet(
+            initial: _bookmarks,
+            onRemove: (id) async {
+              final bookmarks = await store.remove(id);
+              if (mounted) setState(() => _bookmarks = bookmarks);
+              return bookmarks;
+            },
+          ),
+    );
+    if (page != null) widget.onSeek(page);
+  }
 
   void _onTapUp(BuildContext context, TapUpDetails details) {
     final width = MediaQuery.sizeOf(context).width;
     final dx = details.globalPosition.dx;
     if (dx < width / 3) {
-      reverseTapZones ? onNext() : onPrevious();
+      widget.reverseTapZones ? widget.onNext() : widget.onPrevious();
     } else if (dx > width * 2 / 3) {
-      reverseTapZones ? onPrevious() : onNext();
+      widget.reverseTapZones ? widget.onPrevious() : widget.onNext();
     } else {
-      onToggleChrome();
+      widget.onToggleChrome();
     }
   }
 
@@ -53,12 +134,12 @@ class PageReaderChrome extends StatelessWidget {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTapUp: (details) => _onTapUp(context, details),
-              child: child,
+              child: widget.child,
             ),
           ),
           AnimatedPositioned(
             duration: const Duration(milliseconds: 180),
-            top: visible ? 0 : -120,
+            top: widget.visible ? 0 : -120,
             left: 0,
             right: 0,
             child: Material(
@@ -70,13 +151,40 @@ class PageReaderChrome extends StatelessWidget {
                     const BackButton(),
                     Expanded(
                       child: Text(
-                        title,
+                        widget.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.titleMedium,
                       ),
                     ),
-                    ...actions,
+                    ...widget.actions,
+                    if (widget.bookmarkStore != null) ...[
+                      IconButton(
+                        tooltip: AppLocalizations.of(context)!.readerBookmarks,
+                        icon: const Icon(Icons.bookmarks_outlined),
+                        onPressed: _showBookmarks,
+                      ),
+                      IconButton(
+                        tooltip:
+                            _bookmarkOnPage != null
+                                ? AppLocalizations.of(
+                                  context,
+                                )!.readerRemoveBookmark
+                                : AppLocalizations.of(
+                                  context,
+                                )!.readerAddBookmark,
+                        icon: Icon(
+                          _bookmarkOnPage != null
+                              ? Icons.bookmark
+                              : Icons.bookmark_border,
+                          color:
+                              _bookmarkOnPage != null
+                                  ? theme.colorScheme.primary
+                                  : null,
+                        ),
+                        onPressed: _toggleBookmark,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -84,7 +192,7 @@ class PageReaderChrome extends StatelessWidget {
           ),
           AnimatedPositioned(
             duration: const Duration(milliseconds: 180),
-            bottom: visible ? 0 : -140,
+            bottom: widget.visible ? 0 : -140,
             left: 0,
             right: 0,
             child: Material(
@@ -97,26 +205,31 @@ class PageReaderChrome extends StatelessWidget {
                     children: [
                       Expanded(
                         child:
-                            pageCount > 1
+                            widget.pageCount > 1
                                 ? Directionality(
                                   textDirection:
-                                      reverseTapZones
+                                      widget.reverseTapZones
                                           ? TextDirection.rtl
                                           : TextDirection.ltr,
                                   child: Slider(
                                     value:
-                                        page.clamp(0, pageCount - 1).toDouble(),
-                                    max: (pageCount - 1).toDouble(),
-                                    divisions: pageCount - 1,
-                                    label: '${page + 1}',
-                                    onChanged: (value) => onSeek(value.round()),
+                                        widget.page
+                                            .clamp(0, widget.pageCount - 1)
+                                            .toDouble(),
+                                    max: (widget.pageCount - 1).toDouble(),
+                                    divisions: widget.pageCount - 1,
+                                    label: '${widget.page + 1}',
+                                    onChanged:
+                                        (value) => widget.onSeek(value.round()),
                                   ),
                                 )
                                 : const SizedBox(height: 48),
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        pageCount > 0 ? '${page + 1} / $pageCount' : '',
+                        widget.pageCount > 0
+                            ? '${widget.page + 1} / ${widget.pageCount}'
+                            : '',
                         style: theme.textTheme.bodyMedium,
                       ),
                     ],
@@ -126,6 +239,103 @@ class PageReaderChrome extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BookmarkSheet extends StatefulWidget {
+  final List<ReaderBookmark> initial;
+  final Future<List<ReaderBookmark>> Function(String id) onRemove;
+
+  const _BookmarkSheet({required this.initial, required this.onRemove});
+
+  @override
+  State<_BookmarkSheet> createState() => _BookmarkSheetState();
+}
+
+class _BookmarkSheetState extends State<_BookmarkSheet> {
+  late List<ReaderBookmark> _bookmarks = widget.initial;
+
+  Future<void> _remove(ReaderBookmark bookmark) async {
+    setState(
+      () => _bookmarks = _bookmarks.where((b) => b.id != bookmark.id).toList(),
+    );
+    final updated = await widget.onRemove(bookmark.id);
+    if (mounted) setState(() => _bookmarks = updated);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
+    return SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * .6,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+              child: Text(
+                localizations.readerBookmarks,
+                style: theme.textTheme.titleMedium,
+              ),
+            ),
+            if (_bookmarks.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  localizations.readerNoBookmarks,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              )
+            else
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _bookmarks.length,
+                  itemBuilder: (context, i) {
+                    final bookmark = _bookmarks[i];
+                    final page = bookmark.page ?? 0;
+                    return Dismissible(
+                      key: ValueKey(bookmark.id),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        color: theme.colorScheme.error,
+                        alignment: AlignmentDirectional.centerEnd,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Icon(
+                          Icons.delete_outline,
+                          color: theme.colorScheme.onError,
+                        ),
+                      ),
+                      onDismissed: (_) => _remove(bookmark),
+                      child: ListTile(
+                        leading: Icon(
+                          Icons.bookmark,
+                          color: theme.colorScheme.primary,
+                        ),
+                        title: Text(localizations.readerBookmarkPage(page + 1)),
+                        subtitle: Text('${bookmark.percentage.round()}%'),
+                        trailing: IconButton(
+                          tooltip: localizations.readerRemoveBookmark,
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () => _remove(bookmark),
+                        ),
+                        onTap: () => Navigator.of(context).pop(page),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

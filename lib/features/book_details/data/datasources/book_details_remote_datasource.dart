@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:calibre_web_companion/core/utils/book_drop.dart';
@@ -436,12 +437,18 @@ class BookDetailsRemoteDatasource {
     }
   }
 
-  Future<List<MetadataSearchResult>> searchMetadata(
+  Future<MetadataSearchResponse> searchMetadata(
     String query,
     List<String> activeProviderIds,
   ) async {
     try {
-      final body = {'query': query};
+      // Calibre-Web-NextGen honours the `providers` allowlist; stock
+      // Calibre-Web ignores it and uses the per-user provider toggles.
+      final body = {
+        'query': query,
+        if (activeProviderIds.isNotEmpty)
+          'providers': activeProviderIds.join(','),
+      };
 
       final response = await apiService.post(
         endpoint: '/metadata/search',
@@ -457,12 +464,11 @@ class BookDetailsRemoteDatasource {
 
       if (response.statusCode == 200) {
         logger.i(response.body);
-        final List<dynamic> jsonList = json.decode(response.body);
-        return jsonList.map((e) => MetadataSearchResult.fromJson(e)).toList();
+        return MetadataSearchResponse.fromDecoded(json.decode(response.body));
       }
 
       logger.w('Search failed with status: ${response.statusCode}');
-      return [];
+      return const MetadataSearchResponse(results: []);
     } catch (e) {
       logger.e('Error searching metadata: $e');
       throw Exception('Search failed: $e');
@@ -1385,7 +1391,7 @@ class BookDetailsRemoteDatasource {
         bytes = await file.readAsBytes();
       }
 
-      if (!InternalReaderFormats.bytesMatch(lowerFormat, bytes)) {
+      if (!_localBytesMatchFormat(lowerFormat, bytes)) {
         logger.i('Local copy at $path is not a valid $format — will stream.');
         return null;
       }
@@ -1394,6 +1400,22 @@ class BookDetailsRemoteDatasource {
     } catch (e) {
       logger.w('Could not read local copy ($path), will stream instead: $e');
       return null;
+    }
+  }
+
+  // Structural check, not just magic bytes: a damaged local copy should fall
+  // back to streaming instead of failing inside the reader.
+  bool _localBytesMatchFormat(String lowerFormat, Uint8List bytes) {
+    if (!InternalReaderFormats.bytesMatch(lowerFormat, bytes)) return false;
+    if (lowerFormat != 'epub' && lowerFormat != 'cbz') return true;
+    try {
+      final archive = ZipDecoder().decodeBytes(bytes);
+      if (lowerFormat == 'epub') {
+        return archive.files.any((f) => f.name == 'META-INF/container.xml');
+      }
+      return archive.files.isNotEmpty;
+    } catch (_) {
+      return false;
     }
   }
 

@@ -613,5 +613,20 @@
     "yes": "Sí",
     "no": "No",
     "downloaderUseSsoSession": "Utilitza Inici de Sessió Únic (SSO) per al descarregador",
-    "downloaderUseSsoSessionDescription": "Envia la galeta de d'Inici de Sessió Única (SSO, per exemple Authelia, Authentik) per a les peticions del descarregador. Cal activar-ho si el descarregador és rere el mateix servidor intermediari d'autenticació que Calibre-Web."
+    "downloaderUseSsoSessionDescription": "Envia la galeta de d'Inici de Sessió Única (SSO, per exemple Authelia, Authentik) per a les peticions del descarregador. Cal activar-ho si el descarregador és rere el mateix servidor intermediari d'autenticació que Calibre-Web.",
+    "internalReaderUnsupportedFormat": "El lector integrat admet ePUB, PDF i CBZ. Formats disponible : {formats}",
+    "internalReaderUnsupportedFormatShort": "No admès pel lector integrat",
+    "comicReadingDirection": "Direcció de lectura",
+    "comicHasNoPages": "Aquest còmic no conté pàgines.",
+    "removeFromDevice": "Elimina-ho del dispositiu",
+    "removeFromDeviceConfirm": "Vols esborrar la còpia local de \"{title}\"? El llibre encara estarà al teu servidor.",
+    "readerGeneral": "Llegint",
+    "autoMarkAsRead": "Marca'l com a llegit en acabar-lo",
+    "autoMarkAsReadDescription": "Marca el llibre com a llegit, al teu servidor, quan arribis al final al lector integrat.",
+    "readerCache": "Mantenir oberts els llibres del lector",
+    "readerCacheDescription": "Els llibres oberts al lector integrat queden al dispositiu, s'obren immediatament el proper cop, i estan disponibles fora de línia. Els més antics s'esborraran quan s'arribi al límit.",
+    "readerCacheLimit": "Límit d'emmagatzematge",
+    "readerCacheUsage": "Ús actual: {size}",
+    "readerCacheClear": "Buidar",
+    "opdsReadOnlyHint": "OPDS permet navegar, descarregar i llegir llibres. Editar metadades, prestatges i estats de lectura requereix un inici de sessió directe: per a Calibre-Web o els seus derivats, utilitza la pestanya \"Calibre Web\"."
 }

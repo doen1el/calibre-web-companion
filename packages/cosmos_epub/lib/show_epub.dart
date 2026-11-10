@@ -17,6 +17,7 @@ import 'Helpers/custom_toast.dart';
 import 'Helpers/pagination.dart';
 import 'Helpers/progress_mapping.dart';
 import 'Helpers/progress_singleton.dart';
+import 'Model/bookmark_model.dart';
 import 'Model/chapter_model.dart';
 
 late BookProgressSingleton bookProgress;
@@ -59,6 +60,8 @@ class ShowEpub extends StatefulWidget {
   final Color accentColor;
   final double? startPercentage;
   final Function(double percentage, int spineIndex)? onProgressChanged;
+  final EpubBookmarkSource? bookmarkSource;
+  final EpubBookmarkLabels bookmarkLabels;
 
   ShowEpub({
     super.key,
@@ -72,6 +75,8 @@ class ShowEpub extends StatefulWidget {
     this.onLastPage,
     this.startPercentage,
     this.onProgressChanged,
+    this.bookmarkSource,
+    this.bookmarkLabels = const EpubBookmarkLabels(),
   });
 
   @override
@@ -107,6 +112,9 @@ class ShowEpubState extends State<ShowEpub> {
   List<int> _chapterWeights = [];
   double? _startPageFraction;
   var dropDownFontItems;
+  List<EpubBookmark> _bookmarks = [];
+  List<String> _pageHtmls = [];
+  int _currentPage = 0;
 
   GetStorage gs = GetStorage();
 
@@ -123,6 +131,7 @@ class ShowEpubState extends State<ShowEpub> {
 
     getTitleFromXhtml();
     reLoadChapter(init: true);
+    _loadBookmarks();
 
     super.initState();
   }
@@ -133,6 +142,72 @@ class ShowEpubState extends State<ShowEpub> {
     updateTheme(themeId, isInit: true);
     _fontSize = gs.read(libFontSize) ?? _fontSize;
     _fontSizeProgress = _fontSize;
+  }
+
+  Future<void> _loadBookmarks() async {
+    final source = widget.bookmarkSource;
+    if (source == null) return;
+    final bookmarks = await source.load();
+    if (mounted) setState(() => _bookmarks = bookmarks);
+  }
+
+  int get _currentChapter =>
+      bookProgress.getBookProgress(bookId).currentChapterIndex ?? 0;
+
+  EpubBookmark? get _bookmarkOnCurrentPage {
+    if (_pageHtmls.isEmpty) return null;
+    for (final bookmark in _bookmarks) {
+      if (bookmark.chapterIndex == _currentChapter &&
+          pageIndexForFraction(bookmark.chapterFraction, _pageHtmls.length) ==
+              _currentPage) {
+        return bookmark;
+      }
+    }
+    return null;
+  }
+
+  String _pageExcerpt(int page) {
+    if (page < 0 || page >= _pageHtmls.length) return '';
+    final text = (html_parser.parse(_pageHtmls[page]).documentElement?.text ??
+            '')
+        .replaceAll('\u00AD', '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return text.length > 140 ? '${text.substring(0, 140)}…' : text;
+  }
+
+  Future<void> _toggleBookmark() async {
+    final source = widget.bookmarkSource;
+    if (source == null || _pageHtmls.isEmpty) return;
+    final existing = _bookmarkOnCurrentPage;
+    final labels = widget.bookmarkLabels;
+    List<EpubBookmark> bookmarks;
+    if (existing != null) {
+      bookmarks = await source.remove(existing.id);
+      CustomToast.showToast(labels.bookmarkRemoved);
+    } else {
+      final pageCount = _pageHtmls.length;
+      bookmarks = await source.add(
+        chapterIndex: _currentChapter,
+        chapterFraction: pageCount > 1 ? _currentPage / (pageCount - 1) : 0,
+        percentage: percentageForPosition(
+            _chapterWeights, _currentChapter, _currentPage, pageCount),
+        excerpt: _pageExcerpt(_currentPage),
+      );
+      CustomToast.showToast(labels.bookmarkAdded);
+    }
+    if (mounted) setState(() => _bookmarks = bookmarks);
+  }
+
+  Future<void> _jumpToBookmark(EpubBookmark bookmark) async {
+    if (bookmark.chapterIndex < 0 ||
+        bookmark.chapterIndex >= chaptersList.length) {
+      return;
+    }
+    _resetSwipeState();
+    _startPageFraction = bookmark.chapterFraction;
+    await bookProgress.setCurrentPageIndex(bookId, 0);
+    reLoadChapter(index: bookmark.chapterIndex);
   }
 
   getTitleFromXhtml() {
@@ -604,12 +679,20 @@ class ShowEpubState extends State<ShowEpub> {
                                             }
                                             updateUI();
                                           },
+                                          onPaginated:
+                                              (pageHtmls, initialIndex) {
+                                            setState(() {
+                                              _pageHtmls = pageHtmls;
+                                              _currentPage = initialIndex;
+                                            });
+                                          },
                                           onPageFlip:
                                               (currentPage, totalPages) {
                                             // Consumed on the first report, so a
                                             // later chapter does not reopen at the
                                             // same share of its own text.
                                             _startPageFraction = null;
+                                            _currentPage = currentPage;
 
                                             widget.onPageFlip
                                                 ?.call(currentPage, totalPages);
@@ -883,6 +966,22 @@ class ShowEpubState extends State<ShowEpub> {
                               ),
                             ),
                             actions: [
+                              if (widget.bookmarkSource != null)
+                                IconButton(
+                                  tooltip: _bookmarkOnCurrentPage != null
+                                      ? widget.bookmarkLabels.removeBookmark
+                                      : widget.bookmarkLabels.addBookmark,
+                                  onPressed: _toggleBookmark,
+                                  icon: Icon(
+                                    _bookmarkOnCurrentPage != null
+                                        ? Icons.bookmark
+                                        : Icons.bookmark_border,
+                                    color: _bookmarkOnCurrentPage != null
+                                        ? widget.accentColor
+                                        : fontColor,
+                                    size: 20.h,
+                                  ),
+                                ),
                               InkWell(
                                   onTap: () {
                                     updateFontSettings();
@@ -932,16 +1031,29 @@ class ShowEpubState extends State<ShowEpub> {
   }
 
   openTableOfContents() async {
-    bool? shouldUpdate = await Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => ChaptersList(
-                  bookId: bookId,
-                  chapters: chaptersList,
-                  leadingIcon: null,
-                  accentColor: widget.accentColor,
-                  chapterListTitle: widget.chapterListTitle,
-                ))) ??
-        false;
-    if (shouldUpdate) {
+    final source = widget.bookmarkSource;
+    final result = await Navigator.of(context).push<Object>(MaterialPageRoute(
+        builder: (context) => ChaptersList(
+              bookId: bookId,
+              chapters: chaptersList,
+              leadingIcon: null,
+              accentColor: widget.accentColor,
+              chapterListTitle: widget.chapterListTitle,
+              bookmarks: source == null ? null : _bookmarks,
+              bookmarkLabels: widget.bookmarkLabels,
+              onRemoveBookmark: source == null
+                  ? null
+                  : (id) async {
+                      final bookmarks = await source.remove(id);
+                      if (mounted) setState(() => _bookmarks = bookmarks);
+                      return bookmarks;
+                    },
+            )));
+    if (result is EpubBookmark) {
+      await _jumpToBookmark(result);
+      return;
+    }
+    if (result == true) {
       var index = bookProgress.getBookProgress(bookId).currentChapterIndex ?? 0;
 
       await bookProgress.setCurrentPageIndex(bookId, 0);

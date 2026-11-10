@@ -627,5 +627,25 @@
   "readerCacheLimit": "Storage limit",
   "readerCacheUsage": "Currently used: {size}",
   "readerCacheClear": "Clear",
-  "opdsReadOnlyHint": "OPDS lets you browse, download and read books. Editing metadata, shelves and read status need a direct login: for Calibre-Web or its forks, use the \"Calibre Web\" tab."
+  "opdsReadOnlyHint": "OPDS lets you browse, download and read books. Editing metadata, shelves and read status need a direct login: for Calibre-Web or its forks, use the \"Calibre Web\" tab.",
+  "readerContents": "Contents",
+  "readerBookmarks": "Bookmarks",
+  "readerNoBookmarks": "No bookmarks yet. Tap the bookmark icon while reading to save a page.",
+  "readerAddBookmark": "Add bookmark",
+  "readerRemoveBookmark": "Remove bookmark",
+  "readerBookmarkAdded": "Bookmark added",
+  "readerBookmarkRemoved": "Bookmark removed",
+  "readerBookmarkPage": "Page {page}",
+  "@readerBookmarkPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "metadataSourceIssues": "Some sources could not be searched",
+  "metadataStatusRateLimited": "Rate limited",
+  "metadataStatusBlocked": "Blocked by the source",
+  "metadataStatusMissingKey": "API key missing",
+  "metadataStatusError": "Error"
 }

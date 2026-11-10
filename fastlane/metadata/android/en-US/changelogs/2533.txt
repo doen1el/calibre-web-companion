@@ -1,0 +1,5 @@
+Feat: Set bookmarks in the internal reader (EPUB, PDF and CBZ) and jump back to them; they sync between devices via WebDAV
+Fix: EPUB books are now marked as read when you finish them in the internal reader, and the final reading position is synced when the reader closes
+Fix: Metadata search works again on Calibre-Web-NextGen, and it now tells you when a source could not be searched (rate limited, blocked or missing API key)
+Fix: Downloaded EPUBs open in the internal reader again instead of failing with "META-INF/container.xml file not found"
+Feat: Download more than one format of a book (e.g. EPUB and M4B); the format picker marks formats that are already on your device

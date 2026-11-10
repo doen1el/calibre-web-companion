@@ -9,7 +9,8 @@ class DownloadManager {
   final SharedPreferences _prefs;
   final Logger _logger;
 
-  Map<String, String> _downloadedBooks = {};
+  // uuid -> {lower-cased extension -> path}; legacy uuid -> path is migrated.
+  Map<String, Map<String, String>> _downloadedBooks = {};
   static const String _storageKey = 'downloaded_books_map';
 
   DownloadManager({required SharedPreferences prefs, required Logger logger})
@@ -21,9 +22,18 @@ class DownloadManager {
     if (jsonString != null) {
       try {
         final Map<String, dynamic> decoded = json.decode(jsonString);
-        _downloadedBooks = decoded.map(
-          (key, value) => MapEntry(key, value.toString()),
-        );
+        final Map<String, Map<String, String>> books = {};
+        decoded.forEach((uuid, value) {
+          if (value is Map) {
+            books[uuid] = value.map(
+              (format, path) => MapEntry(format.toString(), path.toString()),
+            );
+          } else if (value is String) {
+            // Legacy format: a single path per book.
+            books[uuid] = {_formatOfPath(value): value};
+          }
+        });
+        _downloadedBooks = books;
       } catch (e) {
         _logger.e('Error decoding downloaded books map: $e');
         _downloadedBooks = {};
@@ -48,23 +58,37 @@ class DownloadManager {
   }
 
   Future<void> _verifyFilesExist() async {
-    final List<String> toRemove = [];
+    var changed = false;
+    final removedBooks = <String>[];
 
-    for (final entry in _downloadedBooks.entries) {
-      final exists = await _doesFileExist(entry.value);
-
-      if (!exists) {
-        _logger.i(
-          'File for book ${entry.key} not found at ${entry.value}. Removing from list.',
-        );
-        toRemove.add(entry.key);
+    for (final uuid in List.of(_downloadedBooks.keys)) {
+      final formats = _downloadedBooks[uuid]!;
+      final remaining = <String, String>{};
+      for (final format in List.of(formats.keys)) {
+        final path = formats[format]!;
+        if (await _doesFileExist(path)) {
+          remaining[format] = path;
+        } else {
+          changed = true;
+          _logger.i(
+            'File for book $uuid ($format) not found at $path. '
+            'Removing from list.',
+          );
+        }
+      }
+      if (remaining.isEmpty) {
+        removedBooks.add(uuid);
+        changed = true;
+      } else if (remaining.length != formats.length) {
+        _downloadedBooks[uuid] = remaining;
       }
     }
 
-    if (toRemove.isNotEmpty) {
-      for (final uuid in toRemove) {
-        _downloadedBooks.remove(uuid);
-      }
+    for (final uuid in removedBooks) {
+      _downloadedBooks.remove(uuid);
+    }
+
+    if (changed) {
       await _save();
     }
 
@@ -74,14 +98,28 @@ class DownloadManager {
   }
 
   Future<bool> checkFileExistence(String uuid) async {
-    final path = _downloadedBooks[uuid];
-    if (path == null) return false;
+    final formats = _downloadedBooks[uuid];
+    if (formats == null) return false;
 
-    final exists = await _doesFileExist(path);
-    if (!exists) {
-      _logger.i('Runtime check: File for $uuid missing. Unregistering.');
+    final remaining = <String, String>{};
+    for (final format in List.of(formats.keys)) {
+      final path = formats[format]!;
+      if (await _doesFileExist(path)) {
+        remaining[format] = path;
+      } else {
+        _logger.i(
+          'Runtime check: $format file for $uuid missing at $path. Unregistering.',
+        );
+      }
+    }
+
+    if (remaining.isEmpty) {
       await unregisterDownload(uuid);
       return false;
+    }
+    if (remaining.length != formats.length) {
+      _downloadedBooks[uuid] = remaining;
+      await _save();
     }
     return true;
   }
@@ -94,16 +132,35 @@ class DownloadManager {
     return _downloadedBooks.containsKey(uuid);
   }
 
-  String? getBookPath(String uuid) {
-    return _downloadedBooks[uuid];
+  /// With [format], only that format's path — never another format's file.
+  String? getBookPath(String uuid, {String? format}) {
+    final formats = _downloadedBooks[uuid];
+    if (formats == null || formats.isEmpty) return null;
+    if (format != null) return formats[format.toLowerCase()];
+    return formats.values.first;
   }
 
-  Map<String, String> get allDownloads => Map.unmodifiable(_downloadedBooks);
+  Set<String> downloadedFormats(String uuid) {
+    final formats = _downloadedBooks[uuid];
+    return formats == null
+        ? const <String>{}
+        : formats.keys.map((f) => f.toLowerCase()).toSet();
+  }
+
+  List<String> allBookPaths(String uuid) =>
+      List.unmodifiable(_downloadedBooks[uuid]?.values ?? const <String>[]);
+
+  Map<String, String> get allDownloads => _downloadedBooks.map(
+    (uuid, formats) => MapEntry(uuid, formats.values.first),
+  );
 
   Future<void> registerDownload(String uuid, String path) async {
-    _downloadedBooks[uuid] = path;
+    final format = _formatOfPath(path);
+    final formats = Map<String, String>.from(_downloadedBooks[uuid] ?? {});
+    formats[format] = path;
+    _downloadedBooks[uuid] = formats;
     await _save();
-    _logger.i('Registered download for book $uuid at $path');
+    _logger.i('Registered download for book $uuid ($format) at $path');
   }
 
   Future<void> unregisterDownload(String uuid) async {
@@ -111,5 +168,12 @@ class DownloadManager {
       _downloadedBooks.remove(uuid);
       await _save();
     }
+  }
+
+  static String _formatOfPath(String path) {
+    final name = path.split('/').last;
+    final dot = name.lastIndexOf('.');
+    if (dot <= 0 || dot == name.length - 1) return 'unknown';
+    return name.substring(dot + 1).toLowerCase();
   }
 }

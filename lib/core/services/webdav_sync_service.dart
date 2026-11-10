@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
 class WebDavSyncService {
@@ -17,6 +18,19 @@ class WebDavSyncService {
       'calibre_web_companion_reading_progress.json';
 
   WebDavSyncService({required this.logger});
+
+  // A ready client from the saved settings, or null when sync is off.
+  static WebDavSyncService? fromPrefs(SharedPreferences prefs, Logger logger) {
+    if (!(prefs.getBool('webdav_enabled') ?? false)) return null;
+    final url = prefs.getString('webdav_url') ?? '';
+    if (url.isEmpty) return null;
+    return WebDavSyncService(logger: logger)..init(
+      url,
+      prefs.getString('webdav_username') ?? '',
+      prefs.getString('webdav_password') ?? '',
+      allowSelfSigned: prefs.getBool('allow_self_signed') ?? false,
+    );
+  }
 
   void init(
     String url,
@@ -108,14 +122,17 @@ class WebDavSyncService {
     });
   }
 
-  Future<Map<String, dynamic>?> _read(webdav.Client client) async {
+  Future<Map<String, dynamic>?> _read(
+    webdav.Client client, [
+    String fileName = _syncFileName,
+  ]) async {
     try {
-      final List<int> data = await client.read(_syncFileName);
+      final List<int> data = await client.read(fileName);
       if (data.isEmpty) return {};
       return jsonDecode(utf8.decode(data)) as Map<String, dynamic>;
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
-        logger.i('WebDAV sync file does not exist yet');
+        logger.i('WebDAV sync file $fileName does not exist yet');
         return {};
       }
       logger.w('Could not read WebDAV sync file: $e');
@@ -154,6 +171,36 @@ class WebDavSyncService {
         logger.i('Progress synced to WebDAV for $bookUuid');
       } catch (e) {
         logger.e('Error saving WebDAV progress: $e');
+      }
+    });
+  }
+
+  Future<Map<String, dynamic>?> readJsonFile(String fileName) async {
+    final client = _client;
+    if (client == null) return null;
+    return _locked(() => _read(client, fileName));
+  }
+
+  // Read-modify-write under the lock, so two updates from this app cannot
+  // overwrite each other. [update] returns null to leave the file untouched.
+  // Returns false when the remote file could not be read or written.
+  Future<bool> updateJsonFile(
+    String fileName,
+    Map<String, dynamic>? Function(Map<String, dynamic> current) update,
+  ) async {
+    final client = _client;
+    if (client == null) return false;
+    return _locked(() async {
+      final current = await _read(client, fileName);
+      if (current == null) return false;
+      final next = update(current);
+      if (next == null) return true;
+      try {
+        await client.write(fileName, utf8.encode(jsonEncode(next)));
+        return true;
+      } catch (e) {
+        logger.e('Error writing WebDAV file $fileName: $e');
+        return false;
       }
     });
   }

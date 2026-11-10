@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:calibre_web_companion/core/services/app_transition.dart';
+import 'package:calibre_web_companion/features/reader/data/bookmark_store.dart';
 import 'package:calibre_web_companion/features/reader/data/page_progress_store.dart';
 import 'package:calibre_web_companion/features/reader/presentation/pages/comic_reader_page.dart';
 import 'package:calibre_web_companion/features/reader/presentation/pages/pdf_reader_page.dart';
@@ -22,6 +23,12 @@ Future<double?> openPageReader(
   final store = PageProgressStore(
     prefs: GetIt.instance<SharedPreferences>(),
     logger: GetIt.instance<Logger>(),
+  );
+  final bookmarkStore = BookmarkStore(
+    prefs: store.prefs,
+    logger: store.logger,
+    bookUuid: bookUuid,
+    format: format,
   );
   final start = await store.load(bookUuid, format);
   if (!context.mounted) return null;
@@ -47,12 +54,14 @@ Future<double?> openPageReader(
             title: title,
             initialPage: initialPage,
             onPageChanged: handlePage,
+            bookmarkStore: bookmarkStore,
           )
           : ComicReaderPage(
             bytes: bytes,
             title: title,
             initialPage: initialPage,
             onPageChanged: handlePage,
+            bookmarkStore: bookmarkStore,
           );
 
   await Navigator.of(context).push(AppTransitions.createSlideRoute(page));
