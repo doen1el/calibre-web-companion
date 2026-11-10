@@ -205,8 +205,16 @@ class _OfflineLibraryPageState extends State<OfflineLibraryPage> {
       if (_cachedOnly.contains(book.uuid)) {
         await GetIt.instance<ReaderCacheService>().remove(book.uuid);
       } else {
-        await _deleteFile(book.filePath);
-        await GetIt.instance<DownloadManager>().unregisterDownload(book.uuid);
+        final downloadManager = GetIt.instance<DownloadManager>();
+        // Every downloaded format, not just the one this entry shows.
+        final paths = {
+          book.filePath,
+          ...downloadManager.allBookPaths(book.uuid),
+        };
+        for (final path in paths) {
+          await _deleteFile(path);
+        }
+        await downloadManager.unregisterDownload(book.uuid);
         await GetIt.instance<ReaderCacheService>().remove(book.uuid);
       }
       await GetIt.instance<OfflineLibraryRepository>().remove(book.uuid);

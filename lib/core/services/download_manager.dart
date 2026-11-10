@@ -9,11 +9,7 @@ class DownloadManager {
   final SharedPreferences _prefs;
   final Logger _logger;
 
-  /// Book uuid -> (lower-cased file extension -> path).
-  ///
-  /// A book can have several formats downloaded (EPUB + M4B), so every
-  /// registered format keeps its own entry. The persisted value used to be a
-  /// single path per book; [initialize] migrates those entries.
+  // uuid -> {lower-cased extension -> path}; legacy uuid -> path is migrated.
   Map<String, Map<String, String>> _downloadedBooks = {};
   static const String _storageKey = 'downloaded_books_map';
 
@@ -144,13 +140,15 @@ class DownloadManager {
     return formats.values.first;
   }
 
-  /// Lower-cased extensions of all downloaded formats of [uuid].
   Set<String> downloadedFormats(String uuid) {
     final formats = _downloadedBooks[uuid];
     return formats == null
         ? const <String>{}
         : formats.keys.map((f) => f.toLowerCase()).toSet();
   }
+
+  List<String> allBookPaths(String uuid) =>
+      List.unmodifiable(_downloadedBooks[uuid]?.values ?? const <String>[]);
 
   Map<String, String> get allDownloads => _downloadedBooks.map(
     (uuid, formats) => MapEntry(uuid, formats.values.first),
@@ -172,7 +170,6 @@ class DownloadManager {
     }
   }
 
-  /// Lower-cased file extension of a stored path, without the dot.
   static String _formatOfPath(String path) {
     final name = path.split('/').last;
     final dot = name.lastIndexOf('.');

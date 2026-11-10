@@ -1403,11 +1403,8 @@ class BookDetailsRemoteDatasource {
     }
   }
 
-  /// Validates that [bytes] are a structurally sound [format], not just a
-  /// magic-byte prefix. A damaged local copy (e.g. a corrupted or truncated
-  /// read back from storage) would otherwise be passed to the reader and
-  /// fail with errors like "META-INF/container.xml file not found"; returning
-  /// false here falls back to streaming the file from the server instead.
+  // Structural check, not just magic bytes: a damaged local copy should fall
+  // back to streaming instead of failing inside the reader.
   bool _localBytesMatchFormat(String lowerFormat, Uint8List bytes) {
     if (!InternalReaderFormats.bytesMatch(lowerFormat, bytes)) return false;
     if (lowerFormat != 'epub' && lowerFormat != 'cbz') return true;
