@@ -136,13 +136,11 @@ class DownloadManager {
     return _downloadedBooks.containsKey(uuid);
   }
 
-  /// The path of a downloaded format of [uuid], preferring [format] when given.
+  /// With [format], only that format's path — never another format's file.
   String? getBookPath(String uuid, {String? format}) {
     final formats = _downloadedBooks[uuid];
-    if (formats == null) return null;
-    if (format != null && formats.containsKey(format.toLowerCase())) {
-      return formats[format.toLowerCase()];
-    }
+    if (formats == null || formats.isEmpty) return null;
+    if (format != null) return formats[format.toLowerCase()];
     return formats.values.first;
   }
 
