@@ -642,5 +642,10 @@
         "type": "int"
       }
     }
-  }
+  },
+  "metadataSourceIssues": "Some sources could not be searched",
+  "metadataStatusRateLimited": "Rate limited",
+  "metadataStatusBlocked": "Blocked by the source",
+  "metadataStatusMissingKey": "API key missing",
+  "metadataStatusError": "Error"
 }

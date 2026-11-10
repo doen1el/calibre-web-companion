@@ -436,12 +436,18 @@ class BookDetailsRemoteDatasource {
     }
   }
 
-  Future<List<MetadataSearchResult>> searchMetadata(
+  Future<MetadataSearchResponse> searchMetadata(
     String query,
     List<String> activeProviderIds,
   ) async {
     try {
-      final body = {'query': query};
+      // Calibre-Web-NextGen honours the `providers` allowlist; stock
+      // Calibre-Web ignores it and uses the per-user provider toggles.
+      final body = {
+        'query': query,
+        if (activeProviderIds.isNotEmpty)
+          'providers': activeProviderIds.join(','),
+      };
 
       final response = await apiService.post(
         endpoint: '/metadata/search',
@@ -457,12 +463,11 @@ class BookDetailsRemoteDatasource {
 
       if (response.statusCode == 200) {
         logger.i(response.body);
-        final List<dynamic> jsonList = json.decode(response.body);
-        return jsonList.map((e) => MetadataSearchResult.fromJson(e)).toList();
+        return MetadataSearchResponse.fromDecoded(json.decode(response.body));
       }
 
       logger.w('Search failed with status: ${response.statusCode}');
-      return [];
+      return const MetadataSearchResponse(results: []);
     } catch (e) {
       logger.e('Error searching metadata: $e');
       throw Exception('Search failed: $e');

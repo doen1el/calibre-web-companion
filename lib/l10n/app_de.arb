@@ -629,5 +629,10 @@
   "readerRemoveBookmark": "Lesezeichen entfernen",
   "readerBookmarkAdded": "Lesezeichen gesetzt",
   "readerBookmarkRemoved": "Lesezeichen entfernt",
-  "readerBookmarkPage": "Seite {page}"
+  "readerBookmarkPage": "Seite {page}",
+  "metadataSourceIssues": "Einige Quellen konnten nicht durchsucht werden",
+  "metadataStatusRateLimited": "Zu viele Anfragen",
+  "metadataStatusBlocked": "Von der Quelle blockiert",
+  "metadataStatusMissingKey": "API-Schlüssel fehlt",
+  "metadataStatusError": "Fehler"
 }
