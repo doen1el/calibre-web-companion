@@ -186,17 +186,34 @@ void main() {
   });
 
   group('file names', () {
-    test('removes dots so the mime type stays detectable', () {
+    test('keeps the name exactly as configured (#223)', () {
       expect(
         DownloadPathTemplate.sanitizeFileName('Vol. 1 - Dr. No'),
-        'Vol 1 - Dr No',
+        'Vol. 1 - Dr. No',
       );
+      expect(
+        DownloadPathTemplate.sanitizeFileName(
+          'The Secret of Secrets - Dan Brown [662]',
+        ),
+        'The Secret of Secrets - Dan Brown [662]',
+      );
+    });
+
+    test('reproduces the pre-#223 docman name of existing downloads', () {
+      String legacy(String segment) => DownloadPathTemplate.legacyDocmanName(
+        DownloadPathTemplate.legacySanitizeFileName(segment),
+      );
+      expect(
+        legacy('The Secret of Secrets - Dan Brown [662]'),
+        'The_Secret_of_Secrets_-_Dan_Brown__662_',
+      );
+      expect(legacy('Vol. 1 - Dr. No'), 'Vol_1_-_Dr_No');
     });
 
     test('preview keeps the extension detectable', () {
       expect(
         DownloadPathTemplate.preview('{author}/{title:.7}.{id}'),
-        '/Robert Jordan/The Eye 42.epub',
+        '/Robert Jordan/The Eye.42.epub',
       );
     });
 

@@ -1,0 +1,1 @@
+Fix: Downloaded books keep the exact file name of your download scheme (spaces, brackets and dots are no longer replaced with "_"), so KOReader sync with Calibre-Web-Automated / NextGen can match them again; already downloaded books are renamed to that name the next time you download or open them
