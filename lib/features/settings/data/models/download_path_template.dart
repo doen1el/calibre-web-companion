@@ -98,13 +98,19 @@ class DownloadPathTemplate {
   /// Removes characters that are illegal in file names on Android/SAF.
   static String sanitize(String value) => _stripIllegal(value).trim();
 
-  /// The file name additionally must not contain a dot: the SAF plugin derives
-  /// the mime type from the first dot in the name, so `Vol. 1.epub` would be
-  /// created as a "1" file and fail.
-  static String sanitizeFileName(String value) {
-    final withoutDots = value.replaceAll('.', ' ');
-    return _cleanSegment(sanitize(withoutDots));
-  }
+  static String sanitizeFileName(String value) =>
+      _cleanSegment(sanitize(value));
+
+  static final RegExp _docmanReplacedChars = RegExp(r'[\\/:*?"<>|\[\]\s]');
+
+  /// Base name that docman wrote before #223 (it replaced these characters
+  /// with '_'), so existing downloads can be found and renamed.
+  static String legacyDocmanName(String baseName) =>
+      baseName.replaceAll(_docmanReplacedChars, '_');
+
+  /// Before #223 custom-scheme names also had their dots stripped.
+  static String legacySanitizeFileName(String value) =>
+      _cleanSegment(sanitize(value.replaceAll('.', ' ')));
 
   static String _stripIllegal(String value) =>
       value.replaceAll(_illegalChars, '');

@@ -5,8 +5,14 @@ import android.net.Uri
 import android.os.Bundle
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
 
 class MainActivity : FlutterActivity() {
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        SafFileChannel(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         restoreWidgetUri(intent)
         super.onCreate(savedInstanceState)

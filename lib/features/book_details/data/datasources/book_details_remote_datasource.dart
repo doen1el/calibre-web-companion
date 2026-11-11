@@ -10,6 +10,7 @@ import 'package:calibre_web_companion/core/utils/book_drop.dart';
 import 'package:calibre_web_companion/core/utils/book_mime_types.dart';
 import 'package:calibre_web_companion/core/utils/document_bytes.dart';
 import 'package:calibre_web_companion/core/utils/pubdate.dart';
+import 'package:calibre_web_companion/core/utils/saf_file_copy.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/custom_column_model.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart';
@@ -651,6 +652,26 @@ class BookDetailsRemoteDatasource {
     throw Exception('Failed to update metadata (${response.statusCode})');
   }
 
+  // Downloads from before #223 were saved with '_' instead of spaces and
+  // brackets; rename them so KOReader's filename sync matches again.
+  Future<String?> _renameLegacyDownload(
+    DocumentFile directory,
+    String legacyName,
+    String fileName,
+  ) async {
+    if (legacyName == fileName) return null;
+    final legacyFile = await directory.find(legacyName);
+    if (legacyFile == null || !legacyFile.isFile) return null;
+
+    final renamed = await renameSafDocument(legacyFile, fileName);
+    if (renamed == null) {
+      logger.w('Could not rename "$legacyName" to "$fileName"');
+      return null;
+    }
+    logger.i('Renamed "$legacyName" to "$fileName"');
+    return renamed;
+  }
+
   Future<DocumentFile> _getOrCreateDirectory(
     DocumentFile parent,
     String name,
@@ -867,6 +888,7 @@ class BookDetailsRemoteDatasource {
       );
 
       String fileName = '$safeTitle.$format';
+      String legacyBaseName = safeTitle;
 
       DocumentFile targetDir = selectedDirectory;
       String? safeSeries;
@@ -964,16 +986,26 @@ class BookDetailsRemoteDatasource {
           }
           final baseName = DownloadPathTemplate.sanitizeFileName(segments.last);
           fileName = '${baseName.isEmpty ? 'book' : baseName}.$format';
+          final legacyBase = DownloadPathTemplate.legacySanitizeFileName(
+            segments.last,
+          );
+          legacyBaseName = legacyBase.isEmpty ? 'book' : legacyBase;
       }
 
-      // docman replaces whitespace and brackets when it creates the file
-      final existingFile = await targetDir.find(
-        fileName.replaceAll(RegExp(r'[\[\]\s]'), '_'),
-      );
+      final existingFile = await targetDir.find(fileName);
 
       if (reuseExistingFile && existingFile != null && existingFile.isFile) {
         logger.w('File already exists: $fileName');
         return existingFile.uri.toString();
+      }
+
+      if (reuseExistingFile) {
+        final renamed = await _renameLegacyDownload(
+          targetDir,
+          '${DownloadPathTemplate.legacyDocmanName(legacyBaseName)}.$format',
+          fileName,
+        );
+        if (renamed != null) return renamed;
       }
 
       final response = await getDownloadStream(
@@ -997,7 +1029,7 @@ class BookDetailsRemoteDatasource {
         '${tempDir.path}/${DateTime.now().microsecondsSinceEpoch}.$format',
       );
 
-      final DocumentFile? createdFile;
+      final String? createdUri;
       final int receivedBytes;
       try {
         receivedBytes = await _writeStreamToFile(
@@ -1005,24 +1037,22 @@ class BookDetailsRemoteDatasource {
           tempFile,
           progressCallback,
         );
-        final tempDoc = await DocumentFile.fromUri(tempFile.path);
-        if (tempDoc == null) {
-          throw Exception('Could not open temporary download file');
-        }
-        createdFile = await tempDoc.copyTo(targetDir.uri, name: fileName);
+        createdUri = await copyFileToSafDirectory(
+          tempFile,
+          targetDir,
+          fileName,
+        );
       } finally {
         if (tempFile.existsSync()) await tempFile.delete();
       }
 
-      if (createdFile == null) {
+      if (createdUri == null) {
         logger.e('Failed to create file in SAF directory');
         throw Exception('Failed to create file in SAF directory');
       }
 
-      logger.i(
-        'Download complete: ${createdFile.uri} with $receivedBytes bytes',
-      );
-      return createdFile.uri;
+      logger.i('Download complete: $createdUri with $receivedBytes bytes');
+      return createdUri;
     } catch (e) {
       logger.e('Exception while downloading book: $e');
       throw Exception('Error downloading book: $e');
