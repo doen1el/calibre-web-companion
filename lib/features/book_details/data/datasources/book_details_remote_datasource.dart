@@ -9,6 +9,7 @@ import 'package:calibre_web_companion/core/services/tag_service.dart';
 import 'package:calibre_web_companion/core/utils/book_drop.dart';
 import 'package:calibre_web_companion/core/utils/book_mime_types.dart';
 import 'package:calibre_web_companion/core/utils/document_bytes.dart';
+import 'package:calibre_web_companion/core/utils/file_name_utils.dart';
 import 'package:calibre_web_companion/core/utils/pubdate.dart';
 import 'package:calibre_web_companion/core/utils/saf_file_copy.dart';
 import 'package:calibre_web_companion/features/book_details/data/models/book_details_model.dart';
@@ -16,6 +17,7 @@ import 'package:calibre_web_companion/features/book_details/data/models/custom_c
 import 'package:calibre_web_companion/features/book_details/data/models/metadata_models.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/features/reader/data/internal_reader_formats.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_file_name_options.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:docman/docman.dart';
@@ -672,6 +674,21 @@ class BookDetailsRemoteDatasource {
     return renamed;
   }
 
+  String? _serverFileName(
+    StreamedResponse response,
+    String format,
+    DownloadFileNameOptions options,
+  ) {
+    final name = fileNameFromContentDisposition(
+      response.headers['content-disposition'],
+    );
+    if (name == null) return null;
+    var baseName = stripBookExtension(name, format);
+    if (options.asciiFileName) baseName = transliterateToAscii(baseName);
+    baseName = DownloadPathTemplate.sanitizeFileName(baseName);
+    return baseName.isEmpty ? null : '$baseName.$format';
+  }
+
   Future<DocumentFile> _getOrCreateDirectory(
     DocumentFile parent,
     String name,
@@ -887,7 +904,12 @@ class BookDetailsRemoteDatasource {
         '',
       );
 
-      String fileName = '$safeTitle.$format';
+      final prefs = GetIt.instance<SharedPreferences>();
+      final nameOptions = DownloadFileNameOptions.fromPrefs(prefs);
+      String toFileName(String value) =>
+          nameOptions.asciiFileName ? transliterateToAscii(value) : value;
+
+      String fileName = '${toFileName(safeTitle)}.$format';
       String legacyBaseName = safeTitle;
 
       DocumentFile targetDir = selectedDirectory;
@@ -984,12 +1006,24 @@ class BookDetailsRemoteDatasource {
           for (final folder in segments.take(segments.length - 1)) {
             targetDir = await _getOrCreateDirectory(targetDir, folder);
           }
-          final baseName = DownloadPathTemplate.sanitizeFileName(segments.last);
+          final baseName = DownloadPathTemplate.sanitizeFileName(
+            toFileName(segments.last),
+          );
           fileName = '${baseName.isEmpty ? 'book' : baseName}.$format';
           final legacyBase = DownloadPathTemplate.legacySanitizeFileName(
             segments.last,
           );
           legacyBaseName = legacyBase.isEmpty ? 'book' : legacyBase;
+      }
+
+      final bookId = book.id.toString();
+      if (nameOptions.useServerFileName) {
+        final remembered = DownloadFileNameOptions.rememberedServerName(
+          prefs,
+          bookId,
+          format,
+        );
+        if (remembered != null) fileName = remembered;
       }
 
       final existingFile = await targetDir.find(fileName);
@@ -999,7 +1033,7 @@ class BookDetailsRemoteDatasource {
         return existingFile.uri.toString();
       }
 
-      if (reuseExistingFile) {
+      if (reuseExistingFile && !nameOptions.useServerFileName) {
         final renamed = await _renameLegacyDownload(
           targetDir,
           '${DownloadPathTemplate.legacyDocmanName(legacyBaseName)}.$format',
@@ -1009,10 +1043,31 @@ class BookDetailsRemoteDatasource {
       }
 
       final response = await getDownloadStream(
-        book.id.toString(),
+        bookId,
         format,
         downloadUrl: book.downloadLinks[format.toLowerCase()],
       );
+
+      if (nameOptions.useServerFileName) {
+        final serverName = _serverFileName(response, format, nameOptions);
+        if (serverName == null) {
+          logger.w('Server sent no file name, using the download scheme');
+        } else if (serverName != fileName) {
+          fileName = serverName;
+          await DownloadFileNameOptions.rememberServerName(
+            prefs,
+            bookId,
+            format,
+            fileName,
+          );
+          final existing = await targetDir.find(fileName);
+          if (reuseExistingFile && existing != null && existing.isFile) {
+            logger.w('File already exists: $fileName');
+            await response.stream.listen(null).cancel();
+            return existing.uri.toString();
+          }
+        }
+      }
       final contentLength = response.contentLength ?? -1;
 
       logger.i(
@@ -1132,6 +1187,12 @@ class BookDetailsRemoteDatasource {
           return false;
         }
 
+        if (await openSafDocument(filePath, mimeType: bookMimeType(format))) {
+          await onFileDownloaded?.call(filePath);
+          logger.i('Opened downloaded file in place: $filePath');
+          return true;
+        }
+
         final cachedFile = await file.cache();
         if (cachedFile == null) {
           logger.e('Could not cache file for opening');
@@ -1175,6 +1236,9 @@ class BookDetailsRemoteDatasource {
         if (doc == null || !doc.isFile) {
           logger.e('Local file is not available: $path');
           return false;
+        }
+        if (await openSafDocument(path, mimeType: bookMimeType(format))) {
+          return true;
         }
         final cachedFile = await doc.cache();
         if (cachedFile == null) {
