@@ -54,3 +54,21 @@ Future<String?> renameSafDocument(DocumentFile document, String name) async {
     return null;
   }
 }
+
+/// Opens a SAF document in an external app without copying it first, so
+/// readers like KOReader open the file in place (#225). Returns false when no
+/// app handled it.
+Future<bool> openSafDocument(String uri, {String? mimeType}) async {
+  if (!Platform.isAndroid || !uri.startsWith('content://')) return false;
+  try {
+    return await _channel.invokeMethod<bool>('openDocument', {
+          'uri': uri,
+          'mimeType': mimeType,
+        }) ??
+        false;
+  } on PlatformException {
+    return false;
+  } on MissingPluginException {
+    return false;
+  }
+}

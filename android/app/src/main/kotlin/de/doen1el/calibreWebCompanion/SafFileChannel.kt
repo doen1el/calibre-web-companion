@@ -1,6 +1,8 @@
 package de.doen1el.calibreWebCompanion
 
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
@@ -57,6 +59,15 @@ class SafFileChannel(private val context: Context, messenger: BinaryMessenger) {
                         }
                     }
                 }
+                "openDocument" -> {
+                    val uri = call.argument<String>("uri")
+                    val mimeType = call.argument<String>("mimeType")
+                    if (uri == null) {
+                        result.error("invalid_args", "uri is required", null)
+                        return@setMethodCallHandler
+                    }
+                    result.success(openDocument(Uri.parse(uri), mimeType))
+                }
                 else -> result.notImplemented()
             }
         }
@@ -89,6 +100,30 @@ class SafFileChannel(private val context: Context, messenger: BinaryMessenger) {
             throw e
         }
         return target
+    }
+
+    // Hands the SAF document itself to the reader. A copy from the app cache
+    // makes KOReader import it outside the sync folder (#225).
+    private fun openDocument(uri: Uri, mimeType: String?): Boolean {
+        val type = mimeType
+            ?: context.contentResolver.getType(uri)
+            ?: "application/octet-stream"
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, type)
+            addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                    Intent.FLAG_ACTIVITY_NEW_TASK,
+            )
+        }
+        return try {
+            context.startActivity(intent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            false
+        } catch (e: SecurityException) {
+            false
+        }
     }
 
     companion object {

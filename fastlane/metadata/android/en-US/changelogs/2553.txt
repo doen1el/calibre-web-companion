@@ -1,0 +1,2 @@
+New: Download settings have a "File name" section: "Use the server's file name" names downloads exactly like the server (Content-Disposition), and "Replace special characters" turns ä → a, ß → ss, é → e, so files next to KOReader sync plugin downloads no longer get duplicated (#226)
+Fix: Opening a book in an external reader (also from the home-screen widget) hands over the downloaded file itself instead of a copy, so KOReader opens it in place in the sync folder instead of importing an underscored copy (#225)

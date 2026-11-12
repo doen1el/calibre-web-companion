@@ -4,6 +4,7 @@ import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_bloc.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_event.dart';
 import 'package:calibre_web_companion/features/settings/bloc/settings_state.dart';
+import 'package:calibre_web_companion/features/settings/data/models/download_file_name_options.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_path_template.dart';
 import 'package:calibre_web_companion/features/settings/data/models/download_schema.dart';
 import 'package:calibre_web_companion/features/settings/presentation/widgets/download_path_template_dialog.dart';
@@ -25,6 +26,7 @@ class DownloadOptionsWidget extends StatelessWidget {
         if (Platform.isAndroid) ...[
           _buildSelectingDownloadFolder(context),
           _buildSelectingDownloadSchema(context),
+          const _DownloadFileNameCard(),
         ],
       ],
     );
@@ -438,6 +440,86 @@ class DownloadOptionsWidget extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DownloadFileNameCard extends StatefulWidget {
+  const _DownloadFileNameCard();
+
+  @override
+  State<_DownloadFileNameCard> createState() => _DownloadFileNameCardState();
+}
+
+class _DownloadFileNameCardState extends State<_DownloadFileNameCard> {
+  SharedPreferences? _prefs;
+  DownloadFileNameOptions _options = const DownloadFileNameOptions();
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((prefs) {
+      if (!mounted) return;
+      setState(() {
+        _prefs = prefs;
+        _options = DownloadFileNameOptions.fromPrefs(prefs);
+      });
+    });
+  }
+
+  Future<void> _set(String key, bool value) async {
+    final prefs = _prefs;
+    if (prefs == null) return;
+    await prefs.setBool(key, value);
+    if (!mounted) return;
+    setState(() => _options = DownloadFileNameOptions.fromPrefs(prefs));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Text(
+                localizations.downloadFileName,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            SwitchListTile(
+              title: Text(localizations.useServerFileName),
+              subtitle: Text(localizations.useServerFileNameDescription),
+              value: _options.useServerFileName,
+              onChanged:
+                  _prefs == null
+                      ? null
+                      : (value) => _set(
+                        DownloadFileNameOptions.useServerFileNameKey,
+                        value,
+                      ),
+            ),
+            SwitchListTile(
+              title: Text(localizations.asciiFileName),
+              subtitle: Text(localizations.asciiFileNameDescription),
+              value: _options.asciiFileName,
+              onChanged:
+                  _prefs == null
+                      ? null
+                      : (value) =>
+                          _set(DownloadFileNameOptions.asciiFileNameKey, value),
+            ),
+          ],
         ),
       ),
     );
