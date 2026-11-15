@@ -113,5 +113,16 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Readers that can open a downloaded book; KOReader gets a file path (#228) -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:mimeType="*/*"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="content" android:host="*" android:mimeType="*/*"/>
+        </intent>
+        <package android:name="org.koreader.launcher"/>
+        <package android:name="org.koreader.launcher.fdroid"/>
     </queries>
 </manifest>
