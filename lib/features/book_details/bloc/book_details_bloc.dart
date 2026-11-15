@@ -628,6 +628,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         rating: event.rating,
         coverImageBytes: event.coverImageBytes,
         coverFileName: event.coverFileName,
+        coverUrl: event.coverUrl,
       );
 
       if (!result) {
