@@ -1,0 +1,1 @@
+Fix: A cover picked from a metadata search result (e.g. ISBNdb) is now saved too, not only the text metadata (#231)

@@ -110,6 +110,7 @@ class BookDetailsRepository {
 
     Uint8List? coverImageBytes,
     String? coverFileName,
+    String? coverUrl,
   }) async {
     try {
       return await datasource.updateBookMetadata(
@@ -127,6 +128,7 @@ class BookDetailsRepository {
 
         coverImageBytes: coverImageBytes,
         coverFileName: coverFileName,
+        coverUrl: coverUrl,
       );
     } catch (e) {
       rethrow;
