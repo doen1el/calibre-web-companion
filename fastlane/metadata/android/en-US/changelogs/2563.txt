@@ -1,1 +1,2 @@
 Fix: Opening a downloaded book in KOReader opens that book again instead of leaving the previously open one (or the library) on screen; KOReader now gets the file itself from your download folder (#228)
+New: Czech and Slovak can be selected as app language (#229)
