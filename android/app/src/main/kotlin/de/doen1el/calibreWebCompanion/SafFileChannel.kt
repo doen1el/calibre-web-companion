@@ -1,11 +1,16 @@
 package de.doen1el.calibreWebCompanion
 
 import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.os.StrictMode
 import android.provider.DocumentsContract
 import android.webkit.MimeTypeMap
 import io.flutter.plugin.common.BinaryMessenger
@@ -108,7 +113,7 @@ class SafFileChannel(private val context: Context, messenger: BinaryMessenger) {
         val type = mimeType
             ?: context.contentResolver.getType(uri)
             ?: "application/octet-stream"
-        val intent = Intent(Intent.ACTION_VIEW).apply {
+        val contentIntent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, type)
             addFlags(
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or
@@ -116,8 +121,9 @@ class SafFileChannel(private val context: Context, messenger: BinaryMessenger) {
                     Intent.FLAG_ACTIVITY_NEW_TASK,
             )
         }
+        val intent = koreaderIntent(contentIntent, type, uri) ?: contentIntent
         return try {
-            context.startActivity(intent)
+            startActivityAllowingFileUri(intent)
             true
         } catch (e: ActivityNotFoundException) {
             false
@@ -126,7 +132,74 @@ class SafFileChannel(private val context: Context, messenger: BinaryMessenger) {
         }
     }
 
+    // KOReader up to 2026.07 resolves a SAF content URI to the descriptor's
+    // /mnt/user/... path, which it cannot reopen, so it silently keeps the
+    // previous book (#228). It opens file:// paths in place, so KOReader gets
+    // the real storage path while other readers keep the content URI.
+    private fun koreaderIntent(contentIntent: Intent, type: String, uri: Uri): Intent? {
+        val path = externalStoragePath(uri) ?: return null
+        val pm = context.packageManager
+        val handlers = pm.queryIntentActivities(contentIntent, PackageManager.MATCH_DEFAULT_ONLY)
+            .map { it.activityInfo }
+        val koreader = handlers.filter { it.packageName.startsWith(KOREADER_PACKAGE) }
+        if (koreader.isEmpty()) return null
+
+        fun fileIntent(info: ActivityInfo) = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(Uri.fromFile(path), type)
+            component = ComponentName(info.packageName, info.name)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        val default = pm.resolveActivity(contentIntent, PackageManager.MATCH_DEFAULT_ONLY)
+            ?.activityInfo
+        if (default != null && default.packageName.startsWith(KOREADER_PACKAGE)) {
+            return fileIntent(default)
+        }
+        if (default != null && handlers.any { it.packageName == default.packageName }) {
+            return null
+        }
+        if (handlers.size == koreader.size) return fileIntent(koreader.first())
+
+        // No default reader: offer the other readers the content URI and
+        // KOReader the file path in one chooser.
+        return Intent.createChooser(Intent(contentIntent), null).apply {
+            putExtra(Intent.EXTRA_INITIAL_INTENTS, koreader.map { fileIntent(it) }.toTypedArray())
+            putExtra(
+                Intent.EXTRA_EXCLUDE_COMPONENTS,
+                koreader.map { ComponentName(it.packageName, it.name) }.toTypedArray(),
+            )
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+    }
+
+    private fun externalStoragePath(uri: Uri): File? {
+        if (uri.authority != EXTERNAL_STORAGE_AUTHORITY) return null
+        val docId = runCatching { DocumentsContract.getDocumentId(uri) }.getOrNull() ?: return null
+        val volume = docId.substringBefore(':', "")
+        val relative = docId.substringAfter(':', "")
+        if (volume.isEmpty() || relative.isEmpty()) return null
+        val root = when (volume) {
+            "primary" -> Environment.getExternalStorageDirectory()
+            "home" -> Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+            else -> File("/storage", volume)
+        }
+        return File(root, relative)
+    }
+
+    // Targeting API 24+ makes file:// intents throw FileUriExposedException.
+    private fun startActivityAllowingFileUri(intent: Intent) {
+        val policy = StrictMode.getVmPolicy()
+        StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder().build())
+        try {
+            context.startActivity(intent)
+        } finally {
+            StrictMode.setVmPolicy(policy)
+        }
+    }
+
     companion object {
         const val CHANNEL = "de.doen1el.calibreWebCompanion/saf"
+        private const val KOREADER_PACKAGE = "org.koreader.launcher"
+        private const val EXTERNAL_STORAGE_AUTHORITY = "com.android.externalstorage.documents"
     }
 }
