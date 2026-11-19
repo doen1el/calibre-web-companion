@@ -38,16 +38,19 @@ The app is built with [Flutter](https://github.com/flutter/flutter) and uses **M
 
 <p align="left">
     <a href="https://f-droid.org/en/packages/de.doen1el.calibreWebCompanion/">
-        <img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="80">
+        <img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="80" align="middle">
     </a>
     <a href="https://play.google.com/store/apps/details?id=de.doen1el.calibreWebCompanion">
-        <img src="docs/badges/badge_play.png" alt="Get it on Google Play" height="80">
+        <img src="docs/badges/badge_play.png" alt="Get it on Google Play" height="80" align="middle">
+    </a>
+    <a href="https://apps.apple.com/app/id6836500792">
+        <img src="docs/badges/badge_apple.svg" alt="Download on the App Store" width="162" height="54" align="middle">
     </a>
     <a href="https://github.com/doen1el/calibre-web-companion/releases">
-        <img src="docs/badges/badge_github.png" alt="Get it on GitHub" height="80">
+        <img src="docs/badges/badge_github.png" alt="Get it on GitHub" height="80" align="middle">
     </a>
     <a href="https://github.com/doen1el/calibre-web-companion/wiki/Installing-Calibre%E2%80%90Web%E2%80%90Companion-from-GitHub-using-Obtainium">
-        <img src="docs/badges/badge_obtainium.png" alt="Get it on Obtainium" height="80">
+        <img src="docs/badges/badge_obtainium.png" alt="Get it on Obtainium" height="80" align="middle">
     </a>
 </p>
 
