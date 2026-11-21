@@ -136,7 +136,7 @@
     "failedToAddToShelf": "Не удалось добавить на полку",
     "bookRemovedFromShelf": "Книга удалена с полки {book}",
     "failedToRemoveFromShelf": "Не удалось удалить книгу с полки",
-    "removeFromShelf": "Удалить",
+    "removeFromShelf": "Убрать",
     "shelfs": "Полки",
     "shelfContains": "Полка содержит книг: {count}",
     "errorLoadingShelf": "Ошибка загрузки полки",
