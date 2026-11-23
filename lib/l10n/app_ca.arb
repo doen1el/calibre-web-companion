@@ -398,12 +398,12 @@
     "accounts": "Comptes",
     "addAnotherAccount": "Afegir altre compte",
     "switchAccount": "Alterna compte",
-    "switchAccountConfirmation": "Alternar compte a {username}?",
+    "switchAccountConfirmation": "Canviar compte a {username}?",
     "deleteAccount": "Esborra compte",
     "deleteAccountConfirmation": "Segur que vols eliminar el compte de la llista?",
     "user": "Usuari",
     "userFirstLetter": "U",
-    "useAuthorSort": "Empra 'Ordenament d'Autor'",
+    "useAuthorSort": "Utilitza 'Ordena per Autor'",
     "failedToDeleteBook": "Error a l'esborrar llibre",
     "eInkMode": "Mode E-Ink",
     "eInkModeDescription": "Deshabilita animacions per a dispositius E-Ink",
@@ -628,5 +628,30 @@
     "readerCacheLimit": "Límit d'emmagatzematge",
     "readerCacheUsage": "Ús actual: {size}",
     "readerCacheClear": "Buidar",
-    "opdsReadOnlyHint": "OPDS permet navegar, descarregar i llegir llibres. Editar metadades, prestatges i estats de lectura requereix un inici de sessió directe: per a Calibre-Web o els seus derivats, utilitza la pestanya \"Calibre Web\"."
+    "opdsReadOnlyHint": "OPDS permet navegar, descarregar i llegir llibres. Editar metadades, prestatges i estats de lectura requereix un inici de sessió directe: per a Calibre-Web o els seus derivats, utilitza la pestanya \"Calibre Web\".",
+    "downloadFileName": "Nom del fitxer",
+    "useServerFileName": "Utilitza el nom del fitxer al servidor",
+    "useServerFileNameDescription": "El nom dels fitxers descarregats exactament com al servidor (requerit per a la sincronització KOReader). Els directoris respectaran l'esquema de descàrregues.",
+    "asciiFileName": "Substitueix els caràcters especials",
+    "asciiFileNameDescription": "ä → a, ß → ss, é → e, com els servidors que desen els fitxers sense caràcters especials",
+    "readerContents": "Contingut",
+    "readerBookmarks": "Marcadors",
+    "readerNoBookmarks": "Encara no tens cap marcador. Toca la icona dels marcadors mentre llegeixis per desar una pàgina.",
+    "readerAddBookmark": "Afegir marcador",
+    "readerRemoveBookmark": "Esborra el marcador",
+    "readerBookmarkAdded": "Marcador afegit",
+    "readerBookmarkRemoved": "Marcador esborrat",
+    "readerBookmarkPage": "Pàgina {page}",
+    "@readerBookmarkPage": {
+        "placeholders": {
+            "page": {
+                "type": "int"
+            }
+        }
+    },
+    "metadataSourceIssues": "No s'ha pogut fer la cerca en algunes fonts d'informació",
+    "metadataStatusRateLimited": "Ràtio limitat",
+    "metadataStatusBlocked": "Bloquejat per la font d'informació",
+    "metadataStatusMissingKey": "Falta la clau d'API",
+    "metadataStatusError": "Error"
 }
