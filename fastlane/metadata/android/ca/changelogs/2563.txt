@@ -1,0 +1,2 @@
+Corregit: Obrir un llibre descarregat a KOReader obre aquell llibre altre cop en lloc de deixar en pantalla el que s'havia obert anteriorment (o la biblioteca); KOReader ara obté el propi fitxer de la teva carpeta de descàrrega (#228)
+Nou: Es pot escollir com a idioma del programari el txec i l'eslovac (#229)

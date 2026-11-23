@@ -1,0 +1,1 @@
+Corregit: Una portada obtinguda d'un resultat de cerca de metadades (com ara ISBNdb) ara també es desa, no només el text de la metadada (#231)

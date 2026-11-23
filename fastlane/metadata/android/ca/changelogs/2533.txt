@@ -1,0 +1,5 @@
+Funció: Estableix marcadors al lector integrat (ePUB, PDF i CBZ) i torna-hi; es sincronitzen entre dispositius a través de WebDAV
+Corregit: Els llibres ePUB ara es marquen com a llegits quan els acabes al lector integrat, i la posició final de lectura es sincronitza quan es tanca el lector
+Corregit: Torna a funcionar la cerca de metadades a Calibre-Web-NextGen, i ara et diu quan no es pot connectar amb una font d'informació (ràtio limitat, bloquejat o manca de clau API=
+Corregit: Els ePUB descarregats s'obren al lector integrat altre cop, en lloc de donar l'error "META-INF/container.xml file not found"
+Funció: Descarrega més d'un format d'un llibre (com ara ePUB i M4B); s'indica quins formats ja hi ha al teu dispositiu

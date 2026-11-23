@@ -1,0 +1,1 @@
+Corregit: Els llibres descarregats mantenen el nom exacte de fitxer del teu esquema de descàrrega (espais, cometes i punts ja no es substitueixen per "_"), de tal manera que la sincronització de KOReader amb Calibre-Web-Automated / NextGen pot enllaçar-los de nou; els llibres ja descarregats es reanomenen a aquell nom el proper cop que els descarreguis o obris
