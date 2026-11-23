@@ -1,0 +1,1 @@
+Your own e-book library on iPhone and iPad: browse, read and sync books from your self-hosted Calibre-Web server.

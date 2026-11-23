@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:calibre_web_companion/core/utils/sandbox_path.dart';
 import 'package:docman/docman.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,14 +27,18 @@ class DownloadManager {
         decoded.forEach((uuid, value) {
           if (value is Map) {
             books[uuid] = value.map(
-              (format, path) => MapEntry(format.toString(), path.toString()),
+              (format, path) => MapEntry(
+                format.toString(),
+                SandboxPath.rebase(path.toString()),
+              ),
             );
           } else if (value is String) {
             // Legacy format: a single path per book.
-            books[uuid] = {_formatOfPath(value): value};
+            books[uuid] = {_formatOfPath(value): SandboxPath.rebase(value)};
           }
         });
         _downloadedBooks = books;
+        if (json.encode(books) != jsonString) await _save();
       } catch (e) {
         _logger.e('Error decoding downloaded books map: $e');
         _downloadedBooks = {};

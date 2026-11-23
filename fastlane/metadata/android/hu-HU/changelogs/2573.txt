@@ -1,0 +1,1 @@
+Javítás: Mostantól a metaadat-keresési eredményekből (pl. ISBNdb) kiválasztott borítókép is elmentésre kerül, nem csak a szöveges metaadatok (#231)

@@ -44,6 +44,7 @@ class _WebViewLoginPageState extends State<WebViewLoginPage> {
   String _currentUrl = '';
   bool _isExtracting = false;
   Map<String, String>? _customHeaders;
+  bool _allowSelfSigned = false;
 
   @override
   void initState() {
@@ -61,6 +62,7 @@ class _WebViewLoginPageState extends State<WebViewLoginPage> {
         prefs.getString(customHeadersPrefsKey) ?? '[]',
         username: widget.username ?? prefs.getString('username'),
       );
+      _allowSelfSigned = prefs.getBool('allow_self_signed') ?? false;
     } catch (e) {
       _logger.w('Could not load custom headers for the web view: $e');
     }
@@ -245,6 +247,16 @@ class _WebViewLoginPageState extends State<WebViewLoginPage> {
                   ),
                   onWebViewCreated: (controller) {
                     _webViewController = controller;
+                  },
+                  // iOS asks for every HTTPS load; null keeps the system check.
+                  onReceivedServerTrustAuthRequest: (
+                    controller,
+                    challenge,
+                  ) async {
+                    if (!_allowSelfSigned) return null;
+                    return ServerTrustAuthResponse(
+                      action: ServerTrustAuthResponseAction.PROCEED,
+                    );
                   },
                   onLoadStart: (controller, url) {
                     if (mounted) {

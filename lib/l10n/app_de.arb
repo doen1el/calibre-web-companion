@@ -325,6 +325,7 @@
     "columnsCount": "Anzahl der Spalten",
     "columns": "Spalten",
     "listView": "Listenansicht",
+    "showBookDetailsOnCovers": "Titel & Autor anzeigen",
     "uploadEbook": "E-Book hochladen",
     "logoutFailed": "Abmeldung fehlgeschlagen",
     "shelfNotFound": "Regal nicht gefunden",
@@ -639,5 +640,6 @@
   "metadataStatusRateLimited": "Zu viele Anfragen",
   "metadataStatusBlocked": "Von der Quelle blockiert",
   "metadataStatusMissingKey": "API-Schlüssel fehlt",
-  "metadataStatusError": "Fehler"
+  "metadataStatusError": "Fehler",
+  "unsupportedUploadFormat": "Nicht unterstützter Dateityp. Erlaubt: {formats}"
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
@@ -15,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 final Logger _logger = Logger();
 
 Future<bool> isDownloaderConfigured() async {
+  if (Platform.isIOS) return false;
   final prefs = await SharedPreferences.getInstance();
   return (prefs.getString('downloader_url') ?? '').isNotEmpty;
 }

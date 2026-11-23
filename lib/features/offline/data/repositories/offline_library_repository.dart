@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:calibre_web_companion/core/utils/sandbox_path.dart';
 import 'package:calibre_web_companion/features/offline/data/models/offline_book_model.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
@@ -38,11 +39,7 @@ class OfflineLibraryRepository {
 
   List<OfflineBookModel> getAll() {
     final map = _readMap();
-    final books =
-        map.values
-            .whereType<Map>()
-            .map((e) => OfflineBookModel.fromJson(Map<String, dynamic>.from(e)))
-            .toList();
+    final books = map.values.whereType<Map>().map(_fromEntry).toList();
     books.sort((a, b) => b.savedAt.compareTo(a.savedAt));
     return books;
   }
@@ -50,10 +47,16 @@ class OfflineLibraryRepository {
   OfflineBookModel? getBook(String uuid) {
     final map = _readMap();
     final entry = map[uuid];
-    if (entry is Map) {
-      return OfflineBookModel.fromJson(Map<String, dynamic>.from(entry));
-    }
+    if (entry is Map) return _fromEntry(entry);
     return null;
+  }
+
+  OfflineBookModel _fromEntry(Map entry) {
+    final book = OfflineBookModel.fromJson(Map<String, dynamic>.from(entry));
+    return book.copyWith(
+      filePath: SandboxPath.rebase(book.filePath),
+      coverPath: SandboxPath.rebaseNullable(book.coverPath),
+    );
   }
 
   Future<void> saveBook(OfflineBookModel book, {Uint8List? coverBytes}) async {
@@ -72,7 +75,9 @@ class OfflineLibraryRepository {
     final map = _readMap();
     final existing = map[uuid];
     if (existing is Map) {
-      final coverPath = existing['coverPath']?.toString();
+      final coverPath = SandboxPath.rebaseNullable(
+        existing['coverPath']?.toString(),
+      );
       if (coverPath != null && coverPath.isNotEmpty) {
         try {
           final f = File(coverPath);
@@ -88,7 +93,11 @@ class OfflineLibraryRepository {
 
   Future<String?> _writeCover(String uuid, Uint8List bytes) async {
     try {
-      final dir = await getApplicationDocumentsDirectory();
+      // Not Documents: on iOS that folder is visible in the Files app.
+      final dir =
+          Platform.isIOS
+              ? await getApplicationSupportDirectory()
+              : await getApplicationDocumentsDirectory();
       final coverDir = Directory('${dir.path}/$_coverDirName');
       if (!coverDir.existsSync()) coverDir.createSync(recursive: true);
       final safeName = uuid.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');

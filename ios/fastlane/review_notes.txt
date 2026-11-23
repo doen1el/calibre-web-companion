@@ -1,0 +1,28 @@
+1. SCREEN RECORDING
+The screen recording is attached in the App Review Information section. It was recorded on a physical iPad running the latest iPadOS and starts with launching the app.
+The app has no account registration (accounts are created by the server owner on their own server), no account deletion flow, no user-generated content shared with other users, and no paid content or in-app purchases.
+
+2. PURPOSE AND TARGET AUDIENCE
+Calibre Web Companion is a native client for self-hosted e-book servers (Calibre-Web, Calibre-Web Automated, Calibre-Web-NextGen, the calibre content server and other OPDS catalogs). Its audience is people who keep their own e-book collection on a server at home or on a rented server. The web interfaces of these servers are hard to use on a phone or tablet and cannot read books offline; the app lets users browse their library, read books in a built-in reader (also offline), sync reading progress, edit metadata, organize shelves, upload books and send books to their e-reader.
+
+3. HOW TO TEST
+1) Launch the app.
+2) On the login screen, enter the server URL https://ebooks.danielmuenstermann.de (server type "Calibre Web" is the default).
+3) Log in with the demo user name and password from the sign-in information.
+4) "Books": browse the library and tap a book to open its details.
+5) In the book details, the "Book actions" row: "Open in Internal Reader" opens the built-in reader, "Download to device" saves the book (also visible in the Files app), "Mark as read/unread" changes the read status, "Add to shelf" adds it to a shelf.
+6) "Discover": browse by author, series and category.
+7) "Me": statistics and shelves; the settings are reached from there.
+The demo library only contains public-domain books (Project Gutenberg).
+
+4. EXTERNAL SERVICES
+- The user's own e-book server (required). It provides all content and the login; the app has no backend of its own.
+- Optional, only if the user sets them up: a WebDAV server or KOReader sync server for reading progress, BookDrop or the server's e-mail function to send books to an e-reader.
+- Optional book metadata lookup by ISBN: Open Library, Google Books, Bibliothèque nationale de France, Hardcover, ISBNdb.
+No analytics, advertising, payment or AI services are used.
+
+5. REGIONS
+The app works the same in all regions; there are no regional differences in features or content.
+
+6. REGULATED INDUSTRY / THIRD-PARTY MATERIAL
+Not applicable. The app does not provide any content. It only shows books that the user stores on their own server; the demo server contains only public-domain books.

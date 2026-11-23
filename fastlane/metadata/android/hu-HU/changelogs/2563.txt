@@ -1,0 +1,2 @@
+Javítás: Ha egy letöltött könyvet KOReaderben nyitunk meg, az újra megnyitja azt a könyvet, ahelyett, hogy a korábban megnyitott könyvet (vagy a könyvtárat) hagyná a képernyőn; a KOReader most már közvetlenül a letöltési mappából tölti be a fájlt (#228)
+Új: Az alkalmazás nyelveként kiválasztható a cseh és a szlovák nyelv (#229)

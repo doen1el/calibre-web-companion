@@ -74,7 +74,10 @@ class WidgetService {
   static const String kShelfLabelKey = 'widget_shelf_label';
   static const String _kCurrentBookKey = 'widget_current_book';
   static const String _kShelfBooksKey = 'widget_shelf_books';
-  static const int shelfMaxBooks = 40;
+  static const int recentMaxBooks = 40;
+  // Safety cap only: shelves are shown in full (#233), but a runaway paging
+  // loop must not download thousands of covers in the background.
+  static const int shelfMaxBooks = 1000;
 
   bool get _supported => Platform.isAndroid;
 
@@ -270,7 +273,10 @@ class WidgetService {
       books = await loader.load(
         source: source,
         shelfId: id,
-        limit: shelfMaxBooks,
+        limit:
+            source == WidgetShelfSource.bookList
+                ? recentMaxBooks
+                : shelfMaxBooks,
       );
     } catch (e) {
       logger.w('Failed to load books for shelf widget: $e');

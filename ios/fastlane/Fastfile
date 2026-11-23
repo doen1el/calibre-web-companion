@@ -1,0 +1,117 @@
+default_platform(:ios)
+
+# Only the App Store listing is managed here. The app itself is archived and
+# uploaded with Xcode (Product > Archive > Distribute App).
+
+# fastlane evaluates this file without a real path (__dir__ is ".") and runs
+# actions from ios/, so every path is made absolute from the repo root.
+ROOT = Dir.pwd.then do |dir|
+  dir = File.dirname(dir) until File.exist?(File.join(dir, "pubspec.yaml")) || dir == "/"
+  dir
+end
+LANE_DIR = File.join(ROOT, "ios", "fastlane")
+STORE_LOCALES = %w[en-US de-DE].freeze
+
+platform :ios do
+  desc "Upload store texts, screenshots, review information and the release notes of the pubspec version"
+  lane :metadata do
+    upload_to_app_store(
+      api_key: asc_api_key,
+      app_version: pubspec_version.first,
+      skip_binary_upload: true,
+      skip_screenshots: !screenshots?,
+      overwrite_screenshots: screenshots?,
+      metadata_path: File.join(LANE_DIR, "metadata"),
+      screenshots_path: File.join(LANE_DIR, "screenshots"),
+      release_notes: release_notes,
+      app_review_information: review_information,
+      precheck_include_in_app_purchases: false,
+      submit_for_review: false,
+      force: true
+    )
+  end
+
+  desc "Upload store texts and review information only (no screenshots)"
+  lane :texts do
+    upload_to_app_store(
+      api_key: asc_api_key,
+      app_version: pubspec_version.first,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      metadata_path: File.join(LANE_DIR, "metadata"),
+      release_notes: release_notes,
+      app_review_information: review_information,
+      precheck_include_in_app_purchases: false,
+      submit_for_review: false,
+      force: true
+    )
+  end
+end
+
+def asc_api_key
+  app_store_connect_api_key(
+    key_id: ENV.fetch("ASC_KEY_ID"),
+    issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+    key_filepath: blank_to_nil(ENV["ASC_KEY_PATH"]),
+    key_content: asc_key_pem,
+    is_key_content_base64: false
+  )
+end
+
+# ASC_KEY_CONTENT may be the .p8 file as-is, base64 of it, or just its key body.
+def asc_key_pem
+  raw = blank_to_nil(ENV["ASC_KEY_CONTENT"])
+  return nil if raw.nil?
+
+  raw = raw.strip.delete_prefix('"').delete_suffix('"').gsub('\n', "\n")
+  return raw if raw.include?("BEGIN PRIVATE KEY")
+
+  decoded = raw.unpack1("m") rescue ""
+  return decoded if decoded.include?("BEGIN PRIVATE KEY")
+
+  body = raw.gsub(/\s+/, "").scan(/.{1,64}/).join("\n")
+  "-----BEGIN PRIVATE KEY-----\n#{body}\n-----END PRIVATE KEY-----\n"
+end
+
+def pubspec_version
+  version = File.read(File.join(ROOT, "pubspec.yaml"))[/^version:\s*(\S+)/, 1]
+  version.split("+")
+end
+
+# Reuses the Android changelogs (named after the F-Droid versionCode).
+def release_notes
+  build_number = pubspec_version.last
+  code = Dir.chdir(ROOT) do
+    sh("bash", ".github/scripts/android_version_code.sh", build_number, log: false).strip
+  end
+  notes = {}
+  STORE_LOCALES.each do |locale|
+    file = File.join(ROOT, "fastlane/metadata/android", locale, "changelogs", "#{code}.txt")
+    notes[locale] = File.read(file).strip if File.exist?(file)
+  end
+  STORE_LOCALES.each { |locale| notes[locale] ||= notes["en-US"] } if notes["en-US"]
+  UI.important("No changelog for versionCode #{code}, release notes stay empty") if notes.empty?
+  notes
+end
+
+def review_information
+  notes = File.read(File.join(LANE_DIR, "review_notes.txt"))
+              .gsub("{{SERVER_URL}}", ENV.fetch("REVIEW_DEMO_SERVER_URL", ""))
+  {
+    first_name: blank_to_nil(ENV["REVIEW_FIRST_NAME"]),
+    last_name: blank_to_nil(ENV["REVIEW_LAST_NAME"]),
+    email_address: blank_to_nil(ENV["REVIEW_EMAIL"]),
+    phone_number: blank_to_nil(ENV["REVIEW_PHONE"]),
+    demo_user: blank_to_nil(ENV["REVIEW_DEMO_USER"]),
+    demo_password: blank_to_nil(ENV["REVIEW_DEMO_PASSWORD"]),
+    notes: notes
+  }.compact
+end
+
+def screenshots?
+  Dir[File.join(LANE_DIR, "screenshots", "*", "*.{png,jpg,jpeg}")].any?
+end
+
+def blank_to_nil(value)
+  value.nil? || value.strip.empty? ? nil : value
+end

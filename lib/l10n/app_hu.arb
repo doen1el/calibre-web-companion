@@ -611,5 +611,39 @@
     "isbnFoundVia": "Megtalálva:{sources}",
     "koSyncContinueBodyUnknownDevice": "Egy másik eszközön a könyv {percentage}%-át már elolvastam.",
     "cloudflareAccessClientSecret": "Ügyfél titkos kulcs",
-    "cloudflareAccessIdHint": "Az ügyfél-azonosító általában „.access” végződéssel zárul — esetleg felcserélődött az azonosító és a titkos kulcs?"
+    "cloudflareAccessIdHint": "Az ügyfél-azonosító általában „.access” végződéssel zárul — esetleg felcserélődött az azonosító és a titkos kulcs?",
+    "metadataStatusMissingKey": "Hiányzó API kulcs",
+    "metadataStatusError": "Hiba",
+    "downloadFileName": "Fájlnév",
+    "useServerFileName": "Használja a szerver fájlnevét",
+    "useServerFileNameDescription": "A fájlok neve pontosan úgy alakul, ahogyan a szerver is kezeli őket (ez szükséges a KOReader szinkronizálásához). A mappák továbbra is a letöltési sémát követik.",
+    "asciiFileName": "Különleges karakterek cseréje",
+    "asciiFileNameDescription": "ä → a, ß → ss, é → e, mint azok a szerverek, amelyek speciális karakterek nélküli fájlokat mentenek",
+    "internalReaderUnsupportedFormat": "A beépített olvasó az EPUB, a PDF és a CBZ formátumokat támogatja. Elérhető formátumok: {formats}",
+    "internalReaderUnsupportedFormatShort": "A beépített olvasó nem támogatja",
+    "comicReadingDirection": "Olvasási irány",
+    "comicHasNoPages": "Ez a képregény nem tartalmaz oldalakat.",
+    "removeFromDevice": "Eltávolítás az eszközről",
+    "removeFromDeviceConfirm": "Törölje a „{title}” helyi másolatát? A könyv a szerveren marad.",
+    "autoMarkAsRead": "Olvasottként jelölés befejezés után",
+    "readerCache": "A könyveket tartsa nyitva az olvasóban",
+    "readerCacheDescription": "A beépített olvasóban megnyitott könyvek az eszközön maradnak, legközelebb azonnal megnyílnak, és offline módban is elérhetők. A legrégebb könyveket a korlát elérésekor az eszköz eltávolítja.",
+    "readerCacheLimit": "Tárolási korlát",
+    "readerCacheUsage": "Jelenleg használt: {size}",
+    "metadataSourceIssues": "Egyes források nem voltak kereshetők",
+    "readerBookmarkRemoved": "Könyvjelző eltávolítva",
+    "readerBookmarkAdded": "Könyvjelző hozzáadva",
+    "readerNoBookmarks": "Még nincs könyvjelző. Olvasás közben érintse meg a könyvjelző ikont az oldal elmentéséhez.",
+    "readerBookmarks": "Könyvjelzők",
+    "opdsReadOnlyHint": "Az OPDS segítségével böngészhet, letölthet és olvashatja a könyveket. A metaadatok, a könyvpolcok és az olvasási állapot szerkesztéséhez közvetlen bejelentkezés szükséges: a Calibre-Web vagy annak forkjainak használatához válassza a „Calibre Web” fület.",
+    "readerAddBookmark": "Könyvjelző hozzáadása",
+    "readerRemoveBookmark": "Könyvjelző eltávolítása",
+    "readerBookmarkPage": "{page}. oldal",
+    "@readerBookmarkPage": {
+        "placeholders": {
+            "page": {
+                "type": "int"
+            }
+        }
+    }
 }

@@ -267,6 +267,7 @@ class DiscoverDetailsPage extends StatelessWidget {
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final book = feed.books[index];
                     return BookCard(
+                      showDetails: viewState.showCoverDetails,
                       bookId: book.id,
                       coverUrl: book.coverUrl,
                       title: book.title,

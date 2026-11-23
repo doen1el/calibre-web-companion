@@ -1,0 +1,2 @@
+Fix: The shelf widget now shows every book of a shelf or magic shelf (and all downloaded books) instead of stopping after 40 (#233)
+New: Grid views can hide title and author so only the covers are shown (view menu → "Show title & author") (#234)

@@ -1,0 +1,12 @@
+source "https://rubygems.org"
+
+gem "fastlane", "~> 2.242"
+
+# Ruby 3.4+ no longer ships these as default gems; fastlane still needs them.
+gem "abbrev"
+gem "bigdecimal"
+gem "csv"
+gem "logger"
+gem "mutex_m"
+gem "nkf"
+gem "ostruct"

@@ -94,6 +94,9 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         event.bookUuid,
       );
 
+      // The page owns this bloc; leaving it before the server answered
+      // closes it, and add() would throw.
+      if (isClosed) return;
       add(LoadReadingProgress(event.bookUuid));
 
       logger.i(bookDetails.tags);
@@ -705,7 +708,8 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
 
       final bookBytes = BytesBuilder(copy: false);
 
-      if (event.downloadToDeviceFirst) {
+      // SAF-only path; a restored Android setting must not break iOS.
+      if (event.downloadToDeviceFirst && Platform.isAndroid) {
         if (state.bookDetails == null) {
           throw Exception('Book details not available for device download');
         }

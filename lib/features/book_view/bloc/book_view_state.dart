@@ -16,6 +16,7 @@ class BookViewState extends Equatable {
   final String? searchQuery;
   final int columnCount;
   final bool isListView;
+  final bool showCoverDetails;
   final UploadStatus uploadStatus;
   final bool isOpds;
   final bool canAddBooks;
@@ -39,6 +40,7 @@ class BookViewState extends Equatable {
     this.searchQuery,
     this.columnCount = 2,
     this.isListView = false,
+    this.showCoverDetails = true,
     this.uploadStatus = UploadStatus.initial,
     this.isOpds = false,
     this.canAddBooks = true,
@@ -63,6 +65,7 @@ class BookViewState extends Equatable {
     String? searchQuery,
     int? columnCount,
     bool? isListView,
+    bool? showCoverDetails,
     UploadStatus? uploadStatus,
     bool? isOpds,
     bool? canAddBooks,
@@ -86,6 +89,7 @@ class BookViewState extends Equatable {
       searchQuery: searchQuery ?? this.searchQuery,
       columnCount: columnCount ?? this.columnCount,
       isListView: isListView ?? this.isListView,
+      showCoverDetails: showCoverDetails ?? this.showCoverDetails,
       uploadStatus: uploadStatus ?? this.uploadStatus,
       isOpds: isOpds ?? this.isOpds,
       canAddBooks: canAddBooks ?? this.canAddBooks,
@@ -113,6 +117,7 @@ class BookViewState extends Equatable {
     searchQuery,
     columnCount,
     isListView,
+    showCoverDetails,
     uploadStatus,
     isOpds,
     canAddBooks,

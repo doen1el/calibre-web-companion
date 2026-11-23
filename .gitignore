@@ -58,3 +58,20 @@ distribution/whatsnew/
 # Build artifacts should never be committed (they used to live in LFS)
 *.apk
 prerelease/
+
+# fastlane secrets and output
+ios/fastlane/.env
+ios/fastlane/report.xml
+ios/fastlane/README.md
+ios/fastlane/Preview.html
+ios/fastlane/test_output
+ios/vendor/bundle/
+*.ipa
+*.dSYM.zip
+*.p8
+
+# Store screenshot pipeline (local only)
+/screenshots/
+
+# App Store upload screenshots (generated, kept out of the repo)
+ios/fastlane/screenshots/**/*.png

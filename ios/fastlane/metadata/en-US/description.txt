@@ -1,0 +1,25 @@
+This is an unofficial companion app for Calibre-Web (which also works with Calibre-Web Automated, Calibre-Web-NextGen, Grimmory, calibre's "Sharing over the net" and other OPDS servers) that lets you browse your book collection and download books directly to your device. You can also interact with your books by marking them as read, unread or bookmarked. It is also possible to send books directly to your e-reader (Kindle/Kobo) thanks to the great work of BookDrop.
+
+You need your own server: the app does not include any books, it shows what is stored in your library.
+
+Features:
+
+- Connect to your Calibre-Web (Automated), Grimmory, calibre and OPDS servers, including reverse proxy / SSO setups, custom HTTP headers and self-signed certificates.
+- Browse your whole library with smooth, fast navigation.
+- Discover books by category, author, series, publisher, rating, hot & trending, and more.
+- View rich details for every book, edit its metadata and upload new covers.
+- Mark books as read or unread, archive them and organize them into shelves.
+- Create, edit and browse Magic Shelves: dynamic, rule-based shelves (Calibre-Web Automated & Calibre-Web-NextGen only).
+- Add books quickly by scanning their ISBN barcode.
+- Read EPUB, PDF and CBZ books in the built-in reader, with bookmarks. Books are fetched when you open them, kept on the device up to a storage limit you choose, and marked as read when you finish them.
+- Sync your reading progress across devices with KOReader Sync or your own WebDAV server.
+- Send books to your e-reader via BookDrop or Calibre-Web's email function.
+- Upload books to your server.
+- Sync your whole library or selected books for offline reading; downloads also show up in the Files app.
+- Check your collection statistics at a glance.
+- Make it yours: reorder or hide book actions, detail sections and Discover sections, choose a theme, enable e-ink mode and adjust the text size.
+- Available in 20 languages.
+
+Open source: the app is free software (GNU GPL v3). The price only covers Apple's yearly developer fee, it is not meant to make a profit. The source code is on GitHub, and you can build the app yourself.
+
+The app is in active development. Please report bugs, feedback and feature ideas on GitHub.

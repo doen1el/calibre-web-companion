@@ -611,6 +611,9 @@ class ShelfDetailsPage extends StatelessWidget {
               previous.loadingBookId != current.loadingBookId,
       builder: (context, state) {
         return BookCard(
+          showDetails: context.select(
+            (BookViewBloc bloc) => bloc.state.showCoverDetails,
+          ),
           bookId: book.id,
           coverUrl: book.coverUrl,
           title: book.title,

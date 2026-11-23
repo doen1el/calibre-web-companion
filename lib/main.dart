@@ -11,6 +11,7 @@ import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/core/services/session_reauth_service.dart';
 import 'package:calibre_web_companion/core/services/snackbar.dart';
 import 'package:calibre_web_companion/core/services/widget_service.dart';
+import 'package:calibre_web_companion/core/utils/sandbox_path.dart';
 import 'package:calibre_web_companion/features/book_details/bloc/book_details_bloc.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
 import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
@@ -81,6 +82,7 @@ void main() async {
           return false;
         };
 
+        await SandboxPath.init();
         await di.getIt<DownloadManager>().initialize();
 
         await di.getIt<ApiService>().initialize();

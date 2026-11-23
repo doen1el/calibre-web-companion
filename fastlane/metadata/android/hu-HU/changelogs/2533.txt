@@ -1,0 +1,5 @@
+Új funkció: Könyvjelzők beállítása a beépített olvasóban (EPUB, PDF és CBZ), valamint az azokhoz való visszatérés; ezek a WebDAV-on keresztül szinkronizálódnak az eszközök között
+Javítás: Az EPUB-könyvek mostantól olvasottként vannak megjelölve, ha befejezed őket a beépített olvasóban, és az utolsó olvasási pozíció szinkronizálódik, amikor az olvasót bezárják
+Javítás: A metaadatok keresése ismét működik a Calibre-Web-NextGen-en, és most már jelzi, ha egy forrásban nem lehet keresni (sebességkorlátozás, blokkolás vagy hiányzó API-kulcs miatt)
+Javítás: A letöltött EPUB-fájlok ismét a beépített olvasóban nyílnak meg, ahelyett, hogy „META-INF/container.xml fájl nem található” hibaüzenettel zárulnának
+Új funkció: Egy könyv több formátumának letöltése (pl. EPUB és M4B); a formátumválasztó megjelöli azokat a formátumokat, amelyek már megtalálhatók a készüléken

@@ -1,0 +1,25 @@
+Dies ist eine inoffizielle Begleit-App für Calibre-Web (funktioniert auch mit Calibre-Web Automated, Calibre-Web-NextGen, Grimmory, calibres „Über das Netz teilen“ und anderen OPDS-Servern), mit der du deine Büchersammlung durchsuchen und Bücher direkt auf dein Gerät herunterladen kannst. Du kannst Bücher außerdem als gelesen, ungelesen oder mit Lesezeichen markieren. Dank der großartigen Arbeit von BookDrop kannst du Bücher auch direkt an deinen E-Reader (Kindle/Kobo) senden.
+
+Du brauchst einen eigenen Server: Die App enthält keine Bücher, sie zeigt an, was in deiner Bibliothek liegt.
+
+Funktionen:
+
+- Verbindung zu deinem Calibre-Web- (Automated), Grimmory-, calibre- und OPDS-Server, auch hinter Reverse-Proxy / SSO, mit eigenen HTTP-Headern und selbstsignierten Zertifikaten.
+- Durchsuche deine ganze Bibliothek mit flüssiger, schneller Navigation.
+- Entdecke Bücher nach Kategorie, Autor, Reihe, Verlag, Bewertung, Beliebtheit und mehr.
+- Ausführliche Details zu jedem Buch, Metadaten bearbeiten und neue Cover hochladen.
+- Bücher als gelesen oder ungelesen markieren, archivieren und in Regalen organisieren.
+- Magic Shelves erstellen, bearbeiten und durchsuchen: dynamische, regelbasierte Regale (nur Calibre-Web Automated & Calibre-Web-NextGen).
+- Bücher schnell per ISBN-Barcode hinzufügen.
+- EPUB, PDF und CBZ im eingebauten Reader lesen, mit Lesezeichen. Bücher werden beim Öffnen geladen, bis zu einem selbst gewählten Speicherlimit auf dem Gerät behalten und am Ende automatisch als gelesen markiert.
+- Lesefortschritt geräteübergreifend per KOReader Sync oder eigenem WebDAV-Server synchronisieren.
+- Bücher per BookDrop oder die E-Mail-Funktion von Calibre-Web an deinen E-Reader senden.
+- Bücher auf deinen Server hochladen.
+- Die ganze Bibliothek oder ausgewählte Bücher zum Offline-Lesen synchronisieren; Downloads erscheinen auch in der Dateien-App.
+- Statistiken deiner Sammlung auf einen Blick.
+- Passe die App an: Buchaktionen, Detail- und Entdecken-Bereiche sortieren oder ausblenden, Theme wählen, E-Ink-Modus aktivieren und Textgröße anpassen.
+- In 20 Sprachen verfügbar.
+
+Open Source: Die App ist freie Software (GNU GPL v3). Der Preis deckt nur die jährliche Apple-Entwicklergebühr und soll keinen Gewinn bringen. Der Quellcode liegt auf GitHub, du kannst die App auch selbst bauen.
+
+Die App wird aktiv weiterentwickelt. Fehler, Feedback und Ideen gerne auf GitHub melden.

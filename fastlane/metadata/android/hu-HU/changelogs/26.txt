@@ -1,5 +1,5 @@
 - Olvasási irány a belső olvasóhoz hozzáadva a beállításokhoz
--A letöltő konfigurációja mostantól közvetlenül lekérésre kerül, ha a beállításokban engedélyezve van.
+- A letöltő konfigurációja mostantól közvetlenül lekérésre kerül, ha a beállításokban engedélyezve van.
 - Javítva egy hiba, amely miatt duplikált könyvek jelentek meg a Könyvek nézetben.
 - Javítva egy hiba, amely miatt a felhasználók nem tudtak e-könyveket e-mailben elküldeni feltöltési jogosultság nélkül.
 - A letöltő szűrői mostantól megmaradnak az alkalmazás újraindítása után is.

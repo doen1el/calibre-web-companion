@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:calibre_web_companion/core/services/api_service.dart';
 import 'package:calibre_web_companion/core/services/download_manager.dart';
 import 'package:calibre_web_companion/features/book_details/data/repositories/book_details_repository.dart';
@@ -50,7 +52,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
   Future<void> _onStartSync(StartSync event, Emitter<SyncState> emit) async {
     final settings = await settingsRepository.getSettings();
 
-    if (settings.defaultDownloadPath.isEmpty) {
+    if (Platform.isAndroid && settings.defaultDownloadPath.isEmpty) {
       emit(
         state.copyWith(
           status: SyncStatus.error,
@@ -442,16 +444,19 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
 
     try {
       final settings = await settingsRepository.getSettings();
+      // iOS has no SAF folder; books go to the app sandbox instead.
       DocumentFile? dir;
-      try {
-        if (settings.defaultDownloadPath.isNotEmpty) {
-          dir = await DocumentFile.fromUri(settings.defaultDownloadPath);
+      if (Platform.isAndroid) {
+        try {
+          if (settings.defaultDownloadPath.isNotEmpty) {
+            dir = await DocumentFile.fromUri(settings.defaultDownloadPath);
+          }
+        } catch (e) {
+          logger.e('Error accessing download directory: $e');
         }
-      } catch (e) {
-        logger.e('Error accessing download directory: $e');
-      }
 
-      if (dir == null) throw Exception('Invalid download directory');
+        if (dir == null) throw Exception('Invalid download directory');
+      }
 
       var bookDetails = await bookDetailsRepository.getBookDetails(
         item.book,
@@ -496,14 +501,20 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         }
       }
 
-      final path = await bookDetailsRepository.downloadBook(
-        bookDetails,
-        dir,
-        settings.downloadSchema,
-        pathTemplate: settings.downloadPathTemplate,
-        format: formatToDownload,
-        progressCallback: (bytes) {},
-      );
+      final path =
+          dir == null
+              ? await bookDetailsRepository.downloadBookToDevice(
+                bookDetails,
+                format: formatToDownload.toLowerCase(),
+              )
+              : await bookDetailsRepository.downloadBook(
+                bookDetails,
+                dir,
+                settings.downloadSchema,
+                pathTemplate: settings.downloadPathTemplate,
+                format: formatToDownload,
+                progressCallback: (bytes) {},
+              );
 
       await downloadManager.registerDownload(item.book.uuid, path);
 
