@@ -4,6 +4,48 @@
 <dict>
 	<key>NSCameraUsageDescription</key>
 	<string>This app uses the camera to scan book barcodes (ISBN).</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app lets you pick an image from your photo library to use as a book cover.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app connects to your self-hosted Calibre-Web or OPDS server, which is often running in your local network.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app does not use your location. The permission is only declared because the built-in file picker library contains optional camera code that could tag photos with a location.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+		<true/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>ar</string>
+		<string>ca</string>
+		<string>cs</string>
+		<string>de</string>
+		<string>es</string>
+		<string>et</string>
+		<string>fr</string>
+		<string>hu</string>
+		<string>ia</string>
+		<string>it</string>
+		<string>nl</string>
+		<string>pt</string>
+		<string>ru</string>
+		<string>sk</string>
+		<string>sv</string>
+		<string>ta</string>
+		<string>tr</string>
+		<string>uk</string>
+		<string>zh</string>
+	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

@@ -1434,9 +1434,17 @@ class BookDetailsRemoteDatasource {
     );
 
     final dir = await getApplicationDocumentsDirectory();
-    final safeTitle =
-        book.title.replaceAll(RegExp(r'[\\/:*?"<>|.]'), '').trim();
-    final fileName = '${safeTitle.isEmpty ? 'book' : safeTitle}.$format';
+    String clean(String s) => s.replaceAll(RegExp(r'[\\/:*?"<>|.]'), '').trim();
+    final safeTitle = clean(book.title);
+    final safeAuthors = clean(book.authors);
+    // Author keeps two books with the same title from overwriting each other.
+    final baseName = [
+      safeTitle.isEmpty ? 'book' : safeTitle,
+      if (safeAuthors.isNotEmpty) safeAuthors,
+    ].join(' - ');
+    final fileName =
+        '${baseName.length > 150 ? baseName.substring(0, 150).trim() : baseName}'
+        '.$format';
     final file = File('${dir.path}/$fileName');
     try {
       await _writeStreamToFile(response, file, progressCallback);

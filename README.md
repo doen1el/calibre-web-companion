@@ -32,7 +32,7 @@
 
 This is an unofficial companion application for [Calibre Web](https://github.com/janeczku/calibre-web) (which also works for [Calibre Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated), [Calibre-Web-NextGen](https://github.com/new-usemame/Calibre-Web-NextGen), [Grimmory](https://github.com/grimmory-tools/grimmory), [Calibre 'Sharing over the net'](https://github.com/kovidgoyal/calibre) and other OPDS providers (beta)), that allows you to browse your book collection and download books directly to your device. You can also interact with your books by marking them as read, unread or bookmarked. It is also possible to send books directly to your e-reader (Kindle/Kobo) thanks to the great work of [BookDrop](https://github.com/eitan12345om/book-drop).
 
-The app is built with [Flutter](https://github.com/flutter/flutter) and uses **Material You**. It is currently available for **Android** only.
+The app is built with [Flutter](https://github.com/flutter/flutter) and uses **Material You**. It is available for **Android** and **iOS / iPadOS**.
 
 ## 📦 Installation
 
@@ -106,6 +106,16 @@ You can help translate Calibre Web Companion on [Weblate](https://hosted.weblate
 You can of course open issues for bugs, feedback, and feature ideas. All suggestions are very welcome :)
 
 The source code is also mirrored on [Codeberg](https://codeberg.org/doen1el/calibre-web-companion). GitHub remains the primary repository, so please open issues and pull requests here.
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+
+## ⚖️ License
+
+Calibre Web Companion is licensed under the [GNU GPL v3](LICENSE) with an [additional permission](LICENSE-EXCEPTION.md) for app store distribution.
+
+The iOS app costs a small one-time price on the App Store. This only covers Apple's yearly developer fee, it is not meant to make a profit. The source code stays free: you can build the app yourself and sign the `.ipa` for your own devices (`ios/create_unsigned_ipa.sh`). All Android builds are free.
+
+See [PRIVACY.md](PRIVACY.md) for the privacy policy.
 
 ## 📜 Credits
 

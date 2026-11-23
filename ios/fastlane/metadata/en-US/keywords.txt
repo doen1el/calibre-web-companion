@@ -1,0 +1,1 @@
+calibre,calibre-web,ebook,epub,opds,library,reader,books,self-hosted,pdf,comics,webdav,cbz,shelf

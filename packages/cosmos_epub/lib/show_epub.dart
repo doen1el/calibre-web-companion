@@ -957,13 +957,26 @@ class ShowEpubState extends State<ShowEpub> {
                                 bottom: BorderSide(
                                     color: widget.accentColor, width: 3.h)),
                             elevation: 0,
-                            leading: IconButton(
-                              onPressed: openTableOfContents,
-                              icon: Icon(
-                                Icons.menu,
-                                color: fontColor,
-                                size: 20.h,
-                              ),
+                            // iOS has no system back button, so the reader
+                            // needs its own way out.
+                            leadingWidth: 96,
+                            leading: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                BackButton(
+                                  color: fontColor,
+                                  onPressed: () =>
+                                      Navigator.of(context).maybePop(),
+                                ),
+                                IconButton(
+                                  onPressed: openTableOfContents,
+                                  icon: Icon(
+                                    Icons.menu,
+                                    color: fontColor,
+                                    size: 20.h,
+                                  ),
+                                ),
+                              ],
                             ),
                             actions: [
                               if (widget.bookmarkSource != null)

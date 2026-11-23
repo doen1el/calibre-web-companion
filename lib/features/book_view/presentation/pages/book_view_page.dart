@@ -590,9 +590,12 @@ class _BookViewPageState extends State<BookViewPage> {
     BuildContext context,
     AppLocalizations localizations,
   ) async {
+    const allowed = ['pdf', 'epub', 'mobi', 'fb2', 'cbr', 'djvu', 'cbz'];
+    // iOS has no system file types for mobi/fb2/cbr/djvu and would grey them
+    // out, so pick any file there and check the extension afterwards.
     final result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'epub', 'mobi', 'fb2', 'cbr', 'djvu', 'cbz'],
+      type: Platform.isIOS ? FileType.any : FileType.custom,
+      allowedExtensions: Platform.isIOS ? null : allowed,
       allowMultiple: false,
     );
 
@@ -603,6 +606,16 @@ class _BookViewPageState extends State<BookViewPage> {
     }
 
     final picked = result.files.single;
+    final extension = picked.extension?.toLowerCase();
+    if (extension == null || !allowed.contains(extension)) {
+      if (!context.mounted) return;
+      context.showSnackBar(
+        localizations.unsupportedUploadFormat(allowed.join(', ')),
+        isError: true,
+      );
+      return;
+    }
+
     final file = File(picked.path!);
     if (!context.mounted) return;
     context.read<BookViewBloc>().add(UploadBook(file, fileName: picked.name));

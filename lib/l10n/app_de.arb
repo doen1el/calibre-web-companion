@@ -640,5 +640,6 @@
   "metadataStatusRateLimited": "Zu viele Anfragen",
   "metadataStatusBlocked": "Von der Quelle blockiert",
   "metadataStatusMissingKey": "API-Schlüssel fehlt",
-  "metadataStatusError": "Fehler"
+  "metadataStatusError": "Fehler",
+  "unsupportedUploadFormat": "Nicht unterstützter Dateityp. Erlaubt: {formats}"
 }

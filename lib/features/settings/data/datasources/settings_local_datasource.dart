@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:calibre_web_companion/core/utils/book_drop.dart';
 import 'package:calibre_web_companion/features/download_service/data/downloader_request_headers.dart';
 import 'package:calibre_web_companion/features/settings/data/models/book_details_action.dart';
@@ -28,8 +30,10 @@ class SettingsLocalDataSource {
         'theme_source': sharedPreferences.getInt('theme_source') ?? 0,
         'theme_color_key':
             sharedPreferences.getString('theme_color_key') ?? 'lightGreen',
+        // Shelfmark is not offered on iOS (App Store guideline 5.2.3).
         'downloader_enabled':
-            sharedPreferences.getBool('downloader_enabled') ?? false,
+            !Platform.isIOS &&
+            (sharedPreferences.getBool('downloader_enabled') ?? false),
         'downloader_url': sharedPreferences.getString('downloader_url') ?? '',
         'downloader_username':
             sharedPreferences.getString('downloader_username') ?? '',

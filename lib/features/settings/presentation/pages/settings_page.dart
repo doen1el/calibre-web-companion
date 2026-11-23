@@ -170,13 +170,15 @@ class _SettingsPageState extends State<SettingsPage> {
                             onTap:
                                 () => _openBookDetailsSettingsSubPage(context),
                           ),
-                          _buildSettingsCategoryNavCard(
-                            context,
-                            title: localizations.homeWidget,
-                            subtitle: localizations.homeWidgetSubtitle,
-                            icon: Icons.widgets_rounded,
-                            onTap: () => _openWidgetSettingsSubPage(context),
-                          ),
+                          // Home-screen widgets are Android-only for now.
+                          if (Platform.isAndroid)
+                            _buildSettingsCategoryNavCard(
+                              context,
+                              title: localizations.homeWidget,
+                              subtitle: localizations.homeWidgetSubtitle,
+                              icon: Icons.widgets_rounded,
+                              onTap: () => _openWidgetSettingsSubPage(context),
+                            ),
                           _buildSettingsCategoryNavCard(
                             context,
                             title: localizations.isbnMetadataSources,
@@ -347,9 +349,11 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 24),
             _buildSectionTitle(context, localizations.customSend2EReader),
             _buildSend2EreaderToggle(context, state, localizations),
-            const SizedBox(height: 24),
-            _buildSectionTitle(context, 'Shelfmark'),
-            _buildDownloaderToggle(context, state, localizations),
+            if (!Platform.isIOS) ...[
+              const SizedBox(height: 24),
+              _buildSectionTitle(context, 'Shelfmark'),
+              _buildDownloaderToggle(context, state, localizations),
+            ],
           ],
     );
   }

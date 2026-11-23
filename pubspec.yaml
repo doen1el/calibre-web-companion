@@ -93,6 +93,9 @@ dev_dependencies:
 # EPUB3 nav.xhtml / missing files), which crashed the internal reader. The local
 # copy makes navigation/chapter parsing non-fatal so the reader falls back to
 # spine order. See packages/epubx/lib/src/readers/schema_reader.dart.
+  sqflite: any
+  path_provider_platform_interface: any
+  plugin_platform_interface: any
 dependency_overrides:
   epubx:
     path: packages/epubx
