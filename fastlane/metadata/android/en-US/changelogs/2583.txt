@@ -1,0 +1,1 @@
+Fix: The shelf widget now shows every book of a shelf or magic shelf (and all downloaded books) instead of stopping after 40 (#233)

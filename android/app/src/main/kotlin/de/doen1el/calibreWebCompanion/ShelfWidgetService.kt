@@ -12,6 +12,9 @@ import kotlin.math.sqrt
 
 private const val MIN_COVER_DIMEN = 96
 private const val MAX_COVER_DIMEN = 256
+// The factory serves items lazily and the host only caches a window of them,
+// so long shelves must not shrink every cover to the minimum.
+private const val COVER_BUDGET_ITEMS = 40
 
 class ShelfWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory =
@@ -47,7 +50,7 @@ private class ShelfRemoteViewsFactory(private val context: Context) :
         val metrics = context.resources.displayMetrics
         val hostLimit =
             metrics.widthPixels.toLong() * metrics.heightPixels.toLong() * 4L * 3L / 2L
-        val perItem = hostLimit * 30 / 100 / count
+        val perItem = hostLimit * 30 / 100 / minOf(count, COVER_BUDGET_ITEMS)
         val height = sqrt(perItem / 2.7).toInt()
 
         return height.coerceIn(MIN_COVER_DIMEN, MAX_COVER_DIMEN)
