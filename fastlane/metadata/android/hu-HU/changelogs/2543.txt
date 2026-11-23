@@ -1,0 +1,1 @@
+Javítás: A letöltött könyvek megtartják a letöltési beállítások szerinti pontos fájlnevet (a szóközöket, zárójeleket és pontokat már nem cseréli ki a rendszer „_”-re), így a KOReader ismét össze tudja hangolni őket a Calibre-Web-Automated / NextGen szinkronizálási rendszerrel; a már letöltött könyvek neve a következő letöltéskor vagy megnyitáskor erre a névre változik
