@@ -325,6 +325,7 @@
   "columnsCount": "Columns count",
   "columns": "Columns",
   "listView": "List view",
+  "showBookDetailsOnCovers": "Show title & author",
   "uploadEbook": "Upload eBook",
   "logoutFailed": "Logout failed",
   "shelfNotFound": "Shelf not found",

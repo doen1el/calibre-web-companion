@@ -1,9 +1,11 @@
 import 'package:calibre_web_companion/core/services/app_transition.dart';
 import 'package:calibre_web_companion/features/book_details/presentation/pages/book_details_page.dart';
+import 'package:calibre_web_companion/features/book_view/bloc/book_view_bloc.dart';
 import 'package:calibre_web_companion/features/book_view/data/models/book_view_model.dart';
 import 'package:calibre_web_companion/l10n/app_localizations.dart';
 import 'package:calibre_web_companion/shared/widgets/book_card_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SeriesDetailPage extends StatelessWidget {
   final String seriesName;
@@ -18,6 +20,9 @@ class SeriesDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+    final showDetails = context.select(
+      (BookViewBloc bloc) => bloc.state.showCoverDetails,
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(seriesName)),
@@ -42,6 +47,7 @@ class SeriesDetailPage extends StatelessWidget {
                     coverUrl: book.coverUrl,
                     readStatus: book.readStatus,
                     topLeftBadge: book.seriesBadge,
+                    showDetails: showDetails,
                     onTap:
                         () => Navigator.of(context).push(
                           AppTransitions.createSlideRoute(

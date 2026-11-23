@@ -22,6 +22,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
     on<UploadBook>(_onUploadBook);
     on<ChangeColumnCount>(_onChangeColumnCount);
     on<SetViewMode>(_onSetViewMode);
+    on<SetShowCoverDetails>(_onSetShowCoverDetails);
     on<UploadCancel>(_onUploadCancel);
     on<ResetUploadStatus>(_onResetUploadStatus);
     on<ChangeLibrary>(_onChangeLibrary);
@@ -40,6 +41,7 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
         state.copyWith(
           columnCount: columnCount,
           isListView: isListView,
+          showCoverDetails: repository.getShowCoverDetails(),
           canAddBooks: caps.addBooks,
           canLookupMetadata: caps.metadataLookup,
           canBrowseSeriesFolders: caps.discover,
@@ -271,6 +273,18 @@ class BookViewBloc extends Bloc<BookViewEvent, BookViewState> {
       emit(state.copyWith(isListView: event.isListView));
     } catch (e) {
       logger.e('Error changing view mode: $e');
+    }
+  }
+
+  Future<void> _onSetShowCoverDetails(
+    SetShowCoverDetails event,
+    Emitter<BookViewState> emit,
+  ) async {
+    try {
+      await repository.setShowCoverDetails(event.show);
+      emit(state.copyWith(showCoverDetails: event.show));
+    } catch (e) {
+      logger.e('Error changing cover details visibility: $e');
     }
   }
 

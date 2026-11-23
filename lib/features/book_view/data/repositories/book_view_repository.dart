@@ -54,6 +54,11 @@ class BookViewRepository {
     await datasource.setColumnCount(count);
   }
 
+  bool getShowCoverDetails() => datasource.getShowCoverDetails();
+
+  Future<void> setShowCoverDetails(bool show) =>
+      datasource.setShowCoverDetails(show);
+
   Future<bool> getIsListView() async {
     return datasource.getIsListView();
   }

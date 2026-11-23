@@ -238,6 +238,7 @@ class _BookViewPageState extends State<BookViewPage> {
                     coverUrl: book.coverUrl,
                     readStatus: book.readStatus,
                     topLeftBadge: book.seriesBadge,
+                    showDetails: state.showCoverDetails,
                     onTap: () async {
                       final changed = await Navigator.of(context).push<bool>(
                         AppTransitions.createSlideRoute(

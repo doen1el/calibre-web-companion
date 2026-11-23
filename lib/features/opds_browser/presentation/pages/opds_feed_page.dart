@@ -185,7 +185,11 @@ class _OpdsFeedViewState extends State<OpdsFeedView> {
     final localizations = AppLocalizations.of(context)!;
     final state = context.watch<OpdsFeedCubit>().state;
     final viewState = context.select(
-      (BookViewBloc bloc) => (bloc.state.isListView, bloc.state.columnCount),
+      (BookViewBloc bloc) => (
+        bloc.state.isListView,
+        bloc.state.columnCount,
+        bloc.state.showCoverDetails,
+      ),
     );
 
     final Widget content;
@@ -245,6 +249,7 @@ class _OpdsFeedViewState extends State<OpdsFeedView> {
               itemBuilder: (context, index) {
                 final book = state.books[index];
                 return BookCard(
+                  showDetails: viewState.$3,
                   bookId: book.id.toString(),
                   title: book.title,
                   authors: book.authors,

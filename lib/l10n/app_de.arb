@@ -325,6 +325,7 @@
     "columnsCount": "Anzahl der Spalten",
     "columns": "Spalten",
     "listView": "Listenansicht",
+    "showBookDetailsOnCovers": "Titel & Autor anzeigen",
     "uploadEbook": "E-Book hochladen",
     "logoutFailed": "Abmeldung fehlgeschlagen",
     "shelfNotFound": "Regal nicht gefunden",

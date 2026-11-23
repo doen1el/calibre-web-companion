@@ -15,7 +15,8 @@ class BookViewModeSelector extends StatelessWidget {
       buildWhen:
           (previous, current) =>
               previous.isListView != current.isListView ||
-              previous.columnCount != current.columnCount,
+              previous.columnCount != current.columnCount ||
+              previous.showCoverDetails != current.showCoverDetails,
       builder: (context, state) {
         final scheme = Theme.of(context).colorScheme;
         return PopupMenuButton<dynamic>(
@@ -28,6 +29,10 @@ class BookViewModeSelector extends StatelessWidget {
           onSelected: (dynamic value) {
             if (value == 'list') {
               context.read<BookViewBloc>().add(const SetViewMode(true));
+            } else if (value == 'details') {
+              context.read<BookViewBloc>().add(
+                SetShowCoverDetails(!state.showCoverDetails),
+              );
             } else if (value is int) {
               context.read<BookViewBloc>().add(ChangeColumnCount(value));
             }
@@ -73,6 +78,13 @@ class BookViewModeSelector extends StatelessWidget {
                       ],
                     ),
                   ),
+                const PopupMenuDivider(),
+                CheckedPopupMenuItem(
+                  value: 'details',
+                  checked: state.showCoverDetails,
+                  enabled: !state.isListView,
+                  child: Text(localizations.showBookDetailsOnCovers),
+                ),
               ],
         );
       },

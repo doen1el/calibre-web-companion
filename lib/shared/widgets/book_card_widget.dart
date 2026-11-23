@@ -10,6 +10,7 @@ class BookCard extends StatelessWidget {
   final String? coverUrl;
   final bool readStatus;
   final String? topLeftBadge;
+  final bool showDetails;
 
   const BookCard({
     super.key,
@@ -21,6 +22,7 @@ class BookCard extends StatelessWidget {
     this.coverUrl,
     this.readStatus = false,
     this.topLeftBadge,
+    this.showDetails = true,
   });
 
   @override
@@ -85,63 +87,65 @@ class BookCard extends StatelessWidget {
               ),
             ),
 
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  height: 28,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Theme.of(
-                          context,
-                        ).colorScheme.surface.withValues(alpha: 0.45),
+          if (showDetails)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 28,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Theme.of(
+                            context,
+                          ).colorScheme.surface.withValues(alpha: 0.45),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surface.withValues(alpha: 0.82),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          title,
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          authors,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: .75),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
                   ),
-                ),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surface.withValues(alpha: 0.82),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        authors,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: .75),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
           Positioned.fill(
             child: Material(

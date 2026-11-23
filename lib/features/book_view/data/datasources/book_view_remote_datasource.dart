@@ -458,6 +458,14 @@ class BookViewRemoteDatasource {
     await _preferences.setBool('is_list_view', isList);
   }
 
+  bool getShowCoverDetails() {
+    return _preferences.getBool('grid_show_cover_details') ?? true;
+  }
+
+  Future<void> setShowCoverDetails(bool show) async {
+    await _preferences.setBool('grid_show_cover_details', show);
+  }
+
   bool getIsOpds() {
     return _preferences.getString('server_type') == 'opds' ||
         _preferences.getString('server_type') == 'grimmory' ||
