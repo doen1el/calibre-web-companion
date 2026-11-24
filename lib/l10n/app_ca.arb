@@ -653,5 +653,7 @@
     "metadataStatusRateLimited": "Ràtio limitat",
     "metadataStatusBlocked": "Bloquejat per la font d'informació",
     "metadataStatusMissingKey": "Falta la clau d'API",
-    "metadataStatusError": "Error"
+    "metadataStatusError": "Error",
+    "showBookDetailsOnCovers": "Mostra títol i autor",
+    "unsupportedUploadFormat": "Format de fitxer no admès. S'admet: {formats}"
 }
