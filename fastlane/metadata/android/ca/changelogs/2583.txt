@@ -1,0 +1,2 @@
+Corregit: El giny de prestatges ara mostra cada llibre d'un prestatge o prestatge màgic (i tots els llibres descarregats) en lloc d'aturar-se després del 40è (#233)
+Nou: La vista de graella pot amagar el títol i l'autor de tal manera que només es mostren les portades (menú vista → "Mostra el títol i l'autor") (#234)
