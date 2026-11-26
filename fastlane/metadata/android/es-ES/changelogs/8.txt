@@ -1,0 +1,4 @@
+- se agregó la opción de configurar globalmente la carpeta de descargas
+- se agregó la opción de configurar globalmente el esquema de descargas
+- se corrigió un error en la serie de esquemas de descarga
+- se actualizó el flujo de trabajo para intentar solucionar los conflictos

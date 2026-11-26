@@ -1,0 +1,4 @@
+- Actualizado: Se ajustó el código para el nuevo formato de base de datos de Calibre.
+- Añadido: Compatibilidad con el idioma ruso.
+- Añadido: Ahora se puede ocultar el botón «Enviar al lector electrónico».
+- Actualizado: Se configuró la opción de descarga predeterminada en inglés (Shelfmark).

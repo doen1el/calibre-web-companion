@@ -1,0 +1,6 @@
+- Añadido: Nuevas traducciones al ucraniano (@Vitali) y al tamil (@தமிழ்நேரம்).
+- Nueva función: Se ha añadido el modo sin conexión a la aplicación, lo que permite a los usuarios acceder a sus libros descargados sin conexión a internet.
+- Nueva función: Se ha añadido compatibilidad con el servidor web de la aplicación de escritorio Calibre.
+- Corregido: El botón «Leer ahora» ahora descarga el libro correctamente.
+- Corregido: Al editar un libro y usar el botón de retroceso del sistema, los cambios se guardan correctamente.
+- Corregido: La integración de Shelfmark ya no se configurará en alemán por defecto.

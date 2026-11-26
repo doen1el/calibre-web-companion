@@ -1,0 +1,5 @@
+- se agregó la opción de cambiar el color del tema
+- se agregó la opción de especificar diferentes esquemas de carpetas
+- se agregó una página de recomendaciones de libros
+- se agregó la opción de descarga a la página de recomendaciones
+- varias correcciones de errores menores y cambios en la interfaz de usuario

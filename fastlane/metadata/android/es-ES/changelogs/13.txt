@@ -1,0 +1,5 @@
+- se agregó un campo para hacer clic en el nombre de la serie
+- se agregó un campo para hacer clic en la etiqueta
+- se agregó la función de autocompletar a la página de inicio de sesión
+- se agregó la posibilidad de abrir los libros en lectores instalados
+- se agregó compatibilidad con la autenticación mediante proxy inverso

@@ -1,0 +1,6 @@
+- Se cambió Calibre-Web-Book-Downloader por Shelfmark
+- Se agregaron traducciones al húngaro, sueco y turco
+- Se solucionó un problema de autenticación al usar Booklore
+- Se solucionó un problema de autenticación al usar Shelfmark
+- Se mejoró la verificación para saber si un libro ya está descargado
+- Se agregó la función de sincronización de biblioteca para descargar libros en lote

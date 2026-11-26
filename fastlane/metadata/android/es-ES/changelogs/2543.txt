@@ -1,0 +1,1 @@
+Corrección: Los libros descargados conservan el nombre de archivo exacto de su esquema de descarga (los espacios, corchetes y puntos ya no se reemplazan con "_"), por lo que la sincronización de KOReader con Calibre-Web-Automated / NextGen puede volver a coincidir con ellos; los libros ya descargados se renombran con ese nombre la próxima vez que los descargue o abra

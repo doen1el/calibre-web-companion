@@ -1,0 +1,9 @@
+- Novedad: Estanterías mágicas: crea, edita y explora estanterías dinámicas basadas en reglas (solo en Calibre-Web Automated).
+- Novedad: Escanea el código de barras ISBN de un libro para añadirlo a Calibre o descargarlo mediante Shelfmark.
+- Novedad: Pantalla de diagnóstico de conexión y acceso a proxy inverso/SSO mejorado.
+- Novedad: Busca metadatos de libros en proveedores en línea mientras editas un libro.
+- Novedad: Índice y filtro de series en las fichas de libros, con sugerencias automáticas de búsqueda.
+- Novedad: Paginación y opción de lista/cuadrícula en las estanterías; tamaño de fuente ajustable y vista de cuadrícula/lista en Discover.
+- Novedad: Lector de libros electrónicos integrado actualizado con formato de lectura seleccionable.
+- Añadida la traducción al neerlandés y numerosas actualizaciones de traducción.
+- Solucionado: Certificados autofirmados, "sesión iniciada pero sin datos" en proxies inversos, configuración de Shelfmark, filtro de autor (A-Z) y un fallo al deslizar hacia atrás.

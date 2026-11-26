@@ -1,0 +1,1 @@
+- se solucionó una incidencia que permitía iniciar sesión con credenciales incorrectas

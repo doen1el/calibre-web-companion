@@ -1,0 +1,17 @@
+Novedad: El lector interno ahora también abre libros en formato PDF y CBZ
+Novedad: Los libros abiertos en el lector permanecen en el dispositivo para su
+	uso sin conexión
+Novedad: Los libros se marcan como leídos al terminarlos en el lector interno
+Novedad: Se pueden eliminar los libros descargados del dispositivo en la biblioteca
+	sin conexión
+Novedad: Se pueden explorar catálogos OPDS genéricos con carpetas, paginación y
+	sugerencias de búsqueda
+Corrección: Las fuentes OPDS protegidas con contraseña ahora solicitan credenciales
+Corrección: Guardar libros grandes en el almacenamiento local ya no falla con el
+	 mensaje "Memoria insuficiente"
+Corrección: La ordenación de libros por título ya no muestra "Sin libros" en
+	Calibre-Web Automated
+Corrección: Las sugerencias de búsqueda ahora incluyen títulos de libros coincidentes
+Corrección: La sincronización WebDAV ahora se conecta a los servidores de OpenCloud
+Corrección: La descarga y el marcado de libros abiertos desde una estantería vuelven a
+	funcionar correctamente

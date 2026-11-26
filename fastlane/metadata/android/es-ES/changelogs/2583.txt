@@ -1,0 +1,2 @@
+Corrección: El widget de estantería ahora muestra todos los libros de una estantería (incluida la estantería mágica) y todos los libros descargados, en lugar de detenerse después de 40 (#233)
+Novedad: Las vistas de cuadrícula pueden ocultar el título y el autor para que solo se muestren las portadas (menú Ver → "Mostrar título y autor") (#234)

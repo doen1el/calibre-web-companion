@@ -1,0 +1,3 @@
+Mejora: Se agregó compatibilidad con el formato de libro djvu.
+Mejora: Se agregó la opción de hacer clic en el nombre de un autor en la página de detalles del libro para ver todos sus libros.
+Corrección: La sincronización de la biblioteca ahora usa la plantilla de ruta de descarga personalizada (con columnas y truncamiento personalizados incluidos) en lugar de la ruta predeterminada.

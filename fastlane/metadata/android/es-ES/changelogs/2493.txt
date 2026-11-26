@@ -1,0 +1,5 @@
+Ventaja: la nueva opción "Usar sesión SSO para el descargador" permite que el descargador funcione detrás del mismo proxy SSO (por ejemplo, Authelia,
+Authentik) que Calibre-Web, incluidas portadas y reinicio de sesión automático
+Solución: el descargador ahora muestra un error claro en lugar de un error JSON cuando un proxy de autenticación devuelve su página de inicio de sesión
+Solución: el inicio de sesión y el reinicio automático funcionan nuevamente en Calibre-Web-NextGen, que ahora respondió con "Token CSRF no encontrado" o 
+"Sesión no aceptada"

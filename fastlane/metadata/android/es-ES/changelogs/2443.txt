@@ -1,0 +1,5 @@
+Nueva función: Integración del complemento KOReader Sync.
+Corrección: Se solucionó un problema de conexión WebDAV donde la primera solicitud fallaba con un error 401/403, pero las solicitudes posteriores se realizaban correctamente.
+
+Corrección: Se solucionó un problema en la configuración de la ruta de descarga personalizada.
+Corrección: Se eliminó el botón "Invítame a un café" de la página de configuración para evitar que la aplicación sea eliminada de Google Play Store por infracciones de las directivas.

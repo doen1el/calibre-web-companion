@@ -1,0 +1,2 @@
+Corrección: Al abrir un libro descargado en KOReader, este se vuelve a abrir en lugar de dejar el libro anterior (o la biblioteca) en pantalla; ahora KOReader obtiene el archivo directamente de la carpeta de descargas (#228)
+Novedad: Se puede seleccionar checo y eslovaco como idioma de la aplicación (#229)

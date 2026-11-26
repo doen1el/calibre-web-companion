@@ -1,0 +1,2 @@
+- se agregó la traducción a la configuración de descarga
+- se cambió el orden de obtención de permisos de carpeta

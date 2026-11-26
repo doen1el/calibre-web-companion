@@ -1,0 +1,2 @@
+- Se agregó la opción de eliminar libros del servidor a través de la página de detalles del libro
+- Se agregó la opción para desactivar las animaciones de la aplicación en dispositivos de tinta electrónica

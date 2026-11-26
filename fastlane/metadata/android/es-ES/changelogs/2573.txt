@@ -1,0 +1,1 @@
+Corrección: Ahora también se guarda la portada seleccionada a partir de los resultados de una búsqueda de metadatos (por ejemplo, ISBNdb), no solo los metadatos de texto (#231)

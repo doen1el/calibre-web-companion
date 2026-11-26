@@ -1,0 +1,5 @@
+- se agregó la opción de cambiar el número de columnas en la lista de libros
+- se agregó la opción de subir libros a calibre-web
+- se agregó la opción de agregar una instancia personalizada de send2ereader
+- se corrigió un error que impedía abrir archivos pdf en lectores instalados
+- se corrigió un error que impedía que se mostraran todos los libros al ordenar por autor

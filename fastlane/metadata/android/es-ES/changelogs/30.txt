@@ -1,0 +1,8 @@
+- Se agregó la traducción al catalán.
+- Se corrigió el script de compilación para archivos .ipa.
+- La función de sincronización consultará los formatos disponibles en el servidor.
+- Se agregó un indicador de estado de lectura a la página principal.
+- Se solucionó el problema con el indicador de estado de lectura.
+- Se agregó la opción `authorSort` a la configuración de la ruta de descarga.
+- Se agregó la posibilidad de cambiar rápidamente entre instancias de Calibre Web (y otras).
+- Se solucionó un problema con la opción "Agregar a la estantería" en la página de descripción del libro.

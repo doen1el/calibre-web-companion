@@ -1,0 +1,5 @@
+Mejora: Crea marcadores en el lector interno (EPUB, PDF y CBZ) y vuelve a ellos; se sincronizan entre dispositivos mediante WebDAV
+Corrección: Los libros EPUB ahora se marcan como leídos al terminarlos en el lector interno, y la última posición de lectura se sincroniza al cerrar el lector
+Corrección: La búsqueda de metadatos vuelve a funcionar en Calibre-Web-NextGen y ahora te avisa cuando no se pudo buscar en una fuente (limitación de solicitudes, bloqueo o falta de clave API)
+Corrección: Los EPUB descargados se abren de nuevo en el lector interno en lugar de mostrar el error "No se encontró el archivo META-INF/container.xml"
+Mejora: Descarga más de un formato de un libro (por ejemplo, EPUB y M4B); el selector de formato marca los formatos que ya están en tu dispositivo

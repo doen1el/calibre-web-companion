@@ -1,0 +1,1 @@
+- Corregido: se eliminó libisar.so y se modificó el paquete cosmos_epub para permitir una compilación reproducible para F-Droid.

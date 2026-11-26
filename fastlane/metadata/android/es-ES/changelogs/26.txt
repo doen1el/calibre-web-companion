@@ -1,0 +1,8 @@
+- Se ha añadido la opción de cambiar la dirección de lectura del lector interno a los ajustes.
+- La configuración del descargador se obtendrá directamente al activarla en los ajustes.
+- Se ha corregido un error que provocaba la aparición de libros duplicados en la vista de Libros.
+- Se ha corregido un error que impedía a los usuarios enviar libros electrónicos por correo-e sin permisos de carga.
+- Los filtros del descargador se guardan ahora tras reiniciar la aplicación.
+- Se ha corregido un problema de compilación de F-Droid.
+- Se han realizado mejoras en el token CSRF.
+- Se han añadido traducciones al italiano y al húngaro.

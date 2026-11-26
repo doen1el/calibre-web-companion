@@ -1,0 +1,16 @@
+- Se actualizó el proceso para eliminar etiquetas creadas incorrectamente
+- Se actualizó el color de fondo de los botones del icono de edición de metadatos
+- Se agregó un script para generar archivos .ipa para iOS
+- Se agregaron nuevas opciones de conexión para Booklore y OPDS (beta)
+- Se agregó autenticación para calibre-web-automated-book-downloader
+- Se agregó la posibilidad de cargar la configuración de
+	 calibre-web-automated-book-downloader desde el servidor
+- Se agregaron encabezados de autenticación a las solicitudes de
+	 calibre-web-automated-book-downloader
+- Se agregaron traducciones al estonio y al italiano
+- Se agregó un nuevo lector de EPUB interno
+- Se agregó la posibilidad de sincronizar el progreso de lectura mediante WebDAV
+	con otros dispositivos
+- Se mejoró la gestión de SSO
+- Se agregó una página de licencias a la configuración
+- Correcciones de errores menores y mejoras

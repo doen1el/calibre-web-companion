@@ -1,0 +1,20 @@
+Aplicación complementaria no oficial para Calibre-Web y Calibre-Web Automated. Explora tu colección de libros y gestiona tu biblioteca digital estés donde estés.
+
+Desarrollada con Flutter y Material You para una experiencia moderna, intuitiva y adaptable. Disponible para Android en 15 idiomas.
+
+Funciones:
+
+- Conéctate a tu servidor Calibre-Web (Automated), incluyendo configuraciones de proxy inverso/SSO, encabezados HTTP personalizados y certificados autofirmados.
+- Explora toda tu biblioteca y descubre libros por autor, serie, editorial, calificación, popularidad y más.
+- Consulta información detallada de cada libro, edita sus metadatos y sube nuevas portadas.
+- Marca libros como leídos o no leídos, archívalos y organízalos en estanterías.
+- Crea, edita y explora Estanterías Mágicas: estanterías dinámicas basadas en reglas (solo para Calibre-Web Automated).
+- Añade libros rápidamente escaneando su código de barras ISBN.
+- Lee libros en el lector de eBooks integrado y sincroniza tu progreso de lectura en todos tus dispositivos mediante WebDAV. - Envía libros a tu lector electrónico (Kindle/Kobo) mediante BookDrop o la función de correo electrónico de Calibre-Web.
+- Descarga libros a tu colección con Shelfmark. Esta app no apoya ni fomenta la piratería de obras con derechos de autor; descarga únicamente el contenido al que tengas derecho legal.
+- Sube libros a tu servidor y sincroniza toda tu biblioteca o los libros seleccionados para leerlos sin conexión.
+- Personalízala: reordena u oculta las acciones y secciones de los libros, elige un tema, activa el modo de tinta electrónica y ajusta el tamaño del texto.
+
+La app está en desarrollo activo. Puedes abrir incidencias en GitHub para informar de errores, enviar comentarios y sugerir nuevas funciones.
+
+Créditos: Calibre-Web, Calibre-Web Automated, Shelfmark, BookDrop, Flutter.

@@ -1,0 +1,4 @@
+Mejora: Ahora se muestran las columnas personalizadas de Calibre-Web y Calibre en la página de detalles del libro (se pueden ocultar o reordenar en la configuración)
+Corrección: La carga de libros ya no se bloquea al abrir un libro sin fecha de publicación
+Corrección: Las descargas ya no guardan la página de inicio de sesión del servidor en lugar del libro cuando la sesión caduca
+Corrección: La aplicación ya no se bloquea al abrir libros descargados de gran tamaño en el lector interno

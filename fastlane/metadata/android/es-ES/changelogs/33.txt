@@ -1,0 +1,10 @@
+- Se agregó un mensaje de error más claro a la página de Configuración de sincronización cuando la sección web de Calibre está desactivada.
+- Se agregó la opción de ver y copiar los registros de la aplicación para reportar errores.
+- Se agregó la opción de reordenar y desactivar las secciones de Descubrir a través de Configuración.
+- Se agregó la opción de reordenar y ocultar los detalles de los libros a través de Configuración.
+- Se agregó la opción de cambiar el orden y la visibilidad de las acciones de los libros a través de Configuración.
+- Corregido: Se solucionó el error 401 No autorizado en las portadas de las estanterías.
+- Corregido: La función de agregar/eliminar estanterías no funcionaba debido a la falta de csrfTokenUrl (error 405).
+- Se rediseñó la página de Configuración.
+- Pequeñas mejoras en la interfaz de usuario
+- Se rediseñó la página de detalles del libro.

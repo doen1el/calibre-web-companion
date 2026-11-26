@@ -1,0 +1,6 @@
+- Nueva función: El escaneo de ISBN ahora consulta varios catálogos a la vez (Open Library, Google Books, BnF, opcionalmente Hardcover e ISBNdb) y combina sus metadatos. Las fuentes se pueden activar/desactivar y reordenar en la configuración.
+- Nueva función: El nuevo esquema de descarga "Solo series" guarda los libros en /series/book.epub, además de un generador de rutas personalizadas donde la ruta de descarga se construye a partir de bloques como {autor}, {serie}, {índice_serie} o {año}.
+- Nueva función: Los libros descargados se pueden abrir en un lector externo desde la biblioteca sin conexión.
+- Corrección: Las páginas de Descubrir ahora usan la paginación correctamente.
+- Corrección: Abrir un libro ya descargado en un lector externo ya no espera a que se solicite la portada; se reutilizan los metadatos sin conexión almacenados en caché.
+- Corrección: Las cargas conservan el nombre de archivo informado por el selector de archivos y recuperan la extensión faltante del contenido del archivo, por lo que los libros seleccionados de proveedores en la nube ya no se rechazan. Una carga rechazada ya no se informa como exitosa; en su lugar, se muestra el mensaje de error del servidor.

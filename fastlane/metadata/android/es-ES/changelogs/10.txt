@@ -1,0 +1,3 @@
+- generación de código de versión actualizada
+- corrección urgente para la descarga de libros
+- se eliminó la recomendación de libros (por ahora)

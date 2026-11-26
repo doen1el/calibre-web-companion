@@ -1,0 +1,3 @@
+- Se han añadido traducciones al árabe y al chino.
+- Corregido: Se ha ajustado la integración de Shelfmark para la nueva versión.
+- Añadido: Opción para guardar los libros enviados al lector electrónico en una carpeta de descargas específica.

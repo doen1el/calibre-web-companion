@@ -1,0 +1,1 @@
+- se retiró la información de dependencias para la compilación de f-droid

@@ -1,0 +1,4 @@
+- Nueva función: Se agregaron widgets a la pantalla de inicio (Acciones rápidas, Estadísticas, Libro que estoy leyendo, Estantería).
+- Corrección: Se solucionó un problema por el cual FileOpener no utilizaba el tipo MIME correcto para los archivos EPUB, lo que provocaba que algunas aplicaciones no los abrieran correctamente.
+- Corrección: Se actualizó el flujo de inicio de sesión único (SSO) y se mejoró la gestión de cookies en LoginRemoteDataSource.
+- Idioma: Se actualizaron las traducciones: español (@Libre), italiano (@Michele Abbondanza), húngaro (@Márton Kónya) y chino (escritura Han simplificada) (@Mas Wang).

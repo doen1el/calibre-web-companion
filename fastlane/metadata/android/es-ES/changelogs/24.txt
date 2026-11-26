@@ -1,0 +1,20 @@
+- Las credenciales de inicio de sesión ahora se conservan tras reiniciar la app, y esta intentará iniciar sesión automáticamente cuando la sesión caduque.
+- Ahora se permiten más tipos de archivo al subir libros.
+- Posibilidad de crear estanterías públicas y privadas.
+- Se corrigió un error que ocurría cuando solo había una estantería.
+- Las series ahora se muestran correctamente en los detalles del libro.
+- Se actualizó el proceso de compilación para admitir otros tipos de APK, la compilación para iOS y la publicación en Google Play Store.
+- Se solucionó un problema al descargar libros con varios formatos.
+- La integración de Calibre-Web-Automated-Book-Downloader se actualizó a la última versión.
+- Se eliminaron los elementos HTML de los comentarios de los libros.
+- Se agregó la ordenación alfabética en la página Descubrir.
+- Se agregó la opción de cambiar «Enviar a lector electrónico» por «Leer ahora».
+- Se agregó una vista de lista a la página de inicio.
+- Se optimizó la carga de libros desde las estanterías y la página Descubrir.
+- Se implementó la posibilidad de cambiar los metadatos de los libros.
+- Se implementó la posibilidad de cambiar las portadas de los libros.
+- Se mejoró la retroalimentación al desactivar una categoría de Discover.
+- Se mejoró la funcionalidad del encabezado personalizado.
+- Se agregó compatibilidad con la traducción de Weblate.
+- Se agregó la traducción al portugués.
+- Correcciones de errores menores

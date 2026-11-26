@@ -1,0 +1,1 @@
+Corrección: La función "Enviar a lector electrónico" ahora utiliza BookDrop (bookdrop.cc), sucesor del servicio send2ereader, que fue desactivado; la configuración guardada de send.djazz.se se cambia automáticamente

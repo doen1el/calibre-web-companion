@@ -1,0 +1,5 @@
+- Nueva función: Vista de estantería en la pantalla de inicio.
+- Nueva función: Se agregó la posibilidad de cambiar el punto final de sondeo para las comprobaciones de accesibilidad.
+- Corrección: Se agregó una ventana emergente de reautenticación cuando caduca la sesión SSO.
+- Corrección: Se solucionó un problema con la identificación del estado sin conexión.
+- Idioma: Traducciones actualizadas: ucraniano (@Vitalii), catalán (@Nric Pagès i Gassull).
