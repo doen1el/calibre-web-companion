@@ -243,7 +243,7 @@
     "select": "Seleccionar",
     "schemaWasSelectedSuccessfully": "Esquema seleccionado con éxito",
     "downloadSchema": "Esquema de descarga",
-    "noFolderSelected": "No se seleccionó ninguna carpeta",
+    "noFolderSelected": "Ninguna carpeta seleccionada",
     "downloadFolder": "Carpeta de descarga",
     "openInReader": "Abrir en lector",
     "bookOpenedExternallySuccessfully": "Libro abierto externamente con éxito",
@@ -647,5 +647,14 @@
     "metadataStatusBlocked": "Bloqueado por el origen",
     "metadataStatusMissingKey": "Clave de API ausente",
     "metadataStatusError": "Error",
-    "unsupportedUploadFormat": "Tipo de archivo no admitido. Se admiten: {formats}"
+    "unsupportedUploadFormat": "Tipo de archivo no admitido. Se admiten: {formats}",
+    "cloudflareAccessDescription": "Crea el par de encabezados CF-Access-Client-Id y CF-Access-Client-Secret para que la aplicación pueda omitir el inicio de sesión interactivo de Cloudflare. Ambos valores provienen del token de servicio en el panel de control de Cloudflare Zero Trust, y la política de acceso debe permitir dicho token.",
+    "cloudflareAccessIdHint": "Normalmente, un ID de cliente termina en \".access\". ¿Se intercambiaron el ID y la clave secreta?",
+    "diagnosticsCustomHeadersSent": "Enviado con cada solicitud (valores censurados):",
+    "diagHintCloudflareAccess": "Cloudflare Access está interceptando las solicitudes y redirigiéndolas a su página de inicio de sesión. Para permitir el acceso a la aplicación, crea un token de servicio en Cloudflare Zero Trust, permítelo en la política de acceso para esta aplicación y agrega ambas partes en \"Cloudflare Access\" en la configuración de conexión.",
+    "diagHintCloudflareTokenRejected": "Se ha configurado un token de servicio de acceso de Cloudflare, pero Cloudflare sigue redirigiendo a su página de inicio de sesión. Compruebe que la política de acceso de esta aplicación incluya el token (Acción: Autenticación de servicio), que el ID de cliente termine en \".access\" y que el ID y el secreto no se hayan intercambiado.",
+    "internalReaderUnsupportedFormat": "El lector interno admite EPUB, PDF y CBZ. Formatos disponibles: {formats}",
+    "readerCacheDescription": "Los libros abiertos en el lector interno permanecen en el dispositivo, se abren al instante la próxima vez y están disponibles sin conexión. Los más antiguos se eliminan cuando se alcanza el límite.",
+    "opdsReadOnlyHint": "OPDS te permite buscar, descargar y leer libros. La edición de metadatos, estantes y estado de lectura requiere un inicio de sesión directo: para Calibre-Web o sus bifurcaciones, use la pestaña \"Calibre Web\".",
+    "metadataStatusRateLimited": "Proporción limitada"
 }
